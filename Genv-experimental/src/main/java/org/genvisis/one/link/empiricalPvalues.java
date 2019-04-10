@@ -137,7 +137,7 @@ public class empiricalPvalues {
                       + repNum
                       + "-mls.out\\ntrash1\\ny\\ntrash2\\ny\\nquit\\n\" | /software/bin/sibs > chrom"
                       + chrome + ".log"); // >
-                                                                                                                                                                                                                                                                                                       // /dev/null"
+                                          // /dev/null"
       }
       batch.println();
     }

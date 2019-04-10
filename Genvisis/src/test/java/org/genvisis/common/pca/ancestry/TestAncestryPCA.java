@@ -256,6 +256,7 @@ public class TestAncestryPCA {
 
     /*
      * (non-Javadoc)
+     * 
      * @see org.genvisis.common.matrix.MatrixDataLoading#getData()
      */
     /**
@@ -299,38 +300,39 @@ public class TestAncestryPCA {
 
     InputProvider inputProvider = new InputProvider(INPUT);
     NamedRealMatrix m = inputProvider.getData();
-    assertEquals(10, m.getDenseMatrix().getNumCols());//samples
+    assertEquals(10, m.getDenseMatrix().getNumCols());// samples
     assertEquals(numberOfPCSamples, m.getDenseMatrix().getNumCols());
-    assertEquals(11, m.getDenseMatrix().getNumRows());//markers
-    assertEquals(11, numberOfMarkers);//markers
+    assertEquals(11, m.getDenseMatrix().getNumRows());// markers
+    assertEquals(11, numberOfMarkers);// markers
 
     Logger log = new Logger();
     AncestryPCA ancestryPCA = AncestryPCA.generatePCs(inputProvider, 5, log);
-    //compare the generated PCs to expected
+    // compare the generated PCs to expected
     DenseMatrix64F pcs = ancestryPCA.getSvd().getPCs().getDenseMatrix();
     DenseMatrix64F transposed = new DenseMatrix64F(pcs.numCols, pcs.numRows);
     CommonOps.transpose(pcs, transposed);
     comparePCsToStandard(transposed, OUTPUT_PCS, numberOfPCSamples);
-    //compare the generated loadings to expected
+    // compare the generated loadings to expected
 
     compareLoadingsToStandard(ancestryPCA.getSvd().getLoadings(), OUTPUT_LOADINGS);
 
-    //compare the extrapolated pcs on the same samples to expected
+    // compare the extrapolated pcs on the same samples to expected
     comparePCsToStandard(AncestryPCA.extrapolatePCs(ancestryPCA, inputProvider, log)
                                     .getDenseMatrix(),
                          OUTPUT_PCS, numberOfPCSamples);
 
-    //    spike in new samples
+    // spike in new samples
     double[][] inputWithNewSamples = new double[INPUT.length][numberOfPCSamples + nonPCSamples];
     for (int i = 0; i < inputWithNewSamples.length; i++) {
       inputWithNewSamples[i] = ArrayUtils.concatDubs(INPUT[i], ADDITIONAL_SAMPLES[i]);
     }
 
-    //compare the extrapolated pcs generated with the spiked in samples to expected for the original samples
+    // compare the extrapolated pcs generated with the spiked in samples to expected for the
+    // original samples
 
     compareExtrapolated(numberOfPCSamples, nonPCSamples, 11, log, ancestryPCA, inputWithNewSamples);
 
-    //spike in new markers
+    // spike in new markers
     double[][] inputWithNewSamplesNewMarkers = new double[INPUT.length
                                                           + ADDITIONAL_MARKERS.length][numberOfPCSamples
                                                                                        + nonPCSamples];
@@ -367,9 +369,10 @@ public class TestAncestryPCA {
 
         double standard = standardPCs[sample][component];
         double test = pcs.get(sample, component);
-        //since the sign of a PC does not matter, we test if the first row (sample) of the PC should be flipped. 
-        //  If it should, we flip all other entries.
-        //   We only do this test once per PC since it should be consistent      
+        // since the sign of a PC does not matter, we test if the first row (sample) of the PC
+        // should be flipped.
+        // If it should, we flip all other entries.
+        // We only do this test once per PC since it should be consistent
         if (sample == 0 && ((standard < 0 && test > 0) || (standard > 0 && test < 0))) {
           flip = true;
         }

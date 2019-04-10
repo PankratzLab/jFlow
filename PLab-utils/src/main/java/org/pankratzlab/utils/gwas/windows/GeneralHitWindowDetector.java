@@ -42,6 +42,7 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
 
   /*
    * (non-Javadoc)
+   * 
    * @see java.util.Iterator#hasNext()
    */
   @Override
@@ -55,6 +56,7 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
 
   /*
    * (non-Javadoc)
+   * 
    * @see java.util.Iterator#next()
    */
   @Override
@@ -88,32 +90,31 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
         int numSig = 1;
         int numSuggestive = 1;
         while (startIndex - offset - 1 >= 0
-               && hittables.get(startIndex).getChr() == hittables.get(startIndex - offset
-                                                                      - 1)
+               && hittables.get(startIndex).getChr() == hittables.get(startIndex - offset - 1)
                                                                  .getChr()
                && hittables.get(startIndex).getPos()
                   - window * 2 <= hittables.get(startIndex - offset - 1).getPos()) { // *2
-                                                                                                                                                                                                                                                       // required
-                                                                                                                                                                                                                                                       // to ensure
-                                                                                                                                                                                                                                                       // that
-                                                                                                                                                                                                                                                       // there
-                                                                                                                                                                                                                                                       // are no
-                                                                                                                                                                                                                                                       // overlapping
-                                                                                                                                                                                                                                                       // SNPs
-                                                                                                                                                                                                                                                       // 500kb
-                                                                                                                                                                                                                                                       // after
-                                                                                                                                                                                                                                                       // last
-                                                                                                                                                                                                                                                       // hit and
-                                                                                                                                                                                                                                                       // 500kb
-                                                                                                                                                                                                                                                       // before
-                                                                                                                                                                                                                                                       // next
-                                                                                                                                                                                                                                                       // hit is
-                                                                                                                                                                                                                                                       // technically
-                                                                                                                                                                                                                                                       // a 1M
-                                                                                                                                                                                                                                                       // region
-                                                                                                                                                                                                                                                       // that
-                                                                                                                                                                                                                                                       // should
-                                                                                                                                                                                                                                                       // be merged
+                                                                                     // required
+                                                                                     // to ensure
+                                                                                     // that
+                                                                                     // there
+                                                                                     // are no
+                                                                                     // overlapping
+                                                                                     // SNPs
+                                                                                     // 500kb
+                                                                                     // after
+                                                                                     // last
+                                                                                     // hit and
+                                                                                     // 500kb
+                                                                                     // before
+                                                                                     // next
+                                                                                     // hit is
+                                                                                     // technically
+                                                                                     // a 1M
+                                                                                     // region
+                                                                                     // that
+                                                                                     // should
+                                                                                     // be merged
           offset++;
           if (hittables.get(startIndex - offset).getPval() < windowExtensionThreshold) {
             startIndex -= offset;
@@ -130,8 +131,8 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
                                                                 .getChr()
                && hittables.get(stopIndex).getPos()
                   + window >= hittables.get(stopIndex + offset + 1).getPos()) { // don't want the
-                                                                                                                                                                                                                                                            // 2* here,
-                                                                                                                                                                                                                                                            // though
+                                                                                // 2* here,
+                                                                                // though
           offset++;
           if (hittables.get(stopIndex + offset).getPval() < indexThreshold) {
             numSig++;
@@ -148,14 +149,15 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
             minPval = hittables.get(stopIndex).getPval();
           }
           if (!minIndices.contains(stopIndex) && hittables.get(stopIndex).getPval() == minPval) { // in
-                                                                                                 // case
-                                                                                                 // of
-                                                                                                 // exact
-                                                                                                 // ties,
-                                                                                                 // like
-                                                                                                 // in
-                                                                                                 // the
-                                                                                                 // coding test
+                                                                                                  // case
+                                                                                                  // of
+                                                                                                  // exact
+                                                                                                  // ties,
+                                                                                                  // like
+                                                                                                  // in
+                                                                                                  // the
+                                                                                                  // coding
+                                                                                                  // test
             minIndices.add(stopIndex);
 
           }

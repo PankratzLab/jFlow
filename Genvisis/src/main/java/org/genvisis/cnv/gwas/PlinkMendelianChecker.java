@@ -288,7 +288,7 @@ public class PlinkMendelianChecker {
   final String genomeFile; // from property - plink.genome
   final boolean genomeDNA; // is the genome file FID/IID or DNA/DNA?
   final String mendelFile; // from MarkerMetrics.fullQC - outputs a property file with an appended
-                          // name
+                           // name
   final String outDir;
   final Logger log;
 
@@ -405,7 +405,7 @@ public class PlinkMendelianChecker {
         String[] spl1 = childFIDIID.split("\t");
         String[] spl2 = fidiid.split("\t");
         String childDNA = dnaLookup.get(childFIDIID); // shouldn't be nul, unless child DNA value
-                                                     // was missing
+                                                      // was missing
         String parentDNA = dnaLookup.get(fidiid);
         if (childDNA == null) {
           continue;
@@ -413,14 +413,14 @@ public class PlinkMendelianChecker {
         if (parentDNA != null) {
           if (genomeDNA) {
             pairs.add(new Pair(childDNA, childDNA, parentDNA, parentDNA)); // for DNA/DNA genome
-                                                                          // file
+                                                                           // file
             pairs.add(new Pair(parentDNA, parentDNA, childDNA, childDNA)); // either bi-directional
-                                                                          // here or in genome
-                                                                          // loader
+                                                                           // here or in genome
+                                                                           // loader
           } else {
             pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // for fid/iid genome file
             pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // either bi-directional here
-                                                                    // or in genomeloader
+                                                                     // or in genomeloader
           }
         }
 

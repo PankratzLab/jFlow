@@ -2,7 +2,8 @@ package org.pankratzlab.common.parsing;
 
 import java.util.Map;
 
-public class ExplicitIndexedFileColumn extends AbstractFileColumn<String> implements IndexedFileColumn<String> {
+public class ExplicitIndexedFileColumn extends AbstractFileColumn<String>
+                                       implements IndexedFileColumn<String> {
 
   final int index;
 

@@ -66,7 +66,7 @@ public class DossierMerge {
 
       if (role == null || !role.equals("None")) {
         count++;
-        //				System.out.println(pmid);
+        // System.out.println(pmid);
         bits = citation.split("\t", -1);
 
         line = bits[0].substring(0, bits[0].length() - 1).split(",");
@@ -163,12 +163,12 @@ public class DossierMerge {
         pmid = line[0];
         doi = line[1].equals("") ? null : line[1];
 
-        //				// remove preceeding UTF-8 signifier 
-        //				byte[] b = pmid.getBytes("UTF-8");
-        //				if (b[0] == -17) {
-        //					byte[] b2 = Arrays.copyOfRange(b, 3, b.length);
-        //					pmid = new String(b2, "US-ASCII");
-        //				}
+        // // remove preceeding UTF-8 signifier
+        // byte[] b = pmid.getBytes("UTF-8");
+        // if (b[0] == -17) {
+        // byte[] b2 = Arrays.copyOfRange(b, 3, b.length);
+        // pmid = new String(b2, "US-ASCII");
+        // }
         pmid = pmid.replaceAll("\\P{Print}", "");
 
         System.out.println((i + 1) + " of " + pmids.length + "\tQuerying PubMed for PMID:" + pmid
@@ -278,7 +278,8 @@ public class DossierMerge {
         } else {
 
           if (doi != null && !doi.equals("ults")) {
-            // if you get black listed by Google, then just reverse the commenting of these two lines
+            // if you get black listed by Google, then just reverse the commenting of these two
+            // lines
             if (banned) {
               results = new String[] {"https://scholar.google.com/scholar?q=http%3A%2F%2Fdx.doi.org%2F"
                                       + doi};

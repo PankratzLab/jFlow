@@ -830,7 +830,7 @@ public class MarkerData implements Serializable {
     // 0=non-specific, 1=male, 2=female
     if (chr == 23) {
       sexSpecific = "2"; // this is not technically correct, but there is no place to add the A/null
-                        // and B/null male genotypes in this class; will add a new getMAF for chrX
+                         // and B/null male genotypes in this class; will add a new getMAF for chrX
     } else if (chr == 24) {
       sexSpecific = "1";
     } else {

@@ -139,7 +139,7 @@ public class Qsub {
                          numProcs, null);
 
     boolean rewriteJavaCmd = (totalMemoryRequestedInMb / 1024) > 1; // default Java heap size is
-                                                                   // min(1/4 mem avail, 1GB)
+                                                                    // min(1/4 mem avail, 1GB)
 
     for (String line : lines) {
       if (line.startsWith("java ")) {
@@ -171,7 +171,7 @@ public class Qsub {
                            numProcs, null);
 
     boolean rewriteJavaCmd = totalMemoryRequestedInGb > 1; // default Java heap size is
-                                                          // min(1/4 mem avail, 1GB)
+                                                           // min(1/4 mem avail, 1GB)
 
     for (String line : lines) {
       if (line.startsWith("java ")) {
@@ -226,7 +226,7 @@ public class Qsub {
     params.add("nodes=1:ppn=" + (numProcs <= 0 ? "1" : numProcs));
     if (params.size() > 0) {
       writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for
-                                   // begins as well)
+                                    // begins as well)
       writer.println("#PBS -l " + ArrayUtils.toStr(ArrayUtils.toStringArray(params), ","));
     }
 

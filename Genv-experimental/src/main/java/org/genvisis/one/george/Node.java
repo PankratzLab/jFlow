@@ -19,8 +19,9 @@ public class Node {
 
   public int[] getIds() {
     if (this.id2 == -1) // uninitialized
-                       return new int[] {this.id};
-    else return new int[] {this.id, this.id2};
+      return new int[] {this.id};
+    else
+      return new int[] {this.id, this.id2};
   }
 
   public Node[] getChildren() { // Returns pointer to children

@@ -715,7 +715,7 @@ public class GenvisisWorkflowGUI extends JDialog {
       checkBoxes.get(step).setSelected(false);
       // FIXME not triggering the attached Action's actionPerformed method
       checkBoxes.get(step).doClick();
-      // FIXME so manually remove from selected steps 
+      // FIXME so manually remove from selected steps
       selected.remove(step);
     }
   }
@@ -736,6 +736,7 @@ public class GenvisisWorkflowGUI extends JDialog {
       changedUpdate(e);
     }
   }
+
   /**
    * Helper {@link ActionListener} to refresh one or more UI steps.
    */
@@ -957,18 +958,18 @@ public class GenvisisWorkflowGUI extends JDialog {
             String suggFile = file + ext.getTimestampForFilename() + ".pbs";
             String command = output.toString();
             // TODO see issue #436 regarding commented-out if/else block below
-            //            if (useDefaults || !hasQsub) {
+            // if (useDefaults || !hasQsub) {
             Qsub.qsubDefaults(suggFile, command);
-            //            } else {
-            //              if (hasQsub) {
-            //                file = QueuePicker.qsubGUI(suggFile, command);
-            //                if (file != null) {
-            //                  if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
-            //                    file = file + ".pbs";
-            //                  }
-            //                }
-            //              }
-            //            }
+            // } else {
+            // if (hasQsub) {
+            // file = QueuePicker.qsubGUI(suggFile, command);
+            // if (file != null) {
+            // if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
+            // file = file + ".pbs";
+            // }
+            // }
+            // }
+            // }
             if (file != null) {
               proj.message("GenvisisPipeline commands written to " + file, "Command File Written",
                            JOptionPane.INFORMATION_MESSAGE);

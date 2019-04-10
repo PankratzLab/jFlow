@@ -235,8 +235,8 @@ public class PrincipalComponentsValidate {
     // train #,validation #, PC #
     ValidationResults[][][] outOfSampleValidationResults = new ValidationResults[principalComponentsResiduals.length][principalComponentsResiduals.length
                                                                                                                       - 1][];// all
-                                                                                                                                                                                                                                                                                   // v
-                                                                                                                                                                                                                                                                                   // all
+                                                                                                                             // v
+                                                                                                                             // all
     String[][] comparisons = new String[outOfSampleValidationResults.length][outOfSampleValidationResults[0].length];
 
     for (int i = 0; i < principalComponentsResiduals.length; i++) {
@@ -257,17 +257,17 @@ public class PrincipalComponentsValidate {
                                                                         numPcSamplings, kfolds,
                                                                         numThreads, null, lType,
                                                                         log);// this
-                                                                                                                                                                                                                                               // can
-                                                                                                                                                                                                                                               // create
-                                                                                                                                                                                                                                               // alot
-                                                                                                                                                                                                                                               // of
-                                                                                                                                                                                                                                               // tempory
-                                                                                                                                                                                                                                               // files
-                                                                                                                                                                                                                                               // we
-                                                                                                                                                                                                                                               // skip
-                                                                                                                                                                                                                                               // the
-                                                                                                                                                                                                                                               // tmp
-                                                                                                                                                                                                                                               // reporting
+                                                                             // can
+                                                                             // create
+                                                                             // alot
+                                                                             // of
+                                                                             // tempory
+                                                                             // files
+                                                                             // we
+                                                                             // skip
+                                                                             // the
+                                                                             // tmp
+                                                                             // reporting
           } else {
             log.reportError("Warning - all individuals from the validation pc file "
                             + principalComponentsResiduals[j].getOutput()

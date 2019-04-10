@@ -175,13 +175,16 @@ public class GcAdjustor {
 
   private final Project proj;
   private CrossValidation crossValidation;
-  private List<Marker> correctedMarkers;// the indices we were able to correct, as ordered by the input
+  private List<Marker> correctedMarkers;// the indices we were able to correct, as ordered by the
+                                        // input
   // data
   private List<Double> lrrsToCorrect;
   private List<Double> gcsToCorrect;
-  private List<? extends List<Marker>> qcMarkers;// the markers used to compute qc metrics, as ordered by the input-gc
+  private List<? extends List<Marker>> qcMarkers;// the markers used to compute qc metrics, as
+                                                 // ordered by the input-gc
   // matched arrays
-  private List<? extends List<Marker>> chr11qcMarkers;// only used if defualy penncnv GCWF calculation is desired
+  private List<? extends List<Marker>> chr11qcMarkers;// only used if defualy penncnv GCWF
+                                                      // calculation is desired
   private final double minimumAutosomalGC, maximimumAutosomalGC, minIntensity, maxIntensity;
 
   private double wfPrior;
@@ -449,17 +452,31 @@ public class GcAdjustor {
     } else {
       List<Marker> markers = markerSet.markersAsList();
 
-      ImmutableList.Builder<Double> regressGcsBuilder = ImmutableList.builderWithExpectedSize(3000);// usually around 3K, stores
+      ImmutableList.Builder<Double> regressGcsBuilder = ImmutableList.builderWithExpectedSize(3000);// usually
+                                                                                                    // around
+                                                                                                    // 3K,
+                                                                                                    // stores
       // info for regression model
-      ImmutableList.Builder<Double> regressIntensityBuilder = ImmutableList.builderWithExpectedSize(3000);// usually around 3K,
+      ImmutableList.Builder<Double> regressIntensityBuilder = ImmutableList.builderWithExpectedSize(3000);// usually
+                                                                                                          // around
+                                                                                                          // 3K,
       // stores info for
       // regression model
-      ImmutableList.Builder<ImmutableList<Marker>> tmpQcMarkers = ImmutableList.builderWithExpectedSize(3000);// refers to the index matched
+      ImmutableList.Builder<ImmutableList<Marker>> tmpQcMarkers = ImmutableList.builderWithExpectedSize(3000);// refers
+                                                                                                              // to
+                                                                                                              // the
+                                                                                                              // index
+                                                                                                              // matched
       // gc/LRR values
-      ImmutableList.Builder<ImmutableList<Marker>> tmpchr11qcMarkers = ImmutableList.builderWithExpectedSize(3000);// refers to the index matched
+      ImmutableList.Builder<ImmutableList<Marker>> tmpchr11qcMarkers = ImmutableList.builderWithExpectedSize(3000);// refers
+                                                                                                                   // to
+                                                                                                                   // the
+                                                                                                                   // index
+                                                                                                                   // matched
       // gc/LRR values on chromosome
       // 11 only
-      ImmutableList.Builder<Marker> correctedMarkersBuilder = ImmutableList.builderWithExpectedSize(markers.size());// refers to
+      ImmutableList.Builder<Marker> correctedMarkersBuilder = ImmutableList.builderWithExpectedSize(markers.size());// refers
+                                                                                                                    // to
       // all indices
       // we will
       // correct
@@ -507,7 +524,10 @@ public class GcAdjustor {
                                                                       // quality
                                                                       // markers/customize the
                                                                       // qc
-                                                                      // note that this binning procedure is slightly different than the regression
+                                                                      // note that this binning
+                                                                      // procedure is slightly
+                                                                      // different than the
+                                                                      // regression
                                                                       // indices
                 int position = marker.getPosition();
                 if (position >= regressionDistance * currentBin
@@ -756,8 +776,8 @@ public class GcAdjustor {
     private static final long serialVersionUID = 1L;
     public static final String[] GC_HEADER = {"Name", "Chr", "Position", "GC"};
     public static final int DEFAULT_GC_MODEL_BIN_FASTA = 5120 * 100; // default bin generation for
-                                                                    // reference genome-based gc
-                                                                    // model
+                                                                     // reference genome-based gc
+                                                                     // model
     private final String[] markers;
     private final byte[] chrs;
     private final int[] positions;
@@ -958,10 +978,11 @@ public class GcAdjustor {
       // generate or load SnpFile (pbf file or Population B Allele Frequency)
       markerSet = proj.getMarkerSet();
       markerNames = markerSet.getMarkerNames();
-      chrs = markerSet.getChrs(); // to be used only in the SnpFile (.pdf file) block. But then in the
-                                 // outputFile.
+      chrs = markerSet.getChrs(); // to be used only in the SnpFile (.pdf file) block. But then in
+                                  // the
+                                  // outputFile.
       positions = markerSet.getPositions(); // to be used only in the SnpFile (.pdf file) block. But
-                                           // then in the GcFile block.
+                                            // then in the GcFile block.
 
       // How do we know whether "numwindow==null" ???
       if (numwindow == 0) {

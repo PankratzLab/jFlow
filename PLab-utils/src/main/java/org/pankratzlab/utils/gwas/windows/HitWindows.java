@@ -218,7 +218,8 @@ public class HitWindows {
         numSig = numSuggestive = 1;
         while (startIndex - offset - 1 >= 0 && chrs[startIndex] == chrs[startIndex - offset - 1]
                && positions[startIndex]
-                  // *2 required to ensure that there are no overlapping SNPs 500kb after last hit and 500kb before next hit is technically a 1M region that should be merged:
+                  // *2 required to ensure that there are no overlapping SNPs 500kb after last hit
+                  // and 500kb before next hit is technically a 1M region that should be merged:
                   - windowMinSizePerSide * 2 <= positions[startIndex - offset - 1]) {
           offset++;
           if (pvals[startIndex - offset] < windowExtensionThreshold
@@ -234,7 +235,8 @@ public class HitWindows {
         while (stopIndex + offset + 1 < markerNames.length
                && chrs[stopIndex] == chrs[stopIndex + offset + 1]
                && positions[stopIndex]
-                  + windowMinSizePerSide >= positions[stopIndex + offset + 1]) { // don't want the 2* here, though
+                  + windowMinSizePerSide >= positions[stopIndex + offset + 1]) { // don't want the
+                                                                                 // 2* here, though
           offset++;
           if (mafs != null && !mafComp.check(mafs[stopIndex + offset], mafThreshold)) continue;
           if (pvals[stopIndex + offset] < indexThreshold) {
@@ -387,9 +389,9 @@ public class HitWindows {
     String outfile = "hits.out";
     float indexThreshold = (float) 0.00000005;
     int windowMinSizePerSide = 500000; // 500kb each side is technically a 1M window until the next
-                                      // hit region, but we now take this into consideration in
-                                      // the
-                                      // main algorithm
+                                       // hit region, but we now take this into consideration in
+                                       // the
+                                       // main algorithm
     int windowMaxSizePerSide = 100000;
     float windowExtensionThreshold = (float) 0.00000005; // (float)0.00001;
     String knownHits = null;

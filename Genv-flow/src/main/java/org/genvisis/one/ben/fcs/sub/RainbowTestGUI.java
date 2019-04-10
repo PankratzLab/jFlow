@@ -978,7 +978,7 @@ public class RainbowTestGUI extends JFrame {
     FontMetrics fm = table.getFontMetrics(table.getFont());
     for (int column = 0; column < table.getColumnCount(); column++) {
       int width = fm.stringWidth(columnModel.getColumn(column).getHeaderValue().toString()) + 20; // Min
-                                                                                                 // width
+                                                                                                  // width
       for (int row = 0; row < table.getRowCount(); row++) {
         TableCellRenderer renderer = table.getCellRenderer(row, column);
         Component comp = table.prepareRenderer(renderer, row, column);
@@ -1263,7 +1263,7 @@ public class RainbowTestGUI extends JFrame {
   private static final int TREND_ABOVE_2SD_THRESH = 2;
 
   private static final double PCT_OF_EVENTS_DEV_TREND = 0.25; // 1-quarter of events outside of 1SD
-                                                             // will result in file being reported
+                                                              // will result in file being reported
 
   private ArrayList<String> getFileTrendWarnings(String[] params) {
     ArrayList<String> warnings = new ArrayList<>();

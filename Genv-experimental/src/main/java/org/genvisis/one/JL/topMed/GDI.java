@@ -98,7 +98,7 @@ public class GDI {
         }
         if (useImpact) {
           double af = Double.parseDouble(vc.getAttributeAsString("AF", "0"));
-          if (af < 0.5) {//with a MAF < 0.5, alt is annotated so we make sure it is minor
+          if (af < 0.5) {// with a MAF < 0.5, alt is annotated so we make sure it is minor
             writer.add(vc);
             numUsed++;
           }
@@ -150,7 +150,7 @@ public class GDI {
         while (iter.hasNext()) {
           numTotal++;
           VariantContext vc = iter.next();
-          //          vc.getFilters()
+          // vc.getFilters()
           try {
             Double.parseDouble(vc.getAttributeAsString("CADD_raw", "."));
             StringJoiner out = new StringJoiner("\t");

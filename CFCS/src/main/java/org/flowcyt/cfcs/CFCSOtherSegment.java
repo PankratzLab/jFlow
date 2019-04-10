@@ -40,7 +40,7 @@ public final class CFCSOtherSegment implements Cloneable, CFCSErrorCodes {
   }
 
   // --------------------------------------------------------------------
-  // Returns the bytes of the OTHER segment.  The data array should be at
+  // Returns the bytes of the OTHER segment. The data array should be at
   // least getCount() bytes long otherwise an exception is thrown.
 
   public final void getBytes(final byte[] data) {

@@ -81,8 +81,11 @@ public class WrapLayout extends FlowLayout {
 
   /*
    * Returns the minimum or preferred dimension needed to layout the target container.
+   * 
    * @param target target to get layout size for
+   * 
    * @param preferred should preferred size be calculated
+   * 
    * @return the dimension to layout the target container
    */
   private Dimension layoutSize(Container target, boolean preferred) {
@@ -159,8 +162,11 @@ public class WrapLayout extends FlowLayout {
   /*
    * A new row has been completed. Use the dimensions of this row to update the preferred size for
    * the container.
+   * 
    * @param dim update the width and height when appropriate
+   * 
    * @param rowWidth the width of the row to add
+   * 
    * @param rowHeight the height of the row to add
    */
   private void addRow(Dimension dim, int rowWidth, int rowHeight) {

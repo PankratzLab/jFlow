@@ -63,7 +63,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
                                         VIOLETS.CHRISTALLE, // dark purple. for 8 - Turner's XO
                                         // without mosaicism
                                         VIOLETS.LOLA // light purple.for 9 - mosaic
-                                                    // Turner's
+                                                     // Turner's
   };
 
   public static String[] COLOR_SCHEME_MEANING = {"Missing", "Normal Male", "Normal Female",

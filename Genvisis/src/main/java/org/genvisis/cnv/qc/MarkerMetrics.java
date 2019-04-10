@@ -573,7 +573,7 @@ public class MarkerMetrics {
         for (String duplicate : duplicateSet) {
           Integer sampInd = sampleIndices.get(duplicate);
           if (sampInd != null) { // occurs if data files don't match SampleData - sampleList is
-                                // built from file names in samples/ directory
+                                 // built from file names in samples/ directory
             int sampleIndex = sampInd.intValue();
             if (!samplesToExclude[sampleIndex]) duplicateIndices.add(sampleIndex);
           }

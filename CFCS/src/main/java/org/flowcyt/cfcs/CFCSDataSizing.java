@@ -49,7 +49,7 @@ public class CFCSDataSizing implements CFCSErrorCodes {
     return FIXED;
   }
 
-  //    /* friendly */
+  // /* friendly */
   final boolean isVariableSize() {
     return (getSizeVariability() != FIXED);
   }
@@ -94,8 +94,10 @@ public class CFCSDataSizing implements CFCSErrorCodes {
         if (width < min) min = width;
       }
 
-      if (min == max) size = min;
-      else throw new CFCSError(CFCSSystemError);
+      if (min == max)
+        size = min;
+      else
+        throw new CFCSError(CFCSSystemError);
     }
 
     return size;
@@ -138,8 +140,10 @@ public class CFCSDataSizing implements CFCSErrorCodes {
       byteSizes = new int[sizes.length];
 
       for (int i = 0; i < sizes.length; i++) {
-        if (ascii) byteSizes[i] = sizes[i];
-        else byteSizes[i] = (sizes[i] + (BITSPERBYTE - 1)) / BITSPERBYTE;
+        if (ascii)
+          byteSizes[i] = sizes[i];
+        else
+          byteSizes[i] = (sizes[i] + (BITSPERBYTE - 1)) / BITSPERBYTE;
       }
     }
 

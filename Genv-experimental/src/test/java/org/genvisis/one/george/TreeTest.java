@@ -7,8 +7,10 @@ public class TreeTest {
 
   public static void printArray(Object[] arr) {
     for (int i = 0; i < arr.length; i++)
-      if (i == arr.length - 1) System.out.println(arr[i].toString());
-      else System.out.print(arr[i].toString() + ",");
+      if (i == arr.length - 1)
+        System.out.println(arr[i].toString());
+      else
+        System.out.print(arr[i].toString() + ",");
   }
 
   @Test

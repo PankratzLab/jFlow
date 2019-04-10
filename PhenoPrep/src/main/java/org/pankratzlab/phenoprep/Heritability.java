@@ -485,10 +485,10 @@ public class Heritability {
               FamilyStructure ped = new FamilyStructure(pedigreeFile, false);
               ArrayList<String[]> sibList = FamilyStructure.PedigreeUtils.loadSibs(ped, true, null,
                                                                                    validIDs, true); // double
-                                                                                                                                                                                         // actual
-                                                                                                                                                                                         // due
-                                                                                                                                                                                         // to
-                                                                                                                                                                                         // bidirectionality
+                                                                                                    // actual
+                                                                                                    // due
+                                                                                                    // to
+                                                                                                    // bidirectionality
               ArrayList<String[]> poPairs = FamilyStructure.PedigreeUtils.loadPOPairs(ped, true,
                                                                                       null,
                                                                                       validIDs,

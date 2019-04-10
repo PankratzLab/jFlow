@@ -956,7 +956,7 @@ public class Launch extends JFrame implements ActionListener {
         }
         String targetMarkersFilename = peo.getTargetMarkersFile();
         if (peo.getCancelled()) { // getTargetMarkersFile(), if set to CREATE_NEW, can potentially
-                                 // be cancelled
+                                  // be cancelled
           return;
         }
 
@@ -1603,8 +1603,10 @@ public class Launch extends JFrame implements ActionListener {
    * @param args Command-line arguments
    */
   public static void main(String[] args) {
-    if (args.length > 0) runMainClass(args);
-    else createAndShowGUI();
+    if (args.length > 0)
+      runMainClass(args);
+    else
+      createAndShowGUI();
   }
 
   /**

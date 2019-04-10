@@ -105,7 +105,7 @@ public class WorkerTrain<E> implements Iterator<E>, AutoCloseable {
     // If the producer has unqueued tasks or the queue has remaining values, then next() will
     // eventually return something. But we cannot check the producer itself directly, as the act of
     // retrieving from the producer and enqueuing cannot be atomic without introducing potential
-    // deadlock. So we use a boolean surrogate whose update is synchronized with enqueuing and 
+    // deadlock. So we use a boolean surrogate whose update is synchronized with enqueuing and
     // dequeuing actions.
     boolean hasNext;
     try {

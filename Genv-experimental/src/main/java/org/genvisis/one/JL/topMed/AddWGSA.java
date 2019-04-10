@@ -35,16 +35,25 @@ import htsjdk.variant.vcf.VCFInfoHeaderLine;
  */
 public class AddWGSA {
 
-  //  Important notice:
-  //    1. To facilitate gene-based genotype-phenotype association analysis, the most "deleterious" consequence of the variant for its corresponding gene or genes were identified according to
-  //            http://www.ensembl.org/info/genome/variation/predicted_data.html#consequences. Each vairant may contain multiple rows in freeze.6.chr1-22X.snp.general.gz
-  //            and freeze.6.chr1-22X.indel.general.gz, one row for a gene. To obtain only one row for a variant, I recommend to use the row with "Y" in the unique_variant column,
-  //            which corresponds to the most "deleterious" consequence of the variant across genes it impacts.
-  //    2. The coordinates of hg38 were converted to those of hg19 via CrossMap (https://doi.org/10.1093/bioinformatics/btt730). There are a few cases in which the reference allele of the hg19 coordinate does not agree with
-  //            that of the hg38 coordinate. Those variants will have a "N" in column ref_hg19_equals_ref_hg38 and a "." in column alt_hg19.
-  //    3. When an annotation resource has both hg38 and hg19 data, the hg38 will be used in priority. When an annotation resource only has hg19 data, the annotation will be based on the CrossMap converted hg19 coordiate
-  //            (and ref_hg19 and alt_hg19 if applicable).
-  //    4. Because there are hundreds of annotation columns for each variant, I recommend read "List of resources v0.75.docx" first before resorting the column description files (description.txt)
+  // Important notice:
+  // 1. To facilitate gene-based genotype-phenotype association analysis, the most "deleterious"
+  // consequence of the variant for its corresponding gene or genes were identified according to
+  // http://www.ensembl.org/info/genome/variation/predicted_data.html#consequences. Each vairant may
+  // contain multiple rows in freeze.6.chr1-22X.snp.general.gz
+  // and freeze.6.chr1-22X.indel.general.gz, one row for a gene. To obtain only one row for a
+  // variant, I recommend to use the row with "Y" in the unique_variant column,
+  // which corresponds to the most "deleterious" consequence of the variant across genes it impacts.
+  // 2. The coordinates of hg38 were converted to those of hg19 via CrossMap
+  // (https://doi.org/10.1093/bioinformatics/btt730). There are a few cases in which the reference
+  // allele of the hg19 coordinate does not agree with
+  // that of the hg38 coordinate. Those variants will have a "N" in column ref_hg19_equals_ref_hg38
+  // and a "." in column alt_hg19.
+  // 3. When an annotation resource has both hg38 and hg19 data, the hg38 will be used in priority.
+  // When an annotation resource only has hg19 data, the annotation will be based on the CrossMap
+  // converted hg19 coordiate
+  // (and ref_hg19 and alt_hg19 if applicable).
+  // 4. Because there are hundreds of annotation columns for each variant, I recommend read "List of
+  // resources v0.75.docx" first before resorting the column description files (description.txt)
   private static final String WGSA_SNP_FILE = "wgsaSnpFile";
   private static final String WGSA_INDEL_FILE = "wgsaIndelFile";
 

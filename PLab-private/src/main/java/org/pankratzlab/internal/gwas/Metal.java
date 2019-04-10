@@ -52,14 +52,14 @@ public class Metal {
 
   public static final int[] FLIP = {1, 0};
   public static final String[] SUFFIXES = {"_A1", "_A2", "_freq", "_N", "_Rsq", "_effN"}; // this is
-                                                                                         // the
-                                                                                         // final
-                                                                                         // output
-                                                                                         // header,
-                                                                                         // _effN
-                                                                                         // is
-                                                                                         // always
-                                                                                         // computed
+                                                                                          // the
+                                                                                          // final
+                                                                                          // output
+                                                                                          // header,
+                                                                                          // _effN
+                                                                                          // is
+                                                                                          // always
+                                                                                          // computed
 
   public static final String[] TEXT = {"NADA", "STRAND_CONFIG_SAME", "STRAND_CONFIG_SAME_FLIPPED",
                                        "STRAND_CONFIG_OPPOSITE", "STRAND_CONFIG_OPPOSITE_FLIPPED",

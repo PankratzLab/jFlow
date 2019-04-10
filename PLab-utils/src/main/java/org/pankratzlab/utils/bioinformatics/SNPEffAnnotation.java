@@ -79,7 +79,7 @@ public class SNPEffAnnotation {
       // monitor);
       ParseSNPlocations.lowMemParse(file, MapSNPsAndGenes.getSNPDB(DEFAULT_BUILD, log),
                                     MapSNPsAndGenes.getMergeDB(log), true, log); // TODO using hash
-                                                                                                                                                                  // parse, not VCF
+                                                                                 // parse, not VCF
       fileToUse = ext.rootOf(file, false) + "_positions.xln";
       indicesToUse = ext.indexFactors(FACTORS, Files.getHeaderOfFile(fileToUse, log), false, true,
                                       true);
@@ -120,7 +120,7 @@ public class SNPEffAnnotation {
 
   public static String getDefaultConfigFile() {
     return "./snpEff.config"; // TODO put snpEff.config file into valid jar location [test current
-                             // location]
+                              // location]
   }
 
   public static void main(String[] args) {

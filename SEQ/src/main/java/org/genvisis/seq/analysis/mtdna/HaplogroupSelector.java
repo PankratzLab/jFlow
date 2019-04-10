@@ -149,6 +149,7 @@ public class HaplogroupSelector {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     @Override

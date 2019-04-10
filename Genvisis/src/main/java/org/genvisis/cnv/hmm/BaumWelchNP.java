@@ -166,7 +166,7 @@ public class BaumWelchNP {
     }
   }
 
-  //  
+  //
 
   private static void ComputeGamma_CHMM(PennHmm pennHmm, double[][] alpha, double[][] beta,
                                         double[][] gamma, Logger log) {
@@ -213,7 +213,7 @@ public class BaumWelchNP {
                                               final boolean[] copyNumberOnlyDef, double[][] biot,
                                               double[][] alpha, double[] scale, Logger log) {
 
-    //    1. Initialization
+    // 1. Initialization
     log.reportTimeInfo("1. Initialization");
     scale[0] = 0;
     for (int i = 0; i < pennHmm.getN(); i++) {
@@ -225,7 +225,7 @@ public class BaumWelchNP {
       alpha[0][i] /= scale[0];
 
     }
-    //    2. Induction 
+    // 2. Induction
     log.reportTimeInfo("2. Induction ");
 
     for (int t = 0; t < o1.length - 1; t++) {

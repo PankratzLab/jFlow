@@ -184,7 +184,7 @@ public class GeneSet implements Serializable {
           }
         }
         count++; // genes can be in more than one "finished" location, and even be on different
-                // chromosomes (though half the time it's an X/Y pairing)
+                 // chromosomes (though half the time it's an X/Y pairing)
 
         assessionNumbers = new Vector<>();
         exons = new LinkedHashSet<>();

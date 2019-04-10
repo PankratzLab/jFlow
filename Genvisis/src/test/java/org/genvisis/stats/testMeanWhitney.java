@@ -53,7 +53,7 @@ public class testMeanWhitney {
       // run permutation for this shuffled phenotype value list
       for (int j = 0; j < 14000; j++) {
         MannWhitneyMR.mannWhitneyU(pheno, aIndices, bIndices);
-        //                MannWhitneyUStat.mannWhitneyU(pheno, aIndices, bIndices);
+        // MannWhitneyUStat.mannWhitneyU(pheno, aIndices, bIndices);
       }
     }
 

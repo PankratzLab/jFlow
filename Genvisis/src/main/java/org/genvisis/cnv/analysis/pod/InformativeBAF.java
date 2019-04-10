@@ -24,6 +24,7 @@ class InformativeBAF {
   enum BAF_STATUS {
     INFORMATIVE, NON_INFORMATIVE;
   }
+
   enum BAF_STRATEGY {
     HET_ONLY;
   }

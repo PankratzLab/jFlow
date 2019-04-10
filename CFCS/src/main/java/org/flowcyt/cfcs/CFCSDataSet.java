@@ -95,7 +95,10 @@ public final class CFCSDataSet implements CFCSErrorCodes {
       for (int i = OTHER_START;; i++) { // Private segments
 
         // JS, there was a bug... if (first >= stream.getFilePointer()) break;
-        if (stream.getFilePointer() + 2 * OFFSET_FIELD_SIZE > first) break; // JS: There cannot be more headers because the first segment is going to start  
+        if (stream.getFilePointer() + 2 * OFFSET_FIELD_SIZE > first) break; // JS: There cannot be
+                                                                            // more headers because
+                                                                            // the first segment is
+                                                                            // going to start
 
         long begin, end;
 
@@ -147,11 +150,13 @@ public final class CFCSDataSet implements CFCSErrorCodes {
         if (segments.get(TEXT) != null) addKeywords(TEXT); // STEXT
 
         // JS
-        crc16 = stream.getCRC16();	// Must be saved before reading CRC from file (which changes the saved one)
+        crc16 = stream.getCRC16(); // Must be saved before reading CRC from file (which changes the
+                                   // saved one)
         int checksum = readFileChecksum(stream);
 
         // JS: uncomment this to see CRC comparisons
-        // if (checksum == CHECKSUM_DISABLED) System.out.println("CRCs: Computed CRC: " + crc16 + ", file says: disabled (\"00000000\")");
+        // if (checksum == CHECKSUM_DISABLED) System.out.println("CRCs: Computed CRC: " + crc16 + ",
+        // file says: disabled (\"00000000\")");
         // else System.out.println("CRCs: Computed CRC: " + crc16 + ", file says: " + checksum);
 
         if ((checksum != CHECKSUM_DISABLED)
@@ -190,7 +195,8 @@ public final class CFCSDataSet implements CFCSErrorCodes {
         keywords.addSystemKeyword(keyword);
       }
 
-      for (int i = OTHER_START, count = source.getCount(); i < count; i++) { // copy private segments
+      for (int i = OTHER_START, count = source.getCount(); i < count; i++) { // copy private
+                                                                             // segments
         CFCSOtherSegment segment = source.getOtherSegment(i);
 
         segments.add(segment.copy());
@@ -208,11 +214,15 @@ public final class CFCSDataSet implements CFCSErrorCodes {
   CFCSDataSet(final int mode, final int type) {
     this();
 
-    if (keywords.getMode() == CFCSData.UNDEFINED) keywords.setMode(mode);
-    else throw new CFCSError(CFCSInconsistentAttribute, CFCSKeywords.MODE_KEYWORD);
+    if (keywords.getMode() == CFCSData.UNDEFINED)
+      keywords.setMode(mode);
+    else
+      throw new CFCSError(CFCSInconsistentAttribute, CFCSKeywords.MODE_KEYWORD);
 
-    if (keywords.getDatatype() == CFCSDatatype.UNDEFINED) keywords.setDatatype(type);
-    else throw new CFCSError(CFCSInconsistentAttribute, CFCSKeywords.DATATYPE_KEYWORD);
+    if (keywords.getDatatype() == CFCSDatatype.UNDEFINED)
+      keywords.setDatatype(type);
+    else
+      throw new CFCSError(CFCSInconsistentAttribute, CFCSKeywords.DATATYPE_KEYWORD);
 
     (new CFCSParameters(keywords)).setCount(0); // Force $PAR keyword to exist
 
@@ -303,7 +313,8 @@ public final class CFCSDataSet implements CFCSErrorCodes {
       if (other_keywords != null) {
         segments.set(TEXT, keywords.getTextBytes(true)); // FCS-defined keywords (estimate)
         segments.add(stext = OTHER_START, other_keywords); // All the other keywords
-      } else throw new CFCSError(CFCSBadFCS); // We've overflowed with just FCS-defined keywords!
+      } else
+        throw new CFCSError(CFCSBadFCS); // We've overflowed with just FCS-defined keywords!
     }
 
     // Calculate offsets for all the segments
@@ -325,7 +336,8 @@ public final class CFCSDataSet implements CFCSErrorCodes {
       if ((i > HEADER && i < OTHER_START) || i == stext) {
         int index = i;
 
-        if (index == TEXT) begin = end = 0L;
+        if (index == TEXT)
+          begin = end = 0L;
         else if (index == stext) index = TEXT;
 
         CFCSKeyword keyword = keywords.getKeyword(CFCSKeywords.SEGMENT_BEGIN_PREFIX
@@ -345,9 +357,11 @@ public final class CFCSDataSet implements CFCSErrorCodes {
     if (another > -1L) {
       next = roundToBlock(next + CHECKSUM_FIELD_SIZE);
       // nextdata.setKeywordLongValue(another + next);
-      // JS bug fix? The index should be based on the beginning of the previous data set, not based on the beginning of the data file
+      // JS bug fix? The index should be based on the beginning of the previous data set, not based
+      // on the beginning of the data file
       nextdata.setKeywordLongValue(next);
-    } else nextdata.setKeywordLongValue(0L);
+    } else
+      nextdata.setKeywordLongValue(0L);
     keywords.replaceSystemKeyword(nextdata);
 
     // All the keywords and offsets are now ready, regenerate the TEXT and HEADER segments
@@ -624,7 +638,7 @@ public final class CFCSDataSet implements CFCSErrorCodes {
     return checksum;
   }
 
-  // Josef Spidlen, Feb 27, 2005 
+  // Josef Spidlen, Feb 27, 2005
   /*
    * private static int calculateCRC(final byte[] bytes) { sun.misc.CRC16 crc = new
    * sun.misc.CRC16(); for (int i = 0; i < bytes.length; i++) { crc.update(bytes[i]); } return

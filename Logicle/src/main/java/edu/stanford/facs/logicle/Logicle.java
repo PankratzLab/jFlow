@@ -191,8 +191,10 @@ public class Logicle {
       last_f = f;
 
       // update the bracketing interval
-      if (f < 0) d_lo = d;
-      else d_hi = d;
+      if (f < 0)
+        d_lo = d;
+      else
+        d_hi = d;
     }
 
     throw new IllegalStateException("exceeded maximum iterations in solve()");
@@ -246,11 +248,11 @@ public class Logicle {
     // initial guess at solution
     double x;
     if (value < f)
-                  // use linear approximation in the quasi linear region
-                  x = x1 + value / taylor[0];
+      // use linear approximation in the quasi linear region
+      x = x1 + value / taylor[0];
     else
-    // otherwise use ordinary logarithm
-    x = Math.log(value / a) / b;
+      // otherwise use ordinary logarithm
+      x = Math.log(value / a) / b;
 
     // try for double precision unless in extended range
     double tolerance = 3 * Math.ulp(1D);
@@ -262,11 +264,11 @@ public class Logicle {
       double ce2mdx = c / Math.exp(d * x);
       double y;
       if (x < xTaylor)
-                      // near zero use the Taylor series
-                      y = seriesBiexponential(x) - value;
+        // near zero use the Taylor series
+        y = seriesBiexponential(x) - value;
       else
-      // this formulation has better roundoff behavior
-      y = (ae2bx + f) - (ce2mdx + value);
+        // this formulation has better roundoff behavior
+        y = (ae2bx + f) - (ce2mdx + value);
       double abe2bx = b * ae2bx;
       double cde2mdx = d * ce2mdx;
       double dy = abe2bx + cde2mdx;
@@ -279,8 +281,10 @@ public class Logicle {
       // if we've reached the desired precision we're done
       if (Math.abs(delta) < tolerance)
                                       // handle negative arguments
-                                      if (negative) return 2 * x1 - x;
-                                      else return x;
+                                      if (negative)
+                                      return 2 * x1 - x;
+                                      else
+                                      return x;
     }
 
     throw new IllegalStateException("scale() didn't converge for value: " + value);
@@ -301,15 +305,17 @@ public class Logicle {
     // compute the biexponential
     double inverse;
     if (scale < xTaylor)
-                        // near x1, i.e., data zero use the series expansion
-                        inverse = seriesBiexponential(scale);
+      // near x1, i.e., data zero use the series expansion
+      inverse = seriesBiexponential(scale);
     else
-    // this formulation has better roundoff behavior
-    inverse = (a * Math.exp(b * scale) + f) - c / Math.exp(d * scale);
+      // this formulation has better roundoff behavior
+      inverse = (a * Math.exp(b * scale) + f) - c / Math.exp(d * scale);
 
     // handle scale for negative values
-    if (negative) return -inverse;
-    else return inverse;
+    if (negative)
+      return -inverse;
+    else
+      return inverse;
   }
 
   /**
@@ -339,14 +345,18 @@ public class Logicle {
     if (x > T) {
       x = T;
       np = 1;
-    } else np = (int) (Math.floor(Math.log(T) / LN_10 - log10x)) + 1;
+    } else
+      np = (int) (Math.floor(Math.log(T) / LN_10 - log10x)) + 1;
     // bottom of scale
     double B = this.inverse(0);
     // number of negative labels
     int nn;
-    if (x > -B) nn = 0;
-    else if (x == T) nn = 1;
-    else nn = (int) Math.floor(Math.log(-B) / LN_10 - log10x) + 1;
+    if (x > -B)
+      nn = 0;
+    else if (x == T)
+      nn = 1;
+    else
+      nn = (int) Math.floor(Math.log(-B) / LN_10 - log10x) + 1;
 
     // fill in the axis labels
     double[] label = new double[nn + np + 1];

@@ -188,8 +188,19 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
                                                                                               // we
                                                                                               // skip
                                                                                               // it
-                                                                                              // System.out.println("Add\t" + eval + "\t" + blastAnnotation.getCigar());
-                                                                                              // System.out.println("OlD\t" + intLists[markerIndex][i].getMaxEval() + "\t" +
+                                                                                              // System.out.println("Add\t"
+                                                                                              // +
+                                                                                              // eval
+                                                                                              // +
+                                                                                              // "\t"
+                                                                                              // +
+                                                                                              // blastAnnotation.getCigar());
+                                                                                              // System.out.println("OlD\t"
+                                                                                              // +
+                                                                                              // intLists[markerIndex][i].getMaxEval()
+                                                                                              // +
+                                                                                              // "\t"
+                                                                                              // +
                                                                                               // intLists[markerIndex][i].get(intLists[markerIndex][i].getMaxEvalIndex()).getCigar());
                       intLists[markerIndex][i].remove(intLists[markerIndex][i].getMaxEvalIndex());
                       intLists[markerIndex][i].add(blastAnnotation);

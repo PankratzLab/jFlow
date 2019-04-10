@@ -104,12 +104,13 @@ public class AnnotatorConfig {
     Marker referenceMarker = null;
 
     if (upstream) {
-      // For upstream, get first marker: 
+      // For upstream, get first marker:
       referenceMarker = segmentMarkers.iterator().next();
 
       flankEndMarkerIndex = markers.getMarkerIndexMap().get(referenceMarker);
       flankEndMarkerIndex -= markerDistance;
-      // If you go over markers and there's none left in that direction (ensures this marker index is valid):
+      // If you go over markers and there's none left in that direction (ensures this marker index
+      // is valid):
       flankEndMarkerIndex = Math.max(flankEndMarkerIndex, 0);
 
     }
@@ -121,7 +122,8 @@ public class AnnotatorConfig {
 
       flankEndMarkerIndex = markers.getMarkerIndexMap().get(referenceMarker);
       flankEndMarkerIndex += markerDistance;
-      // If you go over markers and there's none left in that direction (ensures this marker index is valid):
+      // If you go over markers and there's none left in that direction (ensures this marker index
+      // is valid):
       flankEndMarkerIndex = Math.min(flankEndMarkerIndex, markers.markersAsList().size() - 1);
     }
 

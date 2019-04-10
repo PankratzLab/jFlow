@@ -116,7 +116,7 @@ public class HmmOptimizer implements Serializable {
 
     List<Integer> snpdist = new ArrayList<>();
 
-    //    state 1
+    // state 1
 
     for (int i = 0; i < 100; i++) {
       o1.add(pennHmm.getB1().getB_mean()[0]);
@@ -140,7 +140,7 @@ public class HmmOptimizer implements Serializable {
       pfbVals.add(0.5);
     }
 
-    //    state 2
+    // state 2
     for (int i = 0; i < 100; i++) {
       o1.add(pennHmm.getB1().getB_mean()[1]);
       snpdist.add(5000);
@@ -167,7 +167,7 @@ public class HmmOptimizer implements Serializable {
       pfbVals.add(0.5);
     }
 
-    //    state 4
+    // state 4
     for (int i = 0; i < 100; i++) {
       o1.add(0.0);
       snpdist.add(5000);
@@ -194,7 +194,7 @@ public class HmmOptimizer implements Serializable {
       pfbVals.add(0.5);
     }
 
-    //    state 5
+    // state 5
     for (int i = 0; i < 100; i++) {
       o1.add(pennHmm.getB1().getB_mean()[4]);
       snpdist.add(5000);
@@ -224,7 +224,7 @@ public class HmmOptimizer implements Serializable {
       pfbVals.add(0.5);
     }
 
-    //    state 5
+    // state 5
     for (int i = 0; i < 100; i++) {
       o1.add(pennHmm.getB1().getB_mean()[5]);
       snpdist.add(5000);
@@ -261,13 +261,13 @@ public class HmmOptimizer implements Serializable {
     return new HmmOptimizer(Doubles.toArray(o1), Doubles.toArray(o2), Doubles.toArray(pfbVals),
                             Ints.toArray(snpdist), ArrayUtils.booleanArray(o1.size(), false));
   }
-  //  
-  //  ArrayList<DATA_ADJUSTMENTS> da = new ArrayList<>();
-  //  da.add(DATA_ADJUSTMENTS.HANDLE_NAN);
-  //  da.add(DATA_ADJUSTMENTS.GC_ADJUST);
-  //  da.add(DATA_ADJUSTMENTS.SUBSET_TO_ANALYSIS_MARKERS);
-  //  da.add(DATA_ADJUSTMENTS.MEDIAN_ADJUST);
-  //  da.add(DATA_ADJUSTMENTS.ADJUST_HMM_SD);
+  //
+  // ArrayList<DATA_ADJUSTMENTS> da = new ArrayList<>();
+  // da.add(DATA_ADJUSTMENTS.HANDLE_NAN);
+  // da.add(DATA_ADJUSTMENTS.GC_ADJUST);
+  // da.add(DATA_ADJUSTMENTS.SUBSET_TO_ANALYSIS_MARKERS);
+  // da.add(DATA_ADJUSTMENTS.MEDIAN_ADJUST);
+  // da.add(DATA_ADJUSTMENTS.ADJUST_HMM_SD);
 
   private static HmmOptimizer preprocessSample(Project proj, PennHmm pennHmm, String sampleName,
                                                double[] sampLrrs, double[] sampBafs,
@@ -355,7 +355,7 @@ public class HmmOptimizer implements Serializable {
                                                                                           false),
                                                           false, proj.getLog());
 
-    //    String[] samples = new String[] {"10287118"};
+    // String[] samples = new String[] {"10287118"};
     String[] samples = proj.getSamples();
 
     String adjustmentFile = outDir + "qc.adjusts.ser.gz";
@@ -377,7 +377,7 @@ public class HmmOptimizer implements Serializable {
 
     int totalNumMarkers = 0;
     for (AdjustmentQC aQc : adjustmentQcs) {
-      //      pennHmmOriginal.getB1().
+      // pennHmmOriginal.getB1().
       if (Math.abs(aQc.lrrSD - pennHmmOriginal.getB1().getB_sd()[2]) < 0.05) {
         if (Math.abs(aQc.baf_median - 0.5) < 0.05) {
           if (aQc.baf_drift < pennHmmOriginal.getB1().getB_uf() / 10) {

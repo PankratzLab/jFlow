@@ -335,18 +335,18 @@ public class ChromatinAccessibility {
               if (i < files.length) {
                 // in = Segment.binarySearch(seg, segs[i][j][chr]) != -1;
                 in = Segment.binarySearchForOverlap(seg, segs[i][j][chr]) != -1; // this code was
-                                                                                // altered when
-                                                                                // merging with
-                                                                                // other code
+                                                                                 // altered when
+                                                                                 // merging with
+                                                                                 // other code
               } else {
                 in = false;
                 for (int i2 = 0; i2 < files.length; i2++) {
                   if (Segment.binarySearchForOverlap(seg, segs[i2][j][chr]) != -1) { // this code
-                                                                                    // was altered
-                                                                                    // when
-                                                                                    // merging
-                                                                                    // with other
-                                                                                    // code
+                                                                                     // was altered
+                                                                                     // when
+                                                                                     // merging
+                                                                                     // with other
+                                                                                     // code
                     in = true;
                   }
                 }

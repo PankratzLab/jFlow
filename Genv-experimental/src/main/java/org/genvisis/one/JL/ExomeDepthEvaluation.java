@@ -71,11 +71,11 @@ public class ExomeDepthEvaluation {
         }
         HistogramComparison[] comparisons = new HistogramComparison[] {new HistogramComparison(),
                                                                        new HistogramComparison()};// with
-                                                                                                                                                                                            // sig
-                                                                                                                                                                                            // overlap,
-                                                                                                                                                                                            // without
-                                                                                                                                                                                            // sig
-                                                                                                                                                                                            // overlap
+                                                                                                  // sig
+                                                                                                  // overlap,
+                                                                                                  // without
+                                                                                                  // sig
+                                                                                                  // overlap
         log.reportTimeInfo(matchResults.getMatched1().size() + " cnvs matching");
         log.reportTimeInfo(matchResults.getUnmatched1().size() + " cnvs not matching");
 

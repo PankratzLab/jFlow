@@ -180,8 +180,10 @@ public abstract class CFCSAbstractParameters implements CFCSErrorCodes {
             if (isRequired(parameter_property)) {
               throw new CFCSError(CFCSParameterInclassesplete, property);
             }
-          } else throw ((CFCSError) target);
-        } else throw new CFCSError(CFCSSystemError, exception);
+          } else
+            throw ((CFCSError) target);
+        } else
+          throw new CFCSError(CFCSSystemError, exception);
       } catch (Exception exception) {
         throw new CFCSError(CFCSSystemError, exception);
       }
@@ -226,8 +228,10 @@ public abstract class CFCSAbstractParameters implements CFCSErrorCodes {
             if (isRequired(parameter_property)) {
               throw new CFCSError(CFCSParameterInclassesplete, property);
             }
-          } else throw ((CFCSError) target);
-        } else throw new CFCSError(CFCSSystemError, exception);
+          } else
+            throw ((CFCSError) target);
+        } else
+          throw new CFCSError(CFCSSystemError, exception);
       } catch (Exception exception) {
         throw new CFCSError(CFCSSystemError, exception);
       }
@@ -269,8 +273,10 @@ public abstract class CFCSAbstractParameters implements CFCSErrorCodes {
             if (isRequired(parameter_property)) {
               throw new CFCSError(CFCSParameterInclassesplete, property);
             }
-          } else throw ((CFCSError) target);
-        } else throw new CFCSError(CFCSSystemError, exception);
+          } else
+            throw ((CFCSError) target);
+        } else
+          throw new CFCSError(CFCSSystemError, exception);
       } catch (Exception exception) {
         throw new CFCSError(CFCSSystemError, exception);
       }

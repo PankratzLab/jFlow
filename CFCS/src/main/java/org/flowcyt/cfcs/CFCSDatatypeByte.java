@@ -34,8 +34,10 @@ public final class CFCSDatatypeByte extends CFCSDatatypeBinary {
       row[cell] = (byte) datum;
     }
 
-    if (index == data.size()) data.add(row);
-    else data.set(index, row);
+    if (index == data.size())
+      data.add(row);
+    else
+      data.set(index, row);
   }
 
   // --------------------------------------------------------------------

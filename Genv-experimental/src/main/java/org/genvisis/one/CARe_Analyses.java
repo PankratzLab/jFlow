@@ -1393,8 +1393,8 @@ public class CARe_Analyses {
   public static void parseMapAndFreqFiles() {
     // BufferedReader reader;
     String[] studies = new String[] {"ARIC", "CARDIA", "CFS", "CHS", "FHS", "JHS", "MESA"}; // includes
-                                                                                           // Jackson
-                                                                                           // Heart
+                                                                                            // Jackson
+                                                                                            // Heart
     String dir, root;
     String filename;
     Logger log;

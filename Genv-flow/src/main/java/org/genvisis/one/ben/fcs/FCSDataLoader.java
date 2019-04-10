@@ -500,7 +500,8 @@ public class FCSDataLoader {
       return start;
     } else if (gateOverride.containsKey(key)) {
       return gateOverride.get(key);
-    } else return null;
+    } else
+      return null;
   }
 
 }

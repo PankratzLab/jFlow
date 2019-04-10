@@ -46,8 +46,10 @@ public final class CFCSUncorrelatedData extends CFCSAbstractData implements CFCS
 
     final byte[][][] cinched = new byte[nParameters][][];
 
-    if (variable) sizes = sizing.getByteSizes();
-    else size = sizing.getByteSize();
+    if (variable)
+      sizes = sizing.getByteSizes();
+    else
+      size = sizing.getByteSize();
 
     for (int parameter = 0, position = 0; parameter < nParameters; parameter++) {
       int range = (parameters.getParameter(parameter)).getRange();

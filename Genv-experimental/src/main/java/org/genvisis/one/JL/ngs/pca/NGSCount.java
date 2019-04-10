@@ -75,7 +75,8 @@ public class NGSCount {
             SAMRecord samRecord = iterator.next();
             if (!filter.filterOut(samRecord)) {
               counted++;
-              //            currentPile.addRecord(samRecord, currentRef, filterNGS.getPhreadScoreFilter(), log);
+              // currentPile.addRecord(samRecord, currentRef, filterNGS.getPhreadScoreFilter(),
+              // log);
             }
           }
           log.reportTimeElapsed(time);

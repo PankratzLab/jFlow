@@ -78,9 +78,10 @@ public class CFCSSpillover {
   }
 
   public final String getParameterName(int parameterIndex) {
-    if (parameterIndex >= 0
-        && parameterIndex < parameterNames.length) return parameterNames[parameterIndex];
-    else return null;
+    if (parameterIndex >= 0 && parameterIndex < parameterNames.length)
+      return parameterNames[parameterIndex];
+    else
+      return null;
   }
 
   public final int getParameterIndex(String parameterName) {
@@ -92,9 +93,10 @@ public class CFCSSpillover {
   }
 
   public final double getSpilloverCoefficient(int i, int j) {
-    if (i >= 0 && j >= 0 && i < parameterNames.length
-        && j < parameterNames.length) return spilloverCoefficients[i][j];
-    else return Double.NaN;
+    if (i >= 0 && j >= 0 && i < parameterNames.length && j < parameterNames.length)
+      return spilloverCoefficients[i][j];
+    else
+      return Double.NaN;
   }
 
   public final double getSpilloverCoefficient(String fromParameterName, String toParameterName) {
@@ -116,9 +118,10 @@ public class CFCSSpillover {
    * @return true if succeeded, false otherwise (e.g., index out of range)
    */
   public final boolean setSpilloverCoefficient(int i, int j, double spilloverCoefficient) {
-    if (i >= 0 && j >= 0 && i < parameterNames.length
-        && j < parameterNames.length) spilloverCoefficients[i][j] = spilloverCoefficient;
-    else return false;
+    if (i >= 0 && j >= 0 && i < parameterNames.length && j < parameterNames.length)
+      spilloverCoefficients[i][j] = spilloverCoefficient;
+    else
+      return false;
     return true;
   }
 

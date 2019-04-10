@@ -99,6 +99,7 @@ public class HapCut {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Iterator#hasNext()
      */
     @Override
@@ -108,6 +109,7 @@ public class HapCut {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Iterator#next()
      */
     @Override
@@ -123,6 +125,7 @@ public class HapCut {
 
     /*
      * (non-Javadoc)
+     * 
      * @see org.genvisis.common.WorkerTrain.Producer#shutdown()
      */
     @Override

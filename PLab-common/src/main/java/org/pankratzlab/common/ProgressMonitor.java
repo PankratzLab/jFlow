@@ -144,7 +144,7 @@ public class ProgressMonitor {
 
   public static final int DEFAULT_TIMEOUT_MINS = 10;
   private static final int INDET_ELAPSED_LOG_SECONDS = 180; // 3 minutes between indeterminate task
-                                                           // updates
+                                                            // updates
   private static final int DET_ELAPSED_LOG_SECONDS = 10; // seconds between determinate task updates
 
   HashMap<String, Task> taskMap = new HashMap<>();
@@ -169,7 +169,7 @@ public class ProgressMonitor {
     internalLogger = log;
     Timer timer = new Timer("TaskMonitorTimer", true);
     timer.schedule(monitorTask, 60 * 1000, 60 * 1000); // wait a minute to begin monitoring, and
-                                                      // wait a minute between each check
+                                                       // wait a minute between each check
   }
 
   /**

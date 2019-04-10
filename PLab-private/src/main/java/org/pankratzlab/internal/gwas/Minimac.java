@@ -35,8 +35,8 @@ public class Minimac {
   // "/share/archive/1000G_phased/hg18/0908_CEU/freq/0908_CEU_NoSingleton_chr#_freq.xln";
   public static final String MINIMAC = "/home/npankrat/bin/minimac";
   public static final String MACH2DAT = "/share/apps/bin/mach2dat"; // needed to be recompiled, per
-                                                                   // the recommendation of the
-                                                                   // website
+                                                                    // the recommendation of the
+                                                                    // website
   public static final String BGL_TO_PED = "/home/npankrat/bin/bgl_to_ped";
   public static final String[] FREQ_HEADER = {"Marker", "numMissing", "numA", "numC", "numG",
                                               "numT", "%A", "%C", "%G", "%T"};
@@ -417,7 +417,7 @@ public class Minimac {
       commands += "gunzip phased.pre_phase.bgl.phased.gz\n"
                   + (update ? "cat phased.pre_phase.bgl.phased | fgrep -v id | cat ../new_header - > updated.phased\n"
                               + BGL_TO_PED + " updated.phased ../new_plink.fam 0 > target.ped\n" + // transform
-                                                                                                                                                                                                                                                             // updated
+                                                                                                   // updated
                               "rm updated.phased\n"
                             : BGL_TO_PED
                               + " phased.pre_phase.bgl.phased plink.fam 0 > target.ped\n")

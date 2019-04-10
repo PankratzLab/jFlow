@@ -288,7 +288,7 @@ public class GenomeFileMergePipeline {
       max.add(new BigInteger("" + f.relLineCount)); // only outputting data for relateds entries
     }
     outLineCount = 5 + (5 * files.size()); // fid1 iid1 fid2 iid2 + 5 columns per projects (ibd0,
-                                          // ibd1, ibd2, pi_hat, type) + diffFlag
+                                           // ibd1, ibd2, pi_hat, type) + diffFlag
     outLineMap = new HashMap<>(max.intValue(), 0.95f);
 
     for (int p = 0; p < files.size(); p++) {
@@ -406,7 +406,7 @@ public class GenomeFileMergePipeline {
             // TODO will IBD/PIHAT need to be altered due to flipped ids?
           } else {
             continue; // do not add entries from genome file unless already existing in relateds
-                     // file
+                      // file
           }
 
           outLine[projInd0] = ibd0;

@@ -71,9 +71,9 @@ public class FAST {
     @Override
     public boolean accept(File dir, String name) {
       return (new File(dir, name)).isDirectory() && !name.equals("results"); // TODO verify
-                                                                            // exclusion of
-                                                                            // results
-                                                                            // dir
+                                                                             // exclusion of
+                                                                             // results
+                                                                             // dir
     }
   };
   private static FilenameFilter resultsFileFilter = new FilenameFilter() {

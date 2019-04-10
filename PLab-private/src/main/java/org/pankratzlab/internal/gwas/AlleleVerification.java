@@ -234,10 +234,14 @@ public class AlleleVerification {
                    + "(Optional) Name of file containing chromosome mappings for the given markers (eg pos=1000G_PD.map)";
 
     for (String arg : args) {
-      if (arg.startsWith("file=")) filename = ext.parseStringArg(arg);
-      else if (arg.startsWith("ref=")) refFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("freq=")) freqFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("pos=")) posFile = ext.parseStringArg(arg);
+      if (arg.startsWith("file="))
+        filename = ext.parseStringArg(arg);
+      else if (arg.startsWith("ref="))
+        refFile = ext.parseStringArg(arg);
+      else if (arg.startsWith("freq="))
+        freqFile = ext.parseStringArg(arg);
+      else if (arg.startsWith("pos="))
+        posFile = ext.parseStringArg(arg);
       else {
         System.out.println(usage);
         System.exit(0);

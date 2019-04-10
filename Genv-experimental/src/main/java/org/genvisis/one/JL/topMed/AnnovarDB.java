@@ -19,22 +19,23 @@ import htsjdk.variant.vcf.VCFInfoHeaderLine;
 public class AnnovarDB {
 
   public static void main(String[] args) {
-    //    https://github.com/kkshaxqd/myperlscript/blob/master/compileAnnnovarIndex.pl
-    //    perl compileAnnnovarIndex.pl /scratch.global/topmed/popAFs/hg38_topmed.txt 1000 >/scratch.global/topmed/popAFs/hg38_topmed.txt.idx
+    // https://github.com/kkshaxqd/myperlscript/blob/master/compileAnnnovarIndex.pl
+    // perl compileAnnnovarIndex.pl /scratch.global/topmed/popAFs/hg38_topmed.txt 1000
+    // >/scratch.global/topmed/popAFs/hg38_topmed.txt.idx
     HashSet<String> use = new HashSet<>();
-    //    --expression TOPMed_freeze_5b.AC \
-    //    --expression TOPMed_freeze_5b.AF \
-    //    --expression TOPMed_freeze_5b.AF_EM_POP_DEF_African_Americans \
-    //    --expression TOPMed_freeze_5b.AF_EM_POP_DEF_EAS \
-    //    --expression TOPMed_freeze_5b.AF_EM_POP_DEF_Hispanics \
-    //    --expression TOPMed_freeze_5b.AF_EM_POP_DEF_SAS \
-    //    --expression TOPMed_freeze_5b.AF_EM_POP_DEF_Whites \
-    //    
-    //    --expression TOPMed_freeze_5b.N_Alleles_EM_POP_DEF_African_Americans \
-    //    --expression TOPMed_freeze_5b.N_Alleles_EM_POP_DEF_EAS \
-    //    --expression TOPMed_freeze_5b.N_Alleles_EM_POP_DEF_Hispanics \
-    //    --expression TOPMed_freeze_5b.N_Alleles_EM_POP_DEF_SAS \
-    //    --expression TOPMed_freeze_5b.N_Alleles_EM_POP_DEF_Whites \
+    // --expression TOPMed_freeze_5b.AC \
+    // --expression TOPMed_freeze_5b.AF \
+    // --expression TOPMed_freeze_5b.AF_EM_POP_DEF_African_Americans \
+    // --expression TOPMed_freeze_5b.AF_EM_POP_DEF_EAS \
+    // --expression TOPMed_freeze_5b.AF_EM_POP_DEF_Hispanics \
+    // --expression TOPMed_freeze_5b.AF_EM_POP_DEF_SAS \
+    // --expression TOPMed_freeze_5b.AF_EM_POP_DEF_Whites \
+    //
+    // --expression TOPMed_freeze_5b.N_Alleles_EM_POP_DEF_African_Americans \
+    // --expression TOPMed_freeze_5b.N_Alleles_EM_POP_DEF_EAS \
+    // --expression TOPMed_freeze_5b.N_Alleles_EM_POP_DEF_Hispanics \
+    // --expression TOPMed_freeze_5b.N_Alleles_EM_POP_DEF_SAS \
+    // --expression TOPMed_freeze_5b.N_Alleles_EM_POP_DEF_Whites \
     use.add("AC");
     use.add("AF");
     use.add("AF_EM_POP_DEF_African_Americans");
@@ -71,15 +72,16 @@ public class AnnovarDB {
     PrintWriter writer = Files.getAppropriateWriter(out);
     writer.println(header.toString());
     int num = 0;
-    //    chr1  964576  964612
+    // chr1 964576 964612
 
-    //    Segment[] tests = new Segment[] {new Segment("chr1", 964570, 964615),
-    //                                     new Segment("chr17", 48037710, 48037718),
-    //                                     new Segment("chr18", 54224213, 54224215),};
-    //    for (Segment seq : tests) {
-    //      CloseableIterator<VariantContext> iter = reader.query(Positions.getChromosomeUCSC(seq.getChr(),
-    //                                                                                        true),
-    //                                                            seq.getStart(), seq.getStop());
+    // Segment[] tests = new Segment[] {new Segment("chr1", 964570, 964615),
+    // new Segment("chr17", 48037710, 48037718),
+    // new Segment("chr18", 54224213, 54224215),};
+    // for (Segment seq : tests) {
+    // CloseableIterator<VariantContext> iter =
+    // reader.query(Positions.getChromosomeUCSC(seq.getChr(),
+    // true),
+    // seq.getStart(), seq.getStop());
     CloseableIterator<VariantContext> iter = reader.iterator();
     while (iter.hasNext()) {
       VariantContext vc = iter.next();
@@ -127,7 +129,7 @@ public class AnnovarDB {
         }
       }
       writer.println(variant.toString());
-      //      }
+      // }
     }
     writer.close();
     reader.close();

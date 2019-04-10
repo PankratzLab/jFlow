@@ -203,29 +203,29 @@ public class MarkerBlastIterator {
                 } else if (straight && blastResults.getEvalue() < maxExpect
                            && blastResults.getAlignmentLength() > minCrossHybLength
                            && !blastSeg.overlaps(markerSeg.getBufferedSegment(crossHybBufferDistance))) {// we
-                                                                                                                                                                                                                              // do
-                                                                                                                                                                                                                              // not
-                                                                                                                                                                                                                              // want
-                                                                                                                                                                                                                              // to
-                                                                                                                                                                                                                              // count
-                                                                                                                                                                                                                              // probe
-                                                                                                                                                                                                                              // A/B
-                                                                                                                                                                                                                              // if
-                                                                                                                                                                                                                              // probe
-                                                                                                                                                                                                                              // A
-                                                                                                                                                                                                                              // is
-                                                                                                                                                                                                                              // perfect
-                                                                                                                                                                                                                              // and
-                                                                                                                                                                                                                              // probe
-                                                                                                                                                                                                                              // B
-                                                                                                                                                                                                                              // is
-                                                                                                                                                                                                                              // not
-                                                                                                                                                                                                                              // but
-                                                                                                                                                                                                                              // is
-                                                                                                                                                                                                                              // in
-                                                                                                                                                                                                                              // the
-                                                                                                                                                                                                                              // right
-                                                                                                                                                                                                                              // spot
+                                                                                                         // do
+                                                                                                         // not
+                                                                                                         // want
+                                                                                                         // to
+                                                                                                         // count
+                                                                                                         // probe
+                                                                                                         // A/B
+                                                                                                         // if
+                                                                                                         // probe
+                                                                                                         // A
+                                                                                                         // is
+                                                                                                         // perfect
+                                                                                                         // and
+                                                                                                         // probe
+                                                                                                         // B
+                                                                                                         // is
+                                                                                                         // not
+                                                                                                         // but
+                                                                                                         // is
+                                                                                                         // in
+                                                                                                         // the
+                                                                                                         // right
+                                                                                                         // spot
                   if (blastResults.getAlignmentLength() == proj.getArrayType().getProbeLength()) {
                     if (!markersOffTargetPerfectMatch.contains(marker)) {
                       markersOffTargetPerfectMatch.add(marker + "\t" + markerSeg.getUCSClocation()
@@ -623,8 +623,8 @@ public class MarkerBlastIterator {
             } else if (straight && blastResults.getEvalue() < minExpect
                        && blastResults.getAlignmentLength() > minCrossHybLength
                        && !blastSeg.overlaps(markerSeg)) {// we do not want to count probe A/B if
-                                                                                                                                                                               // probe A is perfect and probe B is not
-                                                                                                                                                                               // but is in the right spot
+                                                          // probe A is perfect and probe B is not
+                                                          // but is in the right spot
               summaries.get(summaryindex).getCrossHybEvalue().add(blastResults.getEvalue());
               summaries.get(summaryindex).getCrossHybPercentMatch()
                        .add(blastResults.getPercentIdentity());

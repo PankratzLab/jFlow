@@ -594,22 +594,42 @@ public class ContingencyTable {
     // data = new int[][] {{ 17066, 14464, 788, 126, 37},
     // { 48, 38, 5, 1, 1}};
     data = new double[][] {{266.417, 618.417, 85.167}, {207.000, 472.000, 43.000}}; // chi
-                                                                                   // for
-                                                                                   // Rep1
-                                                                                   // , no
-                                                                                   // Parkin
-                                                                                   // rowScores = new double[] {0, 1};
-                                                                                   // colScores = new double[] {0, 0.5, 1.5, 4, 7};
-                                                                                   //
-                                                                                   // System.out.println("Using provided row and column scores:");
-                                                                                   // System.out.println("The linear correlation is
-                                                                                   // "+ext.formDeci(linearCorrelation(Array.doubleArrays(data), rowScores,
-                                                                                   // colScores), 5));
-                                                                                   // System.out.println("The linear trend test statistic is
-                                                                                   // "+ext.formDeci(linearTrendStatistic(Array.doubleArrays(data),
-                                                                                   // rowScores, colScores), 3) +"
-                                                                                   // (p="+ext.prettyP(ProbDist.ChiDist(linearTrendStatistic(Array.doubleArrays(data),
-                                                                                   // rowScores, colScores), 1))+")");
+                                                                                    // for
+                                                                                    // Rep1
+                                                                                    // , no
+                                                                                    // Parkin
+                                                                                    // rowScores =
+                                                                                    // new double[]
+                                                                                    // {0, 1};
+                                                                                    // colScores =
+                                                                                    // new double[]
+                                                                                    // {0, 0.5, 1.5,
+                                                                                    // 4, 7};
+                                                                                    //
+                                                                                    // System.out.println("Using
+                                                                                    // provided row
+                                                                                    // and column
+                                                                                    // scores:");
+                                                                                    // System.out.println("The
+                                                                                    // linear
+                                                                                    // correlation
+                                                                                    // is
+                                                                                    // "+ext.formDeci(linearCorrelation(Array.doubleArrays(data),
+                                                                                    // rowScores,
+                                                                                    // colScores),
+                                                                                    // 5));
+                                                                                    // System.out.println("The
+                                                                                    // linear trend
+                                                                                    // test
+                                                                                    // statistic is
+                                                                                    // "+ext.formDeci(linearTrendStatistic(Array.doubleArrays(data),
+                                                                                    // rowScores,
+                                                                                    // colScores),
+                                                                                    // 3) +"
+                                                                                    // (p="+ext.prettyP(ProbDist.ChiDist(linearTrendStatistic(Array.doubleArrays(data),
+                                                                                    // rowScores,
+                                                                                    // colScores),
+                                                                                    // 1))+")");
     System.out.println("Using equally spaced ranks:");
     System.out.println("The linear correlation is " + ext.formDeci(linearCorrelation(data), 5));
     System.out.println("The linear trend test statistic is "

@@ -356,7 +356,7 @@ public class ForestPanel extends AbstractPanel {
   public void drawAll(Graphics g, boolean base) {
     float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
     double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and leave off
-                            // the last tick mark
+                             // the last tick mark
     int sigFigs;
     String str;
     FontMetrics fontMetrics = g.getFontMetrics();

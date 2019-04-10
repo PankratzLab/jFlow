@@ -169,7 +169,7 @@ public class ImputationPipeline {
     ArrayList<String> mkrs = new ArrayList<>();
     for (int i = 0; i < indices.length; i++) {
       if (i == 0 || pos[indices[i]] != pos[indices[i - 1]]) { // skip if prev (in sorted array) was
-                                                             // same position
+                                                              // same position
         mkrs.add(mkr[indices[i]]);
       }
     }

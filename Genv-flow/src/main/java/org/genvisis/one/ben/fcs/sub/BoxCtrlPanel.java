@@ -109,8 +109,8 @@ public class BoxCtrlPanel extends JPanel {
         for (TreePath path : pPaths) {
           Object[] pathObjs = path.getPath();
           if (actualData.contains(ArrayUtils.toStr(pathObjs, "\t"))) { // only allow selections that
-                                                                      // have
-                                                                      // data
+                                                                       // have
+                                                                       // data
             validPaths.add(path);
           }
         }
@@ -121,8 +121,8 @@ public class BoxCtrlPanel extends JPanel {
       public void setSelectionPath(TreePath path) {
         Object[] pathObjs = path.getPath();
         if (actualData.contains(ArrayUtils.toStr(pathObjs, "\t"))) { // only allow selections that
-                                                                    // have
-                                                                    // data
+                                                                     // have
+                                                                     // data
           super.setSelectionPath(path);
         }
       }
@@ -212,13 +212,13 @@ public class BoxCtrlPanel extends JPanel {
                                                            : actualData.contains(ArrayUtils.toStr(tree.getPathForRow(row)
                                                                                                       .getPath(),
                                                                                                   "\t")); // <--
-                                                                                                                                                                                                                                                                  // here
-                                                                                                                                                                                                                                                                  // is
-                                                                                                                                                                                                                                                                  // your
-                                                                                                                                                                                                                                                                  // logic
-                                                                                                                                                                                                                                                                  // for
-                                                                                                                                                                                                                                                                  // enable/disable
-                                                                                                                                                                                                                                                                  // cell
+                                                                                                          // here
+                                                                                                          // is
+                                                                                                          // your
+                                                                                                          // logic
+                                                                                                          // for
+                                                                                                          // enable/disable
+                                                                                                          // cell
 
       Component treeCellRendererComponent = super.getTreeCellRendererComponent(tree, value, sel,
                                                                                expanded, leaf, row,

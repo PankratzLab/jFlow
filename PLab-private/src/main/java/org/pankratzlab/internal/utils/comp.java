@@ -161,8 +161,8 @@ public class comp {
 
     if (db_file.startsWith("\"")) {
       db_file = temp.substring(1, temp.substring(1).indexOf("\"") + 1); // why is this +1 at the
-                                                                       // end? seems like it should
-                                                                       // be +0
+                                                                        // end? seems like it should
+                                                                        // be +0
       line = temp.substring(temp.substring(1).indexOf("\"") + 1).split(PSF.Regex.GREEDY_WHITESPACE);
     }
     order = null;
@@ -240,7 +240,7 @@ public class comp {
     }
     reader.close();
     noMissing = optionFlagged("chis") || optionFlagged("hwe"); // not sure quite what this did when
-                                                              // I added hwe
+                                                               // I added hwe
     for (int trt = 0; trt < traits.length; trt++) {
       try {
         reader = new BufferedReader(new FileReader(db_file));

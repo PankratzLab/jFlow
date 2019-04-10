@@ -57,9 +57,9 @@ public class DnaseEnrichment {
   private final static String OUTPUT_DELIMITER = "\t";
   private final static String DATA_SEPARATOR = ":";
   private final static Logger LOGGER = Logger.getLogger(DnaseEnrichment.class.getName()); // logger
-                                                                                         // for
-                                                                                         // this
-                                                                                         // class
+                                                                                          // for
+                                                                                          // this
+                                                                                          // class
   private static String OUTPUT_FILENAME = "DnaseEnrichment.xln";
   private final static String BED_FILE_CHR_MAP_PART_COUNT_FILENAME = "BedFileChrMapCount.xln";
   private final static String BED_FILE_CHR_MAP_FOLDER = "BedChrPositionMap";
@@ -78,12 +78,12 @@ public class DnaseEnrichment {
   private static boolean performLD = true;
 
   private static ArrayList<HashSet<String>> dhsregionsHashSetList; // global static variable to hold
-                                                                  // DHS regions
+                                                                   // DHS regions
   private static Hashtable<String, Integer> bedFileChrMapPartCount = new Hashtable<>(); // global
-                                                                                       // static
-                                                                                       // variable
-                                                                                       // for
-                                                                                       // ChrPositionMap
+                                                                                        // static
+                                                                                        // variable
+                                                                                        // for
+                                                                                        // ChrPositionMap
 
   /**
    * WorkerThreads which process different LD files and create ChrPositionMap concurrently
@@ -103,7 +103,7 @@ public class DnaseEnrichment {
       LOGGER.info(Thread.currentThread().getName() + ": Building ChrPositionMap for chr file: "
                   + ldFilePath);
       generateChrPositionMap(ldFilePath, chrNum); // generate the chrPositionMap for all the bed
-                                                 // files using this chr file
+                                                  // files using this chr file
       LOGGER.info(Thread.currentThread().getName()
                   + ": Completed building ChrPositionMap for file: " + ldFilePath);
 
@@ -330,7 +330,7 @@ public class DnaseEnrichment {
       TreeMap<Integer, Map<String, Long>> overlapStats = countOverlaps(segs, pValueRecords, element,
                                                                        bedFileChrMapPartCount);
       double[][] ratioList = new double[maxBinSize + 1][2]; // array for holding numerator and
-                                                           // denominator
+                                                            // denominator
       double cumBinMarkers = 0;
       double cumBinMarkersInside = 0;
       int key;

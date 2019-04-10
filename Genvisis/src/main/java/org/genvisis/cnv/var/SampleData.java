@@ -121,6 +121,7 @@ public class SampleData {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -135,6 +136,7 @@ public class SampleData {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -157,6 +159,7 @@ public class SampleData {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
@@ -1295,7 +1298,7 @@ public class SampleData {
         // break; // DEAD CODE
       case 3:
         return (byte) (alleleCount + 1); // fake as genotype - we'll load PLINK genotypes elsewhere
-                                        // as needed
+                                         // as needed
       default:
         System.err.println("Error - invalid class index");
         return 0;
@@ -1585,7 +1588,7 @@ public class SampleData {
     System.out.println("Sample data: " + sampleDatafilename);
 
     String[] sampeleDataHeader = Files.getHeaderOfFile(sampleDatafilename, null); // header of
-                                                                                 // sample data
+                                                                                  // sample data
     int i;
     for (i = 0; i < sampeleDataHeader.length; i++) {
       String[] splitOnEquals = sampeleDataHeader[i].split("=", 2);

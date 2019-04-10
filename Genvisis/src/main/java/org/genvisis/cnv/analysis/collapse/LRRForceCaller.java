@@ -69,6 +69,7 @@ public class LRRForceCaller extends ArrayBasedForcedCaller<LRRRegion> {
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.genvisis.cnv.analysis.collapse.ForcedCalling#forceCall(org.genvisis.filesys.LocusSet)
    */
   @Override

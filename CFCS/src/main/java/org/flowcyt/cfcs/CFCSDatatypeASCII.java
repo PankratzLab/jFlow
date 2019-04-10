@@ -33,8 +33,10 @@ public final class CFCSDatatypeASCII extends CFCSDatatypeBinary {
       }
     }
 
-    if (index == data.size()) data.add(row);
-    else data.set(index, row);
+    if (index == data.size())
+      data.add(row);
+    else
+      data.set(index, row);
   }
 
   // --------------------------------------------------------------------

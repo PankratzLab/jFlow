@@ -515,14 +515,14 @@ public class Plink {
                 metrics[k * 2 + 0] = callrates.get(line[k * 2 + 0] + "\t" + line[k * 2 + 1]);
               }
               if (lrr_sds.containsKey(line[k * 2 + 0] + "\t" + line[k * 2 + 1])) { // check for
-                                                                                  // FID+IID
-                                                                                  // first,
-                                                                                  // even though
-                                                                                  // this is
-                                                                                  // outdated
+                                                                                   // FID+IID
+                                                                                   // first,
+                                                                                   // even though
+                                                                                   // this is
+                                                                                   // outdated
                 metrics[k * 2 + 1] = lrr_sds.get(line[k * 2 + 0] + "\t" + line[k * 2 + 1]);
               } else if (lrr_sds.containsKey(line[k * 2 + 1])) { // then check for IID next, even
-                                                                // though IID may not be unique
+                                                                 // though IID may not be unique
                 metrics[k * 2 + 1] = lrr_sds.get(line[k * 2 + 1]);
               }
             }

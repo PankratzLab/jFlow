@@ -885,7 +885,7 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
     log.reportTime(flipped + " markers out of " + mkrNames.length + " had flipped genotypes.");
 
     mdRAF.close();
-    //    System.gc();
+    // System.gc();
 
     oorBytes = null;
     outOfRangeTable = null;
@@ -1150,7 +1150,7 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
           ((BlockCompressedInputStream) is).seek(skip);
         }
         return new BGZipProxy((BlockCompressedInputStream) is);
-        //        return new BGZipReaderProxy(new BGZipReader(file));
+        // return new BGZipReaderProxy(new BGZipReader(file));
       } else {
         is = new FileInputStream(file);
         if (skip > 0) {
@@ -1288,7 +1288,7 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
       } else {
         FileInputStream fis = new FileInputStream(file);
         InputStreamReader isr = new InputStreamReader(fis);
-        int bufferLength = 16384; // 16 Kb buffer 
+        int bufferLength = 16384; // 16 Kb buffer
         ByteBuffer buffer = ByteBuffer.wrap(new byte[bufferLength]);
         FileChannel fc = fis.getChannel();
 

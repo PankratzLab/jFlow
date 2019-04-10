@@ -27,7 +27,8 @@ import com.google.common.collect.TreeRangeSet;
  * @param <V>
  * @param <C>
  */
-public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extends ImmutableCollection<V>> implements RangeMultimap<K, V> {
+public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extends ImmutableCollection<V>>
+                                           implements RangeMultimap<K, V> {
 
   private final Map<Range<K>, C> mapOfRanges;
   private final RangeMap<K, C> rangeMap;

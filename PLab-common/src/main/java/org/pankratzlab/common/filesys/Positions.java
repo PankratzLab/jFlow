@@ -80,7 +80,7 @@ public class Positions {
   // "chrX:59,500,000", "chrY:11,800,000"};
 
   public static final int[][] CENTROMERE_BOUNDARIES_FROM_SNPS_B36_HG18 = { // determined using the
-                                                                          // Omni map
+                                                                           // Omni map
                                                                           {0, 0},
                                                                           {121186705, 141477078},
                                                                           {91682828, 94691119},
@@ -109,7 +109,7 @@ public class Positions {
                                                                           {0, 0}, {0, 0}};
 
   public static final int[][] CENTROMERE_BOUNDARIES_FROM_SNPS_B37_HG19 = { // determined using the
-                                                                          // Omni 2.5 map
+                                                                           // Omni 2.5 map
                                                                           {0, 0},
                                                                           {121357107, 142603938},
                                                                           {92304211, 95350864},

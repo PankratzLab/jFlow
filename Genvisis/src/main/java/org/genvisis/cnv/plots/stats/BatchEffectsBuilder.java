@@ -66,11 +66,11 @@ public class BatchEffectsBuilder {
         if (rowData.length >= 2) {
           expectedNumColumns = rowData.length;
           for (int i = 1; i < rowData.length; i++) { // this loop starts at 1 to exclude the sample
-                                                    // id
-                                                    // column
+                                                     // id
+                                                     // column
             factorLabels.add(rowData[i]);
             factorValuesToInclude.add(new ArrayList<>()); // each sub-list represents a different
-                                                         // factor
+                                                          // factor
           }
         } else {
           throw new ParseException("Error: expected at least 2 column headers in factor data. Found "

@@ -270,7 +270,7 @@ public class HashVec {
     try (BufferedReader reader = Files.getReader(filename, true, false)) {
       if (reader == null) {
         return null; // Should return empty? No - empty could be valid, we need to show something
-                    // invalid, so null or exception
+                     // invalid, so null or exception
       }
       if (ignoreFirstLine) {
         reader.readLine();

@@ -88,7 +88,8 @@ public class BOLT {
         // we only want one phenotype column so if this is past the first, dump it
         if (j > 2) keep[j] = false;
         for (int i = 1; i < extract.length; i++) {
-          if (extract[i][j] != null && extract[i][j].equals(caseCode)) extract[i][2] = "2";
+          if (extract[i][j] != null && extract[i][j].equals(caseCode))
+            extract[i][2] = "2";
           else if (extract[i][j] == null || !extract[i][j].equals("2")) extract[i][2] = "1";
         }
       }
@@ -109,15 +110,21 @@ public class BOLT {
     String fieldsFile = "/panfs/roc/groups/5/pankrat2/shared/ukbb/phenotypes/height_fields.txt";
     String phenoFile = "/panfs/roc/groups/5/pankrat2/shared/ukbb/phenotypes/ukb9520.csv.gz";
     String caseCode = null; // if the phenotype is a code that must be converted to case/control,
-                           // this is the code for a case
+                            // this is the code for a case
 
     for (String arg : args) {
-      if (arg.startsWith("out=")) out = ext.parseStringArg(arg);
-      else if (arg.startsWith("fam=")) fam = ext.parseStringArg(arg);
-      else if (arg.startsWith("fieldFile=")) fieldsFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("phenoFile=")) phenoFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("caseCode=")) caseCode = ext.parseStringArg(arg);
-      else System.err.println("Unknown argument: " + arg);
+      if (arg.startsWith("out="))
+        out = ext.parseStringArg(arg);
+      else if (arg.startsWith("fam="))
+        fam = ext.parseStringArg(arg);
+      else if (arg.startsWith("fieldFile="))
+        fieldsFile = ext.parseStringArg(arg);
+      else if (arg.startsWith("phenoFile="))
+        phenoFile = ext.parseStringArg(arg);
+      else if (arg.startsWith("caseCode="))
+        caseCode = ext.parseStringArg(arg);
+      else
+        System.err.println("Unknown argument: " + arg);
     }
 
     String[][] fields = HashVec.loadFileToStringMatrix(fieldsFile, false, new int[] {0, 1}, "\t", 0,

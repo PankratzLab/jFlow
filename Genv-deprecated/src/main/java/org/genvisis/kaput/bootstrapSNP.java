@@ -136,8 +136,8 @@ public class bootstrapSNP {
   }
 
   public double[] Bootstrap(Hashtable<String, String> hash) { // determines the median of the
-                                                             // ordered distribution, 2.5%
-                                                             // percentile, 97.5%
+                                                              // ordered distribution, 2.5%
+                                                              // percentile, 97.5%
     double[] results = new double[3];
     double sumOfMeans;
     double[] replicates = new double[NUM_BOOTSTRAP_REPS];

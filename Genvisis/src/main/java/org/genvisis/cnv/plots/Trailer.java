@@ -154,7 +154,8 @@ import com.google.common.collect.Sets;
 import com.google.common.primitives.Floats;
 import net.miginfocom.swing.MigLayout;
 
-public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener, MouseListener, MouseMotionListener, MouseWheelListener {
+public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener,
+                     MouseListener, MouseMotionListener, MouseWheelListener {
 
   public static final long serialVersionUID = 1L;
 
@@ -749,15 +750,15 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
           MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED,
                                               System.currentTimeMillis(), 0, x, y, 0, false);
           ToolTipManager.sharedInstance().mouseMoved(phantom); // order
-                                                              // of
-                                                              // mouseMoved
-                                                              // calls
-                                                              // doesn't
-                                                              // matter,
-                                                              // but
-                                                              // both
-                                                              // are
-                                                              // necessary
+                                                               // of
+                                                               // mouseMoved
+                                                               // calls
+                                                               // doesn't
+                                                               // matter,
+                                                               // but
+                                                               // both
+                                                               // are
+                                                               // necessary
           mouseMoved(phantom);
           repaint();
           return;
@@ -3007,7 +3008,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     // calculate drag distance in pixels
     int curX = e.getPoint().x; // curX is the current location of the mouse cursor
     double scrollDistanceInPixels = startX - curX; // startX is the location of the mouse cursor
-                                                  // when the mouse button was clicked
+                                                   // when the mouse button was clicked
 
     // calculate drag distance in number of base pairs
     double currentDisplayRangeInBasePairs = stop - start;
@@ -3586,7 +3587,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
         // 9 wfPost
         // 10 gcwfPost
         // 11 lrrsdPost
-        // 12 lrrsdPostBound 
+        // 12 lrrsdPostBound
         // 13 multimodal
         // 14 Array.toStr(bafBinCounts)
         if (qcDetails == null) {
@@ -3706,7 +3707,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   }
 
   public static Segment[] findUniqueRegions(CNVariant[][] cnvs) { // haven't actually coded the
-                                                                 // collapsing of the segments yet
+                                                                  // collapsing of the segments yet
     Segment[] segs;
     int count;
 

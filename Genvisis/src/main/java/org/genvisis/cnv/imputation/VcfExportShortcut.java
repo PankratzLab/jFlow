@@ -39,7 +39,8 @@ public class VcfExportShortcut {
 
   private double callrateThresh = 0.98; // MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
   private double hweThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
-  private double generalQcThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
+  private double generalQcThresh = 0.0000001; // 1E-7,
+                                              // FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
   private String sampleDropsFile = null;
   private String sampleKeepsFile = null;
   private String markerDropsFile = null;

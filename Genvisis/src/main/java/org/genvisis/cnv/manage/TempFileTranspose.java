@@ -307,9 +307,9 @@ public class TempFileTranspose {
   public void setupSampleListFile() {
     new File(proj.SAMPLE_DIRECTORY.getValue()).mkdirs();
     String[] samples = Arrays.copyOf(proj.getSamples(), proj.getSamples().length);
-    //    for (int i = 0; i < samples.length; i++) {
-    //      samples[i] = proj.SAMPLE_DIRECTORY.getValue() + samples[i] + ".sampRAF";
-    //    }
+    // for (int i = 0; i < samples.length; i++) {
+    // samples[i] = proj.SAMPLE_DIRECTORY.getValue() + samples[i] + ".sampRAF";
+    // }
     ListFileCheckoutSystem.initFile(getSampleListFile(), samples);
   }
 
@@ -333,7 +333,8 @@ public class TempFileTranspose {
     HashMap<String, RandomAccessFile> readerMap = new HashMap<>();
     for (String file : files) {
       String out = getTempFile(file);
-      // NOTE - file system must be capable of holding files.length number of file handles open at once
+      // NOTE - file system must be capable of holding files.length number of file handles open at
+      // once
       readerMap.put(out, new RandomAccessFile(out, "r"));
       markerCountMap.put(out, getMarkerCount(file));
     }
@@ -395,7 +396,8 @@ public class TempFileTranspose {
       HashMap<String, RandomAccessFile> readerMap = new HashMap<>();
       for (String file : files) {
         String out = getTempFile(file);
-        // NOTE - file system must be capable of holding files.length number of file handles open at once
+        // NOTE - file system must be capable of holding files.length number of file handles open at
+        // once
         readerMap.put(out, new RandomAccessFile(out, "r"));
         markerCountMap.put(out, getMarkerCount(file));
       }

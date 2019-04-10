@@ -795,10 +795,10 @@ public class GeneScorePipeline {
                                             ext.rootOf(filename, true) + ".snps",
                                             MapSNPsAndGenes.DEFAULT_WIGGLE_ROOM, (byte) 37, log,
                                             true, false, false, null, null, null, false); // TODO
-                                                                                                                                                                                                                                                        // should
-                                                                                                                                                                                                                                                        // run
-                                                                                                                                                                                                                                                        // SnpEff
-                                                                                                                                                                                                                                                        // too?
+                                                                                          // should
+                                                                                          // run
+                                                                                          // SnpEff
+                                                                                          // too?
             data = ArrayUtils.toStringArray(HashVec.loadFileToVec(ext.rootOf(filename, false)
                                                                   + "_positions.xln", true, false,
                                                                   false));
@@ -943,7 +943,8 @@ public class GeneScorePipeline {
                             + ") is more stringent than index threshold (" + indexThresh
                             + "), index threshold will be used as window extension threshold");
             windowThresh = indexThresh;
-          } else windowThresh = w;
+          } else
+            windowThresh = w;
           StringBuilder prefixSB = new StringBuilder();
           prefixSB.append(ext.formSciNot(indexThresh, 4, false)).append("_")
                   .append(ext.formSciNot(minSize, 4, false)).append("_")
@@ -1580,8 +1581,8 @@ public class GeneScorePipeline {
               boolean a2 = dataAlleles[1].equalsIgnoreCase(metaAlleles[0])
                            || dataAlleles[1].equalsIgnoreCase(metaAlleles[1]);
               return a1 && a2;
-            } else if (alleleOrder == AlleleOrder.SAME
-                       || alleleOrder == AlleleOrder.OPPOSITE) return true;
+            } else if (alleleOrder == AlleleOrder.SAME || alleleOrder == AlleleOrder.OPPOSITE)
+              return true;
             else {
               Joiner alleleJoiner = Joiner.on('/');
               log.reportError("Alleles in study (" + alleleJoiner.join(dataAlleles)

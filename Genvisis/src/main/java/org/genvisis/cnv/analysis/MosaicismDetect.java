@@ -185,8 +185,8 @@ public class MosaicismDetect {
                                                                               - gd.distributions()[1].mean()))
                                                          .filter(d -> !Double.isNaN(d)).toArray());
         double factor = dud.getLoci()[i].getSize(); // factor = factor * (double)
-                                                   // dud.getLoci()[i].getNumMarkers() /
-                                                   // states.length;
+                                                    // dud.getLoci()[i].getNumMarkers() /
+                                                    // states.length;
         double customF = MosaicismQuant.getDisomyF(delta);
         builder.score(customF);
         double nearestStateScore = ArrayUtils.mean(mosMarkersScored.stream()

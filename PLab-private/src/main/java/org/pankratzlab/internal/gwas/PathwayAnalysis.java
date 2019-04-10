@@ -91,9 +91,9 @@ class KEGGpathway {
                 }
                 for (int j = 0; j < v.size(); j++) {
                   HashVec.addToHashVec(genes, gene, v.elementAt(j), true); // count both ways and
-                                                                          // compare
+                                                                           // compare
                   HashVec.addToHashVec(pathways, v.elementAt(j), gene, true); // count both ways and
-                                                                             // compare
+                                                                              // compare
                 }
               }
             }
@@ -126,7 +126,7 @@ class KEGGpathway {
         for (int i = 1; i < line.length; i++) {
           HashVec.addToHashVec(genes, line[0], "ko" + line[i], true); // count both ways and compare
           HashVec.addToHashVec(pathways, "ko" + line[i], line[0], true); // count both ways and
-                                                                        // compare
+                                                                         // compare
         }
       }
       reader.close();

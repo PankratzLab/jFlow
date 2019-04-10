@@ -714,23 +714,23 @@ public class CNVBeast {
     usage += "   (1) project filename (i.e. proj=" + filename + " (no default))\n" + "";
     usage += "   (2) full path to beast.exe (i.e. beast=" + fullPathToBeastExe + " (default))\n"
              + "";// if
-                                                                                                               // you
-                                                                                                               // can
-                                                                                                               // get
-                                                                                                               // this
-                                                                                                               // to
-                                                                                                               // work
-                                                                                                               // on
-                                                                                                               // linux,
-                                                                                                               // this
-                                                                                                               // same
-                                                                                                               // argument
-                                                                                                               // could
-                                                                                                               // be
-                                                                                                               // used
-                                                                                                               // in
-                                                                                                               // that
-                                                                                                               // environment
+                  // you
+                  // can
+                  // get
+                  // this
+                  // to
+                  // work
+                  // on
+                  // linux,
+                  // this
+                  // same
+                  // argument
+                  // could
+                  // be
+                  // used
+                  // in
+                  // that
+                  // environment
     usage += "   (3) analysis subdirectory under the project directory (i.e. dir="
              + analysisDirectory + " (default))\n" + "";
     usage += "   (4) overwrite existing result files (i.e. " + OVERWRITE_OPTION + " (default))\n"

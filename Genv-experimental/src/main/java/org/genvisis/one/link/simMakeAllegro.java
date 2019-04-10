@@ -43,12 +43,16 @@ public class simMakeAllegro {
                       + "DATFILE linkage.dat\n\n" + "% Simulate stroke reconstruction pedigrees\n"
                       + "SIMULATE dloc:32.0 npre:" + NUM_REPS + " rep:" + FAMREPS[i]
                       + " err:0.00 yield:1.0 het:" + ext.formDeci(het, 2, true) + "\n\n" // change
-                                                                                                                                                                                                                                                                                                                             // from
-                                                                                                                                                                                                                                                                                                                             // 8 to
-                                                                                                                                                                                                                                                                                                                             // 32 for denser map
-                                                                                                                                                                                                                                                                                                                             // wtf? 32 is
-                                                                                                                                                                                                                                                                                                                             // disease allele
-                                                                                                                                                                                                                                                                                                                             // position
+                                                                                         // from
+                                                                                         // 8 to
+                                                                                         // 32 for
+                                                                                         // denser
+                                                                                         // map
+                                                                                         // wtf? 32
+                                                                                         // is
+                                                                                         // disease
+                                                                                         // allele
+                                                                                         // position
                       + "% Other options:\n" + "MAXMEMORY 100");
       optfile.close();
 

@@ -117,12 +117,12 @@ public class AnnotationParser {
     AnnotationParser ap = new AnnotationParser();
     ap.dir = d;
     ap.log = new Logger();
-    //    for (String a : ap.loadAll(ap.discover(), "manual")) {
-    //      System.out.println(a);
-    //    }
-    //    for (String a : ap.loadSamples(ap.discover())) {
-    //      System.out.println(a);
-    //    }
+    // for (String a : ap.loadAll(ap.discover(), "manual")) {
+    // System.out.println(a);
+    // }
+    // for (String a : ap.loadSamples(ap.discover())) {
+    // System.out.println(a);
+    // }
     ap.loadAllMapped(ap.discover(), d + "parsedAnnots.xln");
   }
 

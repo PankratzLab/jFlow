@@ -122,6 +122,7 @@ public class EMAncestry {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
@@ -135,7 +136,8 @@ public class EMAncestry {
     if (m.getRowDimension() != m.getColumnDimension()) {
       throw new IllegalArgumentException("Number of columns does not match number of rows");
     }
-    // adapted from https://github.com/apache/mahout/blob/7dff35bc3c61c3e0b95e8e59406742be15203a69/mr/src/main/java/org/apache/mahout/common/distance/MahalanobisDistanceMeasure.java
+    // adapted from
+    // https://github.com/apache/mahout/blob/7dff35bc3c61c3e0b95e8e59406742be15203a69/mr/src/main/java/org/apache/mahout/common/distance/MahalanobisDistanceMeasure.java
     // See http://www.mlahanas.de/Math/svd.htm for details,
     // which specifically details the case of covariance matrix inversion
     // Complexity: O(min(nm2,mn2))
@@ -153,7 +155,7 @@ public class EMAncestry {
     return svd.getU().multiply(sInv.multiply(svd.getU().transpose()));
   }
 
-  //  https://en.wikipedia.org/wiki/Mahalanobis_distance
+  // https://en.wikipedia.org/wiki/Mahalanobis_distance
   private static double computeMahalanobisDistance(double[] xy, double[] means,
                                                    RealMatrix invCovariances) {
 
@@ -187,16 +189,17 @@ public class EMAncestry {
         xy[j] = data[j][i];
       }
 
-      //PDF values are all >0
+      // PDF values are all >0
       double curMax = -1;
 
       List<Double> posteriorProbs = new ArrayList<>();
       int mostLikelyCluster = -1;
       double mahalanobisDistance = -1;
-      // pdf of this point in full MixtureMultivariateNormalDistribution 
+      // pdf of this point in full MixtureMultivariateNormalDistribution
       double fullPdf = mmnd.density(xy);
       for (int j = 0; j < clusts.size(); j++) {
-        // posterior probability given this point and this component (cluster) of the MixtureMultivariateNormalDistribution
+        // posterior probability given this point and this component (cluster) of the
+        // MixtureMultivariateNormalDistribution
         double tmp = clusts.get(j).getValue().density(xy) * clusts.get(j).getFirst().doubleValue();
         clusts.get(j).getValue().getCovariances();
         tmp = tmp / fullPdf;
@@ -240,7 +243,7 @@ public class EMAncestry {
     joiner.add("CLUSTER_ASSIGNED");
     joiner.add("PROBALITY_OF_CLUSTER_ASSIGNED");
     joiner.add("MAHALANOBIS_DISTANCE");
-    //    mahalanobisDistance
+    // mahalanobisDistance
     for (int i = 0; i < numClusters; i++) {
       joiner.add("PROBALITY_OF_CLUSTER_" + i);
     }

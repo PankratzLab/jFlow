@@ -111,7 +111,7 @@ public class GenotypeRefinement {
       VCFFileReader tmp = new VCFFileReader(new File(refinedResults.get(0).getDenovoVCF()));
 
       VCFHeader header = tmp.getFileHeader(); // header from results should contain new refinement
-                                             // annotations
+                                              // annotations
 
       SAMSequenceDictionary dict = header.getSequenceDictionary();
       VariantContextWriter outputWriter = VCFOps.initWriter(refinedVCF,
@@ -225,6 +225,7 @@ public class GenotypeRefinement {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Iterator#hasNext()
      */
     @Override
@@ -234,6 +235,7 @@ public class GenotypeRefinement {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Iterator#next()
      */
     @Override
@@ -249,6 +251,7 @@ public class GenotypeRefinement {
 
     /*
      * (non-Javadoc)
+     * 
      * @see org.genvisis.common.WorkerTrain.Producer#shutdown()
      */
     @Override

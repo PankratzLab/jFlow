@@ -16,16 +16,17 @@ import org.pankratzlab.common.filesys.LocusSet;
 
 public class SanityNICHD {
 
-  //  private static List<String> geneNames = (List<String>) Arrays.asList(new String[] {"AIP", "MEN1",
-  //                                                                                     "PRKAR1A",
-  //                                                                                     "CDKN1B",
-  //                                                                                     "CDKN2C",
-  //                                                                                     "GPR101",
-  //                                                                                     "USP8",
-  //                                                                                     "CABLES1",
-  //                                                                                     "TSC2", "BAI1",
-  //                                                                                     "RASD1",
-  //                                                                                     "DICER1"});
+  // private static List<String> geneNames = (List<String>) Arrays.asList(new String[] {"AIP",
+  // "MEN1",
+  // "PRKAR1A",
+  // "CDKN1B",
+  // "CDKN2C",
+  // "GPR101",
+  // "USP8",
+  // "CABLES1",
+  // "TSC2", "BAI1",
+  // "RASD1",
+  // "DICER1"});
   private static List<String> geneNames = (List<String>) Arrays.asList(new String[] {"CDKN1B"});
 
   public static void main(String[] args) {
@@ -37,8 +38,8 @@ public class SanityNICHD {
     String gtrackFile = Resources.genome(GenomeBuild.HG19, new Logger()).getGTrack().get();
 
     LocusSet<GeneData> geneSet = GeneTrack.load(gtrackFile).convertToLocusSet(new Logger());
-    //    chr12:12870302-12875305
-    //    chr12:12870203-12875316
+    // chr12:12870302-12875305
+    // chr12:12870203-12875316
     HashSet<String> notControls = new HashSet<>();
     notControls.add("EXCLUDE");
     notControls.add("EPP");

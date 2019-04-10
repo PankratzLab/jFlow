@@ -133,7 +133,7 @@ public class CRAMSnpReader {
           log.reportTime("Processing .cram file: " + c);
           try {
             String outFile = outDir + ext.rootOf(c) + CRAM_READS_EXT;
-            //            PrintWriter writer = new PrintWriter(new BlockCompressedOutputStream(outFile));
+            // PrintWriter writer = new PrintWriter(new BlockCompressedOutputStream(outFile));
             PrintWriter writer = Files.getAppropriateWriter(outFile);
             writer.println(HEADER);
             BamPile[] bamPiles = PileupProducer.processBamFile(c, refGen, pileSegs, filterNGS,

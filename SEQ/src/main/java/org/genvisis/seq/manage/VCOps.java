@@ -512,9 +512,10 @@ public class VCOps {
 
         if (g.isHet() && (AD[1] == 0 || AD[0] == 0) && ArrayUtils.sum(gAD) != AD[0]
             && ArrayUtils.sum(gAD) != AD[1]) {// there can actually be het calls with 0 ref or 0
-                                                                                                                          // alt, or
-                                                                                                                          // both...apparently, I would'nt do that but whatever. So
-                                                                                                                          // anyways we do not test AD[0]
+                                              // alt, or
+                                              // both...apparently, I would'nt do that but whatever.
+                                              // So
+                                              // anyways we do not test AD[0]
           if (verbose) {
 
             log.reportError("Invalid Het allele depth, Het non-ref " + g.isHetNonRef());

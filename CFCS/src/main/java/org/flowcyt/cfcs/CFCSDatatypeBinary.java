@@ -81,8 +81,10 @@ public class CFCSDatatypeBinary extends CFCSAbstractDatatype {
       row[cell] = datum;
     }
 
-    if (index == data.size()) data.add(row);
-    else data.set(index, row);
+    if (index == data.size())
+      data.add(row);
+    else
+      data.set(index, row);
   }
 
   // --------------------------------------------------------------------
@@ -94,7 +96,8 @@ public class CFCSDatatypeBinary extends CFCSAbstractDatatype {
     final int variability = sizing.getSizeVariability();
     final int[] sizes = (variability != CFCSDataSizing.FIXED) ? sizing.getByteSizes() : null;
 
-    if (variability == CFCSDataSizing.ROW) bytes = sizes[index];
+    if (variability == CFCSDataSizing.ROW)
+      bytes = sizes[index];
     else if (variability == CFCSDataSizing.FIXED) bytes = sizing.getByteSize();
 
     try {

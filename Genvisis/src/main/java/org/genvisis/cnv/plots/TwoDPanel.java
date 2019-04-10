@@ -633,7 +633,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
           sample = linkerDataElem[TwoDPlot.DNA_INDEX_IN_LINKERS];
         }
         if (sample == null && sampleData != null) { // if Sample not already identified and if a
-                                                   // sample lookup exists
+                                                    // sample lookup exists
           ids = null;
           if (linkKeyIndicies[TwoDPlot.FID_INDEX_IN_LINKERS] >= 0) { // if FID present
             ids = sampleData.lookup(linkerDataElem[TwoDPlot.FID_INDEX_IN_LINKERS] + "\t"

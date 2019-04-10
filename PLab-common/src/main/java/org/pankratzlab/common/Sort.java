@@ -407,7 +407,8 @@ public class Sort {
    * Store two comparable objects with an external index, to facilitate sorting by the first object,
    * then the second, and finally the original index
    */
-  private static class IndexedCC<C1 extends Comparable<C1>, C2 extends Comparable<C2>> implements Comparable<IndexedCC<C1, C2>>, IndexedWrapper {
+  private static class IndexedCC<C1 extends Comparable<C1>, C2 extends Comparable<C2>>
+                                implements Comparable<IndexedCC<C1, C2>>, IndexedWrapper {
 
     private final C1 c1;
     private final C2 c2;

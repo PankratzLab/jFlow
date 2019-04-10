@@ -139,14 +139,14 @@ public class Ttest {
   }
 
   public Ttest(double x1Hat, double s1, int n1, double x2Hat, double s2, int n2) { // independent
-                                                                                  // sample
-                                                                                  // t-test
+                                                                                   // sample
+                                                                                   // t-test
     this(x1Hat, s1, (double) n1, x2Hat, s2, (double) n2);
   }
 
   public Ttest(double x1Hat, double s1, double n1, double x2Hat, double s2, double n2) { // independent
-                                                                                        // sample
-                                                                                        // t-test
+                                                                                         // sample
+                                                                                         // t-test
     double pooledVariance, se;
 
     t = new double[2];

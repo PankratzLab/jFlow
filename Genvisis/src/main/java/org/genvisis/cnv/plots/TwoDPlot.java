@@ -77,7 +77,8 @@ import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.gui.UITools;
 import com.google.common.base.Strings;
 
-public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {
+public class TwoDPlot extends JPanel
+                      implements WindowListener, ActionListener, TreeSelectionListener {
 
   public static final long serialVersionUID = 1L;
   public static final byte DEFAULT_SIZE = 8;
@@ -1478,7 +1479,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
       if (screencap.colorFile != null && Files.exists(baseDir + screencap.colorFile)) {
         loadColor(baseDir, screencap);
         colorLoaded = true; // vulnerable to issues actually loading color file, but good enough for
-                           // now? TODO need some way to specify HeatMap/Genotype coloration
+                            // now? TODO need some way to specify HeatMap/Genotype coloration
       }
 
       if (screencap.dataXFile != null) {

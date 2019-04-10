@@ -110,6 +110,7 @@ public class PSF {
       public static final Color CHRISTALLE = new Color(66, 28, 82);
 
     }
+
     public static final class BROWNS {
 
       public static final Color MAROON = new Color(100, 50, 0);

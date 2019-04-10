@@ -122,6 +122,7 @@ public class LumpyPrep implements PairedEndSVAnalysis {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Iterator#hasNext()
      */
     @Override
@@ -131,6 +132,7 @@ public class LumpyPrep implements PairedEndSVAnalysis {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Iterator#next()
      */
     @Override
@@ -220,6 +222,7 @@ public class LumpyPrep implements PairedEndSVAnalysis {
 
     /*
      * (non-Javadoc)
+     * 
      * @see org.genvisis.common.WorkerTrain.Producer#shutdown()
      */
     @Override

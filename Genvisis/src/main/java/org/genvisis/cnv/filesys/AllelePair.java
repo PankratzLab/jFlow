@@ -24,8 +24,9 @@ public class AllelePair implements Serializable, Comparable<AllelePair> {
     if (a.isReference()) {
       if (b.isNonReference()) {
         refAllele = RefAllele.A;
-      } else throw new IllegalArgumentException("Cannot construct " + this.getClass().getName()
-                                                + " with two reference alleles");
+      } else
+        throw new IllegalArgumentException("Cannot construct " + this.getClass().getName()
+                                           + " with two reference alleles");
     } else if (b.isReference()) {
       refAllele = RefAllele.B;
     } else {

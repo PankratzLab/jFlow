@@ -446,19 +446,19 @@ public class MitoPipeline {
       }
       if ((refGenomeFasta != null && Files.exists(refGenomeFasta))
           || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO,
-                                                                                                                            // after
-                                                                                                                            // evaluating
-                                                                                                                            // reference
-                                                                                                                            // genome
-                                                                                                                            // based
-                                                                                                                            // gc
-                                                                                                                            // model
-                                                                                                                            // files,
-                                                                                                                            // will
-                                                                                                                            // demand
-                                                                                                                            // a
-                                                                                                                            // refGenome
-                                                                                                                            // try {
+                                                               // after
+                                                               // evaluating
+                                                               // reference
+                                                               // genome
+                                                               // based
+                                                               // gc
+                                                               // model
+                                                               // files,
+                                                               // will
+                                                               // demand
+                                                               // a
+                                                               // refGenome
+                                                               // try {
         GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
         gAdjustorBuilder.regressionDistance(regressionDistance);
         params = GcAdjustorParameter.generate(proj, outputBase + "_GC_ADJUSTMENT/", refGenomeFasta,
@@ -948,9 +948,10 @@ public class MitoPipeline {
     // bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
     usage += "   (24) recompute LRR using only those samples that pass QC, and are in the use file (i.e. sampLRR="
              + recompSampleSpecific + " (default))\n";
-    //    usage += "   (25) comma-delimited list of p-values for pc-beta optimization  (i.e. pvals="
-    //             + ArrayUtils.toStr(ArrayUtils.toStringArray(pvalOpt), ",") + " (default))\n";
-    //    usage += "   (26) use an external beta file to optimize PC selection  (i.e. betas= (no default))\n";
+    // usage += " (25) comma-delimited list of p-values for pc-beta optimization (i.e. pvals="
+    // + ArrayUtils.toStr(ArrayUtils.toStringArray(pvalOpt), ",") + " (default))\n";
+    // usage += " (26) use an external beta file to optimize PC selection (i.e. betas= (no
+    // default))\n";
 
     usage += "   NOTE:\n";
     usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";

@@ -24,8 +24,8 @@ public class AffyCentroids implements Serializable {
                                                          "BB R Mean"};
 
   private final float[][][] AffyCentroids; // marker, genotype (0=AA, 1=AB, 2=BB), coordinates
-                                          // (0=Mean Theta, 1=Mean R) (a.k.a. follows the suffix
-                                          // order above)
+                                           // (0=Mean Theta, 1=Mean R) (a.k.a. follows the suffix
+                                           // order above)
   private final long fingerprint;
 
   // private static int stopper = 1855448;

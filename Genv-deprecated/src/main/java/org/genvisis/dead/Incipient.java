@@ -454,7 +454,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
   private Vector<String> wrongHistory;
   private boolean wrongFlag;
   private final int[] previousWordAction = {-1, -1, -1, -1, -1}; // {word's hashNum, skipped?,
-                                                                // wrong?, in wrongHistory?}
+                                                                 // wrong?, in wrongHistory?}
   private int questionsLeft;
   // private int answersLeft;
   private JLabel leftLabel;

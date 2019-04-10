@@ -330,9 +330,9 @@ public class temp {
     }
     System.out.println();
     System.out.println(counts[0] + "\t" + (double) counts[0] / reps); // +"\tmean beta:
-                                                                     // "+Array.mean(betas[0]));
+                                                                      // "+Array.mean(betas[0]));
     System.out.println(counts[1] + "\t" + (double) counts[1] / reps); // +"\tmean beta:
-                                                                     // "+Array.mean(betas[1]));
+                                                                      // "+Array.mean(betas[1]));
     System.out.println();
     System.out.println(tCounts[0] + "\t" + (double) tCounts[0] / reps);
     System.out.println(tCounts[1] + "\t" + (double) tCounts[1] / reps);

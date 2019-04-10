@@ -221,7 +221,8 @@ public class PrincipalComponentsCompute {
     singularValues = ArrayUtils.subArray(getDiagonal(W), 0, numComponents);// W is the sorted
                                                                            // (descending
                                                                            // order on the diagonal)
-                                                                           // matrix of singular values
+                                                                           // matrix of singular
+                                                                           // values
 
   }
 

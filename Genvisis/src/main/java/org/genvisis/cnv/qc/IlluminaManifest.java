@@ -103,7 +103,7 @@ public class IlluminaManifest {
     return ArrayUtils.toStringArray(markerNames);
   }
 
-  //--------------------------------------------------------
+  // --------------------------------------------------------
 
   /**
    * - From https://github.com/bioinformed/glu-genetics/blob/master/glu/lib/illumina.py String data
@@ -286,7 +286,7 @@ public class IlluminaManifest {
   private ArrayList<ManifestEntry> entries;
   private Map<String, ManifestEntry> nameMap;
 
-  // TODO add accessor methods as needed 
+  // TODO add accessor methods as needed
 
   static class ManifestEntry {
 

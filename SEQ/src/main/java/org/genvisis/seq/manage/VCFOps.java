@@ -1607,9 +1607,9 @@ public class VCFOps {
     }
   }
 
-  //  public static String[] getAllContigs(String vcfFile, Logger log) {
-  //    return getContigs(vcfFile, false, log);
-  //  }
+  // public static String[] getAllContigs(String vcfFile, Logger log) {
+  // return getContigs(vcfFile, false, log);
+  // }
 
   public static String[] getContigs(String vcfFile, boolean autosomalOnly, Logger log) {
     List<SAMSequenceRecord> sList = getAllSAMSequenceRecords(vcfFile, log);

@@ -29,7 +29,8 @@ public class AxiomPipeline {
   private static final String CEL_LIST_HEADER = "cel_files";
   private static final String AFFY_PROBELIST_HEADER = "probeset_id";
 
-  private final String axiomXMLDefFile; // e.g. Axiom_tx_v1.r5.apt-probeset-genotype.AxiomSS1.apt2.xml
+  private final String axiomXMLDefFile; // e.g.
+                                        // Axiom_tx_v1.r5.apt-probeset-genotype.AxiomSS1.apt2.xml
   private final String cdfFile;
   private final String aptExeDir;// holds "apt-geno-qc", "apt-probeset-genotype",
                                  // "apt-probeset-summarize" etc

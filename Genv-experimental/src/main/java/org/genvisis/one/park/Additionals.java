@@ -181,11 +181,11 @@ public class Additionals {
             }
 
             if (tools.isAffected(affecteds, line[0] + "\t" + line[4])) { // father
-                                                                        // affected
+                                                                         // affected
               data.elementAt(4).add(line[4]);
             }
             if (tools.isAffected(affecteds, line[0] + "\t" + line[5])) { // mother
-                                                                        // affected
+                                                                         // affected
               data.elementAt(5).add(line[5]);
             }
           } else {

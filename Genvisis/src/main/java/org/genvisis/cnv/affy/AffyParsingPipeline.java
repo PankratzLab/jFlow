@@ -94,7 +94,7 @@ public class AffyParsingPipeline {
     }
     reader.close();
 
-    // create naive MarkerSet file 
+    // create naive MarkerSet file
     Markers.orderMarkers(allMarkers.toArray(new String[allMarkers.size()]), proj);
   }
 

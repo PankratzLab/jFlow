@@ -161,9 +161,9 @@ public class SexChecks {
   private static final float NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY = 4.0f;
   private static final float MAX_SD_FOR_Y_OUTLIERS = 5.0f;
   private static final double SEX_DISCRIMINATING_BASE_P_THRESHOLD = 0.001; // This will be
-                                                                          // bonferroni corrected
-                                                                          // for number of markers
-                                                                          // checked
+                                                                           // bonferroni corrected
+                                                                           // for number of markers
+                                                                           // checked
   private static final double MOSAIC_F_CERTAINTY_THRESHOLD = 0.2;
   private static final double MOSAIC_COVERAGE_CERTAINTY_THRESHOLD = 0.8;
   private static final double MOSAIC_COVERAGE_ABSOLUTE_THRESHOLD = 0.5;

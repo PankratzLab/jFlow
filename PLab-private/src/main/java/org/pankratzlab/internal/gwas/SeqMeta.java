@@ -70,9 +70,9 @@ public class SeqMeta {
                                                  {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"}, // SKAT
                                                  // test
                                                  {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"} // SKAT-O
-                                                                                                 // test
-                                                                                                 // (not
-                                                                                                 // verified)
+                                                                                                  // test
+                                                                                                  // (not
+                                                                                                  // verified)
   };
 
   public static final String[] SUMMARY_INFO_HEADER = {"Study", "Ethnicity", "Units", "Trait",
@@ -169,7 +169,7 @@ public class SeqMeta {
     races = maps.getRacesWithFilenameAliases();
 
     finalSets = new String[phenotypes.length][][]; // [pheno][study][race] <- all files meeting
-                                                  // criteria
+                                                   // criteria
     for (int i = 0; i < phenotypes.length; i++) {
       finalSets[i] = Matrix.stringMatrix(studies.length, races.length, "<missing>");
       if (log.getLevel() > 5) {
@@ -1604,8 +1604,10 @@ public class SeqMeta {
     } else {
       for (int x = 0; x <= functionNames.length; x++) {
         String functionFlagName;
-        if (x == functionNames.length) functionFlagName = "None";
-        else functionFlagName = functionNames[x];
+        if (x == functionNames.length)
+          functionFlagName = "None";
+        else
+          functionFlagName = functionNames[x];
         snpGeneHash = new Hashtable<>();
         snpGeneFunctionalHash = new Hashtable<>();
         geneLoci = new Hashtable<>();
@@ -1636,10 +1638,12 @@ public class SeqMeta {
             line = ext.splitCommasIntelligently(reader.readLine(), true, log);
             snpGeneHash.put(line[indices[0]], line[indices[1]]);
             if (line[indices[2]].equals("TRUE") || functionFlagName.equals("None")) { // &&
-                                                                                     // !line[indices[4]].equals("NA")
-                                                                                     // &&
-                                                                                     // Double.parseDouble(line[indices[4]]) <=
-                                                                                     // mafThresholdDouble ) {
+                                                                                      // !line[indices[4]].equals("NA")
+                                                                                      // &&
+                                                                                      // Double.parseDouble(line[indices[4]])
+                                                                                      // <=
+                                                                                      // mafThresholdDouble
+                                                                                      // ) {
               snpGeneFunctionalHash.put(line[indices[0]], line[indices[1]]);
             }
             if (!geneLoci.containsKey(line[indices[1]])) {
@@ -2654,9 +2658,9 @@ public class SeqMeta {
           // additionalCols.add("single_func_region");
           additionalCols.add("Function");
         }
-        //        if (groups[g].startsWith("BurdenTests")) {
-        //          additionalCols.add("PanEthnic_nsnpsTotal_T5Count");
-        //        }
+        // if (groups[g].startsWith("BurdenTests")) {
+        // additionalCols.add("PanEthnic_nsnpsTotal_T5Count");
+        // }
         for (String[] method : methods) {
           if (groups[g].startsWith(method[1])) {
             additionalCols.add("PanEthnic_p_" + method[0]);

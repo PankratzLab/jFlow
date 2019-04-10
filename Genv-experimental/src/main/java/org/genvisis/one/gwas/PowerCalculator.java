@@ -12,12 +12,13 @@ public class PowerCalculator {
 
   // public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
   // 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
-  //  common and rare 
+  // common and rare
   public static final double[] MAFs = {
-                                       //                                       0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 
+                                       // 0.001, 0.005, 0.01, 0.02, 0.03, 0.04,
                                        0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
-  //  just common
-  //  public static final double[] MAFs = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50};
+  // just common
+  // public static final double[] MAFs = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45,
+  // 0.50};
   public static final double[] RELATIVE_RISKS = {1.10, 1.20, 1.30, 1.40, 1.60, 1.80, 2.00, 2.2, 2.4,
                                                  2.6};
   // public static final double[] MAFs = {0.20};
@@ -192,7 +193,7 @@ public class PowerCalculator {
     }
   }
 
-  //  simulateSomaticDistribution(210, 0.33, 20000, 9);
+  // simulateSomaticDistribution(210, 0.33, 20000, 9);
   private static double simulateSomaticDistribution(int numCases, double targetPercentage,
                                                     int numGeneTests,
                                                     int numExpectedSomaticPerExome, int numReps,
@@ -208,7 +209,7 @@ public class PowerCalculator {
         int numActualSomatic = numExpectedSomaticPerExome
                                + (int) ((Math.random() < 0.50 ? -1 : 1)
                                         * ProbDist.NormDistReverse(Math.random()) * 2);
-        //        System.out.println(numActualSomatic);
+        // System.out.println(numActualSomatic);
         for (int k = 0; k < numActualSomatic; k++) {
           geneCounts[(int) (Math.random() * numGeneTests)]++;
         }
@@ -263,7 +264,7 @@ public class PowerCalculator {
 
   }
 
-  //  simulateSomaticDistribution(210, 0.33, 20000, 9);
+  // simulateSomaticDistribution(210, 0.33, 20000, 9);
   private static double simulateSomaticCaseControl(int numCases, int numControls,
                                                    int numCaseCarriers, int numControlCarriers,
                                                    int numGeneTests, int numExpectedSomaticPerExome,
@@ -282,7 +283,7 @@ public class PowerCalculator {
         int numActualSomatic = numExpectedSomaticPerExome
                                + (int) ((Math.random() < 0.50 ? -1 : 1)
                                         * ProbDist.NormDistReverse(Math.random()) * 2);
-        //        System.out.println(numActualSomatic);
+        // System.out.println(numActualSomatic);
         for (int k = 0; k < numActualSomatic; k++) {
           geneCounts[(int) (Math.random() * numGeneTests)][j < numCases ? 0 : 1]++;
         }
@@ -295,14 +296,14 @@ public class PowerCalculator {
                                       numControls - geneCounts[j][0]) >= chiToBeat) {
           exceeds = true;
         }
-        //        if (geneCounts[j][0] + geneCounts[j][1] >= 4) {
-        //          numMeetingCriterion++;
-        //        }
+        // if (geneCounts[j][0] + geneCounts[j][1] >= 4) {
+        // numMeetingCriterion++;
+        // }
       }
       if (exceeds) {
         numExceedingTarget++;
       }
-      //      System.out.println(numMeetingCriterion);
+      // System.out.println(numMeetingCriterion);
     }
 
     emp2 = ((double) numExceedingTarget + 1) / ((double) numReps + 1);
@@ -422,36 +423,58 @@ public class PowerCalculator {
       // rangeOfMaf(0.001, 0.01, 875 + 700, 875 + 700, 1000000, false); // Poynter's MDS-AML grant,
       // MDS
 
-      //      rangeOfMaf(0.001, 0.01, 101, 406, 300000, false); // Poynter's renewal on ototoxicity
-      //      rangeOfMaf(0.001, 0.01, 38, 152, 500000, false); // Poynter's renewal on ototoxicity
+      // rangeOfMaf(0.001, 0.01, 101, 406, 300000, false); // Poynter's renewal on ototoxicity
+      // rangeOfMaf(0.001, 0.01, 38, 152, 500000, false); // Poynter's renewal on ototoxicity
 
       // rangeOfMaf(0.001, 0.01, 867 + 700 + 800, 867 + 700 + 800, 1000000, false); // Poynter's GCT
       // R21
       // rangeOfMaf(0.001, 0.01, 867 + 700 + 800, 867 + 700 + 800, 50000, false); // Poynter's GCT
       // R21
-      //      rangeOfMaf(0.001, 0.01, 2386, 2386 + 1000, 1000000, false); // Poynter's GCT resubmission
-      //      rangeOfMaf(0.001, 0.01, 479, 479, 1, false); // Poynter's GCT replication
-      //      rangeOfMaf(0.001, 0.01, 1000, 1000, 1000000, false); // Poynter's GCT replication
+      // rangeOfMaf(0.001, 0.01, 2386, 2386 + 1000, 1000000, false); // Poynter's GCT resubmission
+      // rangeOfMaf(0.001, 0.01, 479, 479, 1, false); // Poynter's GCT replication
+      // rangeOfMaf(0.001, 0.01, 1000, 1000, 1000000, false); // Poynter's GCT replication
 
-      //      rangeOfMaf(0.001, 0.01, 163, 656, 300000, false); // Poynter's renewal on ototoxicity - discovery
-      //      rangeOfMaf(0.001, 0.01, 271, 855, 300000, false); // Poynter's renewal on ototoxicity - replication
-      //      rangeOfMaf(0.001, 0.01, 163 + 271, 656 + 855, 300000, false); // Poynter's renewal on ototoxicity - combined
+      // rangeOfMaf(0.001, 0.01, 163, 656, 300000, false); // Poynter's renewal on ototoxicity -
+      // discovery
+      // rangeOfMaf(0.001, 0.01, 271, 855, 300000, false); // Poynter's renewal on ototoxicity -
+      // replication
+      // rangeOfMaf(0.001, 0.01, 163 + 271, 656 + 855, 300000, false); // Poynter's renewal on
+      // ototoxicity - combined
 
-      //      rangeOfMaf(0.001, 0.01, 163, 656, 20, false); // Poynter's renewal on ototoxicity - discovery
-      //      rangeOfMaf(0.001, 0.01, 271, 855, 20, false); // Poynter's renewal on ototoxicity - replication
-      //      rangeOfMaf(0.001, 0.01, 163 + 271, 656 + 855, 20, false); // Poynter's renewal on ototoxicity - combined
+      // rangeOfMaf(0.001, 0.01, 163, 656, 20, false); // Poynter's renewal on ototoxicity -
+      // discovery
+      // rangeOfMaf(0.001, 0.01, 271, 855, 20, false); // Poynter's renewal on ototoxicity -
+      // replication
+      // rangeOfMaf(0.001, 0.01, 163 + 271, 656 + 855, 20, false); // Poynter's renewal on
+      // ototoxicity - combined
 
-      //      rangeOfMaf(0.001, 0.01, 163 + 271, 656 + 855, 16000, false); // Poynter's renewal on ototoxicity - combined, gene-based burden and PrediXcan
+      // rangeOfMaf(0.001, 0.01, 163 + 271, 656 + 855, 16000, false); // Poynter's renewal on
+      // ototoxicity - combined, gene-based burden and PrediXcan
 
-      rangeOfMaf(0.001, 0.01, 163 - 30, 656 - 122, 300000, false); // Poynter's renewal on ototoxicity - discovery // no IGCT
-      rangeOfMaf(0.001, 0.01, 271, 855, 300000, false); // Poynter's renewal on ototoxicity - replication // no IGCT
-      rangeOfMaf(0.001, 0.01, 163 + 271 - 30, 656 + 855 - 122, 300000, false); // Poynter's renewal on ototoxicity - combined // no IGCT
+      rangeOfMaf(0.001, 0.01, 163 - 30, 656 - 122, 300000, false); // Poynter's renewal on
+                                                                   // ototoxicity - discovery // no
+                                                                   // IGCT
+      rangeOfMaf(0.001, 0.01, 271, 855, 300000, false); // Poynter's renewal on ototoxicity -
+                                                        // replication // no IGCT
+      rangeOfMaf(0.001, 0.01, 163 + 271 - 30, 656 + 855 - 122, 300000, false); // Poynter's renewal
+                                                                               // on ototoxicity -
+                                                                               // combined // no
+                                                                               // IGCT
 
-      rangeOfMaf(0.001, 0.01, 163 - 30, 656 - 122, 20, false); // Poynter's renewal on ototoxicity - discovery // no IGCT
-      rangeOfMaf(0.001, 0.01, 271, 855, 20, false); // Poynter's renewal on ototoxicity - replication // no IGCT
-      rangeOfMaf(0.001, 0.01, 163 + 271 - 30, 656 + 855 - 122, 20, false); // Poynter's renewal on ototoxicity - combined // no IGCT
+      rangeOfMaf(0.001, 0.01, 163 - 30, 656 - 122, 20, false); // Poynter's renewal on ototoxicity -
+                                                               // discovery // no IGCT
+      rangeOfMaf(0.001, 0.01, 271, 855, 20, false); // Poynter's renewal on ototoxicity -
+                                                    // replication // no IGCT
+      rangeOfMaf(0.001, 0.01, 163 + 271 - 30, 656 + 855 - 122, 20, false); // Poynter's renewal on
+                                                                           // ototoxicity - combined
+                                                                           // // no IGCT
 
-      rangeOfMaf(0.001, 0.01, 163 + 271 - 30, 656 + 855 - 122, 16000, false); // Poynter's renewal on ototoxicity - combined, gene-based burden and PrediXcan // no IGCT
+      rangeOfMaf(0.001, 0.01, 163 + 271 - 30, 656 + 855 - 122, 16000, false); // Poynter's renewal
+                                                                              // on ototoxicity -
+                                                                              // combined,
+                                                                              // gene-based burden
+                                                                              // and PrediXcan // no
+                                                                              // IGCT
 
       // rangeOfMaf(0.001, 0.01, 665 , 1119 , 100000, false); // Poynter's MDS-AML resubmission,
       // discovery
@@ -478,22 +501,22 @@ public class PowerCalculator {
       // getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/power.input");
       // getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/population.input");
 
-      //      simulateSomaticDistribution(210, 0.025, 20000, 9, 1000, true);
-      //      powerSomaticDistribution(210, 0.03, 20000, 9, 100, 100);
-      //      powerSomaticDistribution(285, 0.03, 500, 1, 100, 100);
-      //      simulateSomaticCaseControl(80, 130, 16, 12, 20000, 9, 100, true);
-      //      powerSomaticCaseControl(80, 130, 0.18, 0.05, 20000, 9, 100, 100);
+      // simulateSomaticDistribution(210, 0.025, 20000, 9, 1000, true);
+      // powerSomaticDistribution(210, 0.03, 20000, 9, 100, 100);
+      // powerSomaticDistribution(285, 0.03, 500, 1, 100, 100);
+      // simulateSomaticCaseControl(80, 130, 16, 12, 20000, 9, 100, true);
+      // powerSomaticCaseControl(80, 130, 0.18, 0.05, 20000, 9, 100, 100);
 
-      //      rangeOfMaf(0.001, 0.01, 2305, 7251, 1000000, false); // Lindsay Males
-      //      rangeOfMaf(0.001, 0.01, 1889, 7251, 1000000, false); // Lindsay Females
-      //      rangeOfMaf(0.001, 0.01, 4191, 14502, 1000000, false); // Lindsay Combined
-      //      rangeOfMaf(0.001, 0.01, 846, 651, 5000, false); // Lindsay B-ALL CNV
-      //      rangeOfMaf(0.001, 0.01, 197, 61, 5000, false); // Lindsay T-ALL CNV
+      // rangeOfMaf(0.001, 0.01, 2305, 7251, 1000000, false); // Lindsay Males
+      // rangeOfMaf(0.001, 0.01, 1889, 7251, 1000000, false); // Lindsay Females
+      // rangeOfMaf(0.001, 0.01, 4191, 14502, 1000000, false); // Lindsay Combined
+      // rangeOfMaf(0.001, 0.01, 846, 651, 5000, false); // Lindsay B-ALL CNV
+      // rangeOfMaf(0.001, 0.01, 197, 61, 5000, false); // Lindsay T-ALL CNV
 
-      //      rangeOfMaf(0.001, 0.01, 1043, 712, 5000, false); // Lindsay Combined CNV
+      // rangeOfMaf(0.001, 0.01, 1043, 712, 5000, false); // Lindsay Combined CNV
 
-      //      rangeOfMaf(0.001, 0.01, 1368, 7251, 1000000, false); // Lindsay Males take 2
-      //      rangeOfMaf(0.001, 0.01, 1119, 7251, 1000000, false); // Lindsay Females take 2
+      // rangeOfMaf(0.001, 0.01, 1368, 7251, 1000000, false); // Lindsay Males take 2
+      // rangeOfMaf(0.001, 0.01, 1119, 7251, 1000000, false); // Lindsay Females take 2
 
     } catch (Exception e) {
       e.printStackTrace();

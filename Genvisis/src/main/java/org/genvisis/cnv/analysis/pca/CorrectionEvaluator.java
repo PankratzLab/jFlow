@@ -19,7 +19,8 @@ import org.pankratzlab.common.stats.ICC;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import com.google.common.primitives.Doubles;
 
-public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> implements Serializable {
+public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
+                                 implements Serializable {
 
   /**
    *

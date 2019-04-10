@@ -33,9 +33,9 @@ public class SkatMeta {
                                                  {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"}, // SKAT
                                                  // test
                                                  {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"} // SKAT-O
-                                                                                                 // test
-                                                                                                 // (not
-                                                                                                 // verified)
+                                                                                                  // test
+                                                                                                  // (not
+                                                                                                  // verified)
   };
 
   public static String getRscriptExecutable(MetaAnalysisParams maps, Logger log) {
@@ -110,7 +110,7 @@ public class SkatMeta {
     races = maps.getRacesWithFilenameAliases();
 
     finalSets = new String[phenotypes.length][][]; // [pheno][study][race] <- all files meeting
-                                                  // criteria
+                                                   // criteria
     for (int i = 0; i < phenotypes.length; i++) {
       finalSets[i] = Matrix.stringMatrix(studies.length, races.length, "<missing>");
       log.report("For " + phenotypes[i][0] + " identified:", true, true);

@@ -33,8 +33,10 @@ public final class CFCSDatatypeFloat extends CFCSDatatypeDouble {
       row[cell] = Float.intBitsToFloat(datum);
     }
 
-    if (index == data.size()) data.add(row);
-    else data.set(index, row);
+    if (index == data.size())
+      data.add(row);
+    else
+      data.set(index, row);
   }
 
   // --------------------------------------------------------------------

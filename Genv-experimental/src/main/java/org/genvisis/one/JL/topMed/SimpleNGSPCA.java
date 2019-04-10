@@ -42,7 +42,7 @@ public class SimpleNGSPCA implements Serializable {
   private final String[] colNames;
   private final String[] rowNames;
 
-  //  With V,W, and original data M we can always compute U
+  // With V,W, and original data M we can always compute U
   private RealMatrix v;
   private DiagonalMatrix w;
 
@@ -178,7 +178,7 @@ public class SimpleNGSPCA implements Serializable {
         String[] split = availableRows[i].trim().split("\t");
 
         Segment seg = new Segment(split[0], split[1], split[2]);
-        //        or other filter logic
+        // or other filter logic
         if (seg.getChr() > 0 && seg.getChr() < 23) {
           rows.add(seg.getUCSClocation());
           indices.add(i);
@@ -206,7 +206,7 @@ public class SimpleNGSPCA implements Serializable {
           m.addToEntry(j, i, Double.parseDouble(current[3]));
         }
       }
-      //      new SingularValueDecomposition(
+      // new SingularValueDecomposition(
 
       log.reportTime("Saving progress");
 

@@ -118,12 +118,15 @@ public class FastLogicle extends Logicle {
     while (lo <= hi) {
       int mid = (lo + hi) >> 1;
       double key = lookup[mid];
-      if (value < key) hi = mid - 1;
-      else if (value > key) lo = mid + 1;
-      else if (mid < bins) return mid;
+      if (value < key)
+        hi = mid - 1;
+      else if (value > key)
+        lo = mid + 1;
+      else if (mid < bins)
+        return mid;
       else
-      // equal to table[bins] which is for interpolation only
-      throw new LogicleArgumentException(value);
+        // equal to table[bins] which is for interpolation only
+        throw new LogicleArgumentException(value);
     }
 
     // check for out of range

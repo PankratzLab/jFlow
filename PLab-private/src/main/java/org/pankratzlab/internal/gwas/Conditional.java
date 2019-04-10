@@ -1790,7 +1790,7 @@ public class Conditional {
       } else if (metaAll != null) {
         metaAllRegions(metaAll, new Logger("metaAll.log"));
       } else if (models != null) { // not convinced this works with the output from run(with
-                                  // iterate)
+                                   // iterate)
         runModels(dirs, models, annotation, useResiduals, genomiccontrol, pheno, phenoMissingValue,
                   outfile, covariates, sexAsCovariate, allowMissingConditional, dose, info);
       } else {

@@ -59,7 +59,7 @@ public final class CFCSKeyword implements Cloneable, CFCSErrorCodes {
 
   // --------------------------------------------------------------------
 
-  //    /* friendly */
+  // /* friendly */
   static final boolean isSet(final String value) {
     return value != null;
   }

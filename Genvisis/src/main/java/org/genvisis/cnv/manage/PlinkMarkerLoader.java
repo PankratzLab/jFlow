@@ -191,7 +191,8 @@ public class PlinkMarkerLoader implements Runnable {
         line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
         String dna = plinkIDScheme.getProjDNA(proj, line[PSF.Plink.FAM_FID_INDEX],
                                               line[PSF.Plink.FAM_IID_INDEX]);
-        if (dna == null) unmatched++;
+        if (dna == null)
+          unmatched++;
         else if (dnaPlinkIndexLookup.putIfAbsent(dna, cnt) != null) {
           log.reportError("Duplicate sample in " + famFile + ": " + line[PSF.Plink.FAM_FID_INDEX]
                           + "\t" + line[PSF.Plink.FAM_IID_INDEX]);

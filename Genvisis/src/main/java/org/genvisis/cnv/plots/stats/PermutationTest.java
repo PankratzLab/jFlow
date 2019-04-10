@@ -128,7 +128,8 @@ public class PermutationTest {
       mat = HashVec.loadFileToStringMatrix(mapfile, false, null);
     }
     TreeRangeSetMultimap<GenomicPosition, Integer> regions = TreeRangeSetMultimap.create();
-    // If the first position column is 0, we're looking at a single position. Otherwise, we're looking at a gene/region and need to include both the start and stop index (2 and 3)
+    // If the first position column is 0, we're looking at a single position. Otherwise, we're
+    // looking at a gene/region and need to include both the start and stop index (2 and 3)
     int startIndex = mat[0][2].equals("0") ? 3 : 2;
     for (int i = 0; i < mat.length; i++) {
       regions.put(Range.closed(new GenomicPosition(Byte.parseByte(mat[i][0]),
@@ -145,7 +146,7 @@ public class PermutationTest {
     int currentSampleIndex;
     int[][] cnMatrix = new int[mat.length][sampleSet.size()];
     for (int i = 0; i < cnvs.length; i++) {
-      // determine index of sample to use as column index in the resulting matrix 
+      // determine index of sample to use as column index in the resulting matrix
       String id = cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID();
       if (sampleSet.containsKey(id)) {
         currentSampleIndex = sampleSet.get(id);
@@ -192,7 +193,7 @@ public class PermutationTest {
             synchronized (res) {
               double stat_j = res.permute(vals);
 
-              // track the maximum value we've seen this permutation 
+              // track the maximum value we've seen this permutation
               bestStat = type.betterStat(stat_j, bestStat);
             }
           }
@@ -351,7 +352,8 @@ public class PermutationTest {
     String t = cli.get("type");
     if (t.equals("logistic")) {
       type = MpermResults.TestType.LOGISTIC;
-      // Logistic regression is currently inefficient, and does not handle covars correctly as we're regressing them out by default
+      // Logistic regression is currently inefficient, and does not handle covars correctly as we're
+      // regressing them out by default
       // It is disabled for now.
       log.reportError("Logistic regression is not currently implemented. Consider running as plink or mw.");
       return;

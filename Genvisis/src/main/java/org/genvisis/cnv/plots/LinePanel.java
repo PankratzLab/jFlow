@@ -438,7 +438,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
           sample = setOfKeys[prox.elementAt(i)][2];
         }
         if (sample == null && sampleData != null) { // if Sample not already identified and if a
-                                                   // sample lookup exists
+                                                    // sample lookup exists
           ids = null;
           if (linkKeyIndicies[1] >= 0) { // if FID present
             ids = sampleData.lookup(setOfKeys[prox.elementAt(i)][1] + "\t"

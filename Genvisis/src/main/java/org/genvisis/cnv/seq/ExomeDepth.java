@@ -166,7 +166,7 @@ public class ExomeDepth {
             case SEX_CHROMOSOMES:
               for (String samp : allSampleNames) {
                 String compPop = vpop.getPopulationForInd(samp, RETRIEVE_TYPE.SUB)[0];
-                //only care if the sample is not an "exclude"
+                // only care if the sample is not an "exclude"
                 if (!globalExclude.contains(allSampleNames[i])
                     && !currentPop.equals(compPop) & !samp.equals(allSampleNames[i])) {
                   sampleSpecificExclude.get(allSampleNames[i]).add(samp);

@@ -186,6 +186,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       return markersInRegion.toArray(new String[markersInRegion.size()]);
     }
   }
+
   private class RegionResults {
 
     // stored as region, sample
@@ -310,8 +311,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   private final int transformationType;
   private final int scope;
   private final Logger computelog; // considered using the project's default log or using the
-                                  // proj.setLog() command, but nice to have the region specific
-                                  // log named the same
+                                   // proj.setLog() command, but nice to have the region specific
+                                   // log named the same
   private final String[] samples, markerNames;
   private final byte[] chrs;
 

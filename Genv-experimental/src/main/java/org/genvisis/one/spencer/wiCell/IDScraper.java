@@ -42,7 +42,8 @@ public class IDScraper {
                                  .get();
         String nwdID = null;
         for (Element nwdElement : ncbiPage.getElementsContainingOwnText("NWD")) {
-          if (nwdID == null) nwdID = nwdElement.text();
+          if (nwdID == null)
+            nwdID = nwdElement.text();
           else if (!nwdID.equals(nwdElement.text())) {
             System.err.println("Bad NWD ID");
           }

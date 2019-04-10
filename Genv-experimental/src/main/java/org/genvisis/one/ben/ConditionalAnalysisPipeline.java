@@ -359,15 +359,15 @@ public class ConditionalAnalysisPipeline {
         String[] cols = colNames.toArray(new String[colNames.size()]);
 
         LeastSquares lsReg = new LeastSquares(phenoData, indepData, cols, false, false); // TODO
-                                                                                        // should
-                                                                                        // bypass
-                                                                                        // data
-                                                                                        // check??
-                                                                                        // - could
-                                                                                        // easily
-                                                                                        // have
-                                                                                        // NaNs in
-                                                                                        // there
+                                                                                         // should
+                                                                                         // bypass
+                                                                                         // data
+                                                                                         // check??
+                                                                                         // - could
+                                                                                         // easily
+                                                                                         // have
+                                                                                         // NaNs in
+                                                                                         // there
 
         double[] resids = lsReg.getResiduals();
         if (resids.length != traitCount) {
@@ -1176,7 +1176,7 @@ public class ConditionalAnalysisPipeline {
             sb.append("\t").append(iterMarker).append("_beta\t").append(iterMarker).append("_SE\t")
               .append(iterMarker).append("_pval");
             factorHeaderMap.put(factorDir, sb); // because StringBuilders are immutable, we need to
-                                               // replace the instance each time [is this true?]
+                                                // replace the instance each time [is this true?]
 
             int[] indices = ext.indexFactors(factors, Files.getHeaderOfFile(dir + file, null),
                                              false, true, false);

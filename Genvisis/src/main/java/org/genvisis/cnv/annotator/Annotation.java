@@ -8,7 +8,7 @@ public class Annotation {
 
   // Name of this annotation:
   private final String annoName;
-  // Value of this annotation 
+  // Value of this annotation
   private final String annoValue;
 
   /**
@@ -40,7 +40,8 @@ public class Annotation {
   }
 
   @Override
-  public boolean equals(Object obj) { // Note: equals method makes sure the value matches up to the key/hashcode.
+  public boolean equals(Object obj) { // Note: equals method makes sure the value matches up to the
+                                      // key/hashcode.
     if (this == obj) return true;
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;

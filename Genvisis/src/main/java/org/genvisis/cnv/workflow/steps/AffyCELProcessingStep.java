@@ -91,7 +91,9 @@ public class AffyCELProcessingStep extends Step {
 
   @Override
   public String getCommandLine(Variables variables) {
-    Resources.affy(proj.getLog()).genome(GenomeBuild.HG19).getMarkerPositions().get(); // download if necessary
+    Resources.affy(proj.getLog()).genome(GenomeBuild.HG19).getMarkerPositions().get(); // download
+                                                                                       // if
+                                                                                       // necessary
 
     StringBuilder cmd = new StringBuilder();
     cmd.append(Files.getRunString());

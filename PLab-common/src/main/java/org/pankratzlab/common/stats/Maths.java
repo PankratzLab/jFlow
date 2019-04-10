@@ -125,15 +125,21 @@ public class Maths {
     public double add(double val) {
       if (vals.size() == window) {
         double drop = vals.remove();
-        if (Double.isNaN(drop)) nans--;
-        else sum -= drop;
+        if (Double.isNaN(drop))
+          nans--;
+        else
+          sum -= drop;
       }
-      if (Double.isNaN(val)) nans++;
-      else sum += val;
+      if (Double.isNaN(val))
+        nans++;
+      else
+        sum += val;
       vals.add(val);
       int count = vals.size() - nans;
-      if (count > 0) return sum / count;
-      else return Double.NaN;
+      if (count > 0)
+        return sum / count;
+      else
+        return Double.NaN;
     }
   }
 

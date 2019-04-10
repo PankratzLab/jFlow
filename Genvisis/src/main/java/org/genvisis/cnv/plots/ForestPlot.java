@@ -480,8 +480,8 @@ public class ForestPlot {
       dataReader = Files.getReader(fileMap.getKey(), true, // not a jar file
                                    log, // verbose mode on
                                    false // don't kill the whole process, esp. if we're
-                                        // running
-                                        // a GUI
+                                         // running
+                                         // a GUI
       );
       if (dataReader == null) {
         continue;

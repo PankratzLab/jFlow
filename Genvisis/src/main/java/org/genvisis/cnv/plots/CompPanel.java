@@ -25,7 +25,8 @@ import org.pankratzlab.common.filesys.Segment;
 /**
  * @author Michael Vieths
  */
-public class CompPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener {
+public class CompPanel extends JPanel
+                       implements MouseListener, MouseMotionListener, MouseWheelListener {
 
   public static final long serialVersionUID = 1L;
 

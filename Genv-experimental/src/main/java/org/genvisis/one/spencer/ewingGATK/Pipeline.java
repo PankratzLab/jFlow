@@ -458,8 +458,10 @@ public class Pipeline {
 
   private String intToChr(int i) {
     String chr = Integer.toString(i);
-    if (i == 23) chr = "X";
-    else if (i == 24) chr = "Y";
+    if (i == 23)
+      chr = "X";
+    else if (i == 24)
+      chr = "Y";
     else if (i == 25) chr = "MT";
     return chr;
   }

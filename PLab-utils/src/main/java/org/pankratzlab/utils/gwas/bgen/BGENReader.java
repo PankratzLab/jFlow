@@ -727,7 +727,8 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
     V1, V2;
   }
 
-  public final static class BGENRecordMetaData implements Comparable<BGENRecordMetaData>, Serializable {
+  public final static class BGENRecordMetaData implements Comparable<BGENRecordMetaData>,
+                                               Serializable {
 
     private static final long serialVersionUID = 1L;
 

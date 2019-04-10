@@ -69,6 +69,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.genvisis.cnv.filesys.MarkerInfoSet#getMarkerNames()
    */
   @Override
@@ -78,6 +79,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.genvisis.cnv.filesys.MarkerInfoSet#getChrs()
    */
   @Override
@@ -87,6 +89,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.genvisis.cnv.filesys.MarkerInfoSet#getPositions()
    */
   @Override
@@ -96,6 +99,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.genvisis.cnv.filesys.MarkerInfoSet#getPositionsByChr()
    */
   @Override
@@ -128,6 +132,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.genvisis.cnv.filesys.MarkerInfoSet#getIndicesByChr()
    */
   @Override
@@ -212,6 +217,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.genvisis.cnv.filesys.MarkerInfoSet#getIndicesOfMarkersIn(org.genvisis.filesys.Segment,
    * int[][], org.genvisis.common.Logger)
    */
@@ -222,6 +228,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.genvisis.cnv.filesys.MarkerInfoSet#getMarkersIn(org.genvisis.filesys.Segment, int[][])
    */
   @Override

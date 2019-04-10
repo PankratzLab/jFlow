@@ -23,7 +23,8 @@ import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
 import org.pankratzlab.common.mining.Distance;
 
-public class StratPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
+public class StratPanel extends AbstractPanel
+                        implements MouseListener, MouseMotionListener, ComponentListener {
 
   public static final long serialVersionUID = 3L;
   public static final int HEAD_BUFFER = 25;
@@ -208,28 +209,28 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
           if (sampleID == null) {
             if (countFails < 10) {
               sp.getProject().getLog().reportError("Error - could not look up " + sampleList[i]); // looks
-                                                                                                 // up
-                                                                                                 // any
-                                                                                                 // individual
-                                                                                                 // present
-                                                                                                 // in
-                                                                                                 // any
-                                                                                                 // .mds
-                                                                                                 // file
-                                                                                                 // that
-                                                                                                 // was
-                                                                                                 // loaded,
-                                                                                                 // even
-                                                                                                 // those
-                                                                                                 // not
-                                                                                                 // in
-                                                                                                 // the
-                                                                                                 // current
-                                                                                                 // file
+                                                                                                  // up
+                                                                                                  // any
+                                                                                                  // individual
+                                                                                                  // present
+                                                                                                  // in
+                                                                                                  // any
+                                                                                                  // .mds
+                                                                                                  // file
+                                                                                                  // that
+                                                                                                  // was
+                                                                                                  // loaded,
+                                                                                                  // even
+                                                                                                  // those
+                                                                                                  // not
+                                                                                                  // in
+                                                                                                  // the
+                                                                                                  // current
+                                                                                                  // file
             } else if (countFails == 10) {
               sp.getProject().getLog().reportError("..."); // looks up any individual present in any
-                                                          // .mds file that was loaded, even those
-                                                          // not in the current file
+                                                           // .mds file that was loaded, even those
+                                                           // not in the current file
               countFails++;
             }
             tagalong = true;

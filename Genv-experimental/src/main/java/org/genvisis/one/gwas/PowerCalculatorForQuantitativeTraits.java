@@ -311,7 +311,7 @@ public class PowerCalculatorForQuantitativeTraits {
         for (int i = 1; i <= sampleSize; i++) {
           repCount = 0;
           for (int j = 0; j < alleleFrequencies.length; j++) {
-            //   once for each parental chromosome/allele
+            // once for each parental chromosome/allele
             if (Math.random() < alleleFrequencies[j]) repCount++;
             if (Math.random() < alleleFrequencies[j]) repCount++;
           }
@@ -376,7 +376,7 @@ public class PowerCalculatorForQuantitativeTraits {
       // rangeOfSigmaShiftsAndMAFsViaSimulation(10500, 1000, 1000000*28); // Power for LLFS Flow
       // grant
 
-      //      rangeOfSigmaShiftsAndMAFsViaSimulation(5000, 1000, 1); // MDS Telomere length score
+      // rangeOfSigmaShiftsAndMAFsViaSimulation(5000, 1000, 1); // MDS Telomere length score
 
       /**
        * proportion of variance explained can be computed quickly in R N = 352708 alpha = 0.00000005
@@ -384,13 +384,13 @@ public class PowerCalculatorForQuantitativeTraits {
        * pchisq(threshold, df = 1, lower.tail = FALSE, ncp = N * H2) power
        */
 
-      //  From table 2 of ALL grant
+      // From table 2 of ALL grant
       simulateRareHomozygoteCombination(new double[] {0.321, 0.329, 0.483}, 3000, 12);
-      //  Using actual ARIC allele frequencies
+      // Using actual ARIC allele frequencies
       simulateRareHomozygoteCombination(new double[] {0.268521446, 0.332539888, 0.479724049}, 9489,
                                         12);
 
-      //      simulatedBetting(10000, 1000, 1, 0.00);
+      // simulatedBetting(10000, 1000, 1, 0.00);
       System.out.println("Finished in " + ext.getTimeElapsed(time));
     } catch (Exception e) {
       e.printStackTrace();

@@ -92,14 +92,14 @@ public final class CFCSParameter extends CFCSAbstractParameter {
 
   // $PnL ---------------------------------------------------------------
   // JS 2009-08-18
-  // Modified for FCS3.1 where there may be more excitation wavelengths for a single parameter 
+  // Modified for FCS3.1 where there may be more excitation wavelengths for a single parameter
   // Set the string of excitation wavelengths
   public final void setExcitationWavelength(final String lambda) {
     this.lambda = lambda;
   }
 
   // JS 2009-08-18
-  // Modified for FCS3.1 where there may be more excitation wavelengths for a single parameter 
+  // Modified for FCS3.1 where there may be more excitation wavelengths for a single parameter
   // Get the string of excitation wavelengths
   public final String getExcitationWavelength() {
     if (isNotSet(lambda)) {
@@ -110,7 +110,7 @@ public final class CFCSParameter extends CFCSAbstractParameter {
   }
 
   // JS 2009-08-18
-  // Added to support FCS3.1 where there may be more excitation wavelengths for a single parameter 
+  // Added to support FCS3.1 where there may be more excitation wavelengths for a single parameter
   // Return only the first excitation wavelength if there is more.
   public final int getSingleExcitationWavelength() {
     if (isNotSet(lambda)) {
@@ -121,7 +121,7 @@ public final class CFCSParameter extends CFCSAbstractParameter {
   }
 
   // JS 2009-08-18
-  // Added to support FCS3.1 where there may be more excitation wavelengths for a single parameter 
+  // Added to support FCS3.1 where there may be more excitation wavelengths for a single parameter
   // Return only the first excitation wavelength if there is more.
   public final int[] getExcitationWavelengthArray() {
     if (isNotSet(lambda)) {
@@ -161,7 +161,7 @@ public final class CFCSParameter extends CFCSAbstractParameter {
 
   // $PnD ---------------------------------------------------------------
   // JS 2009-08-18
-  // Added for FCS3.1; new keyword for the preferred display 
+  // Added for FCS3.1; new keyword for the preferred display
   public final String getPreferredDisplay() {
     if (isNotSet(preferredDisplay)) {
       throw new CFCSError(CFCSUndefinedAttribute, "PreferredDisplay");
@@ -177,9 +177,12 @@ public final class CFCSParameter extends CFCSAbstractParameter {
   public final void setPreferredDisplay(final String preferredDisplay) {
     String s[] = preferredDisplay.split(",");
     if (s.length != 3) throw new CFCSError(CFCSIllegalValue, preferredDisplay);
-    if (s[0].compareToIgnoreCase("Linear") == 0) preferredDisplayScale = PreferredDisplayScale.Linear;
-    else if (s[0].compareToIgnoreCase("Logarithmic") == 0) preferredDisplayScale = PreferredDisplayScale.Logarithmic;
-    else throw new CFCSError(CFCSIllegalValue, preferredDisplay);
+    if (s[0].compareToIgnoreCase("Linear") == 0)
+      preferredDisplayScale = PreferredDisplayScale.Linear;
+    else if (s[0].compareToIgnoreCase("Logarithmic") == 0)
+      preferredDisplayScale = PreferredDisplayScale.Logarithmic;
+    else
+      throw new CFCSError(CFCSIllegalValue, preferredDisplay);
 
     preferredDisplayArgs = new double[2];
     preferredDisplayArgs[0] = Double.parseDouble(s[1]);
@@ -188,13 +191,13 @@ public final class CFCSParameter extends CFCSAbstractParameter {
   }
 
   // JS 2009-08-18
-  // Added for FCS3.1; new keyword for the preferred display 
+  // Added for FCS3.1; new keyword for the preferred display
   public final PreferredDisplayScale getPreferredDisplayScale() {
     return preferredDisplayScale;
   }
 
   // JS 2009-08-18
-  // Added for FCS3.1; new keyword for the preferred display 
+  // Added for FCS3.1; new keyword for the preferred display
   public final double[] getPreferredDisplayArgs() {
     if (isNotSet(preferredDisplayArgs)) {
       throw new CFCSError(CFCSUndefinedAttribute, "PreferredDisplay");
@@ -210,18 +213,20 @@ public final class CFCSParameter extends CFCSAbstractParameter {
   }
 
   // JS 2009-08-18
-  // Added for FCS3.1; new keyword for calibration 
+  // Added for FCS3.1; new keyword for calibration
   public final String getCalibration() {
     if (isNotSet(calibrationFactor)) {
       throw new CFCSError(CFCSUndefinedAttribute, "Calibration");
     }
 
-    if (isNotSet(calibrationUnit)) return calibrationFactor + "";
-    else return calibrationFactor + "," + calibrationUnit;
+    if (isNotSet(calibrationUnit))
+      return calibrationFactor + "";
+    else
+      return calibrationFactor + "," + calibrationUnit;
   }
 
   // JS 2009-08-18
-  // Added for FCS3.1; new keyword for calibration 
+  // Added for FCS3.1; new keyword for calibration
   public final void setCalibration(final String calibration) {
     String sa[] = calibration.split(",", 2);
     try {
@@ -234,19 +239,21 @@ public final class CFCSParameter extends CFCSAbstractParameter {
   }
 
   // JS 2009-08-18
-  // Added for FCS3.1; new keyword for calibration 
+  // Added for FCS3.1; new keyword for calibration
   public final double getCalibrationFactor() {
     if (isNotSet(calibrationFactor)) {
       throw new CFCSError(CFCSUndefinedAttribute, "Calibration");
-    } else return calibrationFactor;
+    } else
+      return calibrationFactor;
   }
 
   // JS 2009-08-18
-  // Added for FCS3.1; new keyword for calibration 
+  // Added for FCS3.1; new keyword for calibration
   public final String getCalibrationUnit() {
     if (isNotSet(calibrationUnit)) {
       throw new CFCSError(CFCSUndefinedAttribute, "Calibration Unit");
-    } else return calibrationUnit;
+    } else
+      return calibrationUnit;
   }
 
   // $PnE ---------------------------------------------------------------
@@ -261,7 +268,7 @@ public final class CFCSParameter extends CFCSAbstractParameter {
 
   // --------------------------------------------------------------------
   // Using scaling information, converts the value corresponding to "scale"
-  // into a channel number.  Out-of-range values are converted.
+  // into a channel number. Out-of-range values are converted.
 
   public final int scaleToChannel(double scale) {
     final double channel;
@@ -282,7 +289,7 @@ public final class CFCSParameter extends CFCSAbstractParameter {
 
   // --------------------------------------------------------------------
   // Using scaling information, converts a channel number into a scaled
-  // value.  Out-of-range values are converted.
+  // value. Out-of-range values are converted.
 
   public final double channelToScale(final int channel) {
     final double decades = getLogDecades();

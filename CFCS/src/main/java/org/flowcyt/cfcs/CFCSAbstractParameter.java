@@ -141,7 +141,7 @@ public abstract class CFCSAbstractParameter implements Cloneable, CFCSErrorCodes
     /* else */ this.range = range;
   }
 
-  //$xnF ---------------------------------------------------------------
+  // $xnF ---------------------------------------------------------------
   public final String getFilter() {
     if (isNotSet(filter)) {
       throw new CFCSError(CFCSUndefinedAttribute, "Filter");
@@ -157,7 +157,7 @@ public abstract class CFCSAbstractParameter implements Cloneable, CFCSErrorCodes
     /* else */ this.filter = filter;
   }
 
-  //$xnP ---------------------------------------------------------------
+  // $xnP ---------------------------------------------------------------
   public final double getEmittedPercent() {
     if (isNotSet(percent)) {
       throw new CFCSError(CFCSUndefinedAttribute, "EmittedPercent");
@@ -173,7 +173,7 @@ public abstract class CFCSAbstractParameter implements Cloneable, CFCSErrorCodes
     /* else */ this.percent = percent;
   }
 
-  //$xnV ---------------------------------------------------------------
+  // $xnV ---------------------------------------------------------------
   public final double getVoltage() {
     if (isNotSet(voltage)) {
       throw new CFCSError(CFCSUndefinedAttribute, "Voltage");
@@ -189,7 +189,7 @@ public abstract class CFCSAbstractParameter implements Cloneable, CFCSErrorCodes
     /* else */ this.voltage = voltage;
   }
 
-  //$xnT ---------------------------------------------------------------
+  // $xnT ---------------------------------------------------------------
   public final String getDetectorType() {
     if (isNotSet(detector)) {
       throw new CFCSError(CFCSUndefinedAttribute, "DetectorType");
@@ -211,9 +211,10 @@ public abstract class CFCSAbstractParameter implements Cloneable, CFCSErrorCodes
 
   public final double getLogDecades() {
     // JS, Feb 28, 2006
-    // It is sad, but people break FCS3.0 by omitting $PnE keywords when there 
-    // should be the "0,0". This helps to read such files. 
-    // Comment the next line out to handle those files according the standard (i.e., refuse reading them).
+    // It is sad, but people break FCS3.0 by omitting $PnE keywords when there
+    // should be the "0,0". This helps to read such files.
+    // Comment the next line out to handle those files according the standard (i.e., refuse reading
+    // them).
     if (isNotSet(decades)) return 0;
 
     if (isNotSet(decades)) {
@@ -259,15 +260,19 @@ public abstract class CFCSAbstractParameter implements Cloneable, CFCSErrorCodes
 
     double exact = getLogDecades();
     long integral = (new Double(exact)).longValue();
-    if (integral == exact) buffer.append(integral); // 0.0 => 0, etc.
-    else buffer.append(exact);
+    if (integral == exact)
+      buffer.append(integral); // 0.0 => 0, etc.
+    else
+      buffer.append(exact);
 
     buffer.append(CFCSSystem.VALUE_SEPARATOR_CHAR);
 
     exact = getOffset();
     integral = (new Double(exact)).longValue();
-    if (integral == exact) buffer.append(integral);
-    else buffer.append(exact);
+    if (integral == exact)
+      buffer.append(integral);
+    else
+      buffer.append(exact);
 
     return buffer.toString();
   }
@@ -286,7 +291,8 @@ public abstract class CFCSAbstractParameter implements Cloneable, CFCSErrorCodes
       } catch (NumberFormatException exception) {
         throw new CFCSError(CFCSIllegalValue, exception);
       }
-    } else throw new CFCSError(CFCSIllegalValue, string);
+    } else
+      throw new CFCSError(CFCSIllegalValue, string);
   }
 
   // --------------------------------------------------------------------

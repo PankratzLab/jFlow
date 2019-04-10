@@ -21,7 +21,7 @@ public class FamilyStructure {
                                                HashSet<String> includedFIDIIDs, boolean cache) {
       if (ped.cached_all_trios == null) {
         loadCompleteTrios(ped, excludedFIDIIDs, includedFIDIIDs, true); // will also create
-                                                                       // all_trios
+                                                                        // all_trios
       }
       if (ped.cached_all_trios == null) {
         // ERROR

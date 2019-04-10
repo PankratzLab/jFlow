@@ -30,14 +30,14 @@ public class ChargeS {
   public static final String[][] BURDEN_REQUIREMENTS = {{"SNP"}, {"Chr", "CHROM"},
                                                         {"Position", "POS"}, {"ALT"}, {"REF"},
                                                         {"gene"}, {"AAF"}, {"sc_nonsynSplice"}}; // ,
-                                                                                                                                                                                                                        // {"Function",
-                                                                                                                                                                                                                        // "RFG"}
-                                                                                                                                                                                                                        // //
-                                                                                                                                                                                                                        // ,
-                                                                                                                                                                                                                        // {"MAF"}
-                                                                                                                                                                                                                        // doesn't
-                                                                                                                                                                                                                        // flip
-                                                                                                                                                                                                                        // alleles
+                                                                                                 // {"Function",
+                                                                                                 // "RFG"}
+                                                                                                 // //
+                                                                                                 // ,
+                                                                                                 // {"MAF"}
+                                                                                                 // doesn't
+                                                                                                 // flip
+                                                                                                 // alleles
 
   // public static final String[] STUDIES = {"ARIC", "CHS", "FHS"}; // +ESP
   // public static final String[] STUDIES = {"ARIC", "CHS", "FHS", "ESP"};

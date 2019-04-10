@@ -68,9 +68,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
                                                       BLUES.LIGHT_BLUE, BLUES.POWDER_BLUE,
                                                       BLUES.PALE_TURQUOISE, BLUES.DARK_TURQUOISE,
                                                       BLUES.MEDIUM_TURQUOISE, BLUES.TURQUOISE,
-                                                      BLUES.AQUA, BLUES.LIGHT_CYAN, YELLOWS.AMBER, // yellowy orange
+                                                      BLUES.AQUA, BLUES.LIGHT_CYAN, YELLOWS.AMBER, // yellowy
+                                                                                                   // orange
                                                       ORANGES.MANGO_TANGO, // halloween
-                                                                          // orange
+                                                                           // orange
   };
 
   byte[] alleleCounts;
@@ -196,12 +197,12 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     // gcThreshold = sp.getGCthreshold();
     markerData = sp.getCurrentMarkerData();
     int markerProjectIndex = sp.getMarkerProjectIndices().get(markerData.getMarkerName()); // index
-                                                                                          // of
-                                                                                          // the
-                                                                                          // marker
-                                                                                          // in
-                                                                                          // the
-                                                                                          // project
+                                                                                           // of
+                                                                                           // the
+                                                                                           // marker
+                                                                                           // in
+                                                                                           // the
+                                                                                           // project
 
     boolean[] toInclude = sp.hideExcludedSamples(panelIndex) ? sp.getProject()
                                                                  .getSamplesToInclude(null, false)

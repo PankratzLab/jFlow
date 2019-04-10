@@ -95,7 +95,7 @@ public class AnnotatedSegment extends Segment {
   public Annotation getAnnotation(Annotator<? extends AnnotatedSegment> annotator,
                                   String annoName) {
 
-    // 1) Get the set of annotations for the given annotator 
+    // 1) Get the set of annotations for the given annotator
     Collection<Annotation> annoList = annotations.get(annotator);
 
     // 2) Then see if it contains an annotation with annoName:

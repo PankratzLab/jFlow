@@ -1494,7 +1494,8 @@ public class DosageData implements Serializable {
       String id = dd2Ids[s][0] + "\t" + dd2Ids[s][1];
       dd2IdsAndIndices.put(id, s);
       String[] otherIds = idSet.get(id);
-      if (otherIds == null) idSet.put(id, dd2Ids[s]);
+      if (otherIds == null)
+        idSet.put(id, dd2Ids[s]);
       else {
         duplicatedIDs.add(id);
         if (!Arrays.equals(dd2Ids[s], otherIds)) {
@@ -1936,7 +1937,7 @@ public class DosageData implements Serializable {
       keeps = HashVec.loadToHashSet(markersToKeep);
       root = ext.rootOf(outfile, false);
       markerSet = markerSet.trim(markersToKeep, true, false, log); // allows missing markers, but
-                                                                  // will list how many
+                                                                   // will list how many
       if (mapOut == null) {
         mapOut = root + ".pinfo";
         markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
@@ -2034,7 +2035,7 @@ public class DosageData implements Serializable {
       invalids = new Hashtable<>();
       try {
         reader = Files.getAppropriateReader(dosageFile); // new BufferedReader(new
-                                                        // FileReader(dosageFile));
+                                                         // FileReader(dosageFile));
         writer = Files.openAppropriateWriter(outfile);
 
         if (fromParameters[4] == 1) {
@@ -2823,9 +2824,10 @@ public class DosageData implements Serializable {
           index++;
           if (dd.positions[index] == -1) {
             dd.dosageValues[index] = ArrayUtils.floatArray(dd.ids.length, -1); // TODO is this
-                                                                              // correct
-                                                                              // code? i.e. will this
-                                                                              // ever occur?
+                                                                               // correct
+                                                                               // code? i.e. will
+                                                                               // this
+                                                                               // ever occur?
             continue;
           }
 

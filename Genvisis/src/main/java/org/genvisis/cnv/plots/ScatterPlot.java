@@ -4605,7 +4605,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     int offTLbls = 0;
     for (int i = hist.length - 1; i >= 0; i--) {
       int len = probe - hist.length + i; // compensate for a histogram that could be of shorter
-                                        // length than the probe
+                                         // length than the probe
       if (len >= alignFilter) {
         if (i == hist.length - 1) {
           if (has && hist[i] > 0) {

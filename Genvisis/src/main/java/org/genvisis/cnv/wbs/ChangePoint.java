@@ -60,6 +60,7 @@ class ChangePoint implements Comparable<ChangePoint> {
 
   /*
    * (non-Javadoc)
+   * 
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
   @Override
@@ -71,6 +72,7 @@ class ChangePoint implements Comparable<ChangePoint> {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
      */
     @Override
@@ -85,6 +87,7 @@ class ChangePoint implements Comparable<ChangePoint> {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
      */
     @Override

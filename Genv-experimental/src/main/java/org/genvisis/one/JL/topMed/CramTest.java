@@ -20,23 +20,23 @@ public class CramTest {
     String cram = "my.cram";
     String ref = "hs38DH.fa";
     String out = "testOut.cram";
-    //    Setting system property is nice, allows anywhere to have access to the reference fasta
+    // Setting system property is nice, allows anywhere to have access to the reference fasta
     System.setProperty("samjdk.reference_fasta", ref);
 
-    //    SamReader reader = BamOps.getDefaultReader(cram, ValidationStringency.LENIENT);
+    // SamReader reader = BamOps.getDefaultReader(cram, ValidationStringency.LENIENT);
     SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
     samReaderFactory.validationStringency(ValidationStringency.STRICT);
-    //    samReaderFactory.referenceSequence(new File(ref));
-    //    for (Option option : options) {
-    //      samReaderFactory.enable(option);
-    //    }
+    // samReaderFactory.referenceSequence(new File(ref));
+    // for (Option option : options) {
+    // samReaderFactory.enable(option);
+    // }
     SamReader reader = samReaderFactory.open(new File(cram));
 
     SAMFileWriter sAMFileWriter = new SAMFileWriterFactory().setCreateIndex(true)
                                                             .makeSAMOrBAMWriter(reader.getFileHeader(),
                                                                                 true,
                                                                                 new File(out));
-    //    SAMRecordIterator sIterator = reader.iterator();
+    // SAMRecordIterator sIterator = reader.iterator();
     SAMRecordIterator sIterator = reader.query("chr1", 1, 10000000, true);
 
     int num = 0;
@@ -47,9 +47,9 @@ public class CramTest {
       if (num % 10000 == 0) {
         System.out.println(num + "\t" + SamRecordOps.getDisplayLoc(record));
       }
-      //      System.out.println(record.toString());
+      // System.out.println(record.toString());
       sAMFileWriter.addAlignment(record);
-      //      System.out.println(SamRecordOps.getDisplayLoc(record));
+      // System.out.println(SamRecordOps.getDisplayLoc(record));
     }
     System.out.println(num);
     try {

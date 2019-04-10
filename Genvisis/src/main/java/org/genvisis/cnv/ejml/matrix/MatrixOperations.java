@@ -74,11 +74,12 @@ public class MatrixOperations {
    * @param m an {@link RealMatrix} that has been FC-ed by column and centered by row
    */
   private static void foldChangeAndCenter(RealMatrix m) {
-    double[] medians = new double[m.getColumnDimension()]; //In genvisis, samples are typically columns
+    double[] medians = new double[m.getColumnDimension()]; // In genvisis, samples are typically
+                                                           // columns
 
-    //    convert columns to log2 fold-change from median
+    // convert columns to log2 fold-change from median
     for (int column = 0; column < m.getColumnDimension(); column++) {
-      double[] tmp = new double[m.getRowDimension()];//In genvisis, markers are typically rows
+      double[] tmp = new double[m.getRowDimension()];// In genvisis, markers are typically rows
       for (int row = 0; row < m.getRowDimension(); row++) {
         tmp[row] += m.getEntry(row, column);
       }

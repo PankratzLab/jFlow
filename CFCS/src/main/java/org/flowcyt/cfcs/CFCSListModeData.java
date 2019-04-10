@@ -52,8 +52,10 @@ public final class CFCSListModeData extends CFCSAbstractData implements CFCSErro
 
     final byte[][][] cinched = new byte[nEvents][nParameters][];
 
-    if (variable) sizes = sizing.getByteSizes();
-    else size = sizing.getByteSize();
+    if (variable)
+      sizes = sizing.getByteSizes();
+    else
+      size = sizing.getByteSize();
 
     for (int event = 0, position = 0; event < nEvents; event++) {
       for (int parameter = 0, used = 0; parameter < nParameters; parameter++, position += used) {

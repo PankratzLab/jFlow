@@ -21,7 +21,7 @@ public class Fst {
 
   private final double[] p; // allele frequency of the second allele
   private final double[] f; // inbreeding coefficient (higher indicates inbreeding, negative
-                           // indicates isolate breaking (i.e. Wahlund effect))
+                            // indicates isolate breaking (i.e. Wahlund effect))
   private final double[] hetObs;
   private final double[] hetExp;
   private double hI; // observed heterozygosities in individuals in subpopulations

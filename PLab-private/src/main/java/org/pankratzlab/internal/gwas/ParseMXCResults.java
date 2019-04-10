@@ -470,7 +470,8 @@ public class ParseMXCResults {
         // check if this gene is in range
         int c = Integer.parseInt(mxc[j][2]);
         int pos = Integer.parseInt(mxc[j][1]);
-        if (c < chr) continue;
+        if (c < chr)
+          continue;
         else if (c > chr || pos > endPos) break;
 
         if (pos < startPos) continue;
@@ -539,23 +540,40 @@ public class ParseMXCResults {
       if (arg.equals("-h") || arg.equals("help")) {
         System.out.println(usage);
         System.exit(1);
-      } else if (arg.startsWith("genes=")) genesFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("data=")) data = ext.parseStringArg(arg);
-      else if (arg.startsWith("posmap=")) posmap = ext.parseStringArg(arg);
-      else if (arg.startsWith("out=")) out = ext.parseStringArg(arg);
-      else if (arg.startsWith("db=")) db = ext.parseStringArg(arg);
-      else if (arg.startsWith("covar=")) covar = ext.parseStringArg(arg);
-      else if (arg.startsWith("mxc=")) mxcFolder = ext.parseStringArg(arg);
-      else if (arg.startsWith("freq=")) freqFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("ref=")) refFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("pattern=")) pattern = ext.parseStringArg(arg);
-      else if (arg.startsWith("-verify")) verify = true;
-      else if (arg.startsWith("-overwrite")) overwrite = true;
-      else if (arg.startsWith("-combine")) combine = true;
-      else if (arg.startsWith("-index")) index = true;
-      else if (arg.startsWith("indexFile=")) indexFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("range=")) range = ext.parseIntArg(arg);
-      else log.report("Invalid argument: " + arg);
+      } else if (arg.startsWith("genes="))
+        genesFile = ext.parseStringArg(arg);
+      else if (arg.startsWith("data="))
+        data = ext.parseStringArg(arg);
+      else if (arg.startsWith("posmap="))
+        posmap = ext.parseStringArg(arg);
+      else if (arg.startsWith("out="))
+        out = ext.parseStringArg(arg);
+      else if (arg.startsWith("db="))
+        db = ext.parseStringArg(arg);
+      else if (arg.startsWith("covar="))
+        covar = ext.parseStringArg(arg);
+      else if (arg.startsWith("mxc="))
+        mxcFolder = ext.parseStringArg(arg);
+      else if (arg.startsWith("freq="))
+        freqFile = ext.parseStringArg(arg);
+      else if (arg.startsWith("ref="))
+        refFile = ext.parseStringArg(arg);
+      else if (arg.startsWith("pattern="))
+        pattern = ext.parseStringArg(arg);
+      else if (arg.startsWith("-verify"))
+        verify = true;
+      else if (arg.startsWith("-overwrite"))
+        overwrite = true;
+      else if (arg.startsWith("-combine"))
+        combine = true;
+      else if (arg.startsWith("-index"))
+        index = true;
+      else if (arg.startsWith("indexFile="))
+        indexFile = ext.parseStringArg(arg);
+      else if (arg.startsWith("range="))
+        range = ext.parseIntArg(arg);
+      else
+        log.report("Invalid argument: " + arg);
     }
 
     if (combine && pattern != null) {

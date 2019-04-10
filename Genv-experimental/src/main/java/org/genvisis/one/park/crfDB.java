@@ -47,7 +47,7 @@ public class crfDB {
   }
 
   public crfDB(String dir, String keyFilename, boolean logging) throws Elision { // dir is necessary
-                                                                                // for UpdateCRFdb
+                                                                                 // for UpdateCRFdb
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line, subline;

@@ -28,8 +28,8 @@ public class Compression {
                                                                                          (byte) 0,
                                                                                          (byte) 1}; // -13.1071
   public static final float REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT = (float) -13.1071; // {2,
-                                                                                                 // 0,
-                                                                                                 // 1}
+                                                                                                  // 0,
+                                                                                                  // 1}
   public static final float FLOAT_DELTA = 0.0001f;
   public static final byte REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES = 1;
   // public static final int BYTES_PER_SAMPLE_MARKER = 22;

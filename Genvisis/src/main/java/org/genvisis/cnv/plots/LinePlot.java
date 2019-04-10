@@ -56,7 +56,8 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.gui.UITools;
 
-public class LinePlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {
+public class LinePlot extends JPanel
+                      implements WindowListener, ActionListener, TreeSelectionListener {
 
   public static final long serialVersionUID = 1L;
   public static final byte DEFAULT_SIZE = 8;
@@ -88,7 +89,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
                                             {"Position", "Pos", "Start", "Begin"}, // secondary link
                                             // to Trailer
                                             {"Stop Position", "Stop", "End"} // secondary link to
-                                                                            // Trailer
+                                                                             // Trailer
   };
 
   private LinePanel linePanel;
@@ -262,8 +263,8 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
       numberOfSelectedNodes = (byte) tree.getSelectedPathComponent().index();
       if (numberOfSelectedNodes != -1) {
         keys = HashVec.getKeys(dataHash); // keys is better to be block variable than a class
-                                         // variable. Otherwise, keys need to be updated every time
-                                         // there is an adding or deleting.
+                                          // variable. Otherwise, keys need to be updated every time
+                                          // there is an adding or deleting.
         tree.deleteSelectedNode();
         dataHash.remove(keys[numberOfSelectedNodes]);// TODO tree.getSelectionValues()[0][0] is not
                                                      // the branch to delete.
@@ -540,8 +541,8 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
         }
 
         colorKeyHashValue.put(curLineParams[0], curLineParams[1]); // put filename as key and human
-                                                                  // readable
-                                                                  // celltype as value
+                                                                   // readable
+                                                                   // celltype as value
 
       }
       reader.close();
@@ -855,7 +856,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
         if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
           File fileToOpen = fileChooser.getSelectedFile();
           linePanel.screenCapture(fileToOpen.toString() + ".png"); // ??? zx: How to avoid LinePanel
-                                                                  // being static?
+                                                                   // being static?
         }
       }
     });

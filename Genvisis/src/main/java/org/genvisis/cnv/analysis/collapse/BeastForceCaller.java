@@ -29,6 +29,7 @@ class BeastForceCaller extends ArrayBasedForcedCaller<BeastVariant> {
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.genvisis.cnv.analysis.collapse.ForcedCalling#forceCall()
    */
   @Override

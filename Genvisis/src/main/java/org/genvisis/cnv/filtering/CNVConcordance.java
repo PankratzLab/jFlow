@@ -113,6 +113,7 @@ public class CNVConcordance {
       avgGlobalOverlapScore = ArrayUtils.mean(globalOverLapScores);
     }
   }
+
   private static class ComparisionIndividualResults {
 
     private String ind1;

@@ -44,17 +44,19 @@ public class CNVannotator {
     // Get indices of set, in order of chromosome / position:
     int[][] indicesByChr = markerSet.getIndicesByChr();
 
-    // Array of CNVs (for each individual) corresponding to regions (?) for which to calculate beast scores:
+    // Array of CNVs (for each individual) corresponding to regions (?) for which to calculate beast
+    // scores:
     // Convert from txt to java object:
     // Beast works on single individual, want to break up CNVs
     CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile);
 
-    // Individual/sample IDs (?):  Goes over every individual from above.
+    // Individual/sample IDs (?): Goes over every individual from above.
     HashSet<String> inds = new HashSet<>();
     for (CNVariant cnv : cnvs) {
       inds.add(cnv.getIndividualID());
     }
-    // CNV IDs (?): Going over , map gets ID, returns list, adds to list. This individual has these CNVs. 
+    // CNV IDs (?): Going over , map gets ID, returns list, adds to list. This individual has these
+    // CNVs.
     ArrayList<String> ids = new ArrayList<>(inds);
     // 5/15
 
@@ -66,8 +68,9 @@ public class CNVannotator {
       // 5/15
 
     }
-    // Adding to hashmap (of list of CNV for each INd, return CNV for an individual) existing T CNV, associating w individual
-    // Good place to add "new" CNVs. 
+    // Adding to hashmap (of list of CNV for each INd, return CNV for an individual) existing T CNV,
+    // associating w individual
+    // Good place to add "new" CNVs.
     for (CNVariant cnv : cnvs) {
       cnvMap.get(cnv.getIndividualID()).add(cnv);
     }
@@ -124,7 +127,8 @@ public class CNVannotator {
                                                                                                             : centFem)
                                                    : samp.getLRRs();
 
-      // Compute beast scores for CNVariant[] representing a single individual, return BeastScore (for all the individual's cnvs):
+      // Compute beast scores for CNVariant[] representing a single individual, return BeastScore
+      // (for all the individual's cnvs):
       idScores[i] = BeastScore.beastInd(proj, sd, lrrs, cnvArr[i], chr, positions, indicesByChr);
       // 5/15
 
@@ -176,18 +180,19 @@ public class CNVannotator {
     System.out.println("TK note: current dir = " + dir);
 
     // CNVHelper to generate a regions file from CNV file (?):
-    //CNVHelper.generateRegionsFileFromCNVFile("/Users/taylorkuebler/PennCNV_calls34.cnv");
+    // CNVHelper.generateRegionsFileFromCNVFile("/Users/taylorkuebler/PennCNV_calls34.cnv");
 
     // Read in project .properties file:
     Project proj = new Project("C:\\Users\\Mark Hiner\\.genvisis\\projects\\SampleIllumina.properties");
 
     // Read in .cnv file:
-    //String cnvFile = "/Users/taylorkuebler/PennCNV_calls34.cnv";
+    // String cnvFile = "/Users/taylorkuebler/PennCNV_calls34.cnv";
     // COPY OF ABOVE, FOR TESTING ONLY (SMALL SUBSET OF DATA FOR DEBUGGING)
     String cnvFile = "C:\\Users\\Mark Hiner\\Desktop\\Illumina\\Omni2_5_1000g_Genvisis\\cnvs\\genvisis.cnv";
 
     long t = System.currentTimeMillis();
-    // scoreCNVfile to derive BEAST height, score, and individual sex annotations for each CNV, store in new .cnv file:
+    // scoreCNVfile to derive BEAST height, score, and individual sex annotations for each CNV,
+    // store in new .cnv file:
     scoreCNVFile(proj, cnvFile, false);
     System.out.println("Took: " + (System.currentTimeMillis() - t) + "ms");
 

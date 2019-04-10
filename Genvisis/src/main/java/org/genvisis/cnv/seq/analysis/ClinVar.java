@@ -78,6 +78,7 @@ public class ClinVar {
     }
 
   }
+
   private enum CLNSIG_SETS {
     @SuppressWarnings("unchecked")
     PATH_SET(new HashSet<CLNSIG>(Arrays.asList(new CLNSIG[] {CLNSIG.PATHOGENIC}))),

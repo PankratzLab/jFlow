@@ -43,9 +43,9 @@ public class PopAfSplitter {
 
     String vcf = allFiles[0];
 
-    //    String java = "";
+    // String java = "";
 
-    //    freeze.5b.chr21.pass
+    // freeze.5b.chr21.pass
 
     Map<String, String> filechrmap = new HashMap<>();
     for (int i = 0; i < 24; i++) {

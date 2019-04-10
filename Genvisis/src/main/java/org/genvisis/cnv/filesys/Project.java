@@ -637,9 +637,11 @@ public class Project implements PropertyChangeListener {
                                                                         PropertyKeys.KEY_QQ_FILENAMES,
                                                                         "", GROUP.QQ_PLOT, true,
                                                                         COPY.REFERENCE, "", false,
-                                                                        false); // not listed as file or
-                                                                                                                                                                                                                                              // directory, due to
-                                                                                                                                                                                                                                              // unique value format
+                                                                        false); // not listed as
+                                                                                // file or
+                                                                                // directory, due to
+                                                                                // unique value
+                                                                                // format
   public final StringListProperty GC_CORRECTION_PARAMETERS_FILENAMES = new StringListProperty(this,
                                                                                               PropertyKeys.KEY_GC_CORRECTION_PARAMETERS_FILENAMES,
                                                                                               "",

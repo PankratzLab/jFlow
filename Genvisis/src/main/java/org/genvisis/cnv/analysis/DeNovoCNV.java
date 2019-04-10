@@ -247,7 +247,7 @@ public class DeNovoCNV {
                              + Sample.SAMPLE_FILE_EXTENSION)) {
               org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj, new String[] {line[i]}, null,
                                                                 null, 1); // TODO How to generate
-                                                                                                                                                               // .gz format?
+                                                                          // .gz format?
             } else {
               log.reportError("warning - skipped the following trio set due to no data avaiable (iDNA: "
                               + line[4] + "\tFaDNA: " + line[5] + "\tMoDNA:" + line[6] + ")");
@@ -688,8 +688,11 @@ public class DeNovoCNV {
    * 12/6/2013: Cannot remember what this method does. First, the same function is available in
    * another method, parsePennCnvResults(...). Second, looks like it is incomplete, - there is no
    * any writer in this method.
+   * 
    * @param pennCnvResultDir
+   * 
    * @param cnvFileExtensions
+   * 
    * @param log
    */
   public static void detectDenovoCnv(String pennCnvResultDir, String cnvFileExtensions,

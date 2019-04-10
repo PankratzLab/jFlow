@@ -156,20 +156,20 @@ public class MarkerQC {
           headers.add(LMISS_HEADER);
         } else if (params[i][0].equals("hwe")) {
           v.add("\"" + dir + params[i][1] + "\" !2!ALL !2!AFF 1 8=" + params[i][0]); // allow for
-                                                                                    // the
-                                                                                    // possibility
-                                                                                    // of a
-                                                                                    // quantitative
-                                                                                    // trait,
-                                                                                    // which
-                                                                                    // lists the
-                                                                                    // test as
-                                                                                    // ALL(QT);
-                                                                                    // otherwise
-                                                                                    // it
-                                                                                    // should only
-                                                                                    // accept the
-                                                                                    // UNAFF test
+                                                                                     // the
+                                                                                     // possibility
+                                                                                     // of a
+                                                                                     // quantitative
+                                                                                     // trait,
+                                                                                     // which
+                                                                                     // lists the
+                                                                                     // test as
+                                                                                     // ALL(QT);
+                                                                                     // otherwise
+                                                                                     // it
+                                                                                     // should only
+                                                                                     // accept the
+                                                                                     // UNAFF test
           headers.add(HWE_HEADER);
         } else if (params[i][0].equals("mishap_hetero")) {
           v.add("\"" + dir + params[i][1] + "\" !1=HETERO 0 7=" + params[i][0]);

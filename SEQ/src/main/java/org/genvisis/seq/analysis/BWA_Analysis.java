@@ -174,6 +174,7 @@ public class BWA_Analysis {
     }
 
   }
+
   public static class FileNameParser {
 
     public static final String SPLIT = "_";
@@ -231,13 +232,17 @@ public class BWA_Analysis {
         barcode = split[split.length - 4];
         ID = ArrayUtils.toStr(ArrayUtils.subArray(split, 0, split.length - 4), SPLIT);// we do not
                                                                                       // include
-                                                                                      // barcode in the id,
-                                                                                      // instead adding it to
+                                                                                      // barcode in
+                                                                                      // the id,
+                                                                                      // instead
+                                                                                      // adding it
+                                                                                      // to
                                                                                       // the RG
       }
     }
 
   }
+
   private static class WorkerBWA_Analysis implements Callable<Boolean> {
 
     private final BWA_AnalysisIndividual bwAnalysisIndividual;

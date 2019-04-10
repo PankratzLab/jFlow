@@ -52,14 +52,14 @@ public class LeastSquares extends RegressionModel {
 
   @SuppressWarnings({"rawtypes"})
   public LeastSquares(List vDeps, List vIndeps) { // deps = Vector of int/double as String,
-                                                 // indeps = Vector of double[]
+                                                  // indeps = Vector of double[]
     this(vDeps, vIndeps, false, true);
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public LeastSquares(List vDeps, List vIndeps, LS_TYPE lType) { // deps = Vector of int/double
-                                                                // as String, indeps = Vector
-                                                                // of double[]
+                                                                 // as String, indeps = Vector
+                                                                 // of double[]
     this(vDeps, vIndeps, false, false, lType);
   }
 

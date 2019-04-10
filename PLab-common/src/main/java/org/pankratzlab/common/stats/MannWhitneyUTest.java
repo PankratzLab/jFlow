@@ -61,7 +61,7 @@ public class MannWhitneyUTest {
         c = Double.compare(a, b);
 
         if (c >= 0) {
-          // We're going to consume from the B array, so we want to know how many sequential 
+          // We're going to consume from the B array, so we want to know how many sequential
           // elements of B have this same value
           equalB = countEqual(bSorted, bIndex);
         }

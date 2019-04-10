@@ -49,9 +49,9 @@ public class GenotypeMatrix implements Serializable {
                                             // Houston
                                             // format)
                                             {MARKER_DOMINANT_FORMAT, 0, 1, 1, 0, 2, 1}, // .txt
-                                                                                       // (ChargeS
-                                                                                       // Boston
-                                                                                       // format)
+                                                                                        // (ChargeS
+                                                                                        // Boston
+                                                                                        // format)
 
   };
 

@@ -130,7 +130,7 @@ public class SVD implements Serializable {
     joiner.add(columnOneTitle);
 
     for (int component = 0; component < numComponents; component++) {
-      //   v is transposed releative to m
+      // v is transposed releative to m
       joiner.add("LOADING_" + component);
     }
     writer.println(joiner.toString());
@@ -147,9 +147,9 @@ public class SVD implements Serializable {
     writer.close();
   }
 
-  //TODO - could potentially read marker and dump loading line by line
+  // TODO - could potentially read marker and dump loading line by line
   private void computeLoadings(NamedRealMatrix m) {
-    //    Will have all markers, but not all "PCs" all the time
+    // Will have all markers, but not all "PCs" all the time
     DenseMatrix64F loadingData = new DenseMatrix64F(m.getDenseMatrix().numRows, numComponents);
 
     Map<String, Integer> rowMap = new HashMap<>();
@@ -181,7 +181,7 @@ public class SVD implements Serializable {
   // TODO, could refactor to static method that just takes singular values "w" and loadings "u"
 
   public NamedRealMatrix getExtraploatedPCs(NamedRealMatrix other, Logger log) {
-    //we want to make sure the other has all data available, but we do not care if it has more
+    // we want to make sure the other has all data available, but we do not care if it has more
     if (!other.getRowMap().keySet().containsAll(loadings.getRowMap().keySet())) {
       throw new IllegalArgumentException("All rows from data to be extrapolated must be present");
     }

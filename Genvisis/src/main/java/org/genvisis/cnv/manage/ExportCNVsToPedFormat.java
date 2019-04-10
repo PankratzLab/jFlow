@@ -549,7 +549,7 @@ public class ExportCNVsToPedFormat {
     String pedFilename = "pedigree.dat";
     String outputFilename = "cnv_matrix";
     JFileChooser fileChooser = new JFileChooser(); // TODO Should this be open up in any particular
-                                                  // directory?
+                                                   // directory?
     File input;
     String output;
     boolean includeDele = true;

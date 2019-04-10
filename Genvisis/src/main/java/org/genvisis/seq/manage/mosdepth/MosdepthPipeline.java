@@ -186,13 +186,14 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
     if (projName == null) {
       throw new IllegalArgumentException("No project name set.");
     }
-    // TODO either CRAM directory (and run mosdepth / allele counter) or mosdepthFile & cramReadFiles
+    // TODO either CRAM directory (and run mosdepth / allele counter) or mosdepthFile &
+    // cramReadFiles
     if (mosdepthFiles == null) {
       throw new IllegalArgumentException("No mosdepth files set.");
     }
-    //    if (cramReadFiles == null || cramReadFiles.isEmpty()) {
-    //      throw new IllegalArgumentException("No CRAM read files set.");
-    //    }
+    // if (cramReadFiles == null || cramReadFiles.isEmpty()) {
+    // throw new IllegalArgumentException("No CRAM read files set.");
+    // }
     if (useBed == null) {
       throw new IllegalArgumentException("No regions BED file set.");
     }
@@ -343,7 +344,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
           String mdRAFName = "markers." + ind + MarkerData.MARKER_DATA_FILE_EXTENSION;
           log.reportTime("Parsing " + mdRAFName + "; " + (ind + 1) + " of " + binsOfMarkers.length
                          + " bins.");
-          //    open and write header for mdRAF file containing current bin of markers:
+          // open and write header for mdRAF file containing current bin of markers:
           RandomAccessFile raf;
           try {
             raf = openMDRAF(mdRAFName, getNumSamples(), nullStatus, markersInFile);
@@ -358,11 +359,11 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
           Map<Integer, Map<String, CRAMRead>> cramReads = loadCRAMReads(markersInFile);
 
           try {
-            //    for each marker in bin:
+            // for each marker in bin:
             for (int m = 0; m < markersInFile.length; m++) {
               Marker mkr = markerNameMap.get(markersInFile[m]);
 
-              //        grab data from genotype vcf for marker:
+              // grab data from genotype vcf for marker:
               VariantContext match = null;
               if (genoReader != null) {
                 List<VariantContext> genos;
@@ -425,7 +426,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
               }
               double markerMedian = ArrayUtils.median(medianList.values());
 
-              //        for each sample in project,
+              // for each sample in project,
               float[] xs = (cramReadFiles == null
                             || cramReadFiles.isEmpty()) ? null : new float[getNumSamples()];
               float[] ys = (cramReadFiles == null
@@ -517,7 +518,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
           }
 
           try {
-            //    write outliers and close file
+            // write outliers and close file
             byte[] oorBytes = Compression.objToBytes(outOfRangeTable);
             raf.write(Compression.intToBytes(oorBytes.length));
             raf.write(oorBytes);
@@ -722,8 +723,8 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
                                                       seg.getStop())
                                                .toList();
       if (markerVC.size() == 0) {
-        //        log.reportTimeWarning("No snp found for bin " + seg.getUCSClocation()
-        //                              + ". Bin will be skipped.");
+        // log.reportTimeWarning("No snp found for bin " + seg.getUCSClocation()
+        // + ". Bin will be skipped.");
         missingSnpsWriter.println(seg.getChr() + "\t" + (seg.getStart() - 1) + "\t" + seg.getStop()
                                   + "\t" + seg.getUCSClocation());
         missingSnpsWriter.flush();

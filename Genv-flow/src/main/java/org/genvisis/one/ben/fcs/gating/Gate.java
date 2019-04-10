@@ -349,8 +349,8 @@ public abstract class Gate {
     private static int DEFAULT_GATE_RESOLUTION = 256; // default
     private static int gateResolution = DEFAULT_GATE_RESOLUTION; // default
     private static int range = 262144; // TODO make this dynamic based on data loader param range
-                                      // (set when dims are set) - may have different ranges for
-                                      // each dim
+                                       // (set when dims are set) - may have different ranges for
+                                       // each dim
     private static int binStep = range / gateResolution;
     private static ArrayList<Rectangle> rectsXY = new ArrayList<>();
     private static ArrayList<Rectangle> rectsXtY = new ArrayList<>();

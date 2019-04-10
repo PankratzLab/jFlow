@@ -50,6 +50,7 @@ public class WESMappabilityAnnotator extends BEDFileAnnotator {
 
   /*
    * (non-Javadoc)
+   * 
    * @see
    * org.genvisis.cnv.annotation.segments.SegmentAnnotator#annotate(org.genvisis.filesys.Segment,
    * org.genvisis.cnv.annotation.segments.SegmentAnotation)

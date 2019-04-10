@@ -1891,22 +1891,23 @@ public class lab {
     final ImmutableMap<String, String> dimSwitch = b.build();
 
     String dir = "/scratch.global/cole0482/fcsVizPipe/r26_TcellSubs_Kmeans_wsp_v8_cleanup/allOuts/";
-    //    String dir1 = dir + "outCnts/";
-    //    String sel = dir + "nonMan.samp.txt";
+    // String dir1 = dir + "outCnts/";
+    // String sel = dir + "nonMan.samp.txt";
     int batch = 6;
     //
-    //    HashSet<String> selHash = Sets.newHashSet(HashVec.loadFileToStringArray(sel, false, null, true,
-    //                                                                            false, "\t"));
+    // HashSet<String> selHash = Sets.newHashSet(HashVec.loadFileToStringArray(sel, false, null,
+    // true,
+    // false, "\t"));
     HashSet<String> fndHash = new HashSet<>();
-    //    System.out.println("Loaded " + selHash.size() + " samples to keep");
+    // System.out.println("Loaded " + selHash.size() + " samples to keep");
     //
-    //    Map<String, String> xtraFiles = new HashMap<>();
-    //    xtraFiles.put("/scratch.global/lanej/flow/manual/panel1_v8_counts/p1.cnts.xln", "V8_manual");
-    //    xtraFiles.put("/scratch.global/lanej/flow/manual/panel1_v3_counts/p1.cnts.xln", "V3_manual");
-    //    xtraFiles.put("/scratch.global/lanej/flow/manual/kmeans_consolidated_counts/p1.cnts.xln",
-    //                  "consol_manual");
-    //    xtraFiles.put("/scratch.global/lanej/flow/manual/kmeans_Panel1_bcellsubs_regated_counts/p1.cnts.xln",
-    //                  "bcell_manual");
+    // Map<String, String> xtraFiles = new HashMap<>();
+    // xtraFiles.put("/scratch.global/lanej/flow/manual/panel1_v8_counts/p1.cnts.xln", "V8_manual");
+    // xtraFiles.put("/scratch.global/lanej/flow/manual/panel1_v3_counts/p1.cnts.xln", "V3_manual");
+    // xtraFiles.put("/scratch.global/lanej/flow/manual/kmeans_consolidated_counts/p1.cnts.xln",
+    // "consol_manual");
+    // xtraFiles.put("/scratch.global/lanej/flow/manual/kmeans_Panel1_bcellsubs_regated_counts/p1.cnts.xln",
+    // "bcell_manual");
 
     LinkedHashSet<String> headers = new LinkedHashSet<>();
     for (int i = 0; i < batch + 1; i++) {
@@ -1922,17 +1923,17 @@ public class lab {
         headers.add(s11);
       }
     }
-    //    for (String f : xtraFiles.keySet()) {
-    //      String[] hdr = Files.getHeaderOfFile(f, null);
-    //      for (String s : hdr) {
-    //        String[] s1 = s.split(" / ");
-    //        String s11 = s1[s1.length - 1];
-    //        for (Entry<String, String> en : dimSwitch.entrySet()) {
-    //          s11 = s11.replaceAll(en.getKey(), en.getValue());
-    //        }
-    //        headers.add(s11);
-    //      }
-    //    }
+    // for (String f : xtraFiles.keySet()) {
+    // String[] hdr = Files.getHeaderOfFile(f, null);
+    // for (String s : hdr) {
+    // String[] s1 = s.split(" / ");
+    // String s11 = s1[s1.length - 1];
+    // for (Entry<String, String> en : dimSwitch.entrySet()) {
+    // s11 = s11.replaceAll(en.getKey(), en.getValue());
+    // }
+    // headers.add(s11);
+    // }
+    // }
 
     PrintWriter allOut = Files.getAppropriateWriter(dir + "allCounts.xln");
     allOut.print("Sample\tSource");
@@ -1943,65 +1944,65 @@ public class lab {
     allOut.println();
 
     HashSet<String> sampsFound = new HashSet<>();
-    //    for (String f : xtraFiles.keySet()) {
-    //      if (!Files.exists(f)) continue;
-    //      BufferedReader reader = Files.getAppropriateReader(f);
-    //      String line = reader.readLine();
-    //      String[] hdr = line.split("\t", -1);
-    //      String[] fix = new String[hdr.length];
-    //      for (int s = 0; s < hdr.length; s++) {
-    //        String[] s1 = hdr[s].split(" / ");
-    //        String s11 = s1[s1.length - 1];
-    //        for (Entry<String, String> en : dimSwitch.entrySet()) {
-    //          s11 = s11.replaceAll(en.getKey(), en.getValue());
-    //        }
-    //        fix[s] = s11;
-    //      }
+    // for (String f : xtraFiles.keySet()) {
+    // if (!Files.exists(f)) continue;
+    // BufferedReader reader = Files.getAppropriateReader(f);
+    // String line = reader.readLine();
+    // String[] hdr = line.split("\t", -1);
+    // String[] fix = new String[hdr.length];
+    // for (int s = 0; s < hdr.length; s++) {
+    // String[] s1 = hdr[s].split(" / ");
+    // String s11 = s1[s1.length - 1];
+    // for (Entry<String, String> en : dimSwitch.entrySet()) {
+    // s11 = s11.replaceAll(en.getKey(), en.getValue());
+    // }
+    // fix[s] = s11;
+    // }
     //
-    //      Map<String, List<Integer>> hdrInds = new HashMap<>();
-    //      for (int h = 0; h < fix.length; h++) {
-    //        if (!hdrInds.containsKey(fix[h])) {
-    //          hdrInds.put(fix[h], new ArrayList<>());
-    //        }
-    //        hdrInds.get(fix[h]).add(h);
-    //      }
+    // Map<String, List<Integer>> hdrInds = new HashMap<>();
+    // for (int h = 0; h < fix.length; h++) {
+    // if (!hdrInds.containsKey(fix[h])) {
+    // hdrInds.put(fix[h], new ArrayList<>());
+    // }
+    // hdrInds.get(fix[h]).add(h);
+    // }
     //
-    //      while ((line = reader.readLine()) != null) {
-    //        int ind = line.indexOf("\t");
-    //        String samp = line.substring(0, ind);
-    //        samp = samp.substring(samp.lastIndexOf('/') + 1);
-    //        if (!sampsFound.add(samp)) continue;
+    // while ((line = reader.readLine()) != null) {
+    // int ind = line.indexOf("\t");
+    // String samp = line.substring(0, ind);
+    // samp = samp.substring(samp.lastIndexOf('/') + 1);
+    // if (!sampsFound.add(samp)) continue;
     //
-    //        String[] sP = line.split("\t");
-    //        allOut.print(samp);
-    //        allOut.print("\t");
-    //        allOut.print(xtraFiles.get(f));
-    //        for (String h : headers) {
-    //          allOut.print("\t");
-    //          if (hdrInds.containsKey(h)) {
-    //            boolean p = false;
-    //            for (int hI : hdrInds.get(h)) {
-    //              if (!sP[hI].equals("null") && !sP[hI].equals("")) {
-    //                allOut.print(sP[hI]);
-    //                p = true;
-    //                break;
-    //              }
-    //            }
-    //            if (!p) {
-    //              allOut.print("null");
-    //            }
-    //          } else {
-    //            allOut.print("null");
-    //          }
-    //        }
-    //        allOut.println();
-    //      }
-    //      reader.close();
-    //    }
+    // String[] sP = line.split("\t");
+    // allOut.print(samp);
+    // allOut.print("\t");
+    // allOut.print(xtraFiles.get(f));
+    // for (String h : headers) {
+    // allOut.print("\t");
+    // if (hdrInds.containsKey(h)) {
+    // boolean p = false;
+    // for (int hI : hdrInds.get(h)) {
+    // if (!sP[hI].equals("null") && !sP[hI].equals("")) {
+    // allOut.print(sP[hI]);
+    // p = true;
+    // break;
+    // }
+    // }
+    // if (!p) {
+    // allOut.print("null");
+    // }
+    // } else {
+    // allOut.print("null");
+    // }
+    // }
+    // allOut.println();
+    // }
+    // reader.close();
+    // }
 
     for (int i = 0; i < batch + 1; i++) {
       String f = dir + "b" + i + ".cnts.xln";
-      //      String f = dir1 + "b" + i + "/p1.cnts.xln";
+      // String f = dir1 + "b" + i + "/p1.cnts.xln";
       if (!Files.exists(f)) continue;
       BufferedReader reader = Files.getAppropriateReader(f);
       String line = reader.readLine();
@@ -2030,7 +2031,7 @@ public class lab {
         String samp = line.substring(0, ind);
         samp = samp.substring(samp.lastIndexOf('/') + 1);
 
-        //        if (selHash.contains(samp)) {
+        // if (selHash.contains(samp)) {
         if (!fndHash.add(samp)) {
           System.out.println("Duplicate: " + samp);
         }
@@ -2058,15 +2059,15 @@ public class lab {
           }
         }
         allOut.println();
-        //        }
+        // }
       }
       System.out.println("Found " + cnt + " samples in batch " + i);
       reader.close();
     }
 
-    //    System.out.println("Missing " + (selHash.size() - fndHash.size()) + " samples");
-    //    selHash.removeAll(fndHash);
-    //    Files.writeIterable(selHash, dir + "missing.samp.txt");
+    // System.out.println("Missing " + (selHash.size() - fndHash.size()) + " samples");
+    // selHash.removeAll(fndHash);
+    // Files.writeIterable(selHash, dir + "missing.samp.txt");
 
     allOut.close();
   }
@@ -2213,14 +2214,14 @@ public class lab {
 
     System.out.println("Done with step 1!");
 
-    //    Map<Integer, Long> byteIndexMap = new HashMap<>();
-    //    for (int i = 1; i <= indexMap.size(); i++) {
-    //      fis = new FileInputStream(file);
-    //      bcis = new BlockCompressedInputStream(fis);
-    //      bcis.seek(indexMap.get(i));
-    //      byteIndexMap.put(i, fis.getChannel().position());
-    //      bcis.close();
-    //    }
+    // Map<Integer, Long> byteIndexMap = new HashMap<>();
+    // for (int i = 1; i <= indexMap.size(); i++) {
+    // fis = new FileInputStream(file);
+    // bcis = new BlockCompressedInputStream(fis);
+    // bcis.seek(indexMap.get(i));
+    // byteIndexMap.put(i, fis.getChannel().position());
+    // bcis.close();
+    // }
 
     SerializedFiles.writeSerial(indexMap, ext.rootOf(file, false) + "_lookup.dat");
     System.out.println("Done with step 2!");
@@ -2251,7 +2252,8 @@ public class lab {
   public static Path getPath(String uriString) throws IOException {
     URI uri = URI.create(uriString);
     try {
-      // if the URI has no scheme, then treat as a local file, otherwise use the scheme to determine the filesystem to use
+      // if the URI has no scheme, then treat as a local file, otherwise use the scheme to determine
+      // the filesystem to use
       if (uri.getScheme() == null) {
         return Paths.get(uriString);
       }
@@ -2273,9 +2275,9 @@ public class lab {
     char m = (char) raf.read();
     int n1 = raf.read();
 
-    //    byte[] intArr = new byte[4];
-    //    raf.read(intArr);
-    //    int v = (int) BGENBitMath.bytesToFloat(true, intArr);
+    // byte[] intArr = new byte[4];
+    // raf.read(intArr);
+    // int v = (int) BGENBitMath.bytesToFloat(true, intArr);
     int v = raf.read();
 
     int z1 = raf.read();
@@ -2355,11 +2357,11 @@ public class lab {
         indexBAM(args[1]);
         return;
       }
-      //      parseBPM();
+      // parseBPM();
 
-      //      for (String f : Files.list("G:\\bamTesting\\00cram\\", "", ".bed", false, true)) {
-      //              BedOps.verifyBedIndex(f, new Logger());
-      //      }
+      // for (String f : Files.list("G:\\bamTesting\\00cram\\", "", ".bed", false, true)) {
+      // BedOps.verifyBedIndex(f, new Logger());
+      // }
 
       // createBCXPlots();
       // processAnnotationFilesAll();
@@ -2375,62 +2377,66 @@ public class lab {
       // fixBCXResults();
       // fixBCXResultsAlleleFreq();
 
-      //      combineAllWithSelect();
-      //      proj = new Project("D:\\projects\\AffyParsingTest.properties");
-      //      OutOfRangeValues vals = OutOfRangeValues.construct(proj);
-      //      for (String s : proj.getSamples()) {
-      //        System.out.println(vals.getSampleOutliersForFile(proj, s).size() + " for " + s);
-      //      }
+      // combineAllWithSelect();
+      // proj = new Project("D:\\projects\\AffyParsingTest.properties");
+      // OutOfRangeValues vals = OutOfRangeValues.construct(proj);
+      // for (String s : proj.getSamples()) {
+      // System.out.println(vals.getSampleOutliersForFile(proj, s).size() + " for " + s);
+      // }
 
-      //      Dump.dumpMdRaf("F:\\testProjectSrc\\Affy1000G_small\\project2\\transposed\\markers.0.mdRAF",
-      //                     new int[] {0, 1, 2, 3, 4, 5}, new Logger());
-      //      Dump.dumpSampRaf("F:\\testProjectSrc\\Affy1000G_small\\project2\\samples\\"
-      //                       + new Project("D:\\projects\\AffyParsingTest.properties").getSamples()[0]
-      //                       + ".sampRAF");
+      // Dump.dumpMdRaf("F:\\testProjectSrc\\Affy1000G_small\\project2\\transposed\\markers.0.mdRAF",
+      // new int[] {0, 1, 2, 3, 4, 5}, new Logger());
+      // Dump.dumpSampRaf("F:\\testProjectSrc\\Affy1000G_small\\project2\\samples\\"
+      // + new Project("D:\\projects\\AffyParsingTest.properties").getSamples()[0]
+      // + ".sampRAF");
 
-      //      bamSnpComparison("G:\\bamTesting\\snpSelection\\All_Variants.xln",
-      //                       "G:\\bamTesting\\snpSelection\\selected_scales.xln",
-      //                       new int[] {1500, 2000, 5000});
-      //      bamSnpSelection("G:\\bamTesting\\snpSelection\\All_Variants.xln",
-      //                      "G:\\bamTesting\\snpSelection\\selected_scale2k.xln", 2000);
-      //      bamSnpSelection("G:\\bamTesting\\snpSelection\\All_Variants.xln",
-      //                      "G:\\bamTesting\\snpSelection\\selected_scale5k.xln", 5000);
+      // bamSnpComparison("G:\\bamTesting\\snpSelection\\All_Variants.xln",
+      // "G:\\bamTesting\\snpSelection\\selected_scales.xln",
+      // new int[] {1500, 2000, 5000});
+      // bamSnpSelection("G:\\bamTesting\\snpSelection\\All_Variants.xln",
+      // "G:\\bamTesting\\snpSelection\\selected_scale2k.xln", 2000);
+      // bamSnpSelection("G:\\bamTesting\\snpSelection\\All_Variants.xln",
+      // "G:\\bamTesting\\snpSelection\\selected_scale5k.xln", 5000);
 
-      //      proj = new Project("D:/projects/Affy1000G Small3.properties");
-      //      SampleList sl = SampleList.load(proj.SAMPLELIST_FILENAME.getValue());
-      //      String[] samples = sl.getSamples();
-      //      System.out.println();
+      // proj = new Project("D:/projects/Affy1000G Small3.properties");
+      // SampleList sl = SampleList.load(proj.SAMPLELIST_FILENAME.getValue());
+      // String[] samples = sl.getSamples();
+      // System.out.println();
 
-      //      buildUKBBLookup("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src\\ukb_baf_chr10_v2.txt.gz");
-      //      checkUKBBLookup("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src\\ukb_baf_chr10_v2.txt.gz");
+      // buildUKBBLookup("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src\\ukb_baf_chr10_v2.txt.gz");
+      // checkUKBBLookup("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src\\ukb_baf_chr10_v2.txt.gz");
 
-      //      BGZipReader reader = new BGZipReader("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src\\ukb_baf_chr10_v2.txt.gz");
-      //      BlockCompressedInputStream bgzip = new BlockCompressedInputStream(new File("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src_21gz\\ukb_baf_chr21_v2.txt.gz"));
-      //      BufferedReader reader = new BufferedReader(new FileReader("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src_21\\ukb_baf_chr21_v2.txt"));
+      // BGZipReader reader = new
+      // BGZipReader("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src\\ukb_baf_chr10_v2.txt.gz");
+      // BlockCompressedInputStream bgzip = new BlockCompressedInputStream(new
+      // File("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src_21gz\\ukb_baf_chr21_v2.txt.gz"));
+      // BufferedReader reader = new BufferedReader(new
+      // FileReader("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src_21\\ukb_baf_chr21_v2.txt"));
       //
-      //      String txtLn = reader.readLine();
-      //      String zipLn = bgzip.readLine();
+      // String txtLn = reader.readLine();
+      // String zipLn = bgzip.readLine();
       //
 
-      //      BufferedReader reader = Files.getAppropriateReader("/scratch.global/cole0482/UKBB/Axiom_UKB_WCSG.na35.annot.csv.zip");
-      //      int lines = 0;
-      //      while (reader.readLine() != null) {
-      //        lines++;
-      //      }
-      //      System.out.println("Read " + lines
-      //                         + " in /scratch.global/cole0482/UKBB/Axiom_UKB_WCSG.na35.annot.csv.zip");
+      // BufferedReader reader =
+      // Files.getAppropriateReader("/scratch.global/cole0482/UKBB/Axiom_UKB_WCSG.na35.annot.csv.zip");
+      // int lines = 0;
+      // while (reader.readLine() != null) {
+      // lines++;
+      // }
+      // System.out.println("Read " + lines
+      // + " in /scratch.global/cole0482/UKBB/Axiom_UKB_WCSG.na35.annot.csv.zip");
       //
-      //      System.out.println();
+      // System.out.println();
       //
-      //      String dir = "/scratch.global/cole0482/CRAM_TEST/full/multiMax/";
-      //      String projDir = dir + "project/";
-      //      String srcDir = /*
-      //                       * ext.indexOfStr("-full", args) >= 0 ?
-      //                       * "/scratch.global/topmed/bakeoff/group1/" :
-      //                       */ "/scratch.global/cole0482/CRAM/00src/";
-      //      String projFile = projDir + "CRAMTesting_full_multiMax.properties";
-      //      BamProj pp = new BamProj(srcDir, projFile, ".cram", dir + "00src/hs38DH.fa");
-      //      runSAMImport(pp);
+      // String dir = "/scratch.global/cole0482/CRAM_TEST/full/multiMax/";
+      // String projDir = dir + "project/";
+      // String srcDir = /*
+      // * ext.indexOfStr("-full", args) >= 0 ?
+      // * "/scratch.global/topmed/bakeoff/group1/" :
+      // */ "/scratch.global/cole0482/CRAM/00src/";
+      // String projFile = projDir + "CRAMTesting_full_multiMax.properties";
+      // BamProj pp = new BamProj(srcDir, projFile, ".cram", dir + "00src/hs38DH.fa");
+      // runSAMImport(pp);
 
       // runHRC();
       // QQPlot.main(new String[]
@@ -2441,28 +2447,28 @@ public class lab {
       // ManhattanPlot.main(args1);
 
       // CARDIA2017ResultsProcessor.combineChrXDose("G:/CARDIA_DATA/AA/");
-      // CARDIA2017ResultsProcessor.combineChrXInfo("G:/CARDIA_DATA/AA/"); 
+      // CARDIA2017ResultsProcessor.combineChrXInfo("G:/CARDIA_DATA/AA/");
 
-      //            String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
-      //      UKBBParsingPipeline pipe = new UKBBParsingPipeline();
-      //      pipe.setSourceDir(dir + "00src/");
-      //      pipe.setProjectDir(dir + "project_21/");
-      //      pipe.setProjectPropertiesDir("D:/projects/");
-      //      pipe.setFamFile(dir + "ukb1773_l2r_chrY_v2_s488374.fam");
-      //      pipe.setAnnotationCSV(dir + "Axiom_UKB_WCSG.na34.annot.csv");
-      //      pipe.setProjectName("UKBB_21");
-      //      pipe.runPipeline();
+      // String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
+      // UKBBParsingPipeline pipe = new UKBBParsingPipeline();
+      // pipe.setSourceDir(dir + "00src/");
+      // pipe.setProjectDir(dir + "project_21/");
+      // pipe.setProjectPropertiesDir("D:/projects/");
+      // pipe.setFamFile(dir + "ukb1773_l2r_chrY_v2_s488374.fam");
+      // pipe.setAnnotationCSV(dir + "Axiom_UKB_WCSG.na34.annot.csv");
+      // pipe.setProjectName("UKBB_21");
+      // pipe.runPipeline();
 
       // testWriters();
       // processAnnotationFiles();1
       // writeFCSLookup();
-      //      proj = new Project("D:/projects/gedi_gwas.properties");
-      //      MarkerDataLoader.buildOutliersFromMDRAFs(proj);
+      // proj = new Project("D:/projects/gedi_gwas.properties");
+      // MarkerDataLoader.buildOutliersFromMDRAFs(proj);
 
-      //      proj.SAMPLE_DIRECTORY.setValue("G:\\transposeTesting\\sampleFiles\\");
+      // proj.SAMPLE_DIRECTORY.setValue("G:\\transposeTesting\\sampleFiles\\");
 
-      //      checkMissing();
-      //      checkOOR();
+      // checkMissing();
+      // checkOOR();
 
       // transposeFile();
 

@@ -9,7 +9,8 @@ import java.util.Map.Entry;
  * an exception if it doesn't (in which case, {@link ExplicitIndexedFileColumn} should probably be
  * used).
  */
-public class AliasedFileColumn extends AbstractFileColumn<String> implements IndexedFileColumn<String> {
+public class AliasedFileColumn extends AbstractFileColumn<String>
+                               implements IndexedFileColumn<String> {
 
   private final Aliases aliases;
   private final boolean aliasHeader;
@@ -93,8 +94,10 @@ public class AliasedFileColumn extends AbstractFileColumn<String> implements Ind
 
   @Override
   public String getHeader() {
-    if (aliasHeader) return matchedAlias;
-    else return super.getHeader();
+    if (aliasHeader)
+      return matchedAlias;
+    else
+      return super.getHeader();
   }
 
   /**

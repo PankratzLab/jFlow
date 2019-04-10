@@ -192,13 +192,14 @@ public class CNVArm extends CNVariant {
   }
 
   private static Segment getLoc(GenomeBuild build, Logger log, String chrarm) {
-    //    int[] loc = Positions.parseUCSClocation(chrarm, Centromeres.getCentromereMidPoints(build, log),
-    //                                            Centromeres.getChrLength(build, log));
-    //    if (build != null) {
+    // int[] loc = Positions.parseUCSClocation(chrarm, Centromeres.getCentromereMidPoints(build,
+    // log),
+    // Centromeres.getChrLength(build, log));
+    // if (build != null) {
     throw new IllegalArgumentException("Fix centromere lookup first");
-    //    }
-    //    return new Segment((byte) loc[0], loc[1], loc[2]);
-    //    return null;
+    // }
+    // return new Segment((byte) loc[0], loc[1], loc[2]);
+    // return null;
   }
 
   private static LocusSet<CNVariant> convert(LocusSet<CNVariant> set, String dna, Logger log) {
@@ -245,6 +246,7 @@ public class CNVArm extends CNVariant {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Iterator#hasNext()
      */
     @Override
@@ -254,6 +256,7 @@ public class CNVArm extends CNVariant {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Iterator#next()
      */
     @Override
@@ -276,6 +279,7 @@ public class CNVArm extends CNVariant {
 
     /*
      * (non-Javadoc)
+     * 
      * @see org.genvisis.common.WorkerTrain.Producer#shutdown()
      */
     @Override

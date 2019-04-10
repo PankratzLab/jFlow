@@ -343,8 +343,8 @@ public class CentroidCompute {
     }
     centroid = assignForMissingnessThreshold(centroid, centerThetas, centerRs, counts,
                                              missingnessThreshold);// if missingnessThreshold is
-                                                                                                                                                      // exceeded, we set a modified
-                                                                                                                                                      // centroid
+                                                                   // exceeded, we set a modified
+                                                                   // centroid
   }
 
   private void assignIntensityCentroid() {
@@ -420,9 +420,9 @@ public class CentroidCompute {
     float[] confs = markerData.getGCs();
     byte[] genotypes;
     ArraySpecialLists slThetas = new ArraySpecialLists(centerThetas.length, thetas.length); // only
-                                                                                           // used
-                                                                                           // for
-                                                                                           // median
+                                                                                            // used
+                                                                                            // for
+                                                                                            // median
     ArraySpecialLists slRs = new ArraySpecialLists(centerRs.length, rs.length);// only used for
                                                                                // median
 

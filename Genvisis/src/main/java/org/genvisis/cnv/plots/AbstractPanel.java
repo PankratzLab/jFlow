@@ -43,7 +43,8 @@ import org.pankratzlab.common.mining.Distance;
 import org.pankratzlab.common.stats.Maths;
 import com.google.common.primitives.Bytes;
 
-public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
+public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener,
+                                    MouseWheelListener, ComponentListener, ActionListener {
 
   public static final long serialVersionUID = 1L;
 
@@ -65,7 +66,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   public static final int SIZE = 12;
   public static final double HIGHLIGHT_DISTANCE = 20;// = Math.sqrt(SIZE*SIZE/2);
   public static final int DELAY = 0; // A control variable to reduce the repaint() operations during
-                                    // component resizing;
+                                     // component resizing;
   public static final int SCATTER_PLOT_TYPE = 1;
   public static final int HEAT_MAP_TYPE = 2;
 
@@ -137,14 +138,14 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   private int currentIndexInPlotPointSet;
   private int lookupResolution;
   private boolean flow; // A control variable. If resizing is not yet done, don't start
-                       // generatePoints() or drawAll();
+                        // generatePoints() or drawAll();
   private volatile int imageStatus; // A control variable. If drawAll() is not yet done, don't start
-                                   // paintComponent();
+                                    // paintComponent();
   private byte[] layersInBase;
   private byte[] extraLayersVisible;
   // private boolean pointsGeneratable;
   protected Timer waitingTimer; // A control variable to reduce the repaint() operations during
-                               // component resizing;
+                                // component resizing;
   private String nullMessage;
   private final boolean randomTest;
   private int numberOfNaNSamples;
@@ -309,7 +310,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
         log.report("createImage() being called from paintComponent()");
       }
       createImage(); // if you remove this, you get a blank screen and at least QQPlot ends up with
-                    // a double title panel
+                     // a double title panel
     } else if (DEBUGGING) {
       log.report("Skipping image creation");
     }
@@ -416,8 +417,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   public void drawAll(Graphics g, boolean base) {
     float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
     double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and
-                            // leave off
-                            // the last tick mark
+                             // leave off
+                             // the last tick mark
     String pos;
     int xLook, yLook;
     FontMetrics fontMetrics = null;
@@ -1089,7 +1090,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
           for (int k = -neighbor; k <= neighbor; k++) {
             if ((xPixel + j) >= 0 && (xPixel + j) < nColumns && (yPixel + k) >= 0
                 && (yPixel + k) < nRows) { // && Distance.euclidean(new int[] {Math.abs(j),
-                                                                                                                // Math.abs(k)}, origin) < neighbor*(neighbor-1)
+                                           // Math.abs(k)}, origin) < neighbor*(neighbor-1)
               if (zoomedIn) {
                 intensities[xPixel + j][yPixel + k]++;
               } else {

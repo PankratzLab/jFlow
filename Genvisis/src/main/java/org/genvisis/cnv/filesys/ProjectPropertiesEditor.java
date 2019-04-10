@@ -332,7 +332,7 @@ public class ProjectPropertiesEditor extends JFrame {
     final SpinnerEditor numberEditor = new SpinnerEditor();
     final JPanel fileRenderer = new JPanel(new MigLayout("ins -1 0 0 0, hidemode 3", "[grow][]",
                                                          ""));// new
-                                                                                                                                                           // BorderLayout());
+                                                              // BorderLayout());
     final JLabel fileLabel = new JLabel();
     final JButton fileBtn2 = new JButton("...");
     final JButton fileAddBtn2 = new JButton(" + ");

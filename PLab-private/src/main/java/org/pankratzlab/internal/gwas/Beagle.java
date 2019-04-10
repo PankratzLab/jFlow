@@ -508,13 +508,13 @@ public class Beagle {
                 } else if (starts[i][j][strict] != -1) {
                   writers[j][strict][0].print(famids.get(ids[i][0]) + "\t" + ids[i][0] + "\t"
                                               + famids.get(ids[i][1]) + "\t" + ids[i][1]); // FID1
-                                                                                                                                                                      // IID1
-                                                                                                                                                                      // FID2
-                                                                                                                                                                      // IID2
+                                                                                           // IID1
+                                                                                           // FID2
+                                                                                           // IID2
                   writers[j][strict][0].print("\t" + hash.get(ids[i][0] + "\t" + ids[i][1])); // PHE
-                                                                                             // Phenotype
-                                                                                             // concordance:
-                                                                                             // -1,0,1
+                                                                                              // Phenotype
+                                                                                              // concordance:
+                                                                                              // -1,0,1
                   writers[j][strict][0].print("\t" + chrs[starts[i][j][strict]]); // CHR
                   end = count < markerNames.length - 1 ? count - 1 : count;
                   writers[j][strict][0].print("\t" + positions[starts[i][j][strict]] + "\t"
@@ -522,35 +522,34 @@ public class Beagle {
                   writers[j][strict][0].print("\t" + markerNames[starts[i][j][strict]] + "\t"
                                               + markerNames[end]); // SNP1 SNP2
                   writers[j][strict][0].print("\t" + (end - starts[i][j][strict] + 1)); // NSNP
-                                                                                       // Number of
-                                                                                       // SNPs in
-                                                                                       // this
-                                                                                       // segment
-                  writers[j][strict][0].print("\t"
-                                              + (positions[end] - positions[starts[i][j][strict]]
-                                                 + 1)); // KB
-                                                                                                                                            // Physical
-                                                                                                                                            // length
-                                                                                                                                            // of
-                                                                                                                                            // segment
-                                                                                                                                            // (kb)
+                                                                                        // Number of
+                                                                                        // SNPs in
+                                                                                        // this
+                                                                                        // segment
+                  writers[j][strict][0].print("\t" + (positions[end]
+                                                      - positions[starts[i][j][strict]] + 1)); // KB
+                                                                                               // Physical
+                                                                                               // length
+                                                                                               // of
+                                                                                               // segment
+                                                                                               // (kb)
                   writers[j][strict][0].print("\t"
                                               + ext.formDeci(segAvgs[i][j][strict]
                                                              / (end - starts[i][j][strict] + 1), 5,
                                                              true)); // extra quality score not
-                                                                                                                                                                                 // used/allowed by PLINK
+                                                                     // used/allowed by PLINK
                   writers[j][strict][0].print("\t" + ext.formDeci(segMaxes[i][j][strict], 3, true)); // extra
-                                                                                                    // max
-                                                                                                    // score
-                                                                                                    // not
-                                                                                                    // used/allowed
-                                                                                                    // by
-                                                                                                    // PLINK
+                                                                                                     // max
+                                                                                                     // score
+                                                                                                     // not
+                                                                                                     // used/allowed
+                                                                                                     // by
+                                                                                                     // PLINK
                   writers[j][strict][0].print("\t"
                                               + ext.formDeci(centiMorgans[end]
                                                              - centiMorgans[starts[i][j][strict]],
                                                              4, true)); // cM Genetic length of
-                                                                                                                                                                               // segment (cM)
+                                                                        // segment (cM)
                   writers[j][strict][0].println();
 
                   writers[j][strict][1].println(ids[i][0] + "\t" + ids[i][1] + "\t"

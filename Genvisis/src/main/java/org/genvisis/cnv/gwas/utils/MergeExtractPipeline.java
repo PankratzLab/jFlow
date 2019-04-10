@@ -508,7 +508,17 @@ public class MergeExtractPipeline {
         return;
       }
       dataSources.add(new DataSource(null, dir, PSF.Plink.getBED(outRoot),
-                                     PSF.Plink.getBIM(outRoot), PSF.Plink.getFAM(outRoot))); // no prepend here, as we've already renamed the markers using PlinkMergePrep
+                                     PSF.Plink.getBIM(outRoot), PSF.Plink.getFAM(outRoot))); // no
+                                                                                             // prepend
+                                                                                             // here,
+                                                                                             // as
+                                                                                             // we've
+                                                                                             // already
+                                                                                             // renamed
+                                                                                             // the
+                                                                                             // markers
+                                                                                             // using
+                                                                                             // PlinkMergePrep
       if (markersFile != null && !"".equals(markersFile)) {
         String newMkrFile = (new File(PlinkMergePrep.TEMP_MKR_FILE)).getAbsolutePath();
         tempMarkerFiles.add(newMkrFile);

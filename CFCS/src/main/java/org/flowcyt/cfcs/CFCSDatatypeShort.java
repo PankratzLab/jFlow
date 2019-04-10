@@ -34,8 +34,10 @@ public final class CFCSDatatypeShort extends CFCSDatatypeBinary {
       row[cell] = (short) datum;
     }
 
-    if (index == data.size()) data.add(row);
-    else data.set(index, row);
+    if (index == data.size())
+      data.add(row);
+    else
+      data.set(index, row);
   }
 
   // --------------------------------------------------------------------

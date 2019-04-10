@@ -465,7 +465,7 @@ public class ProjectCreationGUI extends JDialog {
     // look for the most likely extension
     for (String s : (new File(srcDir).list())) {
       String[] split = s.split("\\.", 2); // only split on the first . to capture things like
-                                         // .tar.gz
+                                          // .tar.gz
 
       if (split.length <= 1) continue;
 

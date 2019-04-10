@@ -250,8 +250,8 @@ public class CALiCo {
 
     minimumPvalueHash = new Hashtable<>();
     markerPositionHash = new Hashtable<>(); // key=markerName, values=new int[]
-                                           // {chr,position,position}
-                                           // populate both hashtables
+                                            // {chr,position,position}
+                                            // populate both hashtables
     try {
       reader = new BufferedReader(new FileReader(resultDir + "cat_hits.txt"));
       while ((trav = reader.readLine()) != null) {
@@ -1016,7 +1016,7 @@ public class CALiCo {
                   + delimiterForOutputFile + snpLine[6] // snp.P
                   + ((snpLine[4].equals("NA")
                       || snpLine[4].equals("NA")) ? (delimiterForOutputFile + delimiterForOutputFile) : (delimiterForOutputFile + (Double.parseDouble(snpLine[4]) - 1.95 * Double.parseDouble(snpLine[5])) + delimiterForOutputFile + (Double.parseDouble(snpLine[4]) + 1.95 * Double.parseDouble(snpLine[5])))) // snp.L95
-                                                                                                                                                                                                                                                                                                                                            // snp.U95
+                                                                                                                                                                                                                                                                                                                 // snp.U95
                   + delimiterForOutputFile + (numSamples - Integer.parseInt(snpLine[3])) // snp.NMISS
                   + delimiterForOutputFile + snpLine[2] // snp.CAF
                   + delimiterForOutputFile
@@ -1032,7 +1032,7 @@ public class CALiCo {
                   + (indexLine == null || indexLine.length < 5 ? "NA" : indexLine[6]) // index.P
                   + ((indexLine == null || indexLine.length < 6
                       || indexLine[4].equals("NA")) ? (delimiterForOutputFile + delimiterForOutputFile) : (delimiterForOutputFile + (Double.parseDouble(indexLine[4]) - 1.95 * Double.parseDouble(indexLine[5])) + delimiterForOutputFile + (Double.parseDouble(indexLine[4]) + 1.95 * Double.parseDouble(indexLine[5])))) // index.L95
-                                                                                                                                                                                                                                                                                                                                                                        // index.U95
+                                                                                                                                                                                                                                                                                                                           // index.U95
                   + delimiterForOutputFile
                   + (indexLine == null || indexLine.length < 5 ? "NA"
                                                                : (numSamples

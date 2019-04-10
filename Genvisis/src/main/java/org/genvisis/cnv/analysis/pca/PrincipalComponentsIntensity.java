@@ -399,7 +399,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
       float[] lrrs = centroid.getRecomputedLRR();
       if (isAffyIntensityOnly(getProj().getArrayType(), tmpMarkerData)) {
         centroid.setIntensityOnly(true); // this is to get proper LRRs /BAFs for affy CN_ probes.
-                                        // The correction process does not need this flag however
+                                         // The correction process does not need this flag however
       }
       float[] bafs = centroid.getRecomputedBAF();
       return new float[][] {bafs, lrrs};
@@ -534,7 +534,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
                                      // genotypes
             if (fullXPredicteds[j] != null && fullYPredicteds[j] != null
                 && genoClusterCounts[j] > 1) {// must have predicteds, and at more than one
-                                                                                                           // individual
+                                              // individual
               if (!Double.isNaN(fullXPredicteds[j][i]) && !Double.isNaN(fullYPredicteds[j][i])) {
                 if (Double.compare(residStandardDeviationFilter, 0) == 0
                     || (Math.abs(residY[j][i]) < residStandardDeviationFilter * residstdevY[j]
@@ -560,14 +560,14 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
         if (forceThisCluster[i]) {
           if (genoSampleClusters[i][j]) {// if a sample belongs to this cluster
             estimatedGenotypes[j] = centroid.getMarkerData().getAbGenotypes()[j]; // which will
-                                                                                 // always be the
-                                                                                 // original at
-                                                                                 // this point
+                                                                                  // always be the
+                                                                                  // original at
+                                                                                  // this point
           }
         } else if (estimatedGenotypes[j] == -1) {
           estimatedGenotypes[j] = centroid.getMarkerData().getAbGenotypes()[j]; // didnt get a new
-                                                                               // cluster, set to
-                                                                               // original
+                                                                                // cluster, set to
+                                                                                // original
         } else {
           // new genotype!
         }
@@ -709,29 +709,29 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
         for (int i = 0; i < abGenotypes.length; i++) {
           if (!samplesToUse[i]
               || centroid.getSamplesToUse() != null && !centroid.getSamplesToUse()[i]) {// samplesToUse
-                                                                                                             // represents
-                                                                                                             // inds with
-                                                                                                             // a pc
-                                                                                                             // those
-                                                                                                             // without
-                                                                                                             // will be
-                                                                                                             // skipped,
-                                                                                                             // and the
-                                                                                                             // centroid
-                                                                                                             // represents
-                                                                                                             // those
-                                                                                                             // used to
-                                                                                                             // cluster,
-                                                                                                             // those who
-                                                                                                             // were not
-                                                                                                             // used to
-                                                                                                             // cluster
-                                                                                                             // will not
-                                                                                                             // be
-                                                                                                             // included
-                                                                                                             // in the
-                                                                                                             // regression
-                                                                                                             // model
+                                                                                        // represents
+                                                                                        // inds with
+                                                                                        // a pc
+                                                                                        // those
+                                                                                        // without
+                                                                                        // will be
+                                                                                        // skipped,
+                                                                                        // and the
+                                                                                        // centroid
+                                                                                        // represents
+                                                                                        // those
+                                                                                        // used to
+                                                                                        // cluster,
+                                                                                        // those who
+                                                                                        // were not
+                                                                                        // used to
+                                                                                        // cluster
+                                                                                        // will not
+                                                                                        // be
+                                                                                        // included
+                                                                                        // in the
+                                                                                        // regression
+                                                                                        // model
             assignAllFalseAt(i, genoSampleClusters);
           } else if (Float.isNaN(xs[i]) || Float.isNaN(ys[i])) {
             assignAllFalseAt(i, genoSampleClusters);

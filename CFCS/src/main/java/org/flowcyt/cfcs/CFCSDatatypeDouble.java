@@ -33,8 +33,10 @@ public class CFCSDatatypeDouble extends CFCSAbstractDatatype {
       row[cell] = Double.longBitsToDouble(datum);
     }
 
-    if (index == data.size()) data.add(row);
-    else data.set(index, row);
+    if (index == data.size())
+      data.add(row);
+    else
+      data.set(index, row);
   }
 
   // --------------------------------------------------------------------

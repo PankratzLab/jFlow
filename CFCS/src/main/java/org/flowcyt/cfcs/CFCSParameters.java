@@ -64,7 +64,7 @@ public final class CFCSParameters extends CFCSAbstractParameters {
   }
 
   // --------------------------------------------------------------------
-  // Does this keyword name look like a data parameter?  This is similar
+  // Does this keyword name look like a data parameter? This is similar
   // to the same routine in CFCSGatingParameters but since we can't overide
   // static methods, this can't be done in CFCSAbstractParameters
 

@@ -74,8 +74,8 @@ public class SourceFileHeaderData implements Serializable {
     String delim = ",";
     while ((line = reader.readLine()) != null) {
       delim = ext.determineDelimiter(line, true); // TODO if file ends with .csv [or contains
-                                                 // .csv?], can assume that delim is ','. Sim., if
-                                                 // ends with .xln, can assume delim is '\t'
+                                                  // .csv?], can assume that delim is ','. Sim., if
+                                                  // ends with .xln, can assume delim is '\t'
       if (",".equals(delim)) {
         delim = "[\\s]*,[\\s]*"; // ext.indexFactors doesn't call trim()
       }

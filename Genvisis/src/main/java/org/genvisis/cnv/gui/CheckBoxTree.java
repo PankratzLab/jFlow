@@ -178,8 +178,8 @@ public class CheckBoxTree extends JTree implements ItemListener {
       JCheckBox thisCheckBox = (JCheckBox) searchNode.getUserObject();
       if (action == ItemEvent.SELECTED) {
         if (thisCheckBox.isSelected()) { // if action is selected and the checkbox is already
-                                        // selected then
-                                        // deselect first
+                                         // selected then
+                                         // deselect first
           thisCheckBox.setSelected(false);
           itemStateChanged(new ItemEvent(thisCheckBox, ItemEvent.ITEM_LAST, thisCheckBox,
                                          ItemEvent.DESELECTED));

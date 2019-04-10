@@ -14,7 +14,9 @@ import com.google.common.collect.TreeRangeMap;
  * @param <K>
  * @param <V>
  */
-public class TreeRangeSetMultimap<K extends Comparable<?>, V> extends AbstractRangeMultimap<K, V, ImmutableSet<V>> implements RangeSetMultimap<K, V> {
+public class TreeRangeSetMultimap<K extends Comparable<?>, V>
+                                 extends AbstractRangeMultimap<K, V, ImmutableSet<V>>
+                                 implements RangeSetMultimap<K, V> {
 
   private TreeRangeSetMultimap() {
     this(TreeRangeMap.create());

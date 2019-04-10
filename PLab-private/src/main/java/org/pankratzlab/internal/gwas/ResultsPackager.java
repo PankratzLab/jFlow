@@ -230,24 +230,27 @@ public class ResultsPackager {
                                            "\t", false, false);
     originalFreqHash = HashVec.loadFileToHashString(dir + originalFrqFile, new int[] {1},
                                                     new int[] {2, 3}, false, "\t", false, false); // add
-                                                                                                                                                                                       // 4
-                                                                                                                                                                                       // if
-                                                                                                                                                                                       // you
-                                                                                                                                                                                       // want
-                                                                                                                                                                                       // global
-                                                                                                                                                                                       // frequency
+                                                                                                  // 4
+                                                                                                  // if
+                                                                                                  // you
+                                                                                                  // want
+                                                                                                  // global
+                                                                                                  // frequency
 
     if (customFrqFile != null) {
       System.err.println("Warning - use of custom freq file has not been tested properly; if it works then remove this warning");
       customFreqHash = HashVec.loadFileToHashString(originalFrqFile, new int[] {1},
                                                     new int[] {2, 3, 4}, false, "\t", false, false); // add
-                                                                                                                                                                                  // 4
-                                                                                                                                                                                  // if
-                                                                                                                                                                                  // you
-                                                                                                                                                                                  // want
-                                                                                                                                                                                  // global
-                                                                                                                                                                                  // frequency instead of custom
-                                                                                                                                                                                  // Freq
+                                                                                                     // 4
+                                                                                                     // if
+                                                                                                     // you
+                                                                                                     // want
+                                                                                                     // global
+                                                                                                     // frequency
+                                                                                                     // instead
+                                                                                                     // of
+                                                                                                     // custom
+                                                                                                     // Freq
     } else {
       customFreqHash = null;
     }
@@ -362,7 +365,7 @@ public class ResultsPackager {
                                            "\t", false, false);
     freqHash = HashVec.loadFileToHashString(dir + freqFile, new int[] {1}, new int[] {2, 3, 4},
                                             false, "\t", false, false); // 4 gets global
-                                                                                                                                                                   // frequency
+                                                                        // frequency
 
     try {
       reader = Files.getAppropriateReader(dir + resultsFile);
@@ -414,8 +417,8 @@ public class ResultsPackager {
                            + ArrayUtils.toStr(Alleles.getAlleleFreqForA1(line[indices[1]],
                                                                          freqHash.get(trav)
                                                                                  .split("\t")))); // a1,
-                                                                                                                                                                                                     // a2,
-                                                                                                                                                                                                     // a1_freq
+                                                                                                  // a2,
+                                                                                                  // a1_freq
             } else if (freqHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
               writer.print("\t"
                            + ArrayUtils.toStr(Alleles.getAlleleFreqForA1(line[indices[1]],
@@ -423,8 +426,8 @@ public class ResultsPackager {
                                                                                                          ".",
                                                                                                          "-"))
                                                                                  .split("\t")))); // a1,
-                                                                                                                                                                                                                                   // a2,
-                                                                                                                                                                                                                                   // a1_freq
+                                                                                                  // a2,
+                                                                                                  // a1_freq
             } else {
               log.reportError("Error - no frequency for " + trav);
               writer.print("\t" + line[indices[1]] + "\t.\t."); // a1, null, null
@@ -440,8 +443,8 @@ public class ResultsPackager {
             } else {
               writer.print("\t"
                            + ext.formDeci(Math.log(Double.parseDouble(line[indices[4]])), 5, true)); // OR
-                                                                                                                      // ->
-                                                                                                                      // beta
+                                                                                                     // ->
+                                                                                                     // beta
             }
           } else {
             writer.print("\t" + line[indices[5]]); // beta
@@ -601,8 +604,8 @@ public class ResultsPackager {
             } else {
               writer.print("\t"
                            + ext.formDeci(Math.log(Double.parseDouble(line[indices[1]])), 5, true)); // OR
-                                                                                                                      // ->
-                                                                                                                      // beta
+                                                                                                     // ->
+                                                                                                     // beta
             }
           } else {
             writer.print("\t" + line[indices[1]]); // beta
@@ -713,40 +716,40 @@ public class ResultsPackager {
       String delimiterM = ext.determineDelimiter(temp);
       String[] lineM = temp.split(delimiterM);
       Map<String, Integer> indicesM = ext.indexMap(EMIM_REQS, lineM, false, log, false, false); // TODO
-                                                                                               // EMIM_REQS
-                                                                                               // specific
-                                                                                               // to
-                                                                                               // estimate
+                                                                                                // EMIM_REQS
+                                                                                                // specific
+                                                                                                // to
+                                                                                                // estimate
 
       BufferedReader readerCM = Files.getAppropriateReader(resultsFileCM);
       temp = readerCM.readLine().trim();
       String delimiterCM = ext.determineDelimiter(temp);
       String[] lineCM = temp.split(delimiterCM);
       Map<String, Integer> indicesCM = ext.indexMap(EMIM_REQS, lineCM, false, log, false, false); // TODO
-                                                                                                 // EMIM_REQS
-                                                                                                 // specific
-                                                                                                 // to
-                                                                                                 // estimate
+                                                                                                  // EMIM_REQS
+                                                                                                  // specific
+                                                                                                  // to
+                                                                                                  // estimate
 
       BufferedReader readerCIm = Files.getAppropriateReader(resultsFileCIm);
       temp = readerCIm.readLine().trim();
       String delimiterCIm = ext.determineDelimiter(temp);
       String[] lineCIm = temp.split(delimiterCIm);
       Map<String, Integer> indicesCIm = ext.indexMap(EMIM_REQS, lineCIm, false, log, false, false); // TODO
-                                                                                                   // EMIM_REQS
-                                                                                                   // specific
-                                                                                                   // to
-                                                                                                   // estimate
+                                                                                                    // EMIM_REQS
+                                                                                                    // specific
+                                                                                                    // to
+                                                                                                    // estimate
 
       BufferedReader readerCIp = Files.getAppropriateReader(resultsFileCIp);
       temp = readerCIp.readLine().trim();
       String delimiterCIp = ext.determineDelimiter(temp);
       String[] lineCIp = temp.split(delimiterCIp);
       Map<String, Integer> indicesCIp = ext.indexMap(EMIM_REQS, lineCIp, false, log, false, false); // TODO
-                                                                                                   // EMIM_REQS
-                                                                                                   // specific
-                                                                                                   // to
-                                                                                                   // estimate
+                                                                                                    // EMIM_REQS
+                                                                                                    // specific
+                                                                                                    // to
+                                                                                                    // estimate
 
       BufferedReader readerIm = Files.getAppropriateReader(resultsFileIm);
       temp = readerIm.readLine().trim();

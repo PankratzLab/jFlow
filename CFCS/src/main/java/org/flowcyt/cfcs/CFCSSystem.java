@@ -45,7 +45,7 @@ public final class CFCSSystem implements CFCSErrorCodes {
   /* friendly */
   static final char VALUE_SEPARATOR_CHAR = ',';
 
-  //    /* friendly */
+  // /* friendly */
   static final int BITSPERBYTE = 8;
 
   // --------------------------------------------------------------------
@@ -55,24 +55,24 @@ public final class CFCSSystem implements CFCSErrorCodes {
     return CFCS_VERSION;
   }
 
-  // Josef Spidlen, 
+  // Josef Spidlen,
   //
   // Calculating 16-bit CRC
-  // Calculating CRC with 16-bit CRC-CCITT specification as described in FCS3.0, which is: 
-  // Width = 16 bits 
+  // Calculating CRC with 16-bit CRC-CCITT specification as described in FCS3.0, which is:
+  // Width = 16 bits
   // Truncated polynomial = 0x1021 (= x^16 + x^12 + x^5 + 1)
   // Initial value = 0xFFFF (private static final int initvalue)
   // Input data is bit-reversed (private static final boolean bReverseBits)
   // - note that this seems to be FCS3.0 specification only, the CCITT doesn't require
-  //   to reverse bits of the input bytes
-  // Output CRC is NOT reflected 
+  // to reverse bits of the input bytes
+  // Output CRC is NOT reflected
   // No XOR is performed on the output CRC
   //
   // - note that sun.misc.CRC16 calculate another CRC
   public static class CRC16_CCITT {
 
     private int work = initvalue;
-    public int value = initvalue;	// just a public copy of work (to be similar to sun.misc.CRC16)
+    public int value = initvalue; // just a public copy of work (to be similar to sun.misc.CRC16)
 
     /**
      * generator polynomial
@@ -108,8 +108,10 @@ public final class CFCSSystem implements CFCSErrorCodes {
 
     public void update(byte b) {
       byte bx;
-      if (bReverseBits) bx = ReverseBits(b);
-      else bx = b;
+      if (bReverseBits)
+        bx = ReverseBits(b);
+      else
+        bx = b;
       work = (crcTable[(bx ^ (work >>> 8)) & 0xff] ^ (work << 8)) & 0xffff;
       value = work;
     }
@@ -168,7 +170,8 @@ public final class CFCSSystem implements CFCSErrorCodes {
     // JS
     final void resetCRC() {
       // Uncomment to trace the CRC computation
-      // System.out.println("CRC value: " + crc16.value + " reset to " + CRC16_CCITT.initvalue + ".");
+      // System.out.println("CRC value: " + crc16.value + " reset to " + CRC16_CCITT.initvalue +
+      // ".");
       crc16.reset();
     }
 
@@ -196,7 +199,8 @@ public final class CFCSSystem implements CFCSErrorCodes {
         // JS
         // int old = crc16.value;
         crc16.update((byte) result);
-        // System.out.println("CRC value: " + old + " updated by character " + (byte)result + " ('" + (char)result + "') to new value of: " + crc16.value);
+        // System.out.println("CRC value: " + old + " updated by character " + (byte)result + " ('"
+        // + (char)result + "') to new value of: " + crc16.value);
       }
 
       return result;
@@ -214,7 +218,8 @@ public final class CFCSSystem implements CFCSErrorCodes {
       for (int i = 0; i < bytes; i++) {
         // old = crc16.value;
         crc16.update(b[i]);
-        // System.out.println("CRC value: " + old + " updated by character " + b[i] + " ('" + (char)b[i] + "') to new value of: " + crc16.value);
+        // System.out.println("CRC value: " + old + " updated by character " + b[i] + " ('" +
+        // (char)b[i] + "') to new value of: " + crc16.value);
       }
 
       return bytes;
@@ -320,7 +325,7 @@ public final class CFCSSystem implements CFCSErrorCodes {
 
   public final void open(URL url) {
     try {
-      //System.out.println("CFCSSystem from '" + URL +"' got " + url.getFile());
+      // System.out.println("CFCSSystem from '" + URL +"' got " + url.getFile());
       long offset, start = 0;
       InputStream stream = url.openStream();
       SentientInputStream sentient = new SentientInputStream(stream);
@@ -371,7 +376,7 @@ public final class CFCSSystem implements CFCSErrorCodes {
     }
   }
 
-  //creates a file output stream for writing an fcs file from loaded data.
+  // creates a file output stream for writing an fcs file from loaded data.
   public final void createLocal(final String path) {
     File file;
 
@@ -386,8 +391,8 @@ public final class CFCSSystem implements CFCSErrorCodes {
   }
 
   // --------------------------------------------------------------------
-  // Not an official API entry point.  Allows you to open, modify and save
-  // out an FCS file.  Modifications are limited to editing non-system keywords.
+  // Not an official API entry point. Allows you to open, modify and save
+  // out an FCS file. Modifications are limited to editing non-system keywords.
 
   public final void modify(final String source, final String destination) {
     open(source);
@@ -466,7 +471,8 @@ public final class CFCSSystem implements CFCSErrorCodes {
 
         if ("file".equalsIgnoreCase(url.getProtocol())) {
           stream = new FileOutputStream(path);
-        } else stream = connection.getOutputStream();
+        } else
+          stream = connection.getOutputStream();
 
         SentientOutputStream sentient = new SentientOutputStream(stream);
 
@@ -487,7 +493,7 @@ public final class CFCSSystem implements CFCSErrorCodes {
     }
   }
 
-  //  used to create a local fcs file from data read in
+  // used to create a local fcs file from data read in
   public final void closeLocal() {
     if (fos != null) {
       try {

@@ -134,8 +134,8 @@ public class Histogram implements Serializable {
     sumTotal = 0;
 
     counts = new int[(int) ((max - determineStart()) * Math.pow(10, sigfigs)) + 1]; // does not
-                                                                                   // currently use
-                                                                                   // EXTRA_STEPS[extrastep]
+                                                                                    // currently use
+                                                                                    // EXTRA_STEPS[extrastep]
   }
 
   public Histogram(float[] array, float min, float max, int sigfigs) {

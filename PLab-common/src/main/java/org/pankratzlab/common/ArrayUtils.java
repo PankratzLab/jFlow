@@ -5397,8 +5397,10 @@ public class ArrayUtils {
 
     for (int i = 0; i < m.length; i++) {
       for (int j = 0; j < m[0].length; j++) {
-        if (start[0].length <= j) m[i][j] = toAppend[i][j - start[0].length];
-        else m[i][j] = start[i][j];
+        if (start[0].length <= j)
+          m[i][j] = toAppend[i][j - start[0].length];
+        else
+          m[i][j] = start[i][j];
       }
     }
 

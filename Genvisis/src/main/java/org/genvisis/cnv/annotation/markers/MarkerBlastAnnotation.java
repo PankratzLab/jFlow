@@ -97,7 +97,11 @@ public class MarkerBlastAnnotation implements AnnotationParser {
                                                                                                            // type
                                                                                                            // has
                                                                                                            // a
-                                                                                                           // separate key in the file
+                                                                                                           // separate
+                                                                                                           // key
+                                                                                                           // in
+                                                                                                           // the
+                                                                                                           // file
       BLAST_ANNOTATION_TYPES bType = bTypeEntry.getKey();
       ArrayBlastAnnotationList annotationList = bTypeEntry.getValue();
       String info = vc.getCommonInfo().getAttributeAsString(bType.toString(),

@@ -197,18 +197,21 @@ public class ParseKcol implements Runnable {
           }
           genotypes = new byte[2][];
           genotypes[0] = ArrayUtils.byteArray(markerNames.length, (byte) 0); // used to be
-                                                                            // initialized to
-                                                                            // Byte.MIN_VALUE when AB
-                                                                            // genotypes && abLookup
-                                                                            // were both absent
+                                                                             // initialized to
+                                                                             // Byte.MIN_VALUE when
+                                                                             // AB
+                                                                             // genotypes &&
+                                                                             // abLookup
+                                                                             // were both absent
           if (!ignoreAB) {
             genotypes[1] = ArrayUtils.byteArray(markerNames.length, (byte) -1); // used to be
-                                                                               // initialized
-                                                                               // to Byte.MIN_VALUE
-                                                                               // when
-                                                                               // AB genotypes &&
-                                                                               // abLookup were both
-                                                                               // absent
+                                                                                // initialized
+                                                                                // to Byte.MIN_VALUE
+                                                                                // when
+                                                                                // AB genotypes &&
+                                                                                // abLookup were
+                                                                                // both
+                                                                                // absent
           }
 
           count = 0;

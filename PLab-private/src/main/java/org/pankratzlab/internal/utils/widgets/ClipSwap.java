@@ -270,13 +270,13 @@ public class ClipSwap {
     }
 
     if (new Date().getTime() - new File("savedKeysForLookup.ser").lastModified() > 10 * 60 * 1000) { // if
-                                                                                                    // file
-                                                                                                    // is
-                                                                                                    // more
-                                                                                                    // than
-                                                                                                    // 10
-                                                                                                    // minutes
-                                                                                                    // old
+                                                                                                     // file
+                                                                                                     // is
+                                                                                                     // more
+                                                                                                     // than
+                                                                                                     // 10
+                                                                                                     // minutes
+                                                                                                     // old
       log.reportError("Our expected file 'savedKeysForLookup.ser' was created "
                       + ext.getTimeElapsed(new File("savedKeysForLookup.ser").lastModified())
                       + " ago; resave keys using -saveKeys");

@@ -571,11 +571,11 @@ public class BamImport {
 
     if (allOutliers.size() > 0
         || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently
-                                                                                                                   // do
-                                                                                                                   // to
-                                                                                                                   // all
-                                                                                                                   // the
-                                                                                                                   // skipping
+                                                                                        // do
+                                                                                        // to
+                                                                                        // all
+                                                                                        // the
+                                                                                        // skipping
       SerializedFiles.writeSerial(allOutliers,
                                   proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
     }
@@ -611,7 +611,9 @@ public class BamImport {
     }
     ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes, offTargetsToUse,
                                                                doCorrection, correctionPCs,
-                                                               numthreads);// Generates and corrects the project for each marker type
+                                                               numthreads);// Generates and corrects
+                                                                           // the project for each
+                                                                           // marker type
 
     String newSampleDir = proj.PROJECT_DIRECTORY.getValue() + "samplesCorrected/";
     String newtransposedDir = proj.PROJECT_DIRECTORY.getValue() + "transposedCorrected/";
@@ -637,11 +639,11 @@ public class BamImport {
                                                  // place
     if (recompallOutliers.size() > 0
         || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently
-                                                                                                                         // do
-                                                                                                                         // to
-                                                                                                                         // all
-                                                                                                                         // the
-                                                                                                                         // skipping
+                                                                                        // do
+                                                                                        // to
+                                                                                        // all
+                                                                                        // the
+                                                                                        // skipping
       SerializedFiles.writeSerial(allOutliers,
                                   proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
     }

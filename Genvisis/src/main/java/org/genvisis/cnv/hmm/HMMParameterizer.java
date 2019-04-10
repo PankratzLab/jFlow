@@ -95,7 +95,7 @@ public class HMMParameterizer {
 
             if (Double.isFinite(baf) && geno >= 0 && cnv.getSize() > minbp
                 && cnv.getNumMarkers() > minP) {
-              //              TODO needs review
+              // TODO needs review
               switch (cnv.getCN()) {
                 case 0:
                   if (geno != 1) {

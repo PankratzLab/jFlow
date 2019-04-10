@@ -169,10 +169,10 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
     // }
     RegressionModel model = new LeastSquares(assesmentData, prepPcs(pcBasis), null, false, true,
                                              LS_TYPE.REGULAR);// auto
-                                                                                                                                                           // switch
-                                                                                                                                                           // in
-                                                                                                                                                           // reg
-                                                                                                                                                           // model
+                                                              // switch
+                                                              // in
+                                                              // reg
+                                                              // model
     double R2 = Double.NaN;
     if (!model.analysisFailed()) {
       residuals = model.getResiduals();
@@ -1345,7 +1345,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 
   }
 
-  public static class PrincipalComponentsIterator implements Iterator<PrincipalComponentsResiduals>, Serializable {
+  public static class PrincipalComponentsIterator implements Iterator<PrincipalComponentsResiduals>,
+                                                  Serializable {
 
     /**
      *
@@ -1365,9 +1366,9 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
     @Override
     public boolean hasNext() {
       return index < (order == null ? pcResids.getNumComponents() + 1 : order.length + 1); // +1 to
-                                                                                          // account
-                                                                                          // for
-                                                                                          // PC0
+                                                                                           // account
+                                                                                           // for
+                                                                                           // PC0
 
     }
 

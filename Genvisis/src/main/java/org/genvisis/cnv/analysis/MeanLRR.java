@@ -187,7 +187,7 @@ public class MeanLRR {
     samples = sampleList.getSamples();
     numberOfMarkers = new int[regions.length];
     data = new float[regions.length][samples.length][1]; // only mean will be computed; no
-                                                        // normalization
+                                                         // normalization
     try {
       writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + "MarkersIn_"
                                            + ext.rootOf(regionsFile) + ".xln");

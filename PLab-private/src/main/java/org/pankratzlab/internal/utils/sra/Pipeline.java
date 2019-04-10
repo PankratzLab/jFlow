@@ -180,6 +180,7 @@ public class Pipeline {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.concurrent.Callable#call()
      */
     @Override
@@ -218,6 +219,7 @@ public class Pipeline {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.concurrent.Callable#call()
      */
     @Override

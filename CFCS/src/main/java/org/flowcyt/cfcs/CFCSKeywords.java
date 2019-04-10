@@ -52,7 +52,8 @@ public final class CFCSKeywords implements CFCSErrorCodes {
   static final String PLATENAME_KEYWORD = "$PLATENAME";
   static final String WELLID_KEYWORD = "$WELLID";
   static final String SPILLOVER_KEYWORD = "$SPILLOVER";
-  static final String SPILLOVER_ALTERNATIVE_KEYWORD = "SPILL"; // This is not in the standard but BD uses it in their FCS3.0 files
+  static final String SPILLOVER_ALTERNATIVE_KEYWORD = "SPILL"; // This is not in the standard but BD
+                                                               // uses it in their FCS3.0 files
   static final String ORIGINALITY_KEYWORD = "$ORIGINALLITY";
   public static final String LAST_MODIFIER_KEYWORD = "$LAST_MODIFIER";
   public static final String LAST_MODIFIED_KEYWORD = "$LAST_MODIFIED";
@@ -169,7 +170,7 @@ public final class CFCSKeywords implements CFCSErrorCodes {
   }
 
   // --------------------------------------------------------------------
-  // Returns the keyword named "name".  (Note: the instance returned
+  // Returns the keyword named "name". (Note: the instance returned
   // is a "copy" of the actual keyword).
 
   public final CFCSKeyword getKeyword(final String name) {
@@ -182,7 +183,7 @@ public final class CFCSKeywords implements CFCSErrorCodes {
   }
 
   // --------------------------------------------------------------------
-  // Returns the keyword at index "index".  (Note: the instance returned
+  // Returns the keyword at index "index". (Note: the instance returned
   // is a "copy" of the actual keyword).
 
   public final CFCSKeyword getKeyword(final int index) {
@@ -194,7 +195,7 @@ public final class CFCSKeywords implements CFCSErrorCodes {
   }
 
   // --------------------------------------------------------------------
-  // Adds the keyword to the current list.  If the keyword already exists,
+  // Adds the keyword to the current list. If the keyword already exists,
   // then it is replaced by that specified in the parameter (i.e.,
   // "replaceKeyword" functionality.)
 
@@ -211,7 +212,8 @@ public final class CFCSKeywords implements CFCSErrorCodes {
       int segIdx = keyword.getKeywordSource();
 
       keywords.addKeyword(new CFCSKeyword(name, value, segIdx));
-    } else replaceKeyword(keyword);
+    } else
+      replaceKeyword(keyword);
   }
 
   public static Boolean canAdd(final CFCSKeyword keyword) {
@@ -220,8 +222,10 @@ public final class CFCSKeywords implements CFCSErrorCodes {
 
   public static Boolean canAdd(final String keywordName) {
     if (SYSTEM_KEYWORDS.contains(keywordName) || CFCSParameters.isParameter(keywordName)
-        || CFCSGatingParameters.isParameter(keywordName)) return false;
-    else return true;
+        || CFCSGatingParameters.isParameter(keywordName))
+      return false;
+    else
+      return true;
   }
 
   // --------------------------------------------------------------------
@@ -235,11 +239,12 @@ public final class CFCSKeywords implements CFCSErrorCodes {
       throw new CFCSError(CFCSCannotModifyValue, name);
     } else if (keywords.containsKeyword(name)) {
       keywords.deleteKeyword(name);
-    } else throw new CFCSError(CFCSKeywordNotFound, name);
+    } else
+      throw new CFCSError(CFCSKeywordNotFound, name);
   }
 
   // --------------------------------------------------------------------
-  // Replaces the keyword with that specified by the parameter.  If the
+  // Replaces the keyword with that specified by the parameter. If the
   // keyword doesn't exist, then an exception is thrown.
 
   public final void replaceKeyword(final CFCSKeyword keyword) {
@@ -255,7 +260,8 @@ public final class CFCSKeywords implements CFCSErrorCodes {
         throw new CFCSError(CFCSCannotModifySource, segIdx);
       }
       /* else */ existing.setKeywordValue(keyword.getKeywordValue());
-    } else throw new CFCSError(CFCSKeywordNotFound, name);
+    } else
+      throw new CFCSError(CFCSKeywordNotFound, name);
   }
 
   // --------------------------------------------------------------------
@@ -280,15 +286,16 @@ public final class CFCSKeywords implements CFCSErrorCodes {
   }
 
   // --------------------------------------------------------------------
-  // Adds the keyword to the current list.  If the keyword already exists,
-  // then replaceSystemKeyword() is called instead.  Doesn't copy data and
+  // Adds the keyword to the current list. If the keyword already exists,
+  // then replaceSystemKeyword() is called instead. Doesn't copy data and
   // allows any keyword to be set.
 
   /* friendly */
   final void addSystemKeyword(final CFCSKeyword keyword) {
     if (!keywords.containsKeyword(keyword.getKeywordName())) {
       keywords.addKeyword(keyword);
-    } else replaceSystemKeyword(keyword);
+    } else
+      replaceSystemKeyword(keyword);
   }
 
   public void setFileKeyword(String value) {
@@ -300,8 +307,8 @@ public final class CFCSKeywords implements CFCSErrorCodes {
   }
 
   // --------------------------------------------------------------------
-  // Replaces the keyword with that specified by the parameter.  If the
-  // keyword doesn't exist, then an exception is thrown.  Allows any
+  // Replaces the keyword with that specified by the parameter. If the
+  // keyword doesn't exist, then an exception is thrown. Allows any
   // value to be reset.
 
   /* friendly */
@@ -316,7 +323,8 @@ public final class CFCSKeywords implements CFCSErrorCodes {
         throw new CFCSError(CFCSCannotModifySource, segIdx);
       }
       /* else */ existing.setKeywordValue(keyword.getKeywordValue());
-    } else throw new CFCSError(CFCSKeywordNotFound, name);
+    } else
+      throw new CFCSError(CFCSKeywordNotFound, name);
   }
 
   // --------------------------------------------------------------------
@@ -326,7 +334,7 @@ public final class CFCSKeywords implements CFCSErrorCodes {
   // --------------------------------------------------------------------
   // Escape (double) delimiters found inside keyword name or value and
   // put a guard character in front of delimiter found at beginning of
-  // keyword name or value.  If none found, returns original string.
+  // keyword name or value. If none found, returns original string.
 
   private static String escape(final String string, final char delimiter) {
     final int length = string.length();
@@ -392,7 +400,8 @@ public final class CFCSKeywords implements CFCSErrorCodes {
       char ch = (char) buffer[i];
 
       if (ch == delimiter) {
-        if ((lastWasDelimiter = !lastWasDelimiter) == false) { // double delimiter == escaped delimiter
+        if ((lastWasDelimiter = !lastWasDelimiter) == false) { // double delimiter == escaped
+                                                               // delimiter
           ((readingKey) ? key : value).append(ch); // put a delimiter in the buffer
         }
       } else {
@@ -476,7 +485,7 @@ public final class CFCSKeywords implements CFCSErrorCodes {
   }
 
   // --------------------------------------------------------------------
-  // Similar to getBytes() but only for the TEXT segment.  Separately
+  // Similar to getBytes() but only for the TEXT segment. Separately
   // handles FCS-defined keywords ($XYZ) from other keywords when the
   // TEXT segment needs to overflow into an STEXT segment.
 
@@ -727,9 +736,12 @@ public final class CFCSKeywords implements CFCSErrorCodes {
     OriginalityEnum ret = OriginalityEnum.Undefined;
     try {
       value = (getKeyword(ORIGINALITY_KEYWORD)).getKeywordValue();
-      if (value.compareToIgnoreCase("Original") == 0) ret = OriginalityEnum.Original;
-      else if (value.compareToIgnoreCase("NonDataModified") == 0) ret = OriginalityEnum.NonDataModified;
-      else if (value.compareToIgnoreCase("Appended") == 0) ret = OriginalityEnum.Appended;
+      if (value.compareToIgnoreCase("Original") == 0)
+        ret = OriginalityEnum.Original;
+      else if (value.compareToIgnoreCase("NonDataModified") == 0)
+        ret = OriginalityEnum.NonDataModified;
+      else if (value.compareToIgnoreCase("Appended") == 0)
+        ret = OriginalityEnum.Appended;
       else if (value.compareToIgnoreCase("DataModified") == 0) ret = OriginalityEnum.DataModified;
     } catch (CFCSError error) {}
     return ret;
@@ -815,19 +827,32 @@ public final class CFCSKeywords implements CFCSErrorCodes {
   }
 
   private static int monthStrtoNum(String month) {
-    if (month.compareToIgnoreCase("JAN") == 0) return 1;
-    else if (month.compareToIgnoreCase("FEB") == 0) return 2;
-    else if (month.compareToIgnoreCase("MAR") == 0) return 3;
-    else if (month.compareToIgnoreCase("APR") == 0) return 4;
-    else if (month.compareToIgnoreCase("MAY") == 0) return 5;
-    else if (month.compareToIgnoreCase("JUN") == 0) return 6;
-    else if (month.compareToIgnoreCase("JUL") == 0) return 7;
-    else if (month.compareToIgnoreCase("AUG") == 0) return 8;
-    else if (month.compareToIgnoreCase("SEP") == 0) return 9;
-    else if (month.compareToIgnoreCase("OCT") == 0) return 10;
-    else if (month.compareToIgnoreCase("NOV") == 0) return 11;
-    else if (month.compareToIgnoreCase("DEC") == 0) return 12;
-    else return -1;
+    if (month.compareToIgnoreCase("JAN") == 0)
+      return 1;
+    else if (month.compareToIgnoreCase("FEB") == 0)
+      return 2;
+    else if (month.compareToIgnoreCase("MAR") == 0)
+      return 3;
+    else if (month.compareToIgnoreCase("APR") == 0)
+      return 4;
+    else if (month.compareToIgnoreCase("MAY") == 0)
+      return 5;
+    else if (month.compareToIgnoreCase("JUN") == 0)
+      return 6;
+    else if (month.compareToIgnoreCase("JUL") == 0)
+      return 7;
+    else if (month.compareToIgnoreCase("AUG") == 0)
+      return 8;
+    else if (month.compareToIgnoreCase("SEP") == 0)
+      return 9;
+    else if (month.compareToIgnoreCase("OCT") == 0)
+      return 10;
+    else if (month.compareToIgnoreCase("NOV") == 0)
+      return 11;
+    else if (month.compareToIgnoreCase("DEC") == 0)
+      return 12;
+    else
+      return -1;
   }
 
 }

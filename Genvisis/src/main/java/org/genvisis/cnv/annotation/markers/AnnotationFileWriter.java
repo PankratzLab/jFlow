@@ -195,9 +195,9 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
       }
       VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(additionMode ? tmpFile
                                                                                                          : annotationFilename);// tmp
-                                                                                                                                                                                                                                            // file
-                                                                                                                                                                                                                                            // if
-                                                                                                                                                                                                                                            // needed
+                                                                                                                               // file
+                                                                                                                               // if
+                                                                                                                               // needed
       builder.clearOptions();
       builder.setOption(Options.INDEX_ON_THE_FLY);
       builder.setOption(Options.DO_NOT_WRITE_GENOTYPES);

@@ -218,10 +218,10 @@ public class Mega_Analyses {
     System.out.println("Loading DeCodeResults.LessDirty");
     hash2 = HashVec.loadFileToHashString(DIR + "00src/DeCodeResults.LessDirty", new int[] {0},
                                          new int[] {5, 6, 4}, false, "\t", true, false); // 7,
-                                                                                                                                                                                   // 8
-                                                                                                                                                                                   // two
-                                                                                                                                                                                   // different
-                                                                                                                                                                                   // p-values
+                                                                                         // 8
+                                                                                         // two
+                                                                                         // different
+                                                                                         // p-values
 
     System.out.println("Comparing");
     missingFrom2 = new Vector<>();

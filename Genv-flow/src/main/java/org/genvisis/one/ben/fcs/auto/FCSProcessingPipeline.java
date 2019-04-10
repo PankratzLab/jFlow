@@ -158,20 +158,20 @@ public class FCSProcessingPipeline {
     String clusterSuffix = "_subFirst_TRUE_normalize_FALSE.IntMatrix.txt.gz";
     int panel = -1;
     PIPELINE pipe = PIPELINE.VIZ;
-    //    boolean test = Files.isWindows();
-    //    if (test) {
-    //      String dir = "C:\\Users\\Ben\\Desktop\\dev\\work\\flow\\phenograph\\";
-    //      fcs = dir + "src\\";
-    //      wsp = dir + "src\\";
-    //      out = dir + "out\\";
-    //      gateOverrideDir = dir + "src\\";
-    //      gateOverrideMatchFile = dir + "src\\ovvrMatch.txt";
-    //      new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
-    //                                gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile).run(
-    //                                                                                                    PIPELINE.VIZ,
-    //                                                                                                    -1);
-    //      return;
-    //    }
+    // boolean test = Files.isWindows();
+    // if (test) {
+    // String dir = "C:\\Users\\Ben\\Desktop\\dev\\work\\flow\\phenograph\\";
+    // fcs = dir + "src\\";
+    // wsp = dir + "src\\";
+    // out = dir + "out\\";
+    // gateOverrideDir = dir + "src\\";
+    // gateOverrideMatchFile = dir + "src\\ovvrMatch.txt";
+    // new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
+    // gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile).run(
+    // PIPELINE.VIZ,
+    // -1);
+    // return;
+    // }
 
     for (String arg : args) {
       if (arg.startsWith("fcs=")) {

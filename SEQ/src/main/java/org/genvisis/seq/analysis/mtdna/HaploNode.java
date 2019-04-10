@@ -147,7 +147,8 @@ class HaploTrie {
 
         // If this is end of a word or no samples remain, then update prevMatch
         if (crawl.isEnd()) prevMatch = level + 1;
-      } else break;
+      } else
+        break;
 
     }
 
@@ -157,7 +158,9 @@ class HaploTrie {
     used.add(samp);
     crawl.getInds().removeAll(used);
 
-    if (!crawl.isEnd()) return new HaplogroupMatchResult(samp, result.substring(0, prevMatch));
-    else return new HaplogroupMatchResult(samp, result.toString());
+    if (!crawl.isEnd())
+      return new HaplogroupMatchResult(samp, result.substring(0, prevMatch));
+    else
+      return new HaplogroupMatchResult(samp, result.toString());
   }
 }

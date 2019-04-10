@@ -27,7 +27,8 @@ public class MpermResults {
           stat_j = aSum_j / aIndices.size() - bSum_j / bIndices.size();
           if (stat < 0 && !twoSided) stat_j = 0;
         }
-        // increment r1, the number of greater differences in this region in the same direction as the original change
+        // increment r1, the number of greater differences in this region in the same direction as
+        // the original change
         res.updateR1(stat_j);
         return stat_j;
       }

@@ -425,8 +425,9 @@ public class BamQC {
             if ((!samRecord.getReferenceName().equals("*")) && (libraryNGS != null)
                 && (readDepth != null) && (!samRecord.getReadUnmappedFlag())) {
               // unmapped reads can still have alignment information, and
-              // can be the case that samRecord.getAlignmentStart() > samRecord.getAlignmentEnd()), 
-              // so we remove before trying to create a segment to avoid an IllegalArgumentException when constructing the range 
+              // can be the case that samRecord.getAlignmentStart() > samRecord.getAlignmentEnd()),
+              // so we remove before trying to create a segment to avoid an IllegalArgumentException
+              // when constructing the range
               Segment segment = new Segment(Positions.chromosomeNumber(samRecord.getReferenceName(),
                                                                        log),
                                             samRecord.getAlignmentStart(),

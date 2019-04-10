@@ -566,7 +566,8 @@ public class LrrSd extends Parallelizable {
                                       + line[indices[2]] + "\t" + "TRUE");
                 numPassing++;
               } else {
-                // sampDataQC.put(line[indices[0]], line[indices[1]] + "\t" + line[indices[2]] + "\t"
+                // sampDataQC.put(line[indices[0]], line[indices[1]] + "\t" + line[indices[2]] +
+                // "\t"
                 // + "1");
                 writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t"
                                       + line[indices[2]] + "\t" + "FALSE");

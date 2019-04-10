@@ -3,7 +3,8 @@ package org.pankratzlab.common.parsing;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-public class PatternedFileColumn extends AbstractFileColumn<String> implements IndexedFileColumn<String> {
+public class PatternedFileColumn extends AbstractFileColumn<String>
+                                 implements IndexedFileColumn<String> {
 
   private final String regex;
   private int matchedIndex;

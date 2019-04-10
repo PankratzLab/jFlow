@@ -560,7 +560,7 @@ public class CheckPed {
           label = "1".equals(relPedSex) ? "Great-uncle" : "Great-aunt";
         } else if (distance == -1) {
           label = "1".equals(relPedSex) ? "Half-uncle" : "Half-aunt"; // NB: could also be cousin
-                                                                     // once-removed?
+                                                                      // once-removed?
         } else if (distance == 0) {
           label = "Second cousin";
         } else if (distance == 1) {

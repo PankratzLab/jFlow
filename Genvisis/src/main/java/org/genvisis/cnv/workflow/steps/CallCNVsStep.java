@@ -113,7 +113,8 @@ public class CallCNVsStep extends Step {
   public void run(Variables variables) {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
-    String output = variables.get(outputFileReq).getPath(); // gets PROJ_DIR prepended, so NOT ABSOLUTE
+    String output = variables.get(outputFileReq).getPath(); // gets PROJ_DIR prepended, so NOT
+                                                            // ABSOLUTE
 
     CALLING_SCOPE scope = variables.get(callingTypeReq);
 

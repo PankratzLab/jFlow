@@ -261,7 +261,8 @@ public class GATK_Genotyper {
     return optimizedWithin;
   }
 
-  private static class WorkerSingleSampleAllSites implements Callable<GATK.SingleSampleHaplotypeCaller> {
+  private static class WorkerSingleSampleAllSites implements
+                                                  Callable<GATK.SingleSampleHaplotypeCaller> {
 
     private final GATK GATK;
     private final String inputBam, baseId;

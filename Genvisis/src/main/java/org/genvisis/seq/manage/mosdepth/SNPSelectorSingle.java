@@ -49,7 +49,7 @@ public class SNPSelectorSingle extends NGSBinSNPSelector {
       });
 
       for (Segment bin : bins.getLoci()) {
-        // no variants in file for this bin's chromosome  
+        // no variants in file for this bin's chromosome
         if (!contigMap.containsValue((int) bin.getChr()) || !chrs.contains((int) bin.getChr())) {
           continue;
         }

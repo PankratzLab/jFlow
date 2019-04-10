@@ -19,8 +19,8 @@ public class BlastAnnotationTypes {
   private static final String DEFAULT_VALUE = ".";
   private static final int DEFAULT_NUMBER = 1;
   private static final VCFHeaderLineCount DEFAULT_COUNT = VCFHeaderLineCount.UNBOUNDED; // unknown
-                                                                                       // number of
-                                                                                       // entries
+                                                                                        // number of
+                                                                                        // entries
 
   /**
    * @author lane0212 Define a key value entry method in the vcf

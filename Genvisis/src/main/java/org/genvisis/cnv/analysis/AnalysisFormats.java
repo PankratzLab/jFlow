@@ -264,7 +264,7 @@ public class AnalysisFormats implements Runnable {
     ms = proj.getMarkerSet();
     sampleData = proj.getSampleData(false);
     { // block is similar to getChromosomalMarkersOnly, but also puts markers into other
-     // datastructures, hence not using the utility method;
+      // datastructures, hence not using the utility method;
       allMarkers = ms.getMarkerNames();
       markerChrs = ms.getChrs();
       centroidsMarkersList = new boolean[allMarkers.length];

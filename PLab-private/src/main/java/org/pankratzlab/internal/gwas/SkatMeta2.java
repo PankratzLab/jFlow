@@ -35,17 +35,17 @@ public class SkatMeta2 {
   public static final String FILENAME_CHROMOSOME_SEGMENT = "%chr%";
   public static final String FILENAME_ANALYSIS_SEGMENT = "%analysis%";
   public static final String[] OPERATORS = new String[] {"<=", "==", ">=", "!=", "<", ">"}; // NOTE:
-                                                                                           // For
-                                                                                           // current
-                                                                                           // parser,
-                                                                                           // longer
-                                                                                           // operators
-                                                                                           // should
-                                                                                           // be
-                                                                                           // placed
-                                                                                           // before
-                                                                                           // shorter
-                                                                                           // ones.
+                                                                                            // For
+                                                                                            // current
+                                                                                            // parser,
+                                                                                            // longer
+                                                                                            // operators
+                                                                                            // should
+                                                                                            // be
+                                                                                            // placed
+                                                                                            // before
+                                                                                            // shorter
+                                                                                            // ones.
   public static final String[][] SPECIAL_CHROMOSOMES = new String[][] {{"X", "Y", "XY", "MT"},
                                                                        {"23", "24", "25", "26"}};
 
@@ -102,10 +102,10 @@ public class SkatMeta2 {
     if (chr == null) {
       file = filesDirAndNameTemplate.replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, "")
                                     .replaceAll(FILENAME_CHROMOSOME_SEGMENT, ""); // TODO: need to
-                                                                                                                                                                 // provide
-                                                                                                                                                                 // filename
-                                                                                                                                                                 // segement
-                                                                                                                                                                 // separator
+                                                                                  // provide
+                                                                                  // filename
+                                                                                  // segement
+                                                                                  // separator
     } else {
       file = filesDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
     }
@@ -3285,7 +3285,7 @@ public class SkatMeta2 {
         areResultsByChrAvailable = areFilesAvailable(resultDirFilenameTemplateByChr.replaceAll(FILENAME_ANALYSIS_SEGMENT,
                                                                                                "SingleSNP"),
                                                      chrs, ethnics, log);// TODO need all the
-                                                                                                                                                                                                         // analyses
+                                                                         // analyses
         chrsToRemove = new Vector<>();
         isAllRDataFilesForTheEthnicMissing = new boolean[ethnics.length];
         Arrays.fill(isAllRDataFilesForTheEthnicMissing, true);

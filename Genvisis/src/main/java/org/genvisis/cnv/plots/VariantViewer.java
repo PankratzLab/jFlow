@@ -102,7 +102,8 @@ import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
 import net.miginfocom.swing.MigLayout;
 
-public class VariantViewer extends JFrame implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener {
+public class VariantViewer extends JFrame implements ActionListener, MouseListener,
+                           MouseMotionListener, MouseWheelListener {
 
   private static final String COLLAPSE_ISOFORMS_KEY = "Collapse Isoforms";
 
@@ -285,6 +286,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
       }
     }
   }
+
   private static class BlockDraw {
 
     public BlockDraw(int basePairLoc, int xPixel, int numGenotypes, int totalAffected,
@@ -305,6 +307,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     DrawType dt;
     VariantContextWithFile vcRecord;
   }
+
   private static class DrawPoint {
 
     public DrawPoint(int x2, int y2, int height, int width, DrawType drawType, Color color,
@@ -888,7 +891,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
               }
               if (geno.getType() != GenotypeType.HOM_REF
                   && geno.getType() != GenotypeType.NO_CALL) { // anything besides Homozygous
-                                                                                                         // Reference
+                                                               // Reference
                 DrawType vcType = DrawType.getDrawType(vc.vc);
                 if (vcType != null && !hiddenDrawTypes.contains(vcType)) {
                   String pop = popMap.get(geno.getSampleName());
@@ -926,7 +929,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                 }
                 if (geno.getType() != GenotypeType.HOM_REF
                     && geno.getType() != GenotypeType.NO_CALL) { // anything besides Homozygous
-                                                                                                           // Reference
+                                                                 // Reference
                   String pop = popMap.get(geno.getSampleName());
                   if (hiddenPops.contains(pop)) {
                     continue;
@@ -996,16 +999,20 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                 }
                 if (geno.getType() != GenotypeType.HOM_REF
                     && geno.getType() != GenotypeType.NO_CALL) { // anything besides Homozygous
-                                                                                                           // Reference
-                                                                                                           // if (spillover) {
-                                                                                                           // DrawType dt = DrawType.getDrawType(vc.vc);
-                                                                                                           // if (dt != null) {
-                                                                                                           // String pop = popMap.get(geno.getSampleName());
-                                                                                                           // Integer popCnt = popSpills.get(pop);
-                                                                                                           // popSpills.put(pop, (popCnt == null ? 0 : popCnt) + 1);
-                                                                                                           // }
-                                                                                                           // continue;
-                                                                                                           // }
+                                                                 // Reference
+                                                                 // if (spillover) {
+                                                                 // DrawType dt =
+                                                                 // DrawType.getDrawType(vc.vc);
+                                                                 // if (dt != null) {
+                                                                 // String pop =
+                                                                 // popMap.get(geno.getSampleName());
+                                                                 // Integer popCnt =
+                                                                 // popSpills.get(pop);
+                                                                 // popSpills.put(pop, (popCnt ==
+                                                                 // null ? 0 : popCnt) + 1);
+                                                                 // }
+                                                                 // continue;
+                                                                 // }
                   genoCnt++;
                   Rectangle vcRect = new Rectangle(vcRectX, 0, dataPntSize + 2, dataPntSize + 2);
                   int indiRise = 0;
@@ -1023,11 +1030,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                                              dataPntSize + 2);
                       indiRise++;
                     }
-                  } while (overlap
-                           && (vcRect.y + vcRect.height + yStart + GENE_HEIGHT + dataPntSize
-                               + 2) < display.height/* && xOffset <= 20 */); // running off
-                                                                                                                                            // top of
-                                                                                                                                            // screen
+                  } while (overlap && (vcRect.y + vcRect.height + yStart + GENE_HEIGHT + dataPntSize
+                                       + 2) < display.height/* && xOffset <= 20 */); // running off
+                                                                                     // top of
+                                                                                     // screen
                   maxIndiRise = Math.max(indiRise, maxIndiRise);
                   DrawType dt = DrawType.getDrawType(vc.vc);
                   if (dt != null && !hiddenDrawTypes.contains(dt) && !overlap) {
@@ -2634,8 +2640,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED,
                                             System.currentTimeMillis(), 0, x, e.getY(), 0, false);
         ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't
-                                                            // matter, but both are necessary
-                                                            // this.mouseMoved(phantom);
+                                                             // matter, but both are necessary
+                                                             // this.mouseMoved(phantom);
         VariantViewer.this.repaint();
         return;
       }

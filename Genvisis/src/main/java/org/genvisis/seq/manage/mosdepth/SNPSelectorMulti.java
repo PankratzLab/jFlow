@@ -75,12 +75,12 @@ public class SNPSelectorMulti extends NGSBinSNPSelector {
 
         Set<Integer> found = new HashSet<>();
         for (Segment bin : bins.getLoci()) {
-          // no variants in file for this bin's chromosome  
+          // no variants in file for this bin's chromosome
           if (bin.getChr() != vcf.getKey().intValue()
               || !contigMap.containsValue((int) bin.getChr())
               || !chrs.contains((int) bin.getChr())) {
-            //            System.err.println("Error - bin contig " + bin.getChr()
-            //                               + " was not present in the VCF!");
+            // System.err.println("Error - bin contig " + bin.getChr()
+            // + " was not present in the VCF!");
             continue;
           }
           found.add((int) bin.getChr());

@@ -34,14 +34,14 @@ public class AnnotationCollection implements Serializable, TextExport {
 
   private final Hashtable<Character, String> commentsHash; // annotation keys
   private final Hashtable<String, Vector<String>> markerAnnotations; // annotations organized by
-                                                                    // markers. markerName ->
-                                                                    // AnnotationA, AnnotationB,
-                                                                    // ...
+                                                                     // markers. markerName ->
+                                                                     // AnnotationA, AnnotationB,
+                                                                     // ...
   private final Hashtable<String, Vector<String>> annotationMarkerLists; // annotations organized by
-                                                                        // annotation keys.
-                                                                        // Annotation ->
-                                                                        // marker1Name,
-                                                                        // marker2Name, ...
+                                                                         // annotation keys.
+                                                                         // Annotation ->
+                                                                         // marker1Name,
+                                                                         // marker2Name, ...
 
   public AnnotationCollection() {
     commentsHash = new Hashtable<>();

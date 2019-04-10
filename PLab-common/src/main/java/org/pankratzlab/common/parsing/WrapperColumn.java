@@ -9,7 +9,8 @@ import java.util.function.Function;
  * @param <W> The wrapping type, to be returned by {@link #getValue(String[])}
  * @param <B> The base type, that of the supplied base {@link FileColumn}
  */
-public abstract class WrapperColumn<W, B> extends CachedFileColumn<W> implements IndexedFileColumn<W> {
+public abstract class WrapperColumn<W, B> extends CachedFileColumn<W>
+                                   implements IndexedFileColumn<W> {
 
   private final IndexedFileColumn<? extends B> base;
 

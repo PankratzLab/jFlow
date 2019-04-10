@@ -44,7 +44,7 @@ public class Centroids implements Serializable, TextExport {
                                                              "BB R Mean"};
 
   private final float[][][] centroids; // marker, genotype (0=AA, 1=AB, 2=BB), coordinates (0=Mean
-                                      // Theta, 1=Mean R) (a.k.a. follows the suffix order above)
+                                       // Theta, 1=Mean R) (a.k.a. follows the suffix order above)
   private final long fingerprint;
 
   public Centroids(float[][][] centroids, long fingerprint) {
@@ -232,7 +232,7 @@ public class Centroids implements Serializable, TextExport {
       }
       missing = false;
       for (int i = 0; i < centroids.length; i++) { // might want to generate an error log or display
-                                                  // the number if greater than, say, 10
+                                                   // the number if greater than, say, 10
         if (centroids[i] == null) {
           if (!missing) {
             System.err.println("Error - did not find a centroid for the following markers:");

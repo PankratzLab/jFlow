@@ -121,10 +121,10 @@ public class ExtProjectDataParser {
                                                        + typedFileParser.getSeparator()
                                                        + typedFileLine.getStringData()[1][i]
                                                      : typedFileLine.getStringData()[1][i]);// 0 is
-                                                                                                                                                                                                                                 // reserved
-                                                                                                                                                                                                                                 // for
-                                                                                                                                                                                                                                 // the
-                                                                                                                                                                                                                                 // samples
+                                                                                            // reserved
+                                                                                            // for
+                                                                                            // the
+                                                                                            // samples
                 }
               }
             }
@@ -399,7 +399,7 @@ public class ExtProjectDataParser {
     }
     if (typedFileParser.getStringColumns() != null
         && typedFileParser.getStringColumns().length > 1) {// more than just the sample column we
-                                                                                                          // added above
+                                                           // added above
       stringData = new String[typedFileParser.getStringColumns()[1].length][dataToLoad.length];
       if (stringDataTitles == null) {
         proj.getLog().reportTimeInfo("String titles were not provided, assigning...");

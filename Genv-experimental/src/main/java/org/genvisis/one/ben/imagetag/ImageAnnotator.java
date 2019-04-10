@@ -943,11 +943,16 @@ public class ImageAnnotator {
 
   private void reloadControls() {
     String[] fcsKeys = annotator.getRoots().toArray(new String[0]);
-    // Comparator adapted from https://stackoverflow.com/questions/41085394/java-comparator-alphanumeric-strings
+    // Comparator adapted from
+    // https://stackoverflow.com/questions/41085394/java-comparator-alphanumeric-strings
     Arrays.sort(fcsKeys, Comparator.comparingLong(s -> hasNumeric(
-                                                                  // if there are any digits in the string, delete all non-digit characters and compare the resulting values
+                                                                  // if there are any digits in the
+                                                                  // string, delete all non-digit
+                                                                  // characters and compare the
+                                                                  // resulting values
                                                                   s.toString()) ? Long.parseLong(s.toString().replaceAll("\\D", "")) : 0)
-                                   // then delete all digit characters and compare the resulting strings
+                                   // then delete all digit characters and compare the resulting
+                                   // strings
                                    .thenComparing(s -> s.toString().replaceAll("\\d", "")));
     DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<>(fcsKeys);
     sampleCombo.setModel(dcbm);
@@ -1370,7 +1375,7 @@ public class ImageAnnotator {
   }
 
   static enum BEHAVIOR {
-    LINEAR(0), // little to no retrieval of past images 
+    LINEAR(0), // little to no retrieval of past images
     UNSURE(2), // moderate rate of retrieval of past images
     REVIEW(4), // high rate of retrieval of past images
     SEARCH(10); // no pattern of retrieval / not linear
@@ -1550,7 +1555,7 @@ public class ImageAnnotator {
       currSample = (String) sampleCombo.getSelectedItem();
       boolean stt = startInteractionEvent();
       if (stt) {
-        // either selected by-hand or by search 
+        // either selected by-hand or by search
         if (prevSample == null) {
           buildingEvent.direction = DIRECTION.SKIP;
         } else {
@@ -1645,7 +1650,8 @@ public class ImageAnnotator {
       return DIRECTION.SKIP;
     } else if (prev > next) {
       return DIRECTION.PREV_IMG;
-    } else return DIRECTION.NEXT_IMG;
+    } else
+      return DIRECTION.NEXT_IMG;
   }
 
   private BEHAVIOR getRecentUserBehavior(int win) {
@@ -1734,7 +1740,8 @@ public class ImageAnnotator {
     int fast = set.getCount(SPEED.FAST);
     int really = set.getCount(SPEED.FAST);
 
-    int comb = (int) ((slow * -1.5) + fast + really * .5); // weight slow heavier to decay more quickly
+    int comb = (int) ((slow * -1.5) + fast + really * .5); // weight slow heavier to decay more
+                                                           // quickly
     if (mod > Math.abs(comb) || Math.abs(comb) < (win / 2)) {
       return SPEED.MODERATE;
     } else if (comb < 0) {
