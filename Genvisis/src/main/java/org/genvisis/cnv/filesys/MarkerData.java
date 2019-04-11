@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
+
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
@@ -19,6 +20,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.stats.Correlation;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
+
 import com.google.common.primitives.Doubles;
 
 public class MarkerData implements Serializable {
@@ -616,9 +618,11 @@ public class MarkerData implements Serializable {
     double[] originalLRRs, compLRRs;
     double error;
     int count;
+    int logCount;
 
     error = 0;
     count = 0;
+    logCount = 0;
     originalLRRs = new double[lrrs.length];
     compLRRs = new double[lrrs.length];
     for (int i = 0; i < lrrs.length; i++) {
@@ -627,8 +631,13 @@ public class MarkerData implements Serializable {
         compLRRs[count] = Centroids.calcLRR(Centroids.calcTheta(xs[i], ys[i]),
                                             Centroids.calcR(xs[i], ys[i]), centroids);
         if (Double.isNaN(compLRRs[count])) {
-          log.reportError("Error - compLRR is invalid (" + compLRRs[count]
-                          + ") where oriLRR is not (" + lrrs[count] + ")");
+          if (logCount < 10) {
+            log.reportError("Error - compLRR is invalid (" + compLRRs[count]
+                            + ") where oriLRR is not (" + lrrs[count] + ")");
+            logCount++;
+          } else {
+            logCount++;
+          }
         } else {
           error += Math.abs(compLRRs[count] - originalLRRs[count]);
           count++;
@@ -642,6 +651,10 @@ public class MarkerData implements Serializable {
     }
 
     // System.out.println("error="+error+" count="+count);
+    if (logCount >= 10) {
+      log.reportError("'Error - compLRR is invalid' was reported " + (logCount - 10)
+                      + " additional times.");
+    }
     return new double[] {Correlation.Pearson(ArrayUtils.subArray(originalLRRs, 0, count),
                                              ArrayUtils.subArray(compLRRs, 0, count))[0],
                          error / count};
