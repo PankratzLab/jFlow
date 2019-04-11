@@ -2342,6 +2342,86 @@ public class lab {
     BedOps.verifyBedIndex(file, new Logger());
   }
 
+  public static void runListTest() {
+
+    String dir = "/scratch.global/cole0482/UKBB2/project/samples/";
+
+    int tests = 10;
+
+    long t = System.currentTimeMillis();
+    // warm up
+    for (int i = 0; i < tests / 3; i++) {
+      Files.listNIO(dir, null, ".sampRAF", false, true);
+      Files.list(dir, null, ".sampRAF", false, true);
+      Files.listNIO2(dir, null, ".sampRAF", false, true);
+    }
+
+    System.out.println("Done warming up in " + ext.getTimeElapsed(t));
+
+    long sum = 0;
+
+    sum = 0;
+    for (int i = 0; i < tests; i++) {
+      long t1 = System.currentTimeMillis();
+      Files.list(dir, null, ".sampRAF", false, true);
+      long t2 = System.currentTimeMillis();
+      long diff = t2 - t1;
+      sum += diff;
+    }
+    System.out.println("Average Old1: " + (sum / (double) tests));
+
+    sum = 0;
+    for (int i = 0; i < tests; i++) {
+      long t1 = System.currentTimeMillis();
+      Files.listNIO(dir, null, ".sampRAF", false, true);
+      long t2 = System.currentTimeMillis();
+      long diff = t2 - t1;
+      sum += diff;
+    }
+    System.out.println("Average New1: " + (sum / (double) tests));
+
+    sum = 0;
+    for (int i = 0; i < tests; i++) {
+      long t1 = System.currentTimeMillis();
+      Files.listNIO2(dir, null, ".sampRAF", false, true);
+      long t2 = System.currentTimeMillis();
+      long diff = t2 - t1;
+      sum += diff;
+    }
+    System.out.println("Average New DS1: " + (sum / (double) tests));
+
+    sum = 0;
+    for (int i = 0; i < tests; i++) {
+      long t1 = System.currentTimeMillis();
+      Files.list(dir, null, ".sampRAF", false, true);
+      long t2 = System.currentTimeMillis();
+      long diff = t2 - t1;
+      sum += diff;
+    }
+    System.out.println("Average Old2: " + (sum / (double) tests));
+
+    sum = 0;
+    for (int i = 0; i < tests; i++) {
+      long t1 = System.currentTimeMillis();
+      Files.listNIO(dir, null, ".sampRAF", false, true);
+      long t2 = System.currentTimeMillis();
+      long diff = t2 - t1;
+      sum += diff;
+    }
+    System.out.println("Average New2: " + (sum / (double) tests));
+
+    sum = 0;
+    for (int i = 0; i < tests; i++) {
+      long t1 = System.currentTimeMillis();
+      Files.listNIO2(dir, null, ".sampRAF", false, true);
+      long t2 = System.currentTimeMillis();
+      long diff = t2 - t1;
+      sum += diff;
+    }
+    System.out.println("Average New DS2: " + (sum / (double) tests));
+
+  }
+
   public static void main(String[] args) throws IOException, ClassNotFoundException,
                                          URISyntaxException {
     int numArgs = args.length;
@@ -2353,10 +2433,33 @@ public class lab {
     boolean test = true;
     if (test) {
 
-      if (args.length == 2 && args[0].equals("-index")) {
-        indexBAM(args[1]);
-        return;
+      switch (args.length) {
+        case 0:
+
+          System.out.println(ArrayUtils.toStr(Files.listNIO2("C:\\Users\\cole0482\\", null, null,
+                                                             false, true),
+                                              ", "));
+          System.out.println(ArrayUtils.toStr(Files.listNIO("C:\\Users\\cole0482\\", null, null,
+                                                            false, true),
+                                              ", "));
+          System.out.println(ArrayUtils.toStr(Files.list("C:\\Users\\cole0482\\", null, null, false,
+                                                         true),
+                                              ", "));
+
+          return;
+        case 1:
+          if (args[0].equals("-list")) {
+            runListTest();
+          }
+          return;
+        case 2:
+          if (args[0].equals("-index")) {
+            indexBAM(args[1]);
+            return;
+          }
+          return;
       }
+
       // parseBPM();
 
       // for (String f : Files.list("G:\\bamTesting\\00cram\\", "", ".bed", false, true)) {

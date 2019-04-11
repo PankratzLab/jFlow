@@ -22,6 +22,8 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -32,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
@@ -2377,6 +2381,106 @@ public class Files {
   public static String[] list(String directory, final String prefix, final String suffix,
                               final boolean caseSensitive) {
     return list(directory, prefix, suffix, caseSensitive, false);
+  }
+
+  public static String[] listNIO2(String directory, final String prefix, final String suffix,
+                                  final boolean caseSensitive, final boolean fullPath) {
+    try {
+      return StreamSupport.stream(java.nio.file.Files.newDirectoryStream(Paths.get(directory))
+                                                     .spliterator(),
+                                  true)
+                          .filter(java.nio.file.Files::isRegularFile).filter(p -> {
+                            boolean passes = true;
+                            String pre, suf;
+
+                            pre = prefix == null ? null
+                                                 : (caseSensitive ? prefix : prefix.toLowerCase());
+                            suf = suffix == null ? null
+                                                 : (caseSensitive ? suffix : suffix.toLowerCase());
+                            String filename = caseSensitive ? p.getFileName().toString()
+                                                            : p.getFileName().toString()
+                                                               .toLowerCase();
+
+                            if (pre != null && !pre.equals("")) {
+                              if (pre.startsWith(":")) {
+                                if (filename.toLowerCase()
+                                            .startsWith(pre.substring(1).toLowerCase())) {
+                                  passes = false;
+                                }
+                              } else if (!filename.toLowerCase().startsWith(pre.toLowerCase())) {
+                                passes = false;
+                              }
+                            }
+
+                            if (suf != null && !suf.equals("")) {
+                              if (suf.startsWith(":")) {
+                                if (filename.toLowerCase()
+                                            .endsWith(suf.substring(1).toLowerCase())) {
+                                  passes = false;
+                                }
+                              } else if (!filename.toLowerCase().endsWith(suf.toLowerCase())) {
+                                passes = false;
+                              }
+                            }
+
+                            return passes;
+
+                          }).map(Path::toFile).map(File::getPath).collect(Collectors.toList())
+                          .toArray(new String[0]);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static String[] listNIO(String directory, final String prefix, final String suffix,
+                                 final boolean caseSensitive, final boolean fullPath) {
+    try {
+      return java.nio.file.Files.walk(Paths.get(directory), 1).parallel()
+                                .filter(java.nio.file.Files::isRegularFile).filter(p -> {
+                                  boolean passes = true;
+                                  String pre, suf;
+
+                                  pre = prefix == null ? null
+                                                       : (caseSensitive ? prefix
+                                                                        : prefix.toLowerCase());
+                                  suf = suffix == null ? null
+                                                       : (caseSensitive ? suffix
+                                                                        : suffix.toLowerCase());
+                                  String filename = caseSensitive ? p.getFileName().toString()
+                                                                  : p.getFileName().toString()
+                                                                     .toLowerCase();
+
+                                  if (pre != null && !pre.equals("")) {
+                                    if (pre.startsWith(":")) {
+                                      if (filename.toLowerCase()
+                                                  .startsWith(pre.substring(1).toLowerCase())) {
+                                        passes = false;
+                                      }
+                                    } else if (!filename.toLowerCase()
+                                                        .startsWith(pre.toLowerCase())) {
+                                                          passes = false;
+                                                        }
+                                  }
+
+                                  if (suf != null && !suf.equals("")) {
+                                    if (suf.startsWith(":")) {
+                                      if (filename.toLowerCase()
+                                                  .endsWith(suf.substring(1).toLowerCase())) {
+                                        passes = false;
+                                      }
+                                    } else if (!filename.toLowerCase()
+                                                        .endsWith(suf.toLowerCase())) {
+                                                          passes = false;
+                                                        }
+                                  }
+
+                                  return passes;
+
+                                }).map(Path::toFile).map(File::getPath).collect(Collectors.toList())
+                                .toArray(new String[0]);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   // These variables need to be final in order to work in the FilenameFilter
