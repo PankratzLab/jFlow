@@ -159,7 +159,7 @@ public class AffyPipeline {
     return celListFile;
   }
 
-  private static class Probesets {
+  public static class Probesets {
 
     private final String snpOnlyFile;
     private final String allFile;

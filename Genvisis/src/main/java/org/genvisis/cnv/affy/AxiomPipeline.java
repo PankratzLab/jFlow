@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Set;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
+import org.genvisis.cnv.affy.AffyPipeline.Probesets;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
@@ -66,36 +67,6 @@ public class AxiomPipeline {
     return celListFile;
   }
 
-  private static class Probesets {
-
-    private final String snpOnlyFile;
-    private final String allFile;
-    private boolean fail;
-
-    public Probesets(String snpOnlyFile, String allFile) {
-      super();
-      this.snpOnlyFile = snpOnlyFile;
-      this.allFile = allFile;
-    }
-
-    public boolean isFail() {
-      return fail;
-    }
-
-    public void setFail(boolean fail) {
-      this.fail = fail;
-    }
-
-    public String getSnpOnlyFile() {
-      return snpOnlyFile;
-    }
-
-    public String getAllFile() {
-      return allFile;
-    }
-
-  }
-
   /**
    * run a simple command to extract all probesets, return a formatted file to use for downstream
    * analysis
@@ -118,13 +89,13 @@ public class AxiomPipeline {
     psetCommand.add(aptExeDir + APT_GENOTYPE_AXIOM);
     psetCommand.add("--arg-file");
     psetCommand.add(axiomXMLDefFile);
-    psetCommand.add("--analysis-file-path");
+    psetCommand.add("--analysis-files-path");
     psetCommand.add(libraryFilePath);
     psetCommand.add("--out-dir");
     psetCommand.add(outDir);
     psetCommand.add("--cel-files");
     psetCommand.add(smallCelList);
-    psetCommand.add("--set-analysis-name");
+    psetCommand.add("--analysis-name");
     psetCommand.add(currentAnalysis);
 
     log.report(ext.getTime() + " Info - running a command to extract probeset ids: " + psetCommand);
@@ -236,6 +207,8 @@ public class AxiomPipeline {
     genotypeCommand.add("--analysis-files-path");
     genotypeCommand.add(libraryFilePath);
     genotypeCommand.add("--summaries");
+    genotypeCommand.add("--probeset-ids");
+    genotypeCommand.add(pIDFile);
     genotypeCommand.add("--analysis-name");
     genotypeCommand.add(analysisName);
     genotypeCommand.add("-out-dir");

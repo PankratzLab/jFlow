@@ -50,6 +50,7 @@ public class AffyParsingPipeline {
   Map<Marker, Integer> markerIndexInFileMap;
   private long fingerprint;
   private int maxSize = DEFAULT_MDRAF_SIZE;
+  private volatile boolean running = false;
 
   public void setProject(Project proj) {
     this.proj = proj;
@@ -187,7 +188,10 @@ public class AffyParsingPipeline {
     MarkerData md = null;
     byte[] mkrBytes;
     try {
-      while ((md = parseLine()) != null) {
+      running = true;
+      while (running) {
+        md = parseLine();
+        if (md == null) continue;
         Marker marker = markerNameMap.get(md.getMarkerName());
         if (marker == null) {
           proj.getLog().reportTimeWarning("No Marker object found for " + md.getMarkerName());
@@ -348,6 +352,7 @@ public class AffyParsingPipeline {
     String sigLineB = sigReader.readLine();
 
     if (confLine == null && callLine == null && sigLineA == null && sigLineB == null) {
+      running = false;
       return null;
     }
 
