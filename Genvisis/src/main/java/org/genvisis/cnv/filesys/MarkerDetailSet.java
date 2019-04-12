@@ -53,7 +53,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
   public static class Marker implements Serializable, Comparable<Marker> {
 
-    private static final long serialVersionUID = 4L;
+    private static final long serialVersionUID = 5L;
 
     private final String name;
     private final GenomicPosition genomicPosition;
