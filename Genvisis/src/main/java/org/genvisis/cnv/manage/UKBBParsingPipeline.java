@@ -66,6 +66,7 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
 
   // AB fields in RAF files are only 2 bits and can't hold full genotype values
   final boolean importGenoAsAB = true;
+  final boolean stopAfterFilecheck;
 
   Project proj;
   String sourceDir;
@@ -77,8 +78,9 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
   String[] allMarkers;
   Map<String, Marker> markerMap;
 
-  public UKBBParsingPipeline() {
+  public UKBBParsingPipeline(boolean stopAfterCheck) {
     super(2000, 5000);
+    this.stopAfterFilecheck = stopAfterCheck;
   }
 
   public void setSourceDir(String sourceDir2) {
@@ -114,13 +116,17 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
     }
     createMarkerPositions();
     writeMarkerDetailSet();
-    parseMarkerData();
-
     writeLookup();
     proj.writeMarkerSet();
+
+    if (stopAfterFilecheck) {
+      log.reportTime("Stopping before marker data parsing.");
+      return;
+    }
+
+    parseMarkerData();
     buildOutliers();
     createSampRAFsFromMDRAFs();
-
   }
 
   protected void setAdditionalProjectProperties() {
@@ -1408,6 +1414,8 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
     cli.addArg("markersPerFile", "Number of markers per mdRAF file", false);
     cli.addArg("scaleFactor", "Scaling factor for X/Y", false);
     cli.addArg("jobID", "Job Identifier");
+    cli.addFlag("check",
+                "Check that project files exist and create them if not, but stop before parsing marker data.");
 
     cli.parseWithExit(args);
 
@@ -1423,7 +1431,7 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
     scale = (float) (cli.has("scaleFactor") ? cli.getD("scaleFactor") : -1);
     jobID = cli.has("jobID") ? cli.get("jobID") : null;
 
-    UKBBParsingPipeline parser = new UKBBParsingPipeline();
+    UKBBParsingPipeline parser = new UKBBParsingPipeline(cli.has("check"));
     parser.setSourceDir(sourceDir);
     parser.setProjectDir(projDir);
     parser.setProjectPropertiesDir(propFileDir);
