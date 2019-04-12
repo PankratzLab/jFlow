@@ -657,6 +657,10 @@ public final class Resources {
       return new AxiomTxGenomes(build, log());
     }
 
+    public Resource getAPTGenotypeAxiomXML() {
+      return getResource("Axiom_tx_v1.r5.apt-genotype-axiom.AxiomCN_GT1.apt2.custom.xml");
+    }
+
   }
 
   /**
