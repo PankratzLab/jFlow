@@ -155,20 +155,16 @@ public class PCImputeRace {
     log.report("Checking for PC1 and PC2 predictions of African and Asian");
 
     writeStepPCs(ext.rootOf(outFile, false) + "_start.mds");
-
     if (!maybeSwapPCs()) {
       return;
     }
     writeStepPCs(ext.rootOf(outFile, false) + "_step0.mds");
-
     shiftEuropeansOutOfFirstQuadrant();
 
     writeStepPCs(ext.rootOf(outFile, false) + "_step1.mds");
-
     forceRightAngleBetweenAsiansAndAfricans();
 
     writeStepPCs((ext.rootOf(outFile, false) + "_step2.mds"));
-
     scaleAfricanAndAsianTo1();
 
     log.report("Calculating Estimated Races");
@@ -250,6 +246,8 @@ public class PCImputeRace {
                                           sample.getPc2(),
                                           (1.0 - sample.getPc1() + sample.getPc2())));
     }
+    proj.STRATIFY_PLOT_FILENAMES.addValue(outFile);
+    proj.saveProperties();
     writer.close();
   }
 

@@ -135,6 +135,7 @@ public class Project implements PropertyChangeListener {
     COMP_PLOT("CompPlot"),
     TRAILER("Trailer"),
     SCATTER_PLOT("ScatterPlot"),
+    STRATIFY_PLOT("StratifyPlot"),
     TWO_D_PLOT("TwoDPlot"),
     FOREST_PLOT("ForestPlot"),
     QQ_PLOT("QQ-plot"),
@@ -587,6 +588,13 @@ public class Project implements PropertyChangeListener {
                                                                                      COPY.REFERENCE,
                                                                                      "data/test.txt",
                                                                                      true, false);
+  public final StringListProperty STRATIFY_PLOT_FILENAMES = new StringListProperty(this,
+                                                                                   PropertyKeys.KEY_STRATIFY_PLOT_FILENAMES,
+                                                                                   "",
+                                                                                   GROUP.STRATIFY_PLOT,
+                                                                                   true,
+                                                                                   COPY.REFERENCE,
+                                                                                   "", true, false);
   public final StringListProperty TWOD_LOADED_FILENAMES = new StringListProperty(this,
                                                                                  PropertyKeys.KEY_TWOD_LOADED_FILENAMES,
                                                                                  "",
@@ -1302,15 +1310,14 @@ public class Project implements PropertyChangeListener {
     String[] files;
     List<String> v;
 
-    files = Files.list(PROJECT_DIRECTORY.getValue(), ".mds");
-
+    files = this.STRATIFY_PLOT_FILENAMES.getValue();
     v = new ArrayList<>();
     if (files == null) {
-      System.err.println("Error - no .mds files found in directory");
+      System.err.println("Error - no .mds files found");
     } else {
       for (String file : files) {
-        v.add(PROJECT_DIRECTORY.getValue() + file);
-        System.out.println(PROJECT_DIRECTORY.getValue() + file);
+        v.add(file);
+        System.out.println(file);
       }
     }
 

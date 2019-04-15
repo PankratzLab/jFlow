@@ -74,6 +74,7 @@ public class PropertyKeys {
   public static final String KEY_TWOD_LOADED_FILENAMES = "TWOD_LOADED_FILENAMES";
   public static final String KEY_TWOD_LOADED_VARIABLES = "TWOD_LOADED_VARIABLES";
   public static final String KEY_FOREST_PLOT_FILENAMES = "FOREST_PLOT_FILENAMES";
+  public static final String KEY_STRATIFY_PLOT_FILENAMES = "STRATIFY_PLOT_FILENAMES";
   public static final String KEY_QQ_FILENAMES = "QQ_FILENAMES";
   public static final String KEY_DISPLAY_QUANTILES = "DISPLAY_QUANTILES";
   public static final String KEY_DISPLAY_STANDARD_QQ = "DISPLAY_STANDARD_QQ";

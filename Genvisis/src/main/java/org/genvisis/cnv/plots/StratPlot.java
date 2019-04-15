@@ -52,6 +52,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
   public static final String INVERT_X = "Invert X axis";
   public static final String INVERT_Y = "Invert Y axis";
   public static final String MASK_MISSING = "Mask missing values";
+  private static final String NEW_LIST_COMMAND = "New List";
   public static final String UNMASK_MISSING = "Unmask missing values";
   private static final String REFRESH_SAMPLE_DATA = "Refresh SampleData";
   public static final String[] BUTTONS = {SWAP_AXES, INVERT_X, INVERT_Y, MASK_MISSING,
@@ -368,4 +369,5 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
       e.printStackTrace();
     }
   }
+
 }
