@@ -2458,8 +2458,8 @@ public class Files {
                                       }
                                     } else if (!filename.toLowerCase()
                                                         .startsWith(pre.toLowerCase())) {
-                                                          passes = false;
-                                                        }
+                                      passes = false;
+                                    }
                                   }
 
                                   if (suf != null && !suf.equals("")) {
@@ -2470,8 +2470,8 @@ public class Files {
                                       }
                                     } else if (!filename.toLowerCase()
                                                         .endsWith(suf.toLowerCase())) {
-                                                          passes = false;
-                                                        }
+                                      passes = false;
+                                    }
                                   }
 
                                   return passes;
