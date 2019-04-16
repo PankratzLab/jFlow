@@ -2,6 +2,7 @@ package org.genvisis.cnv.workflow.steps;
 
 import java.io.File;
 import java.util.EnumSet;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.AffyMarkerBlast;
 import org.genvisis.cnv.workflow.Requirement;
@@ -10,9 +11,10 @@ import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
 import org.genvisis.cnv.workflow.Variables;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
+
 import com.google.common.collect.ImmutableMap;
 
 public class AffyMarkerBlastStep extends Step {
@@ -26,8 +28,10 @@ public class AffyMarkerBlastStep extends Step {
 
     final Requirement<File> probeFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_PROBE_FILE),
                                                                            new File(AffyMarkerBlast.EXAMPLE_PROBE_FILE));
-    final Requirement<File> annotFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_ANNOT_FILE),
-                                                                           new File(AffyMarkerBlast.EXAMPLE_ANNOT_FILE));
+    String annotFile = proj.SNP_DATA_FILE.getValue().equals("") ? AffyMarkerBlast.DESC_ANNOT_FILE
+                                                                : proj.SNP_DATA_FILE.getValue();
+    final Requirement<File> annotFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(annotFile),
+                                                                           new File(annotFile));
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(probeFileReq).add(annotFileReq)

@@ -3,6 +3,7 @@ package org.genvisis.cnv.workflow.steps;
 import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.qc.IlluminaManifest;
@@ -37,12 +38,11 @@ public class IlluminaMarkerPositionsStep extends Step {
 
   @Override
   public void setNecessaryPreRunProperties(Variables variables) {
-    // not needed for step
+    proj.SNP_DATA_FILE.setValue(variables.getString(manifestReq));
   }
 
   @Override
   public void run(Variables variables) {
-    proj.getLog().report("Generating marker positions file");
     String manifest = variables.get(manifestReq) == null ? null : variables.get(manifestReq)
                                                                            .getAbsolutePath();
     if (Files.exists(manifest)) {

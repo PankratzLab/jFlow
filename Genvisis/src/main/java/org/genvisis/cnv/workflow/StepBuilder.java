@@ -5,12 +5,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.workflow.steps.ABLookupStep;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
 import org.genvisis.cnv.workflow.steps.AnnotateSampleDataStep;
+import org.genvisis.cnv.workflow.steps.AxiomCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.CallCNVsStep;
 import org.genvisis.cnv.workflow.steps.ComputePFBStep;
 import org.genvisis.cnv.workflow.steps.FurtherAnalysisQCStep;
@@ -100,6 +102,10 @@ public class StepBuilder {
     return register(IlluminaMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
+  AxiomCELProcessingStep generateAxiomCELProcessingStep(Project proj) {
+    return register(AxiomCELProcessingStep.create(proj, numThreadsReq));
+  }
+
   AffyCELProcessingStep generateAffyCELProcessingStep(Project proj) {
     return register(AffyCELProcessingStep.create(proj, numThreadsReq));
   }
@@ -127,8 +133,7 @@ public class StepBuilder {
     return register(SampleDataStep.create(proj, parseSamplesStep));
   }
 
-  ReverseTransposeTarget generateReverseTransposeStep(Project proj,
-                                                      AffyCELProcessingStep parseAffyCELs) {
+  ReverseTransposeTarget generateReverseTransposeStep(Project proj, Step parseAffyCELs) {
     return register(ReverseTransposeTarget.create(proj, parseAffyCELs));
   }
 

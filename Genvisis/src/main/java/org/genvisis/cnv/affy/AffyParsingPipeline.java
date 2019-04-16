@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -26,6 +27,7 @@ import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -263,6 +265,7 @@ public class AffyParsingPipeline {
         if (oorTable.isEmpty()) {
           raf.write(Compression.intToBytes(0));
         } else {
+          proj.getLog().reportTime("Compressing " + oorTable.size() + " outlier values.");
           byte[] oorBytes = Compression.objToBytes(oorTable);
           raf.write(Compression.intToBytes(oorBytes.length));
           raf.write(oorBytes);
@@ -342,13 +345,27 @@ public class AffyParsingPipeline {
     }
   }
 
+  private Set<String> skipPrefSet = Sets.newHashSet("AFFX-NP");
+
   MarkerData parseLine() throws IOException {
     String confLine = confReader.readLine();
     String callLine = callReader.readLine();
     String sigLineA = sigReader.readLine();
+    if (confLine == null && callLine == null && sigLineA == null) {
+      running = false;
+      return null;
+    }
+
+    boolean skip = false;
+    do {
+      final String sigA = sigLineA;
+      skip = skipPrefSet.stream().anyMatch(s -> sigA.startsWith(s));
+    } while (skip);
+
     if (confLine == null && callLine == null && sigLineA != null) {
       return parseCNMarker(sigLineA);
     }
+
     String sigLineB = sigReader.readLine();
 
     if (confLine == null && callLine == null && sigLineA == null && sigLineB == null) {

@@ -41,7 +41,7 @@ import org.pankratzlab.common.ext;
  *         <p>
  *         Basically follows http://penncnv.openbioinformatics.org/en/latest/user-guide/affy/
  */
-public class AffyPipeline {
+public class APTAffy6Pipeline {
 
   public static final String AFFY_CEL_EXTENSION = ".cel";
   public static final String AFFY_CEL_GZ_EXTENSION = ".cel.gz";
@@ -54,7 +54,7 @@ public class AffyPipeline {
   private final boolean full;
   private final Logger log;
 
-  public AffyPipeline(String aptExeDir, String aptLibDir, boolean full, Logger log) {
+  public APTAffy6Pipeline(String aptExeDir, String aptLibDir, boolean full, Logger log) {
     this.aptExeDir = aptExeDir;
     this.aptLibDir = aptLibDir;
     this.full = full;
@@ -562,7 +562,7 @@ public class AffyPipeline {
       }
     }
 
-    AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, full, log);
+    APTAffy6Pipeline pipeline = new APTAffy6Pipeline(aptExeDir, aptLibDir, full, log);
     Probesets probeSets = pipeline.getAnalysisProbesetList(celFiles[0],
                                                            proj.PROJECT_DIRECTORY.getValue(),
                                                            proj.PROJECT_NAME.getValue(),

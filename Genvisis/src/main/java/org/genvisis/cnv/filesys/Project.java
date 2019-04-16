@@ -28,8 +28,10 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
+
 import org.genvisis.cnv.GenvisisManifest;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.Resources;
@@ -62,6 +64,7 @@ import org.pankratzlab.common.ProgressMonitor;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.GeneSet;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
@@ -169,6 +172,9 @@ public class Project implements PropertyChangeListener {
                                                                       PropertyKeys.KEY_RAW_SOURCE_DIRECTORY,
                                                                       "", GROUP.IMPORT, false,
                                                                       COPY.REFERENCE, "./", true);
+  public final FileProperty SNP_DATA_FILE = new FileProperty(this, PropertyKeys.KEY_SNP_DATA_FILE,
+                                                             "", GROUP.IMPORT, false, COPY.VALUE,
+                                                             "", false);
   public final StringProperty SOURCE_FILENAME_EXTENSION = new StringProperty(this,
                                                                              PropertyKeys.KEY_SOURCE_FILENAME_EXTENSION,
                                                                              "", GROUP.IMPORT,

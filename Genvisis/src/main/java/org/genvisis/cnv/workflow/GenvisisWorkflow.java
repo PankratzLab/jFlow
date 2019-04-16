@@ -4,15 +4,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
+import org.genvisis.cnv.workflow.steps.AxiomCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.ComputePFBStep;
 import org.genvisis.cnv.workflow.steps.FurtherAnalysisQCStep;
 import org.genvisis.cnv.workflow.steps.GCModelStep;
@@ -76,14 +77,54 @@ public class GenvisisWorkflow {
   }
 
   private List<Step> generateSteps(boolean allowCorrectionStep) {
-    boolean isAffy = proj.getArrayType() == ARRAY.AFFY_GW6
-                     || proj.getArrayType() == ARRAY.AFFY_GW6_CN
-                     || proj.getArrayType() == ARRAY.AFFY_AXIOM;
-    if (isAffy) {
-      return generateAffySteps(allowCorrectionStep);
-    } else {
-      return generateIlluminaSteps(allowCorrectionStep);
+    switch (proj.getArrayType()) {
+      case AFFY_AXIOM:
+        return generateAxiomSteps(allowCorrectionStep);
+      case AFFY_GW6:
+      case AFFY_GW6_CN:
+        return generateAffySteps(allowCorrectionStep);
+      case ILLUMINA:
+        return generateIlluminaSteps(allowCorrectionStep);
+      case NGS:
+      default:
+        throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
+                                                + proj.getArrayType() + ".");
     }
+  }
+
+  private List<Step> generateAxiomSteps(boolean allowCorrectionStep) {
+    StepBuilder sb = new StepBuilder(proj);
+    AxiomCELProcessingStep parseAxiomCELs;
+    AffyMarkerBlastStep affyMarkerBlastStep = null;
+    ReverseTransposeTarget reverseTransposeStep = null;
+    SampleDataStep createSampleDataStep;
+    GCModelStep gcModelStep;
+    SampleQCStep sampleQCStep;
+    parseAxiomCELs = sb.generateAxiomCELProcessingStep(proj);
+    reverseTransposeStep = sb.generateReverseTransposeStep(proj, parseAxiomCELs);
+    affyMarkerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(proj, reverseTransposeStep);
+    createSampleDataStep = sb.generateCreateSampleDataStep(proj, reverseTransposeStep);
+    gcModelStep = sb.generateGCModelStep(proj);
+    sampleQCStep = sb.generateSampleQCStep(proj, reverseTransposeStep);
+    sb.generateMarkerQCStep(proj, reverseTransposeStep);
+    sb.generateSexChecksStep(proj, reverseTransposeStep, affyMarkerBlastStep, createSampleDataStep,
+                             sampleQCStep);
+    sb.generateABLookupStep(proj, reverseTransposeStep);
+    PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(proj, reverseTransposeStep);
+    GwasQCStep gwasQCStep = sb.generateGwasQCStep(proj, plinkExportStep);
+    AncestryStep ancestryStep = sb.generateAncestryStep(proj, gwasQCStep);
+    sb.generateFurtherAnalysisQCStep(proj, plinkExportStep, gwasQCStep, ancestryStep);
+    sb.generateMosaicArmsStep(proj, reverseTransposeStep);
+    sb.generateAnnotateSampleDataStep(proj, sampleQCStep, createSampleDataStep, gwasQCStep);
+    sb.generateMitoCNEstimateStep(proj, reverseTransposeStep);
+    ComputePFBStep pfbStep = sb.generatePFBStep(proj, reverseTransposeStep);
+    sb.generateSexCentroidsStep(proj, pfbStep);
+    sb.generateCNVStep(proj, pfbStep, gcModelStep);
+    if (allowCorrectionStep) {
+      sb.generatePCCorrectedProjectStep(proj, reverseTransposeStep);
+    }
+
+    return sb.getSortedSteps();
   }
 
   private List<Step> generateAffySteps(boolean allowCorrectionStep) {

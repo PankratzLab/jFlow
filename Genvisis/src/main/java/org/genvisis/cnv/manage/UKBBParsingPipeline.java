@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+
 import org.genvisis.cnv.filesys.AllelePair;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -55,6 +56,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.utils.gwas.DosageData;
 import org.pankratzlab.utils.gwas.bgen.BGENBitMath;
+
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.variant.variantcontext.Allele;
 
@@ -452,6 +454,7 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
     while ((line = reader.readLine()) != null) {
       lines++;
       if (line.charAt(0) == '#') continue;
+      if (line.charAt(0) == '%') continue;
       if (!foundHeader) {
         foundHeader = true; // first nonComment line
         hdrInds = ext.indexFactors(headerFactors, ext.splitCommasIntelligently(line, true, log),

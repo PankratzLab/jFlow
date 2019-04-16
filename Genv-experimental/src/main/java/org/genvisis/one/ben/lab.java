@@ -2436,15 +2436,7 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          System.out.println(ArrayUtils.toStr(Files.listNIO2("C:\\Users\\cole0482\\", null, null,
-                                                             false, true),
-                                              ", "));
-          System.out.println(ArrayUtils.toStr(Files.listNIO("C:\\Users\\cole0482\\", null, null,
-                                                            false, true),
-                                              ", "));
-          System.out.println(ArrayUtils.toStr(Files.list("C:\\Users\\cole0482\\", null, null, false,
-                                                         true),
-                                              ", "));
+          new Project("/home/pankrat2/cole0482/projects/UKBioBank.properties").writeMarkerSet();
 
           return;
         case 1:

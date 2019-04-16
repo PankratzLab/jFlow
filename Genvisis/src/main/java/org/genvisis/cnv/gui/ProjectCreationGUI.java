@@ -12,6 +12,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -31,6 +32,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -43,8 +45,10 @@ import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.collect.MultisetUtils;
 import org.pankratzlab.common.gui.UITools;
+
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+
 import net.miginfocom.swing.MigLayout;
 
 public class ProjectCreationGUI extends JDialog {
@@ -55,7 +59,7 @@ public class ProjectCreationGUI extends JDialog {
   private static final String PROJECT_DIR_TOOLTIP = "<html>Directory in which to create, store, and manage all project files.</html>";
   private static final String SOURCE_DIR_TOOLTIP = "<html>Directory of source (e.g. FinalReport.txt.gz) files; this can be different than the Project Directory.</html>";
   private static final String SOURCE_EXT_TOOLTIP = "<html>Extension of source files (e.g. for \"FinalReport.txt.gz\", the extension would be \".txt.gz\".</html>";
-  private static final String XY_TOOLTIP = "<html>The raw probe intensity / bin counts are divided by this number to get a transformed<br />value between -32 and +32). Suggested values for scale factor based on array:<br />Illumina: use the default of 1.<br />Affymetrix: use 100.<br />DBGAP: use 2000.</html>";
+  private static final String XY_TOOLTIP = "<html>The raw probe intensity / bin counts are divided by this number to get a transformed<br />value between -32 and +32). Suggested values for scale factor based on array:<br />Illumina: use the default of 1.<br />Affy6: use 100.<br />Axiom: use 2000.<br />DBGAP: use 2000.</html>";
   private static final String MKR_SUBSET_TOOLTIP = "<html>If you only want to import a subset of markers, then provide a text file with one marker name per line.</html>";
   private final JPanel contentPane;
   private final JTextField txtFldProjName;
