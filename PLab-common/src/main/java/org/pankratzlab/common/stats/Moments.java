@@ -3,6 +3,7 @@ package org.pankratzlab.common.stats;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CountHash;
 import org.pankratzlab.common.Files;
@@ -23,6 +24,8 @@ public class Moments {
   private double lowerThrehsold;
   private double upperThrehsold;
   private double n;
+  private double min;
+  private double max;
   private int numLowOutliers;
   private int numHighOutliers;
   private int numNaNs;
@@ -42,6 +45,8 @@ public class Moments {
    */
   public Moments(double lowerThrehsold, double upperThrehsold) {
     variance = sum = n = numLowOutliers = numHighOutliers = numNaNs = 0;
+    this.min = Double.MAX_VALUE;
+    this.max = Double.MIN_VALUE;
     this.lowerThrehsold = lowerThrehsold;
     this.upperThrehsold = upperThrehsold;
   }
@@ -70,6 +75,12 @@ public class Moments {
     if (!Double.isNaN(upperThrehsold) && d > upperThrehsold) {
       numHighOutliers++;
     }
+    if (d > max) {
+      max = d;
+    }
+    if (d < min) {
+      min = d;
+    }
     sum += d;
     n++;
   }
@@ -94,6 +105,14 @@ public class Moments {
     return numNaNs;
   }
 
+  public double getMin() {
+    return min;
+  }
+
+  public double getMax() {
+    return max;
+  }
+
   /**
    * Reports the number of numbers added, the mean and standard deviation and the number of outliers
    * seen (if thresholds were defined).
@@ -104,6 +123,8 @@ public class Moments {
     sb.append("n=" + (int) n);
     sb.append("\tmean=" + (sum / (double) n));
     sb.append("\tsd=" + Math.sqrt(variance));
+    sb.append("\tmin=" + min);
+    sb.append("\tmax=" + max);
     if (!Double.isNaN(lowerThrehsold)) {
       sb.append("\tnumLowOutliers=" + numLowOutliers + " ("
                 + ext.prettyP((double) numLowOutliers / n) + ")");
@@ -128,6 +149,7 @@ public class Moments {
   private static void summarizeFile(String filename, int[] indices, double lowerThreshold,
                                     double upperThreshold) {
     BufferedReader reader;
+    String temp;
     String[] line;
     Moments[] moments;
     double num;
@@ -141,15 +163,19 @@ public class Moments {
       for (int i = 0; i < moments.length; i++) {
         moments[i] = new Moments(lowerThreshold, upperThreshold);
       }
-      reader.readLine();
-      while (reader.ready()) {
-        line = reader.readLine().trim().split("[\\s]+");
+      // skip header and any comments
+      do {
+        temp = reader.readLine();
+      } while (temp.startsWith("#"));
+      while ((temp = reader.readLine()) != null) {
+        if (temp.startsWith("#")) continue;
+        line = temp.trim().split("[\\s]+");
         for (int i = 0; i < moments.length; i++) {
-          num = Double.parseDouble(line[i]);
+          num = Double.parseDouble(line[indices[i]]);
           if (Double.isNaN(num)) {
             countHash.add(ArrayUtils.toStr(line));
           }
-          moments[i].addNum(Double.parseDouble(line[i]));
+          moments[i].addNum(Double.parseDouble(line[indices[i]]));
         }
       }
       for (int i = 0; i < moments.length; i++) {
