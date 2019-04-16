@@ -20,6 +20,7 @@ import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -52,11 +53,12 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
   public static final String INVERT_X = "Invert X axis";
   public static final String INVERT_Y = "Invert Y axis";
   public static final String MASK_MISSING = "Mask missing values";
+  public static final String SELECT_FILES = "Select Files";
   private static final String NEW_LIST_COMMAND = "New List";
   public static final String UNMASK_MISSING = "Unmask missing values";
   private static final String REFRESH_SAMPLE_DATA = "Refresh SampleData";
   public static final String[] BUTTONS = {SWAP_AXES, INVERT_X, INVERT_Y, MASK_MISSING,
-                                          REFRESH_SAMPLE_DATA};
+                                          REFRESH_SAMPLE_DATA, SELECT_FILES};
 
   private Project proj;
   private CheckBoxTree tree;
@@ -278,6 +280,25 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
       sampleData = proj.getSampleData(false);
       stratPanel.pushSampleData();
       updateGUI();
+    } else if (command.contentEquals(SELECT_FILES)) {
+      JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+      jfc.setMultiSelectionEnabled(false);
+      jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      jfc.setDialogType(JFileChooser.OPEN_DIALOG);
+      jfc.setDialogTitle("Load files");
+      int code = jfc.showDialog(this, "Load File");
+      if (code == JFileChooser.APPROVE_OPTION) {
+        try {
+          String file = jfc.getSelectedFile().getCanonicalPath();
+          file = ext.replaceAllWith(file, "\\", "/");
+          proj.STRATIFY_PLOT_FILENAMES.addValue(file);
+          proj.saveProperties();
+          this.dispose();
+          loadStratificationResults(proj);
+        } catch (IOException e) {
+          proj.message("Error - invalid file selected");
+        }
+      }
     } else {
       log.reportError("Error - unknown command '" + command + "'");
     }
