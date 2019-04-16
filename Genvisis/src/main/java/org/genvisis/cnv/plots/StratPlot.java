@@ -293,9 +293,8 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
           File[] files = jfc.getSelectedFiles();
           String temp;
           for (File file : files) {
-            temp = file.getCanonicalPath();
-            temp = ext.replaceAllWith(temp, "\\", "/");
-            proj.STRATIFY_PLOT_FILENAMES.addValue(temp);
+            proj.STRATIFY_PLOT_FILENAMES.addValue(ext.replaceAllWith(file.getCanonicalPath(), "\\",
+                                                                     "/"));
           }
           proj.saveProperties();
           this.dispose();
