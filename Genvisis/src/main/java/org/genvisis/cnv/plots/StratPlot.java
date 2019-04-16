@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
@@ -282,16 +283,20 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
       updateGUI();
     } else if (command.contentEquals(SELECT_FILES)) {
       JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
-      jfc.setMultiSelectionEnabled(false);
+      jfc.setMultiSelectionEnabled(true);
       jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       jfc.setDialogType(JFileChooser.OPEN_DIALOG);
       jfc.setDialogTitle("Load files");
       int code = jfc.showDialog(this, "Load File");
       if (code == JFileChooser.APPROVE_OPTION) {
         try {
-          String file = jfc.getSelectedFile().getCanonicalPath();
-          file = ext.replaceAllWith(file, "\\", "/");
-          proj.STRATIFY_PLOT_FILENAMES.addValue(file);
+          File[] files = jfc.getSelectedFiles();
+          String temp;
+          for (File file : files) {
+            temp = file.getCanonicalPath();
+            temp = ext.replaceAllWith(temp, "\\", "/");
+            proj.STRATIFY_PLOT_FILENAMES.addValue(temp);
+          }
           proj.saveProperties();
           this.dispose();
           loadStratificationResults(proj);
