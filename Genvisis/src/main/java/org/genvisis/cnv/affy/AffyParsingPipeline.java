@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.Compression;
@@ -53,9 +54,24 @@ public class AffyParsingPipeline {
   private long fingerprint;
   private int maxSize = DEFAULT_MDRAF_SIZE;
   private volatile boolean running = false;
+  private Function<Double, Double> intensityTransform;
 
   public void setProject(Project proj) {
     this.proj = proj;
+    switch (proj.ARRAY_TYPE.getValue()) {
+      case AFFY_AXIOM:
+        this.intensityTransform = d -> d;
+        break;
+      case AFFY_GW6:
+      case AFFY_GW6_CN:
+        this.intensityTransform = d -> power2(d);
+        break;
+      case ILLUMINA:
+      case NGS:
+      default:
+        break;
+
+    }
   }
 
   public void setGenotypeCallFile(String callFile) {
@@ -395,7 +411,7 @@ public class AffyParsingPipeline {
 
     double scale = proj.XY_SCALE_FACTOR.getValue();
     for (int i = 0; i < numSamples; i++) {
-      xs[i] = ys[i] = (float) (power2(sigs[i + 1]) / scale);
+      xs[i] = ys[i] = (float) (intensityTransform.apply(Double.parseDouble(sigs[i + 1])) / scale);
       bafs[i] = lrrs[i] = gcs[i] = 0;
       abGenos[i] = -1;
     }
@@ -433,8 +449,8 @@ public class AffyParsingPipeline {
     for (int i = 0; i < numSamples; i++) {
       abGenos[i] = (byte) Integer.parseInt(calls[i + 1]);
       gcs[i] = Float.parseFloat(confs[i + 1]);
-      xs[i] = (float) (power2(sigsA[i + 1]) / scale);
-      ys[i] = (float) (power2(sigsB[i + 1]) / scale);
+      xs[i] = (float) (intensityTransform.apply(Double.parseDouble(sigsA[i + 1])) / scale);
+      ys[i] = (float) (intensityTransform.apply(Double.parseDouble(sigsB[i + 1])) / scale);
     }
     MarkerData md = new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas,
                                    rs, bafs, lrrs, abGenos, forwardGenos);
@@ -445,8 +461,8 @@ public class AffyParsingPipeline {
                           forwardGenos);
   }
 
-  private static double power2(String signal) {
-    return (Math.pow(2, Double.parseDouble(signal)));
+  private static double power2(double signal) {
+    return (Math.pow(2, signal));
   }
 
   private void ensureSame(String conf, String call, String sigA, String sigB) {
