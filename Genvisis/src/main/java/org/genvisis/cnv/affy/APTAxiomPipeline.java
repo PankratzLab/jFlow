@@ -326,16 +326,12 @@ public class APTAxiomPipeline {
   public static void main(String[] args) {
     CLI cli = new CLI(APTAxiomPipeline.class);
 
-    String DESC_CEL_PATH = "A directory or full path to a file containing " + CEL_EXTENSION
-                           + " files for analysis";
     String DESC_LIB_PATH = "A directory with AffyPowerTools executables (should contain apt-genotype-axiom. Available at http://www.affymetrix.com/)";
     String DESC_EXE_PATH = "A directory with Affymetrix Library files (should contain a .cdf file, a .sketch file, etc. Available at http://www.affymetrix.com/)";
-    String ARG_CEL_PATH = "cels";
     String ARG_EXE_PATH = "aptExeDir";
     String ARG_LIB_PATH = "libraryFilePath";
 
     cli.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ, true);
-    cli.addArg(ARG_CEL_PATH, DESC_CEL_PATH, true);
     cli.addArg(ARG_EXE_PATH, DESC_EXE_PATH, true);
     cli.addArg(ARG_LIB_PATH, DESC_LIB_PATH, true);
     cli.addArg(CLI.ARG_THREADS, CLI.DESC_THREADS, "1", false);

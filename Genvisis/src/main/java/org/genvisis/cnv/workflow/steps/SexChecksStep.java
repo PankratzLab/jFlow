@@ -2,14 +2,16 @@ package org.genvisis.cnv.workflow.steps;
 
 import java.io.File;
 import java.util.EnumSet;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.MarkerBlastQC;
+import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
-import org.pankratzlab.common.Files;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
+import org.pankratzlab.common.Files;
 
 public class SexChecksStep extends Step {
 
@@ -89,14 +91,15 @@ public class SexChecksStep extends Step {
     } else {
       discriminatingMarkersFile = variables.get(oneHittersReq);
       if (!Files.exists(discriminatingMarkersFile)) {
+        discriminatingMarkersFile = new File(MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue()));
         cmd.append(Files.getRunString())
-           .append(" cnv.qc.MarkerBlastQC proj=" + projPropFile + " blastVCF="
+           .append(" " + MarkerBlastQC.class.getName() + " proj=" + projPropFile + " blastVCF="
                    + proj.BLAST_ANNOTATION_FILENAME.getValue())
            .append("\n");
       }
     }
-    return cmd.append(Files.getRunString()).append(" cnv.qc.SexChecks -check proj=" + projPropFile)
-              .toString()
+    return cmd.append(Files.getRunString())
+              .append(" " + SexChecks.class.getName() + " -check proj=" + projPropFile).toString()
            + (discriminatingMarkersFile == null ? "" : " useMarkers=" + discriminatingMarkersFile)
            + (addToSampleData ? "" : " -skipSampleData");
   }

@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.compress.utils.Sets;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.AllelePair;
@@ -38,11 +39,13 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.Maths;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
@@ -651,6 +654,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
 
     Segment seg = binLookup.get(mkr);
     List<BEDFeature> iter = reader.query(seg).toList();
+
     double v;
     if (iter.size() > 1) {
       log.reportTimeWarning("Multiple depth scores found for " + samples[s] + ", bin "

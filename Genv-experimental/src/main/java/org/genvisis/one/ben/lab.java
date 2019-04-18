@@ -30,6 +30,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
@@ -42,6 +43,7 @@ import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BedOps;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
@@ -60,11 +62,13 @@ import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.DosageData;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
+
 import htsjdk.samtools.seekablestream.SeekableFileStream;
 import htsjdk.samtools.util.BlockCompressedFilePointerUtil;
 import htsjdk.samtools.util.BlockCompressedInputStream;
@@ -2436,7 +2440,8 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          new Project("/home/pankrat2/cole0482/projects/UKBioBank.properties").writeMarkerSet();
+          String key = "G:\\bamTesting\\topmed\\00mos\\NWD100813.recab.mos.regions.bed";
+          BEDFileReader.createAnnotatedBEDFileReader(key, true);
 
           return;
         case 1:
