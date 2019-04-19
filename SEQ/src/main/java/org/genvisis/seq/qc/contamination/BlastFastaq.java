@@ -3,12 +3,14 @@ package org.genvisis.seq.qc.contamination;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.analysis.Blast;
 import org.genvisis.seq.analysis.Blast.BlastResultsSummary;
 import org.genvisis.seq.analysis.Blast.FastaEntry;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
 

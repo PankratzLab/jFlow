@@ -6,11 +6,13 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.Nonnull;
+
 import org.apache.commons.cli.ParseException;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.CLI;
 
 /**
  * Filters markers from a blast.vcf file based on search term occurrence within the value of a given

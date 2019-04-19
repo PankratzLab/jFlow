@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeSet;
+
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -64,6 +65,7 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
+
 import org.genvisis.cnv.gui.IncludeExcludeGUI;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
 import org.genvisis.one.ben.fcs.FCSPlot;
@@ -74,8 +76,10 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
+
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
+
 import net.miginfocom.swing.MigLayout;
 
 public class ControlsQCGUI extends JFrame {

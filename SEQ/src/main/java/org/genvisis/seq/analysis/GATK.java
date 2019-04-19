@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.genvisis.seq.analysis.GATK_Genotyper.JointGATKGenotyper;
 import org.genvisis.seq.analysis.SNPEFF.SnpEffResult;
 import org.genvisis.seq.manage.BamOps;
@@ -18,6 +19,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.VCFUtils;
 import org.pankratzlab.common.ext;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

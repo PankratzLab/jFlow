@@ -3,8 +3,10 @@ package org.genvisis.seq.manage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;

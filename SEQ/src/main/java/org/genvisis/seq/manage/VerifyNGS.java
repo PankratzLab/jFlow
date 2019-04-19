@@ -2,8 +2,10 @@ package org.genvisis.seq.manage;
 
 import java.io.File;
 import java.io.IOException;
+
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
+
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;

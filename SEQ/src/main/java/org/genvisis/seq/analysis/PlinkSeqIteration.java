@@ -1,6 +1,7 @@
 package org.genvisis.seq.analysis;
 
 import java.io.PrintWriter;
+
 import org.genvisis.seq.manage.VCFOps;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;

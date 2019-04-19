@@ -5,11 +5,13 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.genvisis.seq.manage.VCFTumorNormalOps;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
@@ -17,9 +19,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.genvisis.seq.manage.VCFTumorNormalOps;
+import org.pankratzlab.common.ext;
 
 /**
  * Wrapper and parser/assembler for Somatic Sniper (https://github.com/genome/somatic-sniper)

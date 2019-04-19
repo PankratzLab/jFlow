@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.analysis.Blast.BlastResults;
 import org.genvisis.seq.manage.Adapter;
 import org.genvisis.seq.manage.BamExtractor;
@@ -33,9 +34,10 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.ext;
+
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;

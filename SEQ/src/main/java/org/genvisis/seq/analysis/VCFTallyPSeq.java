@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Set;
+
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import org.genvisis.seq.analysis.PlinkSeq.BURDEN_Tests;
 import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqWorker;

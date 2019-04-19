@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.analysis.ANNOVAR.AnnovarResults;
 import org.genvisis.seq.analysis.GATK.RESOURCE;
 import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
@@ -19,6 +20,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.qsub.Qsub;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 

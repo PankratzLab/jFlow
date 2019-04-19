@@ -4,10 +4,12 @@
 package org.genvisis.seq.manage.mtdna;
 
 import java.io.File;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Bundled;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
+
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 

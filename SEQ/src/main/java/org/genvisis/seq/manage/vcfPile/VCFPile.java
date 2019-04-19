@@ -3,6 +3,7 @@ package org.genvisis.seq.manage.vcfPile;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Iterator;
+
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps;
 import org.pankratzlab.common.ArrayUtils;
@@ -12,6 +13,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

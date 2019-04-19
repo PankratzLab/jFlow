@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.analysis.GATK.GenotypeRefiner;
 import org.genvisis.seq.analysis.GATK.Mutect;
 import org.genvisis.seq.manage.VCFOps;
@@ -23,9 +24,10 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.Producer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Pedfile;
 import org.pankratzlab.common.filesys.Positions;
-import org.pankratzlab.common.ext;
+
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.variant.variantcontext.VariantContext;

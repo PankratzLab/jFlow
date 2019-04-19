@@ -3,6 +3,7 @@ package org.genvisis.seq.manage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.seq.analysis.Blast;
 import org.genvisis.seq.analysis.Blast.BlastWorker;
 import org.genvisis.seq.analysis.Blast.FastaEntry;
@@ -12,6 +13,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
+
 import htsjdk.tribble.annotation.Strand;
 
 public class Adapter {

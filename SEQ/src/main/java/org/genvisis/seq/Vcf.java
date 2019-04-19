@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.IntVector;
@@ -19,6 +20,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.SerialHash;
 import org.pankratzlab.common.filesys.VariantList;
+
 import com.google.common.primitives.Ints;
 
 public class Vcf {

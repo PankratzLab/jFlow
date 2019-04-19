@@ -2,10 +2,12 @@ package org.genvisis.seq.manage;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.seq.analysis.Blast.BlastResults;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Sort;
+
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;

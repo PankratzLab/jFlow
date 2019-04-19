@@ -16,6 +16,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import org.genvisis.seq.analysis.BWA_Analysis;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;

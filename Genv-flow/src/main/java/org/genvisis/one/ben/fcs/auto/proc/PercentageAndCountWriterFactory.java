@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.pankratzlab.common.Files;
 
 public class PercentageAndCountWriterFactory implements ProcessorFactory<PercentageAndCountWriter> {

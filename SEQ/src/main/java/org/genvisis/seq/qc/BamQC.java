@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
 import org.genvisis.seq.analysis.GATK_Genotyper.ANNOTATION_BUILD;
 import org.genvisis.seq.analysis.SNPEFF;
 import org.pankratzlab.common.ArrayUtils;
@@ -24,7 +25,9 @@ import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.Histogram;
 import org.pankratzlab.common.stats.Histogram.DynamicHistogram;
+
 import com.google.common.primitives.Doubles;
+
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;

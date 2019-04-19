@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.analysis.PlinkSeq;
@@ -44,7 +45,9 @@ import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.Histogram.DynamicAveragingHistogram;
 import org.pankratzlab.common.stats.Histogram.DynamicHistogram;
+
 import com.google.common.collect.Sets;
+
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;

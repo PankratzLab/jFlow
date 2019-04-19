@@ -9,7 +9,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import org.apache.commons.codec.CharEncoding;
+
 import com.google.common.base.CharMatcher;
 
 public class FCSKeywords {

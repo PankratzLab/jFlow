@@ -4,6 +4,7 @@
 package org.genvisis.seq.analysis;
 
 import java.util.ArrayList;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Logger;
