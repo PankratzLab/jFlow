@@ -97,6 +97,10 @@ public class ext {
     return str;
   }
 
+  public static String normalizePath(String path) {
+    return replaceAllWith(path, "\\", "/");
+  }
+
   public static String replaceQuotesWithSlashQuotes(String original) {
     char[] array;
     String str;
