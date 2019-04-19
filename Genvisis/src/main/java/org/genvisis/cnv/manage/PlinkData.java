@@ -26,6 +26,7 @@ import java.util.StringJoiner;
 import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -48,6 +49,7 @@ import org.pankratzlab.common.ProgressMonitor;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.Maths;
 import org.pankratzlab.utils.gwas.DosageData;
+
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;

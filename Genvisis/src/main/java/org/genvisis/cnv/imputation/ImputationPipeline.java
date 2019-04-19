@@ -8,7 +8,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.Nullable;
+
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gwas.utils.FurtherAnalysisQc;
@@ -21,6 +23,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.utils.gwas.Qc;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;

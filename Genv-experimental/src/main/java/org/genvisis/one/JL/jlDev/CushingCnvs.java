@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
@@ -25,8 +26,8 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
-import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
+import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.filesys.Segment.SegmentCompare;
 import org.pankratzlab.common.stats.Histogram.DynamicAveragingHistogram;
 import org.pankratzlab.common.stats.Rscript.GeomText;

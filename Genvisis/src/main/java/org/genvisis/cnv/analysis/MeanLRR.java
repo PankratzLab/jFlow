@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
@@ -25,6 +26,7 @@ import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.RegressionModel;
+
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 

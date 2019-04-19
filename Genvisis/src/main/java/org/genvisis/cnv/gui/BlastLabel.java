@@ -1,9 +1,5 @@
 package org.genvisis.cnv.gui;
 
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.tribble.annotation.Strand;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -12,7 +8,9 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import javax.swing.JLabel;
+
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
@@ -21,6 +19,11 @@ import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Fonts;
 import org.pankratzlab.common.filesys.Segment;
+
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.tribble.annotation.Strand;
 
 class ReferenceLabel extends JLabel {
 

@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.genvisis.cnv.annotation.markers.AnnotationData;
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationFileWriter;
@@ -24,7 +25,9 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.collect.Lists;
+
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
 /**

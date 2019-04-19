@@ -5,9 +5,11 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;

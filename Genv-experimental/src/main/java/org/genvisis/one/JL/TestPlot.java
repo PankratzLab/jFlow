@@ -2,6 +2,7 @@ package org.genvisis.one.JL;
 
 import java.util.List;
 import java.util.Map;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.chart.NumberAxis;

@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filtering.FilterCalls;

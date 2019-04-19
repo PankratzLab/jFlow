@@ -6,10 +6,13 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
 import java.util.StringJoiner;
+
 import org.genvisis.seq.manage.BamOps;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
+
 import com.google.common.math.Stats;
+
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SamReader;

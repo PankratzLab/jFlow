@@ -11,13 +11,14 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filtering.CNVFilter;
-import org.genvisis.cnv.filtering.CNVTrioFilter;
 import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
+import org.genvisis.cnv.filtering.CNVTrioFilter;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -26,6 +27,7 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF.Plink;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Doubles;
 

@@ -28,11 +28,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
+
 import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
@@ -46,8 +48,10 @@ import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.mining.Distance;
 import org.pankratzlab.common.stats.Maths;
+
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
+
 import edu.stanford.facs.logicle.Logicle;
 
 public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener,

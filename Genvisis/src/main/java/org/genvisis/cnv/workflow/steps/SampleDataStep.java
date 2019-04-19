@@ -2,6 +2,7 @@ package org.genvisis.cnv.workflow.steps;
 
 import java.io.File;
 import java.util.EnumSet;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.var.SampleData;
@@ -9,11 +10,11 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
+import org.genvisis.cnv.workflow.Step;
+import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
-import org.genvisis.cnv.workflow.Step;
-import org.genvisis.cnv.workflow.Variables;
 
 public class SampleDataStep extends Step {
 

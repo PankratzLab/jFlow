@@ -7,7 +7,9 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
+
 import javax.jms.IllegalStateException;
+
 import org.genvisis.seq.analysis.GATK.Mutect2Normal;
 import org.genvisis.seq.analysis.GATK.MutectTumorNormal;
 import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
@@ -25,10 +27,11 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.qsub.Qsub;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

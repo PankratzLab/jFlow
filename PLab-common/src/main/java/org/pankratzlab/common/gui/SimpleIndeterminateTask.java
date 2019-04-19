@@ -1,5 +1,7 @@
 package org.pankratzlab.common.gui;
 
+import javax.swing.SwingWorker;
+
 /**
  * Trivial {@link IndeterminateTask} type-erasure extension that uses {@link String} for both of the
  * {@link SwingWorker} type parameters.

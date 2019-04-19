@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentMap;
+
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -51,6 +52,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.filesys.Project;
@@ -72,9 +74,11 @@ import org.pankratzlab.common.gui.JProgressBarListener;
 import org.pankratzlab.common.gui.Task;
 import org.pankratzlab.common.gui.UITools;
 import org.pankratzlab.common.qsub.Qsub;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import net.miginfocom.swing.MigLayout;
 
 public class GenvisisWorkflowGUI extends JDialog {

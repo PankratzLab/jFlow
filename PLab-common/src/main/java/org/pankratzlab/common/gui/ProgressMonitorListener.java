@@ -2,6 +2,7 @@ package org.pankratzlab.common.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import javax.swing.ProgressMonitor;
 import javax.swing.Timer;
 

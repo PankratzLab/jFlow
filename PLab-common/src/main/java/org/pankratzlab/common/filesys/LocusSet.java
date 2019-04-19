@@ -7,10 +7,12 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
+
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 

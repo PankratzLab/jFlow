@@ -1,6 +1,7 @@
 package org.pankratzlab.internal.bot;
 
 import java.awt.event.KeyEvent;
+
 import org.pankratzlab.common.Logger;
 
 public class IGVTrios {

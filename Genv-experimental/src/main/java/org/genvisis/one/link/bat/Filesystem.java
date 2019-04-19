@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
 import org.genvisis.one.link.Markers;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.DoubleVector;
@@ -20,6 +21,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.link.LinkageMap;
+
 import com.google.common.primitives.Doubles;
 
 public class Filesystem {

@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
+
 import junit.framework.Assert;
 
 /**

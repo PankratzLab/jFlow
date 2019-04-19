@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.StringJoiner;
+
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -28,6 +29,7 @@ import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.FileChooser;
 import org.genvisis.cnv.gui.JAccordionPanel;
@@ -40,7 +42,9 @@ import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.qsub.Qsub;
+
 import com.google.common.collect.ImmutableSet;
+
 import net.miginfocom.swing.MigLayout;
 
 public class ImputationGUI extends JDialog {

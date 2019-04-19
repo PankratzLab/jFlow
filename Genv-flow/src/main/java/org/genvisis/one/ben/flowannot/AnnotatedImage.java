@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import javax.imageio.ImageIO;
 import javax.swing.UIManager;
+
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Images;
 

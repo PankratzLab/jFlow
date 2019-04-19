@@ -1,6 +1,7 @@
 package org.genvisis.cnv.stats.cdf;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
+
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 

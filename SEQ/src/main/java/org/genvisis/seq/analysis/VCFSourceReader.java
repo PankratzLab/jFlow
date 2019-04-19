@@ -3,6 +3,7 @@ package org.genvisis.seq.analysis;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.FeatureCodec;

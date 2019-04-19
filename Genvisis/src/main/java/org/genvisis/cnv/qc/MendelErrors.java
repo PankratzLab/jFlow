@@ -2,6 +2,7 @@ package org.genvisis.cnv.qc;
 
 import java.io.PrintWriter;
 import java.util.Map;
+
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;

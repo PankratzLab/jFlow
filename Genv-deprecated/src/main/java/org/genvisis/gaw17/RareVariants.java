@@ -1,9 +1,9 @@
 package org.genvisis.gaw17;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;

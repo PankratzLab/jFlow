@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.qc.MarkerMetrics;

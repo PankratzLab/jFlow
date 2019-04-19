@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
+
 import org.genvisis.cnv.filesys.LDdatabase;
 import org.genvisis.cnv.filesys.LongLDdb;
 import org.pankratzlab.common.ArrayUtils;
@@ -25,6 +26,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.utils.bioinformatics.MapSNPsAndGenes;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
+
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

@@ -2,6 +2,7 @@ package org.genvisis.cnv.workflow.steps;
 
 import java.io.File;
 import java.util.EnumSet;
+
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
@@ -11,11 +12,11 @@ import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
-import org.pankratzlab.common.Files;
-import org.pankratzlab.common.PSF;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
 import org.genvisis.cnv.workflow.Variables;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.PSF;
 
 public class MitoCNEstimateStep extends Step {
 

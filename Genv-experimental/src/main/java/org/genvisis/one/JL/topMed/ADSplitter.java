@@ -4,15 +4,17 @@ package org.genvisis.one.JL.topMed;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.dictionary.SAMSequenceDictionarySplitter;
 import org.genvisis.seq.manage.dictionary.SAMSequenceDictionarySplitter.Query;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.qsub.Qsub;
-import org.pankratzlab.common.CLI;
+
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.variant.vcf.VCFFileReader;

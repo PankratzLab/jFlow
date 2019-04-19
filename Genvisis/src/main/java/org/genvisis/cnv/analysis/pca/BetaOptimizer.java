@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
@@ -43,8 +44,8 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SciStringComparator;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.Correlation;
@@ -59,7 +60,9 @@ import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
 import org.pankratzlab.common.stats.Rscript.VertLine;
 import org.pankratzlab.utils.gwas.windows.BasicHit;
 import org.pankratzlab.utils.gwas.windows.GeneralHitWindowDetector;
+
 import com.google.common.primitives.Doubles;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;

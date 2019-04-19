@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
@@ -20,6 +21,7 @@ import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.Histogram.DynamicAveragingHistogram;
 import org.pankratzlab.common.stats.Rscript.RScatter;
 import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.bed.BEDFeature;
 

@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.DoubleVector;
@@ -19,6 +20,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
+
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

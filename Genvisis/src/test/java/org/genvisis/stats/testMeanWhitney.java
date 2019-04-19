@@ -1,15 +1,18 @@
 package org.genvisis.stats;
 
 import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+
 import org.junit.Test;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.stats.MannWhitneyUTest;
 import org.pankratzlab.common.stats.ProbDist;
+
 import com.google.common.collect.ImmutableList;
 
 public class testMeanWhitney {

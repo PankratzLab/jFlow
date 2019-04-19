@@ -13,7 +13,9 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TreeMap;
+
 import javax.swing.SwingUtilities;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.pankratzlab.common.Aliases;

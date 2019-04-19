@@ -2,15 +2,17 @@ package org.genvisis.cnv.analysis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.CNVariant;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
+
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 
 public class GCBin extends Segment {

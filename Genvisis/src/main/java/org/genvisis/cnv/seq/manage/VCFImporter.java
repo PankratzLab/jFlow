@@ -8,6 +8,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
@@ -39,6 +40,7 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

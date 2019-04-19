@@ -3,6 +3,7 @@ package org.genvisis.one.JL;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.genvisis.cnv.seq.FastaGenome;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
@@ -14,6 +15,7 @@ import org.pankratzlab.common.CmdLineProcess;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 

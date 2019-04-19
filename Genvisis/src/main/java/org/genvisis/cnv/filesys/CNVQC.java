@@ -1,6 +1,7 @@
 package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
+
 import org.genvisis.cnv.qc.CNVariantQC;
 import org.pankratzlab.common.SerializedFiles;
 

@@ -2,6 +2,7 @@ package org.genvisis.seq.pathway;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.LocusSet;

@@ -1,6 +1,7 @@
 package org.genvisis.cnv.annotation.markers;
 
 import java.util.ArrayList;
+
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 
 public class ArrayBlastAnnotationList extends ArrayList<BlastAnnotation> {

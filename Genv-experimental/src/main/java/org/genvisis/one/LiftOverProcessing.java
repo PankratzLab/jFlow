@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;

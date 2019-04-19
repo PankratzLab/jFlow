@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;

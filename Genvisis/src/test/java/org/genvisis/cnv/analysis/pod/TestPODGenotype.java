@@ -7,6 +7,7 @@ import org.genvisis.cnv.analysis.pod.PODGenotype.BAF_EFFECT;
 import org.genvisis.cnv.analysis.pod.PODGenotype.Genotype;
 import org.genvisis.cnv.analysis.pod.PODGenotype.POD;
 import org.junit.Test;
+
 import junit.framework.Assert;
 
 /**

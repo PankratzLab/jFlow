@@ -2,8 +2,7 @@ package org.genvisis.one.JL.topMed;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.genvisis.one.JL.topMed.TOPMedUtils.GeneImpact;
-import org.genvisis.one.JL.topMed.TOPMedUtils.IMPACT;
+
 import htsjdk.variant.variantcontext.VariantContext;
 
 /**

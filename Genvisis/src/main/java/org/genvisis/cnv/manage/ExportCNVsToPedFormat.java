@@ -14,7 +14,9 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
+
 import javax.swing.JFileChooser;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;

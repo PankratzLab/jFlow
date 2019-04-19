@@ -1,9 +1,12 @@
 package org.genvisis.stats;
 
 import java.util.Map;
+
 import org.junit.Test;
 import org.pankratzlab.common.stats.ProbDist;
+
 import com.google.common.collect.ImmutableMap;
+
 import junit.framework.Assert;
 
 public class TestProbDist {

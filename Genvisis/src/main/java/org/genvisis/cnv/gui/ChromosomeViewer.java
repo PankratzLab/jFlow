@@ -11,7 +11,9 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
+
 import javax.swing.JPanel;
+
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.GeneTrack;
 import org.pankratzlab.common.filesys.Segment;

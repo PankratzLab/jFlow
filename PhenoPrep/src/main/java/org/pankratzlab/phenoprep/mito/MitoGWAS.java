@@ -8,13 +8,14 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
-import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
@@ -37,6 +38,7 @@ import org.pankratzlab.common.stats.StatsCrossTabs;
 import org.pankratzlab.common.stats.StatsCrossTabs.STAT_TYPE;
 import org.pankratzlab.phenoprep.PhenoPrep;
 import org.pankratzlab.utils.gwas.RelationAncestryQc;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;

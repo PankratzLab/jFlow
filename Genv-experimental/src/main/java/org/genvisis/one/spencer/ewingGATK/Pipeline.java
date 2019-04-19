@@ -7,15 +7,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
+
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.analysis.GATK.RESOURCE;
 import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
+import org.genvisis.seq.analysis.RegNovo;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.qsub.Qsub;
-import org.genvisis.seq.analysis.RegNovo;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

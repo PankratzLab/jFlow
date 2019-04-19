@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -19,8 +20,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.Rscript.COLUMNS_MULTIPLOT;
 import org.pankratzlab.common.stats.Rscript.PLOT_DEVICE;
 import org.pankratzlab.common.stats.Rscript.RScatter;

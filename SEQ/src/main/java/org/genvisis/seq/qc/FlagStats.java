@@ -2,6 +2,7 @@ package org.genvisis.seq.qc;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import htsjdk.samtools.SAMRecord;
 
 /**

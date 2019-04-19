@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+
 import org.genvisis.cnv.manage.TextExport;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -17,6 +18,7 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.primitives.Ints;
 
 /**

@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
+
 import org.genvisis.one.JL.topMed.TOPMedUtils.GeneImpact;
 import org.genvisis.one.JL.topMed.TOPMedUtils.IMPACT;
 import org.genvisis.seq.manage.VCFOps;
@@ -13,6 +14,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;

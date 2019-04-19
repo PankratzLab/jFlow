@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Hashtable;
+
 import org.genvisis.cnv.plots.ManhattanPlot;
 import org.genvisis.cnv.plots.QQPlot;
 import org.pankratzlab.common.Aliases;

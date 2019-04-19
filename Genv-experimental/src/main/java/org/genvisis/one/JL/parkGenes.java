@@ -3,6 +3,7 @@ package org.genvisis.one.JL;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.seq.GenomeBuild;

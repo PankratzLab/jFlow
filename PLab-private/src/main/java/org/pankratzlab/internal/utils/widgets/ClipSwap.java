@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.TwoDPlot;
 import org.pankratzlab.common.ArrayUtils;
@@ -17,6 +18,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.SerialStringArray;
 import org.pankratzlab.common.stats.Histogram;
 import org.pankratzlab.internal.gwas.MetaAnalysis;
+
 import com.google.common.primitives.Doubles;
 
 public class ClipSwap {

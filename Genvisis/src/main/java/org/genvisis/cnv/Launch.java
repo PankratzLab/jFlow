@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.stream.Collectors;
+
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
@@ -52,6 +53,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
+
 import org.genvisis.cnv.HttpUpdate.RemoteVersionCheck;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.Resources.ResourceVersionCheck;
@@ -111,6 +113,7 @@ import org.pankratzlab.common.mining.Transformations;
 import org.pankratzlab.common.startup.StartupValidation;
 import org.pankratzlab.common.stats.LeastSquares;
 import org.pankratzlab.common.stats.SVDProvider.RegressionResult;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 

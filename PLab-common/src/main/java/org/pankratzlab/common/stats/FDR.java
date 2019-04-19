@@ -4,12 +4,13 @@
 package org.pankratzlab.common.stats;
 
 import java.util.Arrays;
+
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.CLI.Arg;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.CLI;
-import org.pankratzlab.common.CLI.Arg;
 
 /**
  * methods to estimate false discovery rate, from Stolen from

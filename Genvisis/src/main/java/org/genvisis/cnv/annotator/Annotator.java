@@ -2,7 +2,9 @@
 package org.genvisis.cnv.annotator;
 
 import java.util.Comparator;
+
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.collect.Ordering;
 
 /**

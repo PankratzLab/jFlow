@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.List;
+
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.ButtonGroup;
@@ -15,7 +16,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.KeyStroke;
+
 import org.genvisis.cnv.gui.ColorIcon;
+
 import net.miginfocom.swing.MigLayout;
 
 public class MeanCtrlPanel extends JPanel {

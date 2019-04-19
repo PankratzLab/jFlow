@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
@@ -22,6 +23,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.SerialHash;
 import org.pankratzlab.common.parse.GenParser;
 import org.pankratzlab.common.stats.Maths;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

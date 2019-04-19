@@ -1,6 +1,7 @@
 package org.pankratzlab.common;
 
 import java.util.Vector;
+
 import com.google.common.primitives.Ints;
 
 /**

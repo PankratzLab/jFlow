@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CountVector;
 import org.pankratzlab.common.Files;
@@ -21,6 +22,7 @@ import org.pankratzlab.common.stats.LeastSquares;
 import org.pankratzlab.common.stats.LogisticRegression;
 import org.pankratzlab.common.stats.RegressionModel;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
+
 import com.google.common.primitives.Ints;
 
 public class BurdenMatrix implements Serializable {

@@ -1,8 +1,10 @@
 package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.ext;
+
 import com.google.common.primitives.Doubles;
 
 /**

@@ -6,16 +6,19 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.Nonnull;
+
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.stat.inference.TTest;
 import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.plots.TwoDPlot.ScreenToCapture;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Images;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.CLI;
+
 import com.google.common.collect.ImmutableList;
 
 /**

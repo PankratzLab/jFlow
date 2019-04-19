@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
@@ -19,16 +20,18 @@ import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.seq.manage.StrandOps;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.bioinformatics.Sequence;
-import org.pankratzlab.common.CLI;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
+
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 

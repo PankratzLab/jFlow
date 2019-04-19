@@ -28,13 +28,16 @@ import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
+
 import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitorInputStream;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+
 import org.genvisis.meta.GenvisisVersion;
 import org.genvisis.meta.Info;
 import org.genvisis.meta.Persistence;
+
 import com.github.zafarkhaja.semver.UnexpectedCharacterException;
 import com.github.zafarkhaja.semver.Version;
 

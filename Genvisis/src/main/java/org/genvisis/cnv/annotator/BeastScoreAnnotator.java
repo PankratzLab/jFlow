@@ -9,17 +9,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
-import org.genvisis.cnv.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.stats.ProbDist;
+
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Table;

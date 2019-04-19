@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.seq.CNVExtraInfo.EXTRA_INFO_TYPE;
 import org.genvisis.seq.GenomeBuild;
@@ -26,12 +27,12 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
-import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
+import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.stats.Rscript;
-import org.pankratzlab.common.ext;
 
 public class ExomeDepth {
 

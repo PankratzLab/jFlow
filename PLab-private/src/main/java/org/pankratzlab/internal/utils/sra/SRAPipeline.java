@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.seq.manage.BamImport.AnalysisSets;

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
@@ -17,6 +18,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.filesys.LocusSet;
+
 import com.google.common.math.Stats;
 import com.google.common.math.StatsAccumulator;
 

@@ -1,6 +1,7 @@
 package org.genvisis.cnv.gui;
 
 import java.awt.Container;
+
 import javax.swing.JFrame;
 
 public class GuiManager {

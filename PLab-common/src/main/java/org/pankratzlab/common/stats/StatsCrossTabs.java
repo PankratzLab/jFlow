@@ -4,12 +4,14 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
+
 import com.google.common.primitives.Doubles;
 
 /**

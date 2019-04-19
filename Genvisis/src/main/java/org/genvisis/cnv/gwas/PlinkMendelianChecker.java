@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
@@ -21,6 +22,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.utils.gwas.Plink;
+
 import com.google.common.collect.ImmutableSet;
 
 public class PlinkMendelianChecker {

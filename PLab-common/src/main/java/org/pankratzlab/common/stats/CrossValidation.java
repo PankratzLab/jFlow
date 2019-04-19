@@ -1,6 +1,7 @@
 package org.pankratzlab.common.stats;
 
 import java.util.Hashtable;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;

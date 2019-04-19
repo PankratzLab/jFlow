@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -58,6 +59,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.CheckBoxTree;
 import org.genvisis.cnv.gui.ColorKeyPanel;
@@ -75,6 +77,7 @@ import org.pankratzlab.common.Numbers;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.gui.UITools;
+
 import com.google.common.base.Strings;
 
 public class TwoDPlot extends JPanel

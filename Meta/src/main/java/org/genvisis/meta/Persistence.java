@@ -2,6 +2,7 @@ package org.genvisis.meta;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.swing.SwingWorker;
 
 /**

@@ -3,16 +3,18 @@ package org.genvisis.one.JL;
 import java.io.File;
 import java.util.HashSet;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
+import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.genvisis.seq.manage.VCOps;
+import org.pankratzlab.common.ext;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;

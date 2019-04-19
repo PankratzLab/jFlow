@@ -5,15 +5,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.dictionary.SAMSequenceDictionarySplitter;
 import org.genvisis.seq.manage.dictionary.SAMSequenceDictionarySplitter.Query;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.qsub.Qsub;
-import org.pankratzlab.common.CLI;
+
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.variant.vcf.VCFFileReader;

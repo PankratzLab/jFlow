@@ -5,6 +5,7 @@ package org.genvisis.cnv.annotation.segments;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.BedOps;
@@ -12,6 +13,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.bed.BEDFeature;
 

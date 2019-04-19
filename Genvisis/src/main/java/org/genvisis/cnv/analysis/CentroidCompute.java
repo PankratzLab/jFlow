@@ -3,6 +3,7 @@ package org.genvisis.cnv.analysis;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -14,9 +15,10 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.Maths;
+
 import com.google.common.primitives.Doubles;
 
 /**

@@ -3,17 +3,19 @@ package org.genvisis.one.JL.mica;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.seq.analysis.Blast;
 import org.genvisis.seq.analysis.Blast.FastaEntry;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.CLI;
+
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;

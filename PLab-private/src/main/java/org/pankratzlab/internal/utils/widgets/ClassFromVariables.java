@@ -1,6 +1,7 @@
 package org.pankratzlab.internal.utils.widgets;
 
 import java.util.Vector;
+
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;

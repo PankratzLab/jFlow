@@ -10,18 +10,20 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.Producer;
-import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.ext;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;

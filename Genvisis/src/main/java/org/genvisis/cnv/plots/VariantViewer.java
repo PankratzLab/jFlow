@@ -41,6 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -69,6 +70,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.filesys.Project;
@@ -80,19 +82,20 @@ import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.CLI.Arg;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Fonts;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.TransferableImage;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
-import org.pankratzlab.common.CLI.Arg;
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.GeneTrack;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.gui.UITools;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeType;

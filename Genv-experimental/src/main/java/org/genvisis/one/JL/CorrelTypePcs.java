@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
@@ -17,6 +18,7 @@ import org.pankratzlab.common.stats.Rscript.PLOT_DEVICE;
 import org.pankratzlab.common.stats.Rscript.RScatter;
 import org.pankratzlab.common.stats.Rscript.RScatters;
 import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
+
 import com.google.common.primitives.Ints;
 
 /**

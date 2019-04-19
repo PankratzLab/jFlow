@@ -14,9 +14,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.pankratzlab.utils.gwas.bgen.BGENReader.BGENRecord;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.pankratzlab.utils.gwas.bgen.BGENReader.BGENRecord;
 
 // ZSTD library:
 // https://github.com/prestodb/presto/tree/master/presto-orc/src/main/java/com/facebook/presto/orc/zstd

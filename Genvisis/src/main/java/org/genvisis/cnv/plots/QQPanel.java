@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;

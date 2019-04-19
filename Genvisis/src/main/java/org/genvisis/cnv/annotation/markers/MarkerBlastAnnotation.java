@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
@@ -14,7 +15,9 @@ import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.collect.Maps;
+
 import htsjdk.samtools.TextCigarCodec;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.VariantContext;

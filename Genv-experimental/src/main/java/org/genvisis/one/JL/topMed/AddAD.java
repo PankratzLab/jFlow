@@ -3,8 +3,10 @@ package org.genvisis.one.JL.topMed;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.seq.manage.VCFOps;
 import org.pankratzlab.common.Logger;
+
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.GenotypesContext;

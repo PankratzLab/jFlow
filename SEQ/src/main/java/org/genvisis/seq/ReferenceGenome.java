@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.SeqOps;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
@@ -17,6 +18,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;

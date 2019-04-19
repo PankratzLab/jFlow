@@ -7,7 +7,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
+
 import org.pankratzlab.common.Files;
+
 import com.google.common.collect.ImmutableList;
 
 /**

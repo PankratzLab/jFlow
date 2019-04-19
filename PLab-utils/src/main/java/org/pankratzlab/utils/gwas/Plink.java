@@ -14,6 +14,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
@@ -24,6 +25,7 @@ import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Hits;
 import org.pankratzlab.common.qsub.Qsub;
+
 import com.google.common.collect.ImmutableSet;
 
 public class Plink {

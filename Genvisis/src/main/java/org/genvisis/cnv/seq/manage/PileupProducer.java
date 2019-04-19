@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.genvisis.seq.ReferenceGenome;
@@ -20,7 +21,9 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.collect.Sets;
+
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SamReader;

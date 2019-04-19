@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -24,13 +25,15 @@ import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import net.miginfocom.swing.MigLayout;
+
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.gui.UITools;
+
+import net.miginfocom.swing.MigLayout;
 
 public class ListEditor extends JDialog implements ActionListener {
 

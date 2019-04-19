@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.genvisis.cnv.analysis.BeastScore.BeastVariant;
 import org.genvisis.cnv.analysis.collapse.LRRForceCaller.LRRRegion;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
@@ -18,6 +19,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.collect.ImmutableSet;
 
 /**

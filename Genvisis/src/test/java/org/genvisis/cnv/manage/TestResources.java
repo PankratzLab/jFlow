@@ -2,6 +2,7 @@ package org.genvisis.cnv.manage;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.CHROMOSOME;
 import org.genvisis.cnv.Resources.Resource;

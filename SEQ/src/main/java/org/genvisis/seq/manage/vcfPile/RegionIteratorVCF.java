@@ -3,11 +3,13 @@ package org.genvisis.seq.manage.vcfPile;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
+
 import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;

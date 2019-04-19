@@ -44,6 +44,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
 // import borland.jbcl.layout.*;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -70,6 +71,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+
 import org.genvisis.dead.Incipient.Word.TimePoint;
 
 public class Incipient implements ActionListener, KeyListener, MenuListener {

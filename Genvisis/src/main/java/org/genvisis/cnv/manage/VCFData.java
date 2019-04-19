@@ -14,6 +14,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.AllelePair;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
@@ -24,14 +25,15 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.StrandOps;
+import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.CLI.Arg;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Sort;
-import org.pankratzlab.common.CLI;
-import org.pankratzlab.common.CLI.Arg;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;

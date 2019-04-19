@@ -3,12 +3,14 @@ package org.genvisis.cnv.qc;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.math3.stat.inference.ChiSquareTest;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.stats.ContingencyTable;
 import org.pankratzlab.common.stats.ProbDist;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableMap;

@@ -1,6 +1,7 @@
 package org.pankratzlab.internal.bot;
 
 import java.util.HashSet;
+
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 

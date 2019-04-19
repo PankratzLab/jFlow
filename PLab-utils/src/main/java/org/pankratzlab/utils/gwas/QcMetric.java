@@ -1,6 +1,7 @@
 package org.pankratzlab.utils.gwas;
 
 import org.pankratzlab.common.stats.Maths;
+
 import com.google.common.base.Joiner;
 
 public enum QcMetric {

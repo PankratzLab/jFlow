@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.plots.GenericRectangle;
 

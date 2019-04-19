@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
+
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
+
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.pankratzlab.common.ArrayUtils;

@@ -5,9 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomicPosition;
 import org.pankratzlab.common.PSF;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 

@@ -1,6 +1,7 @@
 package org.pankratzlab.common.filesys;
 
 import java.io.Serializable;
+
 import org.pankratzlab.common.SerializedFiles;
 
 public class SerialIntMatrix implements Serializable {

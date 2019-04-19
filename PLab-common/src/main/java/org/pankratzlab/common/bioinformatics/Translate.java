@@ -1,6 +1,7 @@
 package org.pankratzlab.common.bioinformatics;
 
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;

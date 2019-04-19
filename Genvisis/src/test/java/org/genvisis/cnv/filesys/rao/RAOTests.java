@@ -2,6 +2,7 @@ package org.genvisis.cnv.filesys.rao;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;

@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.Vector;
 import java.util.stream.Collectors;
+
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -87,6 +88,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.analysis.BeastScore;
@@ -94,6 +96,7 @@ import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
 import org.genvisis.cnv.analysis.pod.PODAnnotator;
 import org.genvisis.cnv.filesys.CNVariant;
+import org.genvisis.cnv.filesys.CNVariant.CNVBuilder;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
@@ -101,7 +104,6 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.filesys.CNVariant.CNVBuilder;
 import org.genvisis.cnv.gui.ClickListener;
 import org.genvisis.cnv.gui.ColorIcon;
 import org.genvisis.cnv.gui.ColorSequence;
@@ -136,12 +138,12 @@ import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.TransferableImage;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.TransferableImage;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.GeneTrack;
 import org.pankratzlab.common.filesys.LocusSet;
@@ -149,9 +151,11 @@ import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.mining.Transformations;
 import org.pankratzlab.common.stats.BinnedMovingStatistic.MovingStat;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Floats;
+
 import net.miginfocom.swing.MigLayout;
 
 public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener,

@@ -1,6 +1,7 @@
 package org.pankratzlab.common.stats;
 
 import java.io.IOException;
+
 import org.pankratzlab.common.ext;
 
 public class BinomialDistribution {

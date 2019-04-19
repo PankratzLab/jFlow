@@ -14,7 +14,9 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.List;
+
 import javax.swing.JPanel;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.gui.ChromosomeViewer;
 import org.genvisis.cnv.var.CNVRectangle;

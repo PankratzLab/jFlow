@@ -1,6 +1,7 @@
 package org.pankratzlab.internal.seq.analysis;
 
 import java.io.File;
+
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.pankratzlab.common.Files;

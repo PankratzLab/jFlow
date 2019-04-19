@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.ChrPositionMap;
 import org.pankratzlab.common.Files;

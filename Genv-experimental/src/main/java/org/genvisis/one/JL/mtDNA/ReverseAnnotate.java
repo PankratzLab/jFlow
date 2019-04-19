@@ -1,11 +1,13 @@
 package org.genvisis.one.JL.mtDNA;
 
 import java.io.File;
+
 import org.genvisis.seq.manage.VCOps;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.CLI;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

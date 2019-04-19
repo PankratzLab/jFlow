@@ -8,12 +8,14 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
+
 import javax.swing.AbstractAction;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.plots.ManhattanPlot.ManhattanDataPoint;

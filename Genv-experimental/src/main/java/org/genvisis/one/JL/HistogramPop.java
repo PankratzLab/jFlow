@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+
 import javax.imageio.ImageIO;
+
 import org.apache.commons.math3.random.EmpiricalDistribution;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
+
 import com.google.common.primitives.Doubles;
+
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

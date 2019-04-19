@@ -7,6 +7,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.List;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -19,11 +20,13 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
+
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.gui.UITools;
 import org.pankratzlab.common.qsub.JobQueue;
 import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.qsub.QueueProperties;
+
 import net.miginfocom.swing.MigLayout;
 
 public class QueuePicker extends JDialog {

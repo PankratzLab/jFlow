@@ -22,7 +22,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
 import javax.swing.JOptionPane;
+
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
@@ -43,6 +45,7 @@ import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 import org.pankratzlab.common.ext;
+
 import com.google.common.collect.Lists;
 
 public class SourceFileParser implements Runnable {

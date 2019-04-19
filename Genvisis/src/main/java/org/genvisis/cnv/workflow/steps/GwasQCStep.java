@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gwas.PlinkMendelianChecker;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
@@ -18,6 +19,7 @@ import org.pankratzlab.utils.gwas.MarkerQC;
 import org.pankratzlab.utils.gwas.Qc;
 import org.pankratzlab.utils.gwas.QcMetric;
 import org.pankratzlab.utils.gwas.RelationAncestryQc;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

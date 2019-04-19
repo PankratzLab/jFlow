@@ -5,9 +5,11 @@ import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
+
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 

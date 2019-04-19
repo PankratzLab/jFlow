@@ -3,6 +3,7 @@ package org.genvisis.cnv.workflow.steps;
 import java.io.File;
 import java.util.EnumSet;
 import java.util.List;
+
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.ABLookup.ABSource;
 import org.genvisis.cnv.filesys.Project;
@@ -10,9 +11,10 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

@@ -9,27 +9,31 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import javax.annotation.Nullable;
+
 import org.genvisis.cnv.filesys.CNVariant;
+import org.genvisis.cnv.filesys.CNVariant.CNVBuilder;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.filesys.CNVariant.CNVBuilder;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.Maths;
-import org.pankratzlab.common.CLI;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
 
 /**

@@ -1,7 +1,9 @@
 package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
+
 import javax.annotation.Nullable;
+
 import htsjdk.variant.variantcontext.Allele;
 
 public class AllelePair implements Serializable, Comparable<AllelePair> {

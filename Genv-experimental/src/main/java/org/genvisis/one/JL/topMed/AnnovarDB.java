@@ -7,10 +7,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.StringJoiner;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.filesys.Positions;
-import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;

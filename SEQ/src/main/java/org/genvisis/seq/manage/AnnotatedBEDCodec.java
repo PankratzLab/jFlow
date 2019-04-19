@@ -1,6 +1,7 @@
 package org.genvisis.seq.manage;
 
 import java.util.regex.Pattern;
+
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.bed.BEDFeature;

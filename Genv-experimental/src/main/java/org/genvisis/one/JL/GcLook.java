@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
@@ -27,6 +28,7 @@ import org.pankratzlab.common.stats.Rscript.PLOT_DEVICE;
 import org.pankratzlab.common.stats.Rscript.RScatter;
 import org.pankratzlab.common.stats.Rscript.RScatters;
 import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
+
 import com.google.common.collect.Lists;
 
 public class GcLook {

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.DoubleVector;
 import org.pankratzlab.common.Files;
@@ -18,6 +19,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
+
 import com.google.common.primitives.Doubles;
 
 /**

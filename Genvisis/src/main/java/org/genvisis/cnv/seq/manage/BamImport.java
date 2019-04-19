@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -60,7 +61,9 @@ import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
+
 import com.google.common.collect.ImmutableMap;
+
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;

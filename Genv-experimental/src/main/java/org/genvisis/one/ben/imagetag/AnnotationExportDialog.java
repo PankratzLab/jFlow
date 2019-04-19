@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
@@ -24,8 +25,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
+
 import org.genvisis.one.ben.imagetag.AnnotatedImage.Annotation;
 import org.pankratzlab.common.Files;
+
 import net.miginfocom.swing.MigLayout;
 
 public class AnnotationExportDialog extends JDialog {

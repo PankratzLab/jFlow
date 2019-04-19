@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -21,8 +22,10 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.ext;
+
 import net.miginfocom.swing.MigLayout;
 
 public class FileAndOutputSelectorGUI extends JDialog {

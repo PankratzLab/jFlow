@@ -10,15 +10,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Bundled;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Command;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
 
 /**
  * Class to calculate power of SKAT tests

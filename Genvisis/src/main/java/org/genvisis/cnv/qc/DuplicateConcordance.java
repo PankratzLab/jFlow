@@ -3,9 +3,11 @@ package org.genvisis.cnv.qc;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.pankratzlab.common.Logger;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;

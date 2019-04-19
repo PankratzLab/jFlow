@@ -9,12 +9,14 @@ import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.Maths;
+
 import com.google.common.primitives.Bytes;
 
 /**

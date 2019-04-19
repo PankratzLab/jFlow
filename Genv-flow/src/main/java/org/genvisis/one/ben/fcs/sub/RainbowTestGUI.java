@@ -39,6 +39,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -66,6 +67,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.genvisis.cnv.gui.IncludeExcludeGUI;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
@@ -80,7 +82,9 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.xml.sax.SAXException;
+
 import com.google.common.primitives.Doubles;
+
 import net.miginfocom.swing.MigLayout;
 
 public class RainbowTestGUI extends JFrame {

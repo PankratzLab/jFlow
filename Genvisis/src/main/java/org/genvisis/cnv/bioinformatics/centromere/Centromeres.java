@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;

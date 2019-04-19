@@ -2,6 +2,7 @@ package org.pankratzlab.common.bioinformatics;
 
 import java.io.PrintWriter;
 import java.util.Vector;
+
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;

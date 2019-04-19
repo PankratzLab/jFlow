@@ -2,6 +2,7 @@ package org.pankratzlab.internal.gwas;
 
 import java.io.PrintWriter;
 import java.util.Hashtable;
+
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.ext;

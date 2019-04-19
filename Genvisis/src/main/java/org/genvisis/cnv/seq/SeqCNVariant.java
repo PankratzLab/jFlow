@@ -1,6 +1,7 @@
 package org.genvisis.cnv.seq;
 
 import java.util.ArrayList;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.pankratzlab.common.ArrayUtils;
 

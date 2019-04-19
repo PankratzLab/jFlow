@@ -21,6 +21,7 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.Vector;
+
 import org.apache.commons.math3.stat.inference.TTest;
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
@@ -42,12 +43,13 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.ProgressMonitor.DISPLAY_MODE;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.LogisticRegression;
 import org.pankratzlab.common.stats.Ttest;
+
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;

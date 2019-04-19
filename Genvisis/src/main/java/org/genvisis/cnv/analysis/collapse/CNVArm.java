@@ -12,20 +12,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.Producer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
-import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
-import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.filesys.Segment;
 
 /**
  * Methods to replace CNVs with a forced call across an entire arm - e.g. when an entire chromosomal

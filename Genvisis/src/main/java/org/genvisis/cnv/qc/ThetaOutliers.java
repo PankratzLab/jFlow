@@ -2,6 +2,7 @@ package org.genvisis.cnv.qc;
 
 import java.io.PrintWriter;
 import java.util.Date;
+
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
@@ -15,6 +16,7 @@ import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.mining.Distance;
+
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

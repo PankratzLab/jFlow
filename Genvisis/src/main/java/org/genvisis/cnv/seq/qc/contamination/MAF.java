@@ -1,6 +1,7 @@
 package org.genvisis.cnv.seq.qc.contamination;
 
 import java.io.PrintWriter;
+
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;

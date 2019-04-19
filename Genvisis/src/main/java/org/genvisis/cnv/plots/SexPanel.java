@@ -11,9 +11,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
+
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.plots.PlotPoint.PointType;

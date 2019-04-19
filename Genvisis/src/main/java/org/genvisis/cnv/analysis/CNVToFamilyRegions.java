@@ -4,12 +4,13 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Pedigree;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
-import org.pankratzlab.common.CLI;
 
 /**
  * Helper utility for taking a CNV file and creating a regions list covering the samples of interest

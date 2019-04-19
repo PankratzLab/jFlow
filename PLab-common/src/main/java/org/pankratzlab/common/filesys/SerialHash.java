@@ -2,6 +2,7 @@ package org.pankratzlab.common.filesys;
 
 import java.io.Serializable;
 import java.util.Hashtable;
+
 import org.pankratzlab.common.SerializedFiles;
 
 public class SerialHash implements Serializable {

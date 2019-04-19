@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.seq.manage.PileupProducer;
 import org.genvisis.seq.GenomeBuild;
@@ -26,6 +27,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.variant.vcf.VCFFileReader;
 
 public class CRAMSnpReader {

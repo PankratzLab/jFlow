@@ -12,9 +12,11 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Hashtable;
+
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.LaunchAction;
@@ -24,13 +26,13 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.BROWNS;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.ORANGES;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.mining.Distance;
 

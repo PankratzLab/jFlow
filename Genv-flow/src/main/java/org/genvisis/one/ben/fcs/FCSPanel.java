@@ -16,12 +16,14 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
+
 import org.genvisis.cnv.gui.ColorIcon;
 import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
@@ -37,11 +39,11 @@ import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 import org.genvisis.one.ben.fcs.sub.PolygonGateEditor;
 import org.genvisis.one.ben.fcs.sub.RectangleGateEditor;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.ext;
 
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
 

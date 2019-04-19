@@ -6,16 +6,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringJoiner;
+
 import org.apache.commons.math3.analysis.function.Gaussian;
 import org.genvisis.cnv.filesys.CNVariant;
-import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.CNVariant.CNVBuilder;
+import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.stats.Stats;
+
 import com.google.common.primitives.Ints;
 
 /*

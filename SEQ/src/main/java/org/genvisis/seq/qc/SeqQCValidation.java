@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;

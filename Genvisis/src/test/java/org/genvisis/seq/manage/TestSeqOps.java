@@ -5,6 +5,7 @@ package org.genvisis.seq.manage;
 
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
 import org.junit.Test;
+
 import junit.framework.Assert;
 
 /**

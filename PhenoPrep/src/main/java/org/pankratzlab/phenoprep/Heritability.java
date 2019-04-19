@@ -14,6 +14,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.CountHash;
@@ -23,13 +24,14 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.FamilyStructure;
 import org.pankratzlab.common.link.LinkageMap;
 import org.pankratzlab.common.parse.GenParser;
 import org.pankratzlab.common.stats.Correlation;
 import org.pankratzlab.common.stats.ICC;
 import org.pankratzlab.common.stats.RegressionModel;
-import org.pankratzlab.common.ext;
+
 import com.google.common.primitives.Doubles;
 
 public class Heritability {

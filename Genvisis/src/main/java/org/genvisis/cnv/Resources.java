@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -37,6 +38,7 @@ import org.pankratzlab.common.filesys.FASTA;
 import org.pankratzlab.common.startup.AbstractStartupCheck;
 import org.pankratzlab.common.startup.StartupCheck;
 import org.pankratzlab.common.startup.StartupValidation;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 

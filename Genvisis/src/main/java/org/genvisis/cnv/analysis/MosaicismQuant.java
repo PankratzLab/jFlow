@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.analysis.MosaicismQuant.ComputeParams.MosaicParamsBuilder;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
@@ -27,8 +28,8 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.mining.Calcfc;
@@ -39,10 +40,12 @@ import org.pankratzlab.common.stats.Rscript.PLOT_DEVICE;
 import org.pankratzlab.common.stats.Rscript.RScatter;
 import org.pankratzlab.common.stats.Rscript.RScatters;
 import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
+
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
 
 /**

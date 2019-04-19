@@ -25,12 +25,14 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
@@ -41,6 +43,7 @@ import org.pankratzlab.common.ProgressBarDialog;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.mining.Distance;
 import org.pankratzlab.common.stats.Maths;
+
 import com.google.common.primitives.Bytes;
 
 public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener,

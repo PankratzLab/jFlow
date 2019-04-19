@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
+
 import org.genvisis.seq.analysis.VCFSimpleTally;
 import org.genvisis.seq.analysis.mutMap.VCMut;
 import org.genvisis.seq.analysis.mutMap.VCMut.MutInd;
@@ -19,6 +20,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;

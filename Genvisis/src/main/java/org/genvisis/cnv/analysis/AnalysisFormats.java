@@ -15,6 +15,7 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.Centroids.CENTROID_STRATEGY;
 import org.genvisis.cnv.filesys.MarkerData;

@@ -1,6 +1,7 @@
 package org.genvisis.cnv.plots;
 
 import java.io.Serializable;
+
 import org.pankratzlab.common.SerializedFiles;
 
 public class PlotPointSet implements Serializable {

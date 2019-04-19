@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -34,6 +35,7 @@ import org.pankratzlab.common.stats.Rscript.PLOT_DEVICE;
 import org.pankratzlab.common.stats.Rscript.RScatter;
 import org.pankratzlab.common.stats.Rscript.RScatters;
 import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
+
 import com.google.common.primitives.Doubles;
 
 public class MarkerBlastIterator {

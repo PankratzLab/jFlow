@@ -2,10 +2,13 @@ package org.genvisis.one.JL;
 
 import java.io.File;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.ext;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;

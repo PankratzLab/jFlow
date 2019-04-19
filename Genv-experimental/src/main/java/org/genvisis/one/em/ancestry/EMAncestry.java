@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.math3.distribution.MixtureMultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
@@ -16,8 +17,6 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.commons.math3.util.Pair;
-import org.genvisis.cnv.ejml.matrix.MatrixOperations;
-import org.genvisis.cnv.ejml.matrix.MatrixOperations.SCALE_METHOD;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;

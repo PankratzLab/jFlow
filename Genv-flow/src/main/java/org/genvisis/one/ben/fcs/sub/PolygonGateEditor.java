@@ -13,6 +13,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.ArrayList;
+
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
@@ -25,10 +26,12 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+
 import org.genvisis.one.ben.fcs.FCSPlot;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
 import org.genvisis.one.ben.fcs.gating.GateDimension;
+
 import net.miginfocom.swing.MigLayout;
 
 public class PolygonGateEditor extends JDialog {

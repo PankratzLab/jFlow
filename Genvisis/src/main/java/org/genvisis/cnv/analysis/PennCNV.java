@@ -17,9 +17,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
-import org.genvisis.cnv.filesys.Centroids.CENTROID_STRATEGY;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.CNVariant;
+import org.genvisis.cnv.filesys.Centroids.CENTROID_STRATEGY;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Pedigree;
@@ -38,6 +39,7 @@ import org.pankratzlab.common.SciStringComparator;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.qsub.Qsub;
+
 import com.google.common.collect.ImmutableSet;
 
 public class PennCNV {

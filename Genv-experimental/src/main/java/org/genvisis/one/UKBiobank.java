@@ -1,7 +1,11 @@
 package org.genvisis.one;
 
-import java.io.*;
-import org.pankratzlab.common.*;
+import java.io.File;
+import java.io.PrintStream;
+
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
 
 public class UKBiobank {
 

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
 import org.genvisis.cnv.annotation.markers.AnalysisParams;
 import org.genvisis.cnv.annotation.markers.AnnotationData;
 import org.genvisis.cnv.annotation.markers.AnnotationFileWriter;
@@ -36,8 +37,10 @@ import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 

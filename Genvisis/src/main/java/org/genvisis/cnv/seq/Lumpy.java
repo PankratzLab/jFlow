@@ -6,6 +6,7 @@ package org.genvisis.cnv.seq;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
 import org.pankratzlab.common.CLI;

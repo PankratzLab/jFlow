@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
+
 import org.pankratzlab.common.AlleleFreq;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.DoubleVector;
@@ -32,6 +33,7 @@ import org.pankratzlab.common.stats.ProbDist;
 import org.pankratzlab.common.stats.RegressionModel;
 import org.pankratzlab.common.stats.Stepwise;
 import org.pankratzlab.common.stats.Ttest;
+
 import com.google.common.primitives.Doubles;
 
 public class comp {

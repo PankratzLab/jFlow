@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+
 import org.genvisis.one.link.LinkageFormat;
 import org.genvisis.one.link.bat.Mendel;
 import org.pankratzlab.common.ArrayUtils;

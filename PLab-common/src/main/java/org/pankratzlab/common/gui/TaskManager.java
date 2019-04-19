@@ -2,7 +2,9 @@ package org.pankratzlab.common.gui;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
+
 import javax.swing.SwingWorker;
+
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 

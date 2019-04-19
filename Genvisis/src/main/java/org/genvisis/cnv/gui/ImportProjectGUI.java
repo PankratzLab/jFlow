@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -28,6 +29,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.GROUP;
@@ -36,6 +38,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.gui.UITools;
+
 import net.miginfocom.swing.MigLayout;
 
 /**

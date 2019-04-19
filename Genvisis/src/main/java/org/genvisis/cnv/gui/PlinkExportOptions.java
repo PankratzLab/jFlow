@@ -12,6 +12,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -28,13 +29,15 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
-import net.miginfocom.swing.MigLayout;
+
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.gui.UITools;
+
+import net.miginfocom.swing.MigLayout;
 
 public class PlinkExportOptions extends JDialog {
 

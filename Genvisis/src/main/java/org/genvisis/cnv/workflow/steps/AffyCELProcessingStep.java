@@ -2,6 +2,7 @@ package org.genvisis.cnv.workflow.steps;
 
 import java.io.File;
 import java.util.EnumSet;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.affy.APTAffy6Pipeline;
 import org.genvisis.cnv.filesys.MarkerData;

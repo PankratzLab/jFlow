@@ -3,6 +3,7 @@ package org.genvisis.dead.affy;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.filesys.Centroids;

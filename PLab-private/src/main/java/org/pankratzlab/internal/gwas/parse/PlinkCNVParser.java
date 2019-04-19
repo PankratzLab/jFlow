@@ -1,10 +1,13 @@
 package org.pankratzlab.internal.gwas.parse;
 
 import java.io.IOException;
+
 import org.genvisis.cnv.plots.PlotUtilities;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.parsing.AliasedFileColumn;
 import org.pankratzlab.common.parsing.Aliases;
+import org.pankratzlab.common.parsing.Aliases.MultipleAliasStrategy;
 import org.pankratzlab.common.parsing.ColumnFilter;
 import org.pankratzlab.common.parsing.DoubleWrapperColumn;
 import org.pankratzlab.common.parsing.FileColumn;
@@ -15,9 +18,8 @@ import org.pankratzlab.common.parsing.FixedValueColumn;
 import org.pankratzlab.common.parsing.IntegerFilter;
 import org.pankratzlab.common.parsing.IntegerWrapperColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
-import org.pankratzlab.common.parsing.Aliases.MultipleAliasStrategy;
 import org.pankratzlab.common.stats.Maths.COMPARISON;
-import org.pankratzlab.common.CLI;
+
 import com.google.common.collect.Lists;
 
 public class PlinkCNVParser {

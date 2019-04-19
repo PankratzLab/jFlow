@@ -2,7 +2,9 @@ package org.genvisis.cnv.annotation.markers;
 
 import java.util.Arrays;
 import java.util.List;
+
 import org.pankratzlab.common.Logger;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.VCFHeaderLineCount;

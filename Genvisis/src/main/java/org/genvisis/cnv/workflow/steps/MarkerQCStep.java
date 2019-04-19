@@ -5,17 +5,19 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.StringJoiner;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.ListSelectionRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
-import org.pankratzlab.common.Files;
-import org.pankratzlab.common.PSF;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
 import org.genvisis.cnv.workflow.Variables;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.PSF;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 

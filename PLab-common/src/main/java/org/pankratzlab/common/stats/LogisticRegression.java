@@ -1,6 +1,7 @@
 package org.pankratzlab.common.stats;
 
 import java.util.List;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.DoubleVector;
 import org.pankratzlab.common.Files;

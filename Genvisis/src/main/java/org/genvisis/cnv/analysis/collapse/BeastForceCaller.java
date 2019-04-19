@@ -5,10 +5,11 @@ package org.genvisis.cnv.analysis.collapse;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.BeastScore.BeastVariant;
-import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.CNVariant.CNVBuilder;
+import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;

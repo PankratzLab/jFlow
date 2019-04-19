@@ -2,6 +2,7 @@ package org.genvisis.cnv.filtering;
 
 import java.util.HashSet;
 import java.util.List;
+
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.analysis.cnvTrio;
 import org.genvisis.cnv.filesys.Project;

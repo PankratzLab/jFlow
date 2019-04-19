@@ -1,6 +1,7 @@
 package org.genvisis.cnv.prop;
 
 import java.util.Arrays;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.COPY;
 import org.genvisis.cnv.filesys.Project.GROUP;

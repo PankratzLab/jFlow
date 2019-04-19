@@ -1,14 +1,15 @@
 package org.genvisis.one.JL;
 
 import java.io.File;
+
 import org.genvisis.seq.analysis.GATK_Genotyper;
 import org.genvisis.seq.manage.VCFOps;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
 
 /**
  * Test ground for finally handling triallelic sites

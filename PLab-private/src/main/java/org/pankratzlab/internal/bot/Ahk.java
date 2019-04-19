@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.Vector;
+
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 

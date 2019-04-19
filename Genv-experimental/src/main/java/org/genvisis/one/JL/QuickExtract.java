@@ -2,6 +2,7 @@ package org.genvisis.one.JL;
 
 import java.io.File;
 import java.io.PrintWriter;
+
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
@@ -12,6 +13,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

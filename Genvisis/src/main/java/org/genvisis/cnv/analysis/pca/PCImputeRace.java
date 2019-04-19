@@ -9,6 +9,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
@@ -19,6 +20,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.Maths;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;

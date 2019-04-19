@@ -24,6 +24,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.ZipOutputStream;
+
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.utils.gwas.bgen.BGENReader.BGENRecord;

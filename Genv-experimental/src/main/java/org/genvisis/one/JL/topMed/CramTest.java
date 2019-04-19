@@ -2,7 +2,9 @@ package org.genvisis.one.JL.topMed;
 
 import java.io.File;
 import java.io.IOException;
+
 import org.genvisis.seq.manage.SamRecordOps;
+
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMRecord;

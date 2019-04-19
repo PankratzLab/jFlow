@@ -3,6 +3,7 @@ package org.genvisis.cnv.annotation.markers;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.WritingFilePrep;
@@ -12,6 +13,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
+
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.util.CloseableIterator;

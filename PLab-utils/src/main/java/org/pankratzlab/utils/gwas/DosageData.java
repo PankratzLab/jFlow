@@ -28,7 +28,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import javax.annotation.Nullable;
+
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.compress.utils.Lists;
@@ -43,24 +45,26 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.bioinformatics.Sequence;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.parsing.DataLine;
 import org.pankratzlab.common.parsing.ExplicitIndexedFileColumn;
 import org.pankratzlab.common.parsing.FileColumn;
 import org.pankratzlab.common.parsing.FileParserFactory;
-import org.pankratzlab.common.bioinformatics.Sequence;
-import org.pankratzlab.common.filesys.Positions;
-import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.LeastSquares;
 import org.pankratzlab.common.stats.LogisticRegression;
 import org.pankratzlab.common.stats.RegressionModel;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.bgen.BGENReader;
-import org.pankratzlab.utils.gwas.bgen.BGENTools;
 import org.pankratzlab.utils.gwas.bgen.BGENReader.BGENRecord;
+import org.pankratzlab.utils.gwas.bgen.BGENTools;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;

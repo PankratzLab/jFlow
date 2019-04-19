@@ -3,10 +3,12 @@ package org.genvisis.cnv.annotation.markers;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.stats.Histogram.DynamicHistogram;
+
 import htsjdk.variant.variantcontext.VariantContext;
 
 /**

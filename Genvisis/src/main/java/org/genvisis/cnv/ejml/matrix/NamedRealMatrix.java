@@ -7,9 +7,11 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.StringJoiner;
+
 import org.ejml.data.DenseMatrix64F;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 

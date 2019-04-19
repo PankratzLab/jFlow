@@ -5,6 +5,7 @@ package org.genvisis.cnv.annotation.segments;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.Logger;

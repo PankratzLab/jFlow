@@ -14,7 +14,9 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Set;
+
 import javax.annotation.Nullable;
+
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.filesys.BaselineUnclusteredMarkers;
@@ -36,6 +38,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Parallelizable;
 import org.pankratzlab.common.ProgressMonitor;
 import org.pankratzlab.common.ext;
+
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;

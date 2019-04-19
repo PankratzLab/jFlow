@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.stream.IntStream;
+
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
@@ -75,6 +76,7 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.annotation.markers.AnalysisParams;
@@ -123,7 +125,9 @@ import org.pankratzlab.common.stats.CTable;
 import org.pankratzlab.common.stats.ContingencyTable;
 import org.pankratzlab.common.stats.Histogram;
 import org.pankratzlab.common.stats.ProbDist;
+
 import com.google.common.collect.Lists;
+
 import net.miginfocom.swing.MigLayout;
 
 public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, WindowListener {

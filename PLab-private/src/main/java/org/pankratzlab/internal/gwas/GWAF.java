@@ -9,14 +9,15 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.qsub.Qsub;
-import org.pankratzlab.common.CLI;
 
 public class GWAF {
 

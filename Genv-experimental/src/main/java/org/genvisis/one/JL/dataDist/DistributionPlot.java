@@ -3,6 +3,7 @@ package org.genvisis.one.JL.dataDist;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
+
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
@@ -14,7 +15,9 @@ import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.BasicHistogram;
+
 import com.google.common.primitives.Ints;
+
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

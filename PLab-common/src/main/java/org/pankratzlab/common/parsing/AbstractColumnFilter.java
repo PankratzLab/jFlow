@@ -2,6 +2,7 @@ package org.pankratzlab.common.parsing;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 
 public abstract class AbstractColumnFilter implements ColumnFilter {

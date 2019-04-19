@@ -8,12 +8,14 @@ import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Hashtable;
+
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 

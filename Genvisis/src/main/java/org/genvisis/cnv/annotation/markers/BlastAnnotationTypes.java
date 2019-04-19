@@ -1,11 +1,13 @@
 package org.genvisis.cnv.annotation.markers;
 
 import java.util.ArrayList;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.util.CNVHelper;
 import org.genvisis.seq.analysis.Blast.BlastResults;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;

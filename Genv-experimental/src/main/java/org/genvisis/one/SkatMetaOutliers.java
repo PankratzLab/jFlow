@@ -7,6 +7,7 @@ import java.io.FilenameFilter;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;

@@ -1,6 +1,7 @@
 package org.genvisis.one.spencer.wiCell;
 
 import java.util.List;
+
 import com.google.common.collect.Lists;
 
 public class ExtractHapMapSnps {

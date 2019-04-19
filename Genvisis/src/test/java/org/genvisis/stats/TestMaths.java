@@ -3,10 +3,13 @@ package org.genvisis.stats;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 import java.util.List;
+
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.junit.Test;
 import org.pankratzlab.common.stats.Maths;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Doubles;
 

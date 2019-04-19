@@ -1,6 +1,7 @@
 package org.genvisis.cnv.gui;
 
 import java.io.File;
+
 import org.genvisis.cnv.filesys.AnnotationCollection;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 

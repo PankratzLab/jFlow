@@ -7,8 +7,10 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+
 import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
@@ -16,11 +18,11 @@ import org.genvisis.cnv.plots.PlotPoint;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.LeastSquares;
 
 public class OneDPanel extends AbstractPanel2 {

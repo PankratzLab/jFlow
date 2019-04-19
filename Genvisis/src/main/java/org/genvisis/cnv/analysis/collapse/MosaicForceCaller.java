@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
@@ -14,6 +15,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 

@@ -1,15 +1,18 @@
 package org.pankratzlab.internal.gwas.parse;
 
 import java.io.IOException;
+
 import org.genvisis.cnv.plots.ManhattanPlot;
 import org.genvisis.cnv.plots.PlotUtilities;
 import org.genvisis.cnv.plots.QQPlot;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.parsing.AbstractColumnFilter;
 import org.pankratzlab.common.parsing.AbstractFileParserFactory;
 import org.pankratzlab.common.parsing.AliasedFileColumn;
 import org.pankratzlab.common.parsing.Aliases;
+import org.pankratzlab.common.parsing.Aliases.MultipleAliasStrategy;
 import org.pankratzlab.common.parsing.ColumnFilter;
 import org.pankratzlab.common.parsing.DataLine;
 import org.pankratzlab.common.parsing.FileColumn;
@@ -17,9 +20,7 @@ import org.pankratzlab.common.parsing.FileLink;
 import org.pankratzlab.common.parsing.FileParser;
 import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.StandardFileColumns;
-import org.pankratzlab.common.parsing.Aliases.MultipleAliasStrategy;
 import org.pankratzlab.utils.gwas.windows.HitWindows;
-import org.pankratzlab.common.CLI;
 
 /**
  * Parse Plink association test results, either linear or logistic. <br />

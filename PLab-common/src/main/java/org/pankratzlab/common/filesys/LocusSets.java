@@ -2,6 +2,7 @@ package org.pankratzlab.common.filesys;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.pankratzlab.common.Logger;
 
 public class LocusSets<T extends Segment> {

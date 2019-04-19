@@ -3,6 +3,7 @@ package org.genvisis.one.JL.ngs.pca;
 import java.io.File;
 import java.io.IOException;
 import java.util.StringJoiner;
+
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
@@ -13,6 +14,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;

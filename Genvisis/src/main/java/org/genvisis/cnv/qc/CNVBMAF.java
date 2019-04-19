@@ -1,12 +1,14 @@
 package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
+
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
+
 import com.google.common.primitives.Doubles;
 
 /**

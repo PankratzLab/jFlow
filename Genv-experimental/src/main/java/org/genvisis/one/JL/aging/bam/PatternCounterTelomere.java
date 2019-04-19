@@ -3,6 +3,7 @@ package org.genvisis.one.JL.aging.bam;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
 import org.genvisis.one.JL.aging.bam.BamAnalysisFilters.GCRangeFilter;
 import org.genvisis.one.JL.aging.bam.BamAnalysisFilters.PatternFilter;
 import org.genvisis.seq.manage.BamOps;
@@ -11,6 +12,7 @@ import org.genvisis.seq.qc.FlagStats;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.filter.SamRecordFilter;
 

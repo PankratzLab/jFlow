@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
+
 import org.pankratzlab.common.Files;
 
 public class removeInds {

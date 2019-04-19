@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
+
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
+
 import org.pankratzlab.common.ProgressMonitor.DISPLAY_MODE;
 
 class Task {

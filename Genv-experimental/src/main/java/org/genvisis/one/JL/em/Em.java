@@ -2,6 +2,7 @@ package org.genvisis.one.JL.em;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.math3.distribution.MixtureMultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureExpectationMaximization;
@@ -12,7 +13,9 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
+
 import com.google.common.primitives.Doubles;
+
 import edu.stanford.facs.logicle.Logicle;
 
 /**

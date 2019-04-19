@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.DoubleVector;
 import org.pankratzlab.common.Files;
@@ -22,6 +23,7 @@ import org.pankratzlab.common.mining.Transformations;
 import org.pankratzlab.common.stats.Correlation;
 import org.pankratzlab.common.stats.Ttest;
 import org.pankratzlab.utils.gwas.Plink;
+
 import com.google.common.primitives.Doubles;
 
 public class MatchSamples {

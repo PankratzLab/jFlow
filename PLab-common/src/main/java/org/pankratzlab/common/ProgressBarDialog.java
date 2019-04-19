@@ -2,6 +2,7 @@ package org.pankratzlab.common;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;

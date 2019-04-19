@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
 import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -27,15 +28,17 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
-import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.CHROMOSOME;
 import org.genvisis.cnv.filesys.AllelePair;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.FileChooser;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
 import org.pankratzlab.common.Aliases;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomicPosition;
 import org.pankratzlab.common.Logger;
@@ -53,10 +56,11 @@ import org.pankratzlab.common.parsing.FileColumn;
 import org.pankratzlab.common.parsing.FileParser;
 import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.StandardFileColumns;
-import org.pankratzlab.common.CLI;
+
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
+
 import htsjdk.variant.variantcontext.Allele;
 import net.miginfocom.swing.MigLayout;
 

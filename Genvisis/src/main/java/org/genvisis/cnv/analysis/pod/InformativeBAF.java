@@ -5,6 +5,7 @@ package org.genvisis.cnv.analysis.pod;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.cnv.analysis.pod.PODGenotype.BAF_EFFECT;
 import org.genvisis.cnv.analysis.pod.PODGenotype.Genotype;

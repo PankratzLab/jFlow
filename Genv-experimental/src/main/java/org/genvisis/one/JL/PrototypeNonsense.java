@@ -2,6 +2,7 @@ package org.genvisis.one.JL;
 
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.Logger;
+
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.Options;

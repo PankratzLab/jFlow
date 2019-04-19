@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.DefaultCellEditor;
@@ -51,7 +52,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-import net.miginfocom.swing.MigLayout;
+
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.filesys.Project.GROUP;
@@ -67,8 +68,11 @@ import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.gui.UITools;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+
+import net.miginfocom.swing.MigLayout;
 
 public class ProjectPropertiesEditor extends JFrame {
 

@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.Project;
@@ -18,8 +19,9 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.Correlation;
 import org.pankratzlab.common.stats.ICC;
 import org.pankratzlab.common.stats.IrrTable;
-import org.pankratzlab.common.stats.Quantiles;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.stats.Quantiles;
+
 import com.google.common.primitives.Doubles;
 
 public class PrincipalComponentsEval {

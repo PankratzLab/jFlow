@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
+
 import javax.swing.AbstractAction;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
@@ -21,6 +22,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ColorIcon;
 import org.genvisis.cnv.gui.WrapLayout;
@@ -30,6 +32,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.gui.UITools;
+
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Bytes;
 

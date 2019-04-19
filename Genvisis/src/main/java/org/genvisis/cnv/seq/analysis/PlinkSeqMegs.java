@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.analysis.PlinkSeq;
@@ -26,9 +27,10 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.GeneTrack;
 import org.pankratzlab.common.qsub.Qsub;
-import org.pankratzlab.common.ext;
+
 import htsjdk.variant.vcf.VCFFileReader;
 
 /**

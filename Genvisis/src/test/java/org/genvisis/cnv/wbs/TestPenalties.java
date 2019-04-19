@@ -4,10 +4,12 @@
 package org.genvisis.cnv.wbs;
 
 import java.util.Arrays;
+
 import org.genvisis.cnv.wbs.ChangePoints.PenalizedChangePoints;
 import org.genvisis.cnv.wbs.Penalties.Penalty_type;
 import org.junit.Test;
 import org.pankratzlab.common.Logger;
+
 import junit.framework.Assert;
 
 /**

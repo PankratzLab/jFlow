@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
@@ -25,9 +26,10 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;

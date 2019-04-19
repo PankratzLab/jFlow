@@ -9,6 +9,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.genvisis.seq.manage.VCFOps.PLINK_SET_MODE;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
@@ -19,6 +20,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.qsub.Qsub;
+
 import com.google.common.collect.Maps;
 
 public class RelationAncestryQc extends Qc {

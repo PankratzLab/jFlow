@@ -9,10 +9,11 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
 
 /**
  * This utility takes the .trio.cnv output from {@link cnvTrio} and the .log outputs from PennCNV

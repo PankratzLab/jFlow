@@ -2,6 +2,7 @@ package org.pankratzlab.internal.gwas;
 
 import java.io.File;
 import java.util.Vector;
+
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.qsub.Qsub;

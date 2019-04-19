@@ -3,12 +3,14 @@ package org.genvisis.seq.manage.mosdepth;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.variant.variantcontext.VariantContext;
 
 public class MappabilityCompute {

@@ -3,7 +3,9 @@ package org.genvisis.cnv.filesys;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
+
 import org.pankratzlab.common.IntVector;
+
 import com.google.common.primitives.Ints;
 
 /**

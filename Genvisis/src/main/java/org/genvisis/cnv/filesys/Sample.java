@@ -14,11 +14,13 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.DoubleVector;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
@@ -27,7 +29,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Doubles;
 

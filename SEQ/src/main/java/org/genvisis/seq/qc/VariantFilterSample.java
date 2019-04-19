@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilterPass;
 import org.pankratzlab.common.Logger;
+
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 

@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
@@ -32,6 +33,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.CrossValidation;
 import org.pankratzlab.common.stats.ICC;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
+
 import com.google.common.primitives.Doubles;
 
 public class IntensityCorrectionQC {

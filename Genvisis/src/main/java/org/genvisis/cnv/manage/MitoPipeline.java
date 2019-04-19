@@ -8,9 +8,10 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+
 import org.genvisis.cnv.LaunchProperties;
-import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
+import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator;
 import org.genvisis.cnv.analysis.pca.PCA;
@@ -40,8 +41,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Ext;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 
 /**

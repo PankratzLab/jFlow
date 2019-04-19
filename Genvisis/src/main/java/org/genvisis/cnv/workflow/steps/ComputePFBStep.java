@@ -2,6 +2,7 @@ package org.genvisis.cnv.workflow.steps;
 
 import java.io.File;
 import java.util.EnumSet;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.hmm.PFB;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
@@ -10,9 +11,9 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
 
 public class ComputePFBStep extends Step {
 

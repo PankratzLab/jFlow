@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
@@ -31,14 +32,15 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.CrossValidation;
 import org.pankratzlab.common.stats.LeastSquares;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import org.pankratzlab.common.stats.RegressionModel;
 import org.pankratzlab.common.stats.StatsCrossTabs;
-import org.pankratzlab.common.stats.Stepwise;
-import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import org.pankratzlab.common.stats.StatsCrossTabs.STAT_TYPE;
 import org.pankratzlab.common.stats.StatsCrossTabs.StatsCrossTabRank;
 import org.pankratzlab.common.stats.StatsCrossTabs.VALUE_TYPE;
+import org.pankratzlab.common.stats.Stepwise;
 import org.pankratzlab.common.stats.Stepwise.StepWiseSummary;
+
 import com.google.common.primitives.Doubles;
 
 /**

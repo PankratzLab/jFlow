@@ -1,6 +1,7 @@
 package org.pankratzlab.internal.gwas.parse;
 
 import java.io.IOException;
+
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.parsing.AliasedFileColumn;
 import org.pankratzlab.common.parsing.DoubleWrapperColumn;

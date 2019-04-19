@@ -1,9 +1,11 @@
 package org.genvisis.cnv.util;
 
 import java.io.PrintWriter;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
+
 import htsjdk.tribble.annotation.Strand;
 
 /**

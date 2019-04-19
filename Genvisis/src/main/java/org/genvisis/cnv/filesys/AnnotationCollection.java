@@ -17,7 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
+
 import javax.swing.JOptionPane;
+
 import org.genvisis.cnv.manage.TextExport;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -25,8 +27,6 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.MultimapBuilder;
 
 public class AnnotationCollection implements Serializable, TextExport {
 

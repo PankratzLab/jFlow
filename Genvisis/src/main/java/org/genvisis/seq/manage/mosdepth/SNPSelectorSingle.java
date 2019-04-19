@@ -3,6 +3,7 @@ package org.genvisis.seq.manage.mosdepth;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.genvisis.cnv.Resources;
@@ -15,7 +16,9 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.collect.Sets;
+
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;

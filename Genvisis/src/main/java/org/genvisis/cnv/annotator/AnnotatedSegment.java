@@ -3,7 +3,9 @@
 package org.genvisis.cnv.annotator;
 
 import java.util.Collection;
+
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;

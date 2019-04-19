@@ -8,9 +8,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -20,11 +21,12 @@ import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerHive;
-import org.pankratzlab.common.CLI;
+
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

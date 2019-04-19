@@ -1,8 +1,10 @@
 package org.genvisis.cnv.annotation.markers;
 
 import java.util.ArrayList;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
+
 import htsjdk.variant.vcf.VCFHeaderLine;
 
 public class BlastParams implements AnalysisParams {

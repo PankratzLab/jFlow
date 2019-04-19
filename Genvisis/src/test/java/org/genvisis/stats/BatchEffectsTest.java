@@ -1,9 +1,11 @@
 package org.genvisis.stats;
 
 import static org.junit.Assert.assertEquals;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.ParseException;
+
 import org.apache.commons.math3.stat.inference.TTest;
 import org.genvisis.cnv.plots.stats.BatchEffects;
 import org.genvisis.cnv.plots.stats.BatchEffectsBuilder;

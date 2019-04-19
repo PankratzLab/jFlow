@@ -1,6 +1,7 @@
 package org.genvisis.cnv.gui;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
 import javax.swing.JRadioButton;
 

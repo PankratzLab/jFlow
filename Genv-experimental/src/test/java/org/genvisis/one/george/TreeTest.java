@@ -1,6 +1,7 @@
 package org.genvisis.one.george;
 
 import static org.junit.Assert.fail;
+
 import org.junit.Test;
 
 public class TreeTest {

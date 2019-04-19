@@ -12,10 +12,12 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Hashtable;
+
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+
 import org.genvisis.cnv.plots.AbstractPanel;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.HashVec;

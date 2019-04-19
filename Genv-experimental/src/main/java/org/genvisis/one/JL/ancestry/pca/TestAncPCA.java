@@ -1,13 +1,11 @@
 package org.genvisis.one.JL.ancestry.pca;
 
 import java.io.File;
-import org.genvisis.cnv.ejml.matrix.SVD;
+
 import org.genvisis.cnv.gwas.pca.ancestry.AncestryPCA;
 import org.genvisis.cnv.gwas.pca.ancestry.PlinkDataMatrixLoader;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 
 public class TestAncPCA {
 

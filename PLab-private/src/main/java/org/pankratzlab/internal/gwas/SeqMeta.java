@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -49,6 +50,7 @@ import org.pankratzlab.common.stats.Correlation;
 import org.pankratzlab.common.stats.ProbDist;
 import org.pankratzlab.common.stats.Rscript;
 import org.pankratzlab.utils.gwas.windows.HitWindows;
+
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

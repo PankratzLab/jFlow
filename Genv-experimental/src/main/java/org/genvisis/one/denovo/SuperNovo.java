@@ -24,6 +24,7 @@ import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CountHash;
 import org.pankratzlab.common.Files;
@@ -36,6 +37,7 @@ import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.filesys.SegmentLists;
 import org.pankratzlab.common.qsub.Qsub;
+
 import com.google.common.base.Strings;
 
 public class SuperNovo {

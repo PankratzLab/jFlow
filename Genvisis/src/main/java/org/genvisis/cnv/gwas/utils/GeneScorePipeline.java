@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.Vector;
 import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.MultiSet;
 import org.apache.commons.collections4.multiset.HashMultiSet;
 import org.apache.commons.math3.stat.inference.TTest;
@@ -62,6 +63,7 @@ import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.DosageData;
 import org.pankratzlab.utils.gwas.DosageData.Trio;
 import org.pankratzlab.utils.gwas.windows.HitWindows;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;

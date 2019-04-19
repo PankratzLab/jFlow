@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
@@ -24,6 +25,7 @@ import org.pankratzlab.common.parse.GenParser;
 import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.stats.ProbDist;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
+
 import com.google.common.primitives.Ints;
 
 public class Probabel {

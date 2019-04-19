@@ -3,10 +3,13 @@ package org.genvisis.seq.manage;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.bioinformatics.Sequence;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;

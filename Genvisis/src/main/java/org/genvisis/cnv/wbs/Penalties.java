@@ -6,7 +6,9 @@ package org.genvisis.cnv.wbs;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import org.genvisis.cnv.wbs.ChangePoint.ChangePointComparable;
+
 import com.google.common.primitives.Doubles;
 
 /**

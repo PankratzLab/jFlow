@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+
 import org.genvisis.jfcs.FCSKeywords;
 import org.genvisis.jfcs.FCSReader;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;

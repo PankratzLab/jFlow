@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.EventObject;
 import java.util.Vector;
+
 import javax.swing.AbstractCellEditor;
 import javax.swing.JCheckBox;
 import javax.swing.JTree;
@@ -23,6 +24,7 @@ import javax.swing.tree.TreeCellEditor;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.PSF;
 

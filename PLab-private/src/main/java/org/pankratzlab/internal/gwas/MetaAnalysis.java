@@ -1,6 +1,7 @@
 package org.pankratzlab.internal.gwas;
 
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;

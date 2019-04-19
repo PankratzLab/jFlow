@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.stream.Stream;
+
 import javax.annotation.Nonnull;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -24,6 +25,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.meta.Info;
 import org.pankratzlab.common.Files;

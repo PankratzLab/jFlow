@@ -1,7 +1,9 @@
 package org.genvisis.cnv.gui;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
+
 import org.genvisis.cnv.plots.ScatterPlot;
 
 public class AnnotationAction extends AbstractAction {

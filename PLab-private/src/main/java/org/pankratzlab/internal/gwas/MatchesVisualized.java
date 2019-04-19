@@ -7,8 +7,10 @@ import java.awt.Graphics;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.HashVec;

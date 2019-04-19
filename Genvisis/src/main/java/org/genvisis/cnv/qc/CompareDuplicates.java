@@ -1,6 +1,7 @@
 package org.genvisis.cnv.qc;
 
 import java.io.PrintWriter;
+
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;

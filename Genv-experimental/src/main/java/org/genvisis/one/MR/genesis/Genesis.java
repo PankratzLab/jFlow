@@ -7,14 +7,15 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
+
 import org.apache.commons.cli.ParseException;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.stats.Rscript;
-import org.pankratzlab.common.CLI;
 
 public class Genesis {
 

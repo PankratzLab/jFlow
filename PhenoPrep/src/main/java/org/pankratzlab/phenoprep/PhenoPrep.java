@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+
 import org.genvisis.cnv.analysis.GenCNV;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.TwoDPlot;

@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -43,6 +44,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.genvisis.cnv.gui.FileChooser;
 import org.genvisis.cnv.gui.GuiManager;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;

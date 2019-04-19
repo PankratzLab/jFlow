@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
@@ -21,6 +22,7 @@ import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 import org.pankratzlab.common.stats.LeastSquares;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import org.pankratzlab.common.stats.RegressionModel;
+
 import com.google.common.primitives.Doubles;
 
 public class BAFContamination {

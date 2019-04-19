@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
+
 import org.pankratzlab.common.Logger;
 
 public class RAOReader<T extends RAObject> implements Iterator<T> {

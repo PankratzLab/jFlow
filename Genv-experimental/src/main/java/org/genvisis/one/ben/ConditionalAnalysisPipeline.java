@@ -16,6 +16,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import org.genvisis.one.ScriptExecutor;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
@@ -27,6 +28,7 @@ import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.stats.LeastSquares;
 import org.pankratzlab.internal.gwas.FAST;
 import org.pankratzlab.internal.gwas.FAST.DataDefinitions;
+
 import com.google.common.primitives.Doubles;
 
 public class ConditionalAnalysisPipeline {

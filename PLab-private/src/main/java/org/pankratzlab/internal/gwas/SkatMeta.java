@@ -2,6 +2,7 @@ package org.pankratzlab.internal.gwas;
 
 import java.io.File;
 import java.util.Vector;
+
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -13,6 +14,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.MetaAnalysisParams;
 import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.stats.Rscript;
+
 import com.google.common.primitives.Ints;
 
 public class SkatMeta {

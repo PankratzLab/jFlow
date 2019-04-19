@@ -2,7 +2,9 @@ package org.genvisis.cnv.gui;
 
 import java.awt.Component;
 import java.io.File;
+
 import javax.swing.JFileChooser;
+
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 

@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Vector;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.CountVector;
@@ -32,6 +33,7 @@ import org.pankratzlab.common.filesys.Pedfile;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.Plink;
+
 import com.google.common.primitives.Ints;
 
 public class Beagle {

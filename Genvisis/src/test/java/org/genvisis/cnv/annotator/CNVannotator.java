@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Centroids;

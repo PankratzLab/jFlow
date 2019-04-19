@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -38,6 +39,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.filesys.CNVariant;
@@ -64,6 +66,7 @@ import org.pankratzlab.common.filesys.GeneTrack;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.gui.UITools;
+
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;

@@ -2,6 +2,7 @@ package org.pankratzlab.internal.gwas;
 
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;

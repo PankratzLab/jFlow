@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.analysis.VCFSimpleTally.GeneVariantPositionSummary.ADD_TYPE;
 import org.genvisis.seq.manage.GenotypeOps;
 import org.genvisis.seq.manage.VCFOps;
@@ -36,6 +37,7 @@ import org.genvisis.seq.qc.FilterNGS.VcFilterBoolean;
 import org.genvisis.seq.qc.FilterNGS.VcFilterDouble;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.ExcelConverter;
+import org.pankratzlab.common.ExcelConverter.ExcelConversionParams;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
@@ -44,11 +46,12 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.ExcelConverter.ExcelConversionParams;
 import org.pankratzlab.common.bioinformatics.OMIM;
 import org.pankratzlab.common.bioinformatics.OMIM.OMIMGene;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.primitives.Ints;
+
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;

@@ -2,6 +2,7 @@ package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.CNVariant.CONSENSUS_TYPE;
 import org.genvisis.cnv.filesys.CNVariant.MatchResults;

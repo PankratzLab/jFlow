@@ -3,6 +3,7 @@ package org.genvisis.cnv.gui;
 import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
+
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;

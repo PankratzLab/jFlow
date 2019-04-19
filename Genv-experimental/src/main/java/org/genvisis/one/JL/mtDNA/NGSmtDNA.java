@@ -1,6 +1,7 @@
 package org.genvisis.one.JL.mtDNA;
 
 import java.io.File;
+
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
 import org.genvisis.seq.analysis.SimpleTallyGene;
@@ -14,6 +15,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;

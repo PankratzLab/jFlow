@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
@@ -23,6 +24,7 @@ import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.utils.gwas.Qc;
 import org.pankratzlab.utils.gwas.RelationAncestryQc;
+
 import com.google.common.primitives.Doubles;
 
 /**

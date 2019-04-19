@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.stream.Stream;
+
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
@@ -29,6 +30,7 @@ import org.genvisis.cnv.plots.ColorExt.ColorItem;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
@@ -38,7 +40,7 @@ import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.CrossValidation;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
-import org.pankratzlab.common.CLI;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;

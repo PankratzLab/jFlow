@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
@@ -14,6 +15,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.utils.gwas.MarkerQC;
 import org.pankratzlab.utils.gwas.Qc;
 import org.pankratzlab.utils.gwas.QcMetric;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 

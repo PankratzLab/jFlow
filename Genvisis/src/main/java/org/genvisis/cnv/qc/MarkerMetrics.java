@@ -18,6 +18,7 @@ import java.util.StringJoiner;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
 import org.genvisis.cnv.filesys.AnnotationCollection;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -44,6 +45,7 @@ import org.pankratzlab.common.stats.LogisticRegression;
 import org.pankratzlab.common.stats.RegressionModel;
 import org.pankratzlab.common.stats.Ttest;
 import org.pankratzlab.utils.db.FilterDB;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashBasedTable;

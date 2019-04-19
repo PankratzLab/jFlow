@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;

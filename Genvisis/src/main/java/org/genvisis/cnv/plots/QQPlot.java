@@ -10,20 +10,22 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.Sort;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.ORANGES;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
 import org.pankratzlab.common.PSF.Colors.YELLOWS;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.SerialFloatArray;
 
 public class QQPlot {

@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+
 import org.genvisis.cnv.filesys.LDdatabase;
 import org.genvisis.cnv.filesys.LongLDdb;
 import org.genvisis.cnv.filesys.ResultSet;
@@ -40,6 +41,7 @@ import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
+
 import com.google.common.primitives.Ints;
 
 public class IndependentSNPs {

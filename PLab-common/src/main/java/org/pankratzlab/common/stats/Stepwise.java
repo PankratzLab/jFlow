@@ -8,13 +8,15 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
+
 import com.google.common.primitives.Ints;
 
 public class Stepwise {

@@ -11,6 +11,7 @@ import static java.awt.event.KeyEvent.VK_NUMPAD6;
 import static java.awt.event.KeyEvent.VK_NUMPAD7;
 import static java.awt.event.KeyEvent.VK_NUMPAD8;
 import static java.awt.event.KeyEvent.VK_NUMPAD9;
+
 import java.awt.AWTException;
 import java.awt.MouseInfo;
 import java.awt.Point;

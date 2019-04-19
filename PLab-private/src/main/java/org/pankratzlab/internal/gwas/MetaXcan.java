@@ -2,6 +2,7 @@ package org.pankratzlab.internal.gwas;
 
 import java.io.File;
 import java.util.ArrayList;
+
 import org.genvisis.cnv.Launch;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;

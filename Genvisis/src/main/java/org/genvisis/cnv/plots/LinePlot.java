@@ -26,6 +26,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
+
 import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
 import javax.swing.InputMap;
@@ -46,6 +47,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.CheckBoxTree;
 import org.genvisis.cnv.gui.ColorIcon;

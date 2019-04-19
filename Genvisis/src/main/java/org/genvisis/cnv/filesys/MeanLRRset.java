@@ -1,6 +1,7 @@
 package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
+
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.filesys.Segment;
 

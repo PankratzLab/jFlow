@@ -1,12 +1,14 @@
 package org.genvisis.cnv.annotation.markers;
 
 import java.util.List;
+
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.TOP_BOT;
 import org.genvisis.cnv.util.CNVHelper;
 import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;

@@ -21,6 +21,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.TreeSet;
+
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
@@ -46,6 +47,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import org.genvisis.cnv.gui.JAccordionPanel;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
@@ -53,6 +55,7 @@ import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import org.genvisis.one.ben.fcs.FCSPanel.GATING_TOOL;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
+
 import net.miginfocom.swing.MigLayout;
 
 public class FCSPlotControlPanel extends JPanel {

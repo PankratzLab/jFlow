@@ -6,7 +6,9 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import javax.jms.IllegalStateException;
+
 import org.genvisis.seq.analysis.GATK.MutectTumorNormal;
 import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
 import org.genvisis.seq.analysis.GATK_Genotyper.ANNOVCF;
@@ -31,6 +33,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
+
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.VariantContext;

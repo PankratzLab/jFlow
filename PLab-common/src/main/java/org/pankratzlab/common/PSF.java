@@ -2,6 +2,7 @@ package org.pankratzlab.common;
 
 import java.awt.Color;
 import java.util.Set;
+
 import com.google.common.collect.Sets;
 
 /**

@@ -22,6 +22,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
@@ -33,6 +34,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+
 import org.genvisis.cnv.gui.JPanelFlowLayoutComponentListener;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;

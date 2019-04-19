@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.CHROMOSOME;
 import org.genvisis.cnv.Resources.Resource;

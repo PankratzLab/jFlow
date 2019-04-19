@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
@@ -26,6 +27,7 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 import org.pankratzlab.common.ext;
+
 import com.google.common.collect.ImmutableList;
 
 public class MDL implements Iterator<MarkerData> {

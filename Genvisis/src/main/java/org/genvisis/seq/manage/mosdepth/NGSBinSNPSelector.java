@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.math3.util.Pair;
 import org.pankratzlab.common.HashVec;
@@ -12,6 +13,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.Maths.COMPARISON;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;

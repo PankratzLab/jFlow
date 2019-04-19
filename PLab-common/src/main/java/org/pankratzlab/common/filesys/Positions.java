@@ -1,11 +1,12 @@
 package org.pankratzlab.common.filesys;
 
 import java.net.URLEncoder;
-import org.pankratzlab.common.parsing.Aliases;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.parsing.AliasedFileColumn;
+import org.pankratzlab.common.parsing.Aliases;
 import org.pankratzlab.common.parsing.IndexedFileColumn;
 import org.pankratzlab.common.parsing.NumberWrapperColumn;
 

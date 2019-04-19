@@ -2,6 +2,7 @@ package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
 import java.util.Hashtable;
+
 import org.pankratzlab.common.SerializedFiles;
 
 public class OutlierHashtable implements Serializable {

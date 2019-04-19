@@ -4,8 +4,10 @@
 package org.genvisis.common.pca.ancestry;
 
 import static org.junit.Assert.assertEquals;
+
 import java.util.HashMap;
 import java.util.Map;
+
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.genvisis.cnv.ejml.matrix.MatrixDataLoading;

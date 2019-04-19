@@ -3,9 +3,10 @@
  */
 package org.genvisis.seq.manage.mtdna;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 import org.pankratzlab.common.Logger;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Kitty

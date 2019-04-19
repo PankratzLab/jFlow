@@ -8,7 +8,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Hashtable;
+
 import javax.swing.JPopupMenu;
+
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.CountVector;

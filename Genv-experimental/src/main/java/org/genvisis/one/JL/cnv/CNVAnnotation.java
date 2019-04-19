@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.annotation.segments.GDIAnnotator;
 import org.genvisis.cnv.annotation.segments.GeneAnnotator;
@@ -27,6 +28,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
 import org.pankratzlab.common.filesys.Segment;
+
 import com.google.common.primitives.Ints;
 
 /**

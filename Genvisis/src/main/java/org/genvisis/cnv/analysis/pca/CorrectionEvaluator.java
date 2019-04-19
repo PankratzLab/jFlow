@@ -4,19 +4,21 @@ import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals.PrincipalComponentsIterator;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.ArrayUtils.BooleanClassifier;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
-import org.pankratzlab.common.ArrayUtils.BooleanClassifier;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 import org.pankratzlab.common.stats.Correlation;
 import org.pankratzlab.common.stats.CrossValidation;
 import org.pankratzlab.common.stats.ICC;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
+
 import com.google.common.primitives.Doubles;
 
 public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>

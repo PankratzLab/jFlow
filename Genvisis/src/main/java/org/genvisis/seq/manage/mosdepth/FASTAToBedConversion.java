@@ -1,6 +1,7 @@
 package org.genvisis.seq.manage.mosdepth;
 
 import java.io.PrintWriter;
+
 import org.genvisis.cnv.Resources;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;

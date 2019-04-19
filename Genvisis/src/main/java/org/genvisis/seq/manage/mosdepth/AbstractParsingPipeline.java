@@ -3,6 +3,7 @@ package org.genvisis.seq.manage.mosdepth;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerSet;

@@ -3,7 +3,9 @@ package org.genvisis.one.JL.fcs;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
@@ -12,7 +14,6 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.stats.Rscript;
-import org.pankratzlab.common.CLI;
 
 /**
  * Class for setting up runs of OpenCyto

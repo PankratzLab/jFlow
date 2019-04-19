@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map.Entry;
 import java.util.Vector;
+
 import javax.swing.JOptionPane;
+
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.pankratzlab.common.ArrayUtils;

@@ -3,6 +3,7 @@ package org.genvisis.cnv.seq.manage;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;

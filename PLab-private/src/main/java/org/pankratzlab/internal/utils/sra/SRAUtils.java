@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.manage.BamOps;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;

@@ -4,11 +4,13 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.genvisis.cnv.filesys.ReadingFilePrep;
 import org.genvisis.seq.manage.VCFOps;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.TribbleException;

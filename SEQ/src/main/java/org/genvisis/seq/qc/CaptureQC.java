@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;

@@ -1,7 +1,9 @@
 package org.genvisis.one.JL.aging.bam;
 
 import java.util.List;
+
 import org.pankratzlab.common.Logger;
+
 import htsjdk.samtools.SAMRecord;
 
 // mtDNA CN, telomere length, chr X/Y loss will implement this interface ... goal is to read bam

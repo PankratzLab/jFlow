@@ -2,6 +2,7 @@ package org.genvisis.cnv.annotator;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.pankratzlab.common.filesys.Segment;
 
 /**

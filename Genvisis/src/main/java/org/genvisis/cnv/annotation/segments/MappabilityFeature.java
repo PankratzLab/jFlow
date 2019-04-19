@@ -5,6 +5,7 @@ package org.genvisis.cnv.annotation.segments;
 
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.pankratzlab.common.Logger;
+
 import htsjdk.tribble.bed.BEDFeature;
 
 /**

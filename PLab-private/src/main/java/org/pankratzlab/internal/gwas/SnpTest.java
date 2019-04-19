@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
@@ -21,7 +23,6 @@ import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.FixedValueColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.common.qsub.Qsub;
-import org.pankratzlab.common.CLI;
 
 public class SnpTest {
 

@@ -6,9 +6,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.genvisis.cnv.filesys.CNVariant;
-import org.genvisis.cnv.seq.manage.PileupProducer;
 import org.genvisis.cnv.seq.manage.BamSample.NORMALIZATON_METHOD;
+import org.genvisis.cnv.seq.manage.PileupProducer;
 import org.genvisis.cnv.seq.qc.Mappability;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BEDFileReader;
@@ -31,6 +32,7 @@ import org.pankratzlab.common.stats.Rscript.PLOT_DEVICE;
 import org.pankratzlab.common.stats.Rscript.RScatter;
 import org.pankratzlab.common.stats.Rscript.RScatters;
 import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
+
 import com.google.common.primitives.Ints;
 
 /**

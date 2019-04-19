@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.cli.ParseException;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.plots.PlotUtilities;
@@ -29,6 +30,7 @@ import org.pankratzlab.common.collect.RangeSetMultimap;
 import org.pankratzlab.common.collect.TreeRangeSetMultimap;
 import org.pankratzlab.common.stats.LeastSquares;
 import org.pankratzlab.common.stats.MpermResults;
+
 import com.google.common.collect.Range;
 
 public class PermutationTest {

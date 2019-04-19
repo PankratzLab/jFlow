@@ -1,9 +1,10 @@
 package org.genvisis.cnv.analysis.collapse;
 
 import java.util.Set;
+
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
-import org.pankratzlab.common.filesys.Segment;
 import org.genvisis.cnv.filesys.Project;
+import org.pankratzlab.common.filesys.Segment;
 
 public abstract class MarkerBasedForcedCaller<T extends Segment> extends ForcedCaller<T> {
 

@@ -2,6 +2,7 @@ package org.genvisis.cnv.annotation.markers;
 
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.AnnotationQuery;
 import org.pankratzlab.common.Logger;
+
 import htsjdk.variant.variantcontext.VariantContext;
 
 /**

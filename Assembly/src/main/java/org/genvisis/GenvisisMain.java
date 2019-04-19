@@ -7,7 +7,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+
 import javax.swing.JOptionPane;
+
 import org.genvisis.cnv.Launch;
 import org.pankratzlab.common.LauncherManifest;
 

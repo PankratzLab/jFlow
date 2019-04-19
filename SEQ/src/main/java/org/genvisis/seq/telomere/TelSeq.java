@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BEDFileReader;
@@ -16,8 +17,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.LocusSet;
 
 /**
  * @author Kitty Class for assisting in generating telomere length estimates with TelSeq

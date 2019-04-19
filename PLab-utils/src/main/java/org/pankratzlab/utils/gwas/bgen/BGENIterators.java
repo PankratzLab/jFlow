@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.pankratzlab.utils.gwas.bgen.BGENReader.BGENRecord;
 import org.pankratzlab.utils.gwas.bgen.BGENReader.BGENRecordMetaData;
 

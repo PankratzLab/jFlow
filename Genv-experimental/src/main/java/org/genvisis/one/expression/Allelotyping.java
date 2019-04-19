@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.DoubleVector;
 import org.pankratzlab.common.Files;
@@ -16,6 +17,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.Maths;
 import org.pankratzlab.common.stats.ProbDist;
 import org.pankratzlab.common.stats.Stats;
+
 import com.google.common.primitives.Doubles;
 
 public class Allelotyping {

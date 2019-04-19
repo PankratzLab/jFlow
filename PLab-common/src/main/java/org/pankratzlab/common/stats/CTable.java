@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.ext;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;

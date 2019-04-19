@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqPhenoTypes;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject.PROPERTIES;
@@ -14,8 +15,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerHive;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 
 /**
  * Wrapper for the plinkSeq package (https://atgu.mgh.harvard.edu/plinkseq/index.shtml)

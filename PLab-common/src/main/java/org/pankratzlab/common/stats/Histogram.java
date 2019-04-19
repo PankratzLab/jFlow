@@ -3,11 +3,13 @@ package org.pankratzlab.common.stats;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Arrays;
+
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+
 import com.google.common.primitives.Ints;
 
 public class Histogram implements Serializable {

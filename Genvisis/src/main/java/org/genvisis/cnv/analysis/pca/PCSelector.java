@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.SampleQC;
@@ -18,6 +19,7 @@ import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
 import org.pankratzlab.common.stats.StatsCrossTabs.STAT_TYPE;
 import org.pankratzlab.common.stats.StatsCrossTabs.StatsCrossTabRank;
 import org.pankratzlab.common.stats.StatsCrossTabs.VALUE_TYPE;
+
 import com.google.common.primitives.Ints;
 
 /**

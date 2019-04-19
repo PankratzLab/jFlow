@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -33,9 +34,11 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+
 import org.genvisis.cnv.plots.data.DataFile;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
+
 import net.miginfocom.swing.MigLayout;
 
 public class ManhattanLoadGUI extends JDialog {

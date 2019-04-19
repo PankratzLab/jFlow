@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
+
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 import org.pankratzlab.common.ArrayUtils;

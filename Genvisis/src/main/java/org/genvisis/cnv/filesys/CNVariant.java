@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+
 import org.genvisis.cnv.annotator.AnnotatedSegment;
 import org.genvisis.cnv.hmm.PennHmm;
 import org.pankratzlab.common.ByteVector;

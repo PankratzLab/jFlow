@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Properties;
+
 import org.genvisis.seq.analysis.PlinkSeq.BURDEN_Tests;
 import org.genvisis.seq.pathway.GenomeRegions;
 import org.pankratzlab.common.ArrayUtils;

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.seq.CNVExtraInfo;
 import org.genvisis.cnv.seq.CNVExtraInfo.EXTRA_INFO_TYPE;

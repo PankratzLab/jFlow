@@ -1,14 +1,15 @@
 package org.genvisis.cnv.workflow.steps;
 
 import java.util.EnumSet;
+
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
-import org.pankratzlab.common.Files;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
+import org.pankratzlab.common.Files;
 
 public class TransposeStep extends Step {
 

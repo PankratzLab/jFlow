@@ -3,6 +3,7 @@ package org.genvisis.one.JL;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Set;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
@@ -11,7 +12,6 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.stats.Rscript;
 import org.pankratzlab.common.stats.Rscript.COLUMNS_MULTIPLOT;
 import org.pankratzlab.common.stats.Rscript.GeomText;
 import org.pankratzlab.common.stats.Rscript.LEGEND_POSITION;

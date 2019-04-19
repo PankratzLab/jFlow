@@ -1,11 +1,13 @@
 package org.genvisis.one.JL;
 
 import java.util.ArrayList;
+
 import org.apache.commons.math3.stat.ranking.NaNStrategy;
 import org.apache.commons.math3.stat.ranking.NaturalRanking;
 import org.apache.commons.math3.stat.ranking.RankingAlgorithm;
 import org.apache.commons.math3.stat.ranking.TiesStrategy;
 import org.pankratzlab.common.ArrayUtils;
+
 import com.google.common.primitives.Doubles;
 
 public class QuantileMathCommonsNormalization {

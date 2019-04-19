@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+
 import org.genvisis.cnv.qc.MendelErrors;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
 import org.genvisis.cnv.qc.SexChecks;

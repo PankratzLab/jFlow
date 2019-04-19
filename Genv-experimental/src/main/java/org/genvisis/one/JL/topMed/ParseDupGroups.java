@@ -7,9 +7,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.pankratzlab.common.ArrayUtils;
+
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
+
 import com.google.common.collect.ImmutableSet;
 
 public class ParseDupGroups {

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.genvisis.seq.manage.SamRecordOps;
 import org.genvisis.seq.manage.SeqOps;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
@@ -12,6 +13,7 @@ import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
+
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.filter.SamRecordFilter;
 

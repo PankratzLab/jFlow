@@ -3,7 +3,9 @@ package org.genvisis.common;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+
 import java.util.Arrays;
+
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.junit.Test;
 import org.pankratzlab.common.ArrayUtils;

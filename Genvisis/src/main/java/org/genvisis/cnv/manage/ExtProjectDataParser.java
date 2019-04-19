@@ -4,12 +4,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.TypedFileParser;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.TypedFileParser.TypedFileLine;
+import org.pankratzlab.common.ext;
 
 /**
  * Trying to have a single framework to load and match sample or marker data to a project from

@@ -2,8 +2,10 @@ package org.genvisis.cnv.cyto;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.gui.UITools;
