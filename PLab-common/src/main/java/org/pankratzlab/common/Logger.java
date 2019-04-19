@@ -234,7 +234,10 @@ public class Logger implements Serializable {
   public void reportError(boolean line, boolean reportToScreen, int levelRequiredToReport,
                           String... errLines) {
     PrintWriter writer;
-    String firstPrefix = getVersion() + ext.getTime() + " Error -";
+    final String errorPrefix = "Error -";
+    final boolean alreadyHasErrorPrefix = errLines.length > 0
+                                          && errLines[0].regionMatches(true, 0, errorPrefix, 0, 5);
+    String firstPrefix = getVersion() + ext.getTime() + (alreadyHasErrorPrefix ? "" : errorPrefix);
     String otherPrefix = Strings.repeat(" ", firstPrefix.length());
     String msg = firstPrefix + "\t"
                  + Joiner.on("\n" + otherPrefix + "\t").skipNulls().join(errLines);
