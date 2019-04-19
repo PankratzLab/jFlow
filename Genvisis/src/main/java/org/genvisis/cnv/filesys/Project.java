@@ -1313,7 +1313,7 @@ public class Project implements PropertyChangeListener {
     files = this.STRATIFY_PLOT_FILENAMES.getValue();
     v = new ArrayList<>();
     if (files == null) {
-      log.reportError("Error - no files found in the STRATIFY_PLOT_FILENAMES project property");
+      log.reportError("No files found in the STRATIFY_PLOT_FILENAMES project property");
     } else {
       for (String file : files) {
         v.add(file);
