@@ -891,7 +891,7 @@ public class SampleData {
     inds = HashVec.getKeys(sampleHash);
     for (String ind : inds) {
       indi = sampleHash.get(ind);
-      trav = lookupIdSet(ind).getFID();
+      trav = lookupIdSet(ind).getFidIid();
 
       finalHashes = new Vector<>();
       for (int j = 0; j < files.length; j++) {
