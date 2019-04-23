@@ -33,6 +33,7 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.SamReaderFactory.Option;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.filter.AggregateFilter;
 
@@ -145,7 +146,8 @@ public class BamSegPileUp {
   public BamPile[] pileup() throws IOException {
     log.reportTime("Processing " + bam + " with " + numThreads + " threads.");
     try (SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
-                                                    Sets.immutableEnumSet(SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES));
+                                                    Sets.immutableEnumSet(Option.CACHE_FILE_BASED_INDEXES,
+                                                                          Option.EAGERLY_DECODE));
          SAMRecordIterator iter = reader.query(queryIntervals, false)) {
 
       long t = System.nanoTime();
@@ -167,6 +169,8 @@ public class BamSegPileUp {
               }
             } catch (NoSuchElementException e) {
               // done!
+            } catch (Exception e) {
+              e.printStackTrace();
             }
           }
         });
@@ -197,27 +201,13 @@ public class BamSegPileUp {
         // chrRangeMap = ImmutableRangeMap.of();
         // bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
       }
-      // AtomicLong processTime = new AtomicLong(0);
-      // AtomicInteger count = new AtomicInteger(0);
 
-      // long t1 = System.nanoTime();
       chrRangeMap.subRangeMap(Range.closed(samRecordSegment.getStart(), samRecordSegment.getStop()))
                  .asMapOfRanges().values().stream().flatMap(Collection::stream) //
                  .parallel() //
                  .forEach((bamPile) -> {
-                   // count.incrementAndGet();
-                   // long t11 = System.nanoTime();
                    addRecordToPile(bamPile, samRecordSegment, samRecord);
-                   // long t21 = System.nanoTime();
-                   // processTime.addAndGet(t21 - t11);
                  });
-      // long t2 = System.nanoTime();
-      // long elaps = t2 - t1;
-      // long ave = processTime.get() / count.get();
-      // log.reportTime("Took " + ext.formatTimeElapsed(elaps, TimeUnit.NANOSECONDS) + " to process
-      // "
-      // + count.get() + " with an average processing time of "
-      // + ext.formatTimeElapsed(ave, TimeUnit.NANOSECONDS));
       return true;
     }
     return false;
