@@ -21,6 +21,7 @@ import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.gui.ChromosomeViewer;
 import org.genvisis.cnv.var.CNVRectangle;
 import org.genvisis.cnv.var.CNVRectangles;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 
@@ -272,7 +273,8 @@ public class CompPanel extends JPanel
   @Override
   public void mouseDragged(MouseEvent e) {
     Segment oldLocation = plot.getCPLocation();
-    int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[oldLocation.getChr()];
+    GenomeBuild build = plot.getProject().GENOME_BUILD_VERSION.getValue();
+    int chromosomeLength = Positions.getChromosomeLengths(build)[oldLocation.getChr()];
     int x = e.getPoint().x;
     double diff = (int) (clickStart - x);
 
@@ -297,6 +299,9 @@ public class CompPanel extends JPanel
       if (loc2 <= chromosomeLength) {
         newStart = loc1;
         newStop = loc2;
+      } else {
+        newStart = loc1;
+        newStop = chromosomeLength;
       }
     }
     plot.setCPLocation(new Segment(oldLocation.getChr(), newStart, newStop));
@@ -307,7 +312,8 @@ public class CompPanel extends JPanel
     Segment oldLocation = plot.getCPLocation();
     // int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[newLocation[0]]; // TODO make
     // this build specific
-    int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B37_HG19[oldLocation.getChr()];
+    GenomeBuild build = plot.getProject().GENOME_BUILD_VERSION.getValue();
+    int chromosomeLength = Positions.getChromosomeLengths(build)[oldLocation.getChr()];
 
     int rotation = e.getWheelRotation();
     double width = endBase - startBase;

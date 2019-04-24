@@ -3,6 +3,7 @@ package org.pankratzlab.common.filesys;
 import java.net.URLEncoder;
 
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.parsing.AliasedFileColumn;
@@ -137,6 +138,20 @@ public class Positions {
                                                                           {58563705, 61685579},
                                                                           {24522209, 27009547},
                                                                           {0, 0}, {0, 0}};
+
+  public static int[] getChromosomeLengths(GenomeBuild build) {
+    switch (build) {
+      case HG18:
+        return CHROMOSOME_LENGTHS_B36_HG18;
+      case HG19:
+        return CHROMOSOME_LENGTHS_B37_HG19;
+      case HG38:
+        return CHROMOSOME_LENGTHS_B38_HG38;
+      default:
+        System.err.println("Error - '" + build + "' is not a support genome build version");
+        return null;
+    }
+  }
 
   public static int[] parseUCSClocation(String str) {
     int chr, start, stop;
