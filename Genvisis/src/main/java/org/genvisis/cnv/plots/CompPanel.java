@@ -310,8 +310,6 @@ public class CompPanel extends JPanel
   @Override
   public void mouseWheelMoved(MouseWheelEvent e) {
     Segment oldLocation = plot.getCPLocation();
-    // int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[newLocation[0]]; // TODO make
-    // this build specific
     GenomeBuild build = plot.getProject().GENOME_BUILD_VERSION.getValue();
     int chromosomeLength = Positions.getChromosomeLengths(build)[oldLocation.getChr()];
 

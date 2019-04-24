@@ -61,6 +61,7 @@ import org.genvisis.cnv.var.Region;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.GeneTrack;
 import org.pankratzlab.common.filesys.Positions;
@@ -937,7 +938,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
     if (start < 0) {
       start = 1;
     }
-    int lastPosition = chrMarkers.isEmpty() ? 0 : chrMarkers.last().getPosition();
+    GenomeBuild build = this.getProject().GENOME_BUILD_VERSION.getValue();
+    int lastPosition = chrMarkers.isEmpty() ? 0 : Positions.getChromosomeLengths(build)[r.getChr()];
     if (stop < 0 || stop > lastPosition) {
       stop = lastPosition;
     }
