@@ -3,9 +3,9 @@ package org.genvisis.one.JL.cushing;
 import java.util.HashSet;
 
 import org.genvisis.cnv.Resources;
-import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.GeneTrack;

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.genvisis.cnv.Resources;
-import org.genvisis.seq.GenomeBuild;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.GeneTrack;

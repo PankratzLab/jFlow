@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.Resources;
-import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.analysis.PlinkSeq;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqProducer;
@@ -22,6 +21,7 @@ import org.genvisis.seq.pathway.GenomeRegions;
 import org.genvisis.seq.pathway.Pathways;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;

@@ -5,13 +5,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.genvisis.cnv.seq.FastaGenome;
-import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.analysis.Blast;
 import org.genvisis.seq.analysis.Blast.BlastResults;
 import org.genvisis.seq.analysis.Blast.FastaEntry;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLineProcess;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.filesys.Segment;

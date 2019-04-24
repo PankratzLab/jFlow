@@ -15,10 +15,10 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;

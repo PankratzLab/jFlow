@@ -1,4 +1,4 @@
-package org.genvisis.seq;
+package org.pankratzlab.common;
 
 /**
  * Supported genome reference builds

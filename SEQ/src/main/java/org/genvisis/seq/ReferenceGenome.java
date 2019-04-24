@@ -12,6 +12,7 @@ import org.genvisis.seq.manage.SeqOps;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
 import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils.BYTE_DECODE_FORMAT;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;

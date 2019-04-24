@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.genvisis.cnv.Resources;
-import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CLI.Arg;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;

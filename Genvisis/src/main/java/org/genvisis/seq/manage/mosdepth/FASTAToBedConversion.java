@@ -3,11 +3,11 @@ package org.genvisis.seq.manage.mosdepth;
 import java.io.PrintWriter;
 
 import org.genvisis.cnv.Resources;
-import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;

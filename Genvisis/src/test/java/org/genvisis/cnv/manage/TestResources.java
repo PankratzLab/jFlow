@@ -6,7 +6,7 @@ import java.util.List;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.CHROMOSOME;
 import org.genvisis.cnv.Resources.Resource;
-import org.genvisis.seq.GenomeBuild;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.Logger;
 
 /**

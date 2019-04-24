@@ -6,7 +6,7 @@ import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.seq.GenomeBuild;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;

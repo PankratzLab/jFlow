@@ -2,8 +2,8 @@ package org.genvisis.cnv.seq;
 
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Genome;
-import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.Logger;
 
 /**

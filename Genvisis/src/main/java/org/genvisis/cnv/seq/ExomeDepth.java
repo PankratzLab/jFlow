@@ -13,7 +13,6 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.seq.CNVExtraInfo.EXTRA_INFO_TYPE;
-import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
@@ -22,6 +21,7 @@ import org.genvisis.seq.manage.VCFTumorNormalOps.TNSample;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
