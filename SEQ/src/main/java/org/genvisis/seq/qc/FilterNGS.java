@@ -1409,7 +1409,7 @@ public class FilterNGS implements Serializable {
     };
   }
 
-  public enum SAM_FILTER_TYPE {
+  public static enum SAM_FILTER_TYPE {
     GENOTYPE, COPY_NUMBER;
   }
 

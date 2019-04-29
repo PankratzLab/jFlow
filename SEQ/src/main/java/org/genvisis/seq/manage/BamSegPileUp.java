@@ -3,6 +3,7 @@ package org.genvisis.seq.manage;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -15,6 +16,7 @@ import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
+import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
@@ -53,6 +55,7 @@ public class BamSegPileUp {
   private final FilterNGS filterNGS;
   private final ReferenceGenome referenceGenome;
   private final QueryInterval[] queryIntervals;
+  private final List<QueryInterval[]> qiBins;
   private final int numThreads;
 
   /**
@@ -102,6 +105,7 @@ public class BamSegPileUp {
     } else {
       this.queryIntervals = queryIntervals;
     }
+    qiBins = ArrayUtils.splitUpArray(this.queryIntervals, numThreads, log);
     this.segsPiled = Sets.newConcurrentHashSet();
     this.refSequences = Maps.newConcurrentMap();
     this.filterNGS = filterNGS;
@@ -144,21 +148,21 @@ public class BamSegPileUp {
    * @throws IOException when thrown by {@link SamReader}
    */
   public BamPile[] pileup() throws IOException {
-    log.reportTime("Processing " + bam + " with " + numThreads + " threads.");
-    try (SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
-                                                    Sets.immutableEnumSet(Option.CACHE_FILE_BASED_INDEXES,
-                                                                          Option.EAGERLY_DECODE));
-         SAMRecordIterator iter = reader.query(queryIntervals, false)) {
+    log.reportTime("Processing " + bam + " with " + numThreads + " reader threads.");
+    long t = System.nanoTime();
+    AtomicLong count = new AtomicLong(0l);
+    ExecutorService exec = Executors.newFixedThreadPool(numThreads);
+    for (int i = 0; i < numThreads; i++) {
+      final int threadIndex = i;
+      exec.submit(new Runnable() {
 
-      long t = System.nanoTime();
-      AtomicLong count = new AtomicLong(0);
+        @Override
+        public void run() {
+          try (SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
+                                                          Sets.immutableEnumSet(Option.CACHE_FILE_BASED_INDEXES,
+                                                                                Option.EAGERLY_DECODE));
+               SAMRecordIterator iter = reader.query(qiBins.get(threadIndex), false)) {
 
-      ExecutorService exec = Executors.newFixedThreadPool(numThreads);
-      for (int i = 0; i < numThreads; i++) {
-        exec.submit(new Runnable() {
-
-          @Override
-          public void run() {
             SAMRecord record = null;
             try {
               while ((record = iter.next()) != null) {
@@ -172,22 +176,24 @@ public class BamSegPileUp {
             } catch (Exception e) {
               e.printStackTrace();
             }
+          } catch (Exception e1) {
+            e1.printStackTrace();
           }
-        });
-      }
-      exec.shutdown();
-      try {
-        exec.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-      } catch (InterruptedException e) {
-        log.reportTimeWarning("Possible problem: " + e.getMessage());
-      }
-
-      summarizeAndFinalize();
-      log.reportTime("Finalized bam piles (" + count.get() + " reads total) for " + bam + " after "
-                     + ext.getTimeElapsedNanos(t));
-      return bamPileArray;
+        }
+      });
     }
-  }
+    exec.shutdown();
+    try {
+      exec.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+    } catch (InterruptedException e) {
+      log.reportTimeWarning("Possible problem: " + e.getMessage());
+    }
+
+    summarizeAndFinalize();
+    log.reportTime("Finalized bam piles (" + count.get() + " reads total) for " + bam + " after "
+                   + ext.getTimeElapsedNanos(t));
+    return bamPileArray;
+  };
 
   private boolean process(SAMRecord samRecord) {
     if (!filter.filterOut(samRecord)) {
@@ -204,7 +210,6 @@ public class BamSegPileUp {
 
       chrRangeMap.subRangeMap(Range.closed(samRecordSegment.getStart(), samRecordSegment.getStop()))
                  .asMapOfRanges().values().stream().flatMap(Collection::stream) //
-                 .parallel() //
                  .forEach((bamPile) -> {
                    addRecordToPile(bamPile, samRecordSegment, samRecord);
                  });
