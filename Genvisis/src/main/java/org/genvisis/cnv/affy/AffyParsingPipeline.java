@@ -448,7 +448,7 @@ public class AffyParsingPipeline {
     double scale = proj.XY_SCALE_FACTOR.getValue();
     for (int i = 0; i < numSamples; i++) {
       abGenos[i] = (byte) Integer.parseInt(calls[i + 1]);
-      gcs[i] = Float.parseFloat(confs[i + 1]);
+      gcs[i] = 1 - Float.parseFloat(confs[i + 1]);
       xs[i] = (float) (intensityTransform.apply(Double.parseDouble(sigsA[i + 1])) / scale);
       ys[i] = (float) (intensityTransform.apply(Double.parseDouble(sigsB[i + 1])) / scale);
     }
