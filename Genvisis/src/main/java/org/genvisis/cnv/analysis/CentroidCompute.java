@@ -26,7 +26,7 @@ import com.google.common.primitives.Doubles;
  * <p>
  * Currently handles sex chromosomes, intensity only cluster, genotype based clustering, etc...
  * <p>
- * Warning - this stores the markerData, any use of this class should be weary of this fact
+ * Warning - this stores the markerData, any use of this class should be wary of this fact
  * <p>
  * TODO, this class should eventually replace the computation portions found in Centroids, we can
  * leave Centroids as a container and storage.

@@ -454,7 +454,8 @@ public class AffyParsingPipeline {
     }
     MarkerData md = new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas,
                                    rs, bafs, lrrs, abGenos, forwardGenos);
-    CentroidCompute centroid = md.getCentroid(null, null, false, 0, 0, null, true, proj.getLog());
+    CentroidCompute centroid = md.getCentroid(null, null, false, 1, 0, null, true, proj.getLog());
+
     md = null;
     return new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas, rs,
                           centroid.getRecomputedBAF(), centroid.getRecomputedLRR(), abGenos,
