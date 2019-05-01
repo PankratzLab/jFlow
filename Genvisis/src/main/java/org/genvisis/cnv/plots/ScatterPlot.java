@@ -584,6 +584,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       scatterPanel.setPointsGeneratable(true);
       scatterPanel.setUpdateQCPanel(true);
       scatterPanel.setExtraLayersVisible(new byte[] {99});
+      inputMapAndActionMap(scatterPanel);
     }
     displayIndex(navigationField);
     // clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+"
@@ -3902,34 +3903,33 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   }
 
   private void inputMapAndActionMap(JComponent comp) {
-    InputMap inputMap;
-    ActionMap actionMap;
-
-    inputMap = comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    actionMap = comp.getActionMap();
-
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, InputEvent.CTRL_MASK), FIRST);
-    // inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK), PREVIOUS);
-    // inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK), NEXT);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), PREVIOUS);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), NEXT);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, InputEvent.CTRL_MASK), LAST);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK), SYMMETRY);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_MASK), CORRECTION);
-
     String SEL_1 = "SEL1";
     String SEL_2 = "SEL2";
     String SEL_3 = "SEL3";
     String SEL_4 = "SEL4";
+    ActionMap actionMap;
 
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_1, 0/* InputEvent.CTRL_DOWN_MASK */), SEL_1);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0/* InputEvent.CTRL_DOWN_MASK */), SEL_2);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_3, 0/* InputEvent.CTRL_DOWN_MASK */), SEL_3);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_4, 0/* InputEvent.CTRL_DOWN_MASK */), SEL_4);
+    InputMap[] maps = {comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW),
+                       comp.getInputMap(JComponent.WHEN_FOCUSED)};
+    actionMap = comp.getActionMap();
+    for (InputMap inputMap : maps) {
+
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, InputEvent.CTRL_MASK), FIRST);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), PREVIOUS);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), NEXT);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, InputEvent.CTRL_MASK), LAST);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK), SYMMETRY);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_MASK), CORRECTION);
+
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_1, 0), SEL_1);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0), SEL_2);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_3, 0), SEL_3);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_4, 0), SEL_4);
+    }
 
     AbstractAction panelSelectionAction = new AbstractAction() {
 
@@ -3958,21 +3958,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     actionMap.put(SEL_2, panelSelectionAction);
     actionMap.put(SEL_3, panelSelectionAction);
     actionMap.put(SEL_4, panelSelectionAction);
-    //
-    // inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.CTRL_MASK), "SWITCH");
-    //
-    // actionMap.put("SWITCH", new AbstractAction() {
-    // @Override
-    // public void actionPerformed(ActionEvent e) {
-    // System.out.println("SWAP");
-    // swapView();
-    // }
-    // });
 
     actionMap.put(ALT_UP, new CycleRadio(typeRadioButtons, -1));
     actionMap.put(ALT_DOWN, new CycleRadio(typeRadioButtons, 1));
-    // actionMap.put(ALT_LEFT, new CycleRadio(colorKeyPanel.getClassRadioButtons(), -1));
-    // actionMap.put(ALT_RIGHT, new CycleRadio(colorKeyPanel.getClassRadioButtons(), 1));
     actionMap.put(FIRST, new AbstractAction() {
 
       public static final long serialVersionUID = 4L;
