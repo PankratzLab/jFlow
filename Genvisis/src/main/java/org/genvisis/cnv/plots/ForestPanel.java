@@ -489,7 +489,7 @@ public class ForestPanel extends AbstractPanel {
     if (base) {
       setAxisFontSize(22);
       g.fillRect(0, 0, getWidth(), getHeight());
-      g.setFont(new Font("Arial", 0, axisFontSize));
+      g.setFont(new Font("Arial", 0, getAxisFontSize()));
 
       fontMetrics = g.getFontMetrics(g.getFont());
       missingWidth = fontMetrics.stringWidth("X");
@@ -508,7 +508,7 @@ public class ForestPanel extends AbstractPanel {
         canvasSectionMinimumX = WIDTH_BUFFER + leftsize;
         canvasSectionMaximumX = getWidth() - rightsize;
         canvasSectionMinimumY = 0;
-        canvasSectionMaximumY = axisXHeight;// HEIGHT_X_AXIS;
+        canvasSectionMaximumY = getAxisXHeight();// HEIGHT_X_AXIS;
         plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
         plotXmin = plotMinMaxStep[0];
         plotXmax = plotMinMaxStep[1];
@@ -558,7 +558,7 @@ public class ForestPanel extends AbstractPanel {
         fontMetrics = g.getFontMetrics();
         canvasSectionMinimumX = 0;
         canvasSectionMaximumX = WIDTH_BUFFER + rightsize;
-        canvasSectionMinimumY = /* HEIGHT_X_AXIS */axisXHeight + (fontMetrics.getHeight() * 2);
+        canvasSectionMinimumY = /* HEIGHT_X_AXIS */getAxisXHeight() + (fontMetrics.getHeight() * 2);
         canvasSectionMaximumY = getHeight() - (4 * HEAD_BUFFER);
 
         plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
@@ -585,15 +585,15 @@ public class ForestPanel extends AbstractPanel {
           }
         }
         g.drawString(META_LABEL, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(META_LABEL) - 15,
-                     getHeight() - axisXHeight/* HEIGHT_X_AXIS */ - fontMetrics.getHeight() - 10);
+                     getHeight() - getAxisXHeight()/* HEIGHT_X_AXIS */ - fontMetrics.getHeight() - 10);
 
         g.drawString(prepareRightMarkers(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay),
                                          forestPlot.getCurrentMetaStudy()
                                                    .getMetaConf(oddsDisplay)[0],
                                          forestPlot.getCurrentMetaStudy()
                                                    .getMetaConf(oddsDisplay)[1]),
-                     getWidth() - rightsize + 15,
-                     getHeight() - /* HEIGHT_X_AXIS */axisXHeight - fontMetrics.getHeight() - 10);
+                     getWidth() - rightsize + 15, getHeight() - /* HEIGHT_X_AXIS */getAxisXHeight()
+                                                  - fontMetrics.getHeight() - 10);
         // Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin),
         // canvasSectionMaximumX, getYPixel(plotYmax) - (int) Math.ceil((double) TICK_THICKNESS /
         // 2.0), AXIS_THICKNESS, Color.BLACK);
@@ -622,7 +622,7 @@ public class ForestPanel extends AbstractPanel {
     // TODO outercoordinates
     canvasSectionMinimumX = WIDTH_BUFFER + leftsize;
     canvasSectionMaximumX = getWidth() - rightsize;
-    canvasSectionMinimumY = /* HEIGHT_X_AXIS */axisXHeight + (fontMetrics.getHeight() * 2);
+    canvasSectionMinimumY = /* HEIGHT_X_AXIS */getAxisXHeight() + (fontMetrics.getHeight() * 2);
     canvasSectionMaximumY = getHeight() - (4 * HEAD_BUFFER);
 
     // Draw the lines
@@ -708,7 +708,7 @@ public class ForestPanel extends AbstractPanel {
       // int xR = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay) + 1.96 *
       // forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay));
 
-      int yM = getHeight() - /* HEIGHT_X_AXIS */axisXHeight - fontMetrics.getHeight() - 15;
+      int yM = getHeight() - /* HEIGHT_X_AXIS */getAxisXHeight() - fontMetrics.getHeight() - 15;
       int yU = yM - (fontMetrics.getHeight() / 2) - 1;
       int yD = yM + (fontMetrics.getHeight() / 2) + 1;
 
@@ -718,7 +718,7 @@ public class ForestPanel extends AbstractPanel {
       Grafik.drawThickLine(g, xM, yD, xR, yM, 2, META_COLOR);
 
       int yMin = (4 * HEAD_BUFFER) - 5;
-      int yMax = getHeight() - /* HEIGHT_X_AXIS */axisXHeight;
+      int yMax = getHeight() - /* HEIGHT_X_AXIS */getAxisXHeight();
 
       Grafik.drawThickLine(g, getXPixel(oddsDisplay ? 1.0 : 0.0), yMin,
                            getXPixel(oddsDisplay ? 1.0 : 0.0), yMax, 3, Color.BLACK);
@@ -778,7 +778,7 @@ public class ForestPanel extends AbstractPanel {
     // double mkSz = 20 - Math.atan(points.length - 15);
     // return mkSz;
     String largestLbl = forestPlot.getLongestStudyName();
-    double yRange = getHeight() - (2 * HEAD_BUFFER) - (2 * axisXHeight/* HEIGHT_X_AXIS */);
+    double yRange = getHeight() - (2 * HEAD_BUFFER) - (2 * getAxisXHeight()/* HEIGHT_X_AXIS */);
     double studies = points.length;
     double xMax = getWidth() / 4;
     double yMax = yRange / studies;

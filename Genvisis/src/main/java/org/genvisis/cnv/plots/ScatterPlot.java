@@ -4429,11 +4429,12 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     viewPanel.remove(indivPanels[selectedPanelIndex]);
     scatterOverview.removeAll();
     for (int i = 0; i < indivPanels.length; i++) {
-      scatterPanels[i].axisXHeight = 0;
-      scatterPanels[i].axisYWidth = 0;
+      scatterPanels[i].setAxisXHeight(40);
+      scatterPanels[i].setAxisYWidth(40);
+      scatterPanels[i].xAxisLabelPad = 7;
       scatterPanels[i].shrunk = true;
-      scatterPanels[i].displayXAxis = false;
-      scatterPanels[i].displayYAxis = false;
+      scatterPanels[i].displayXAxis = true;
+      scatterPanels[i].displayYAxis = true;
       scatterOverview.add(indivPanels[i]);
       indivPanels[i].invalidate();
       scatterPanels[i].invalidate();
@@ -4496,8 +4497,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     scatterOverview.removeAll();
     scatterOverview.invalidate();
     for (int i = 0; i < indivPanels.length; i++) {
-      scatterPanels[i].axisXHeight = AbstractPanel.HEIGHT_X_AXIS;
-      scatterPanels[i].axisYWidth = AbstractPanel.WIDTH_Y_AXIS;
+      scatterPanels[i].setAxisXHeight(AbstractPanel.HEIGHT_X_AXIS);
+      scatterPanels[i].setAxisYWidth(AbstractPanel.WIDTH_Y_AXIS);
+      scatterPanels[i].xAxisLabelPad = AbstractPanel.DEFAULT_X_AXIS_LABEL_PAD;
       scatterPanels[i].shrunk = false;
       scatterPanels[i].displayXAxis = true;
       scatterPanels[i].displayYAxis = true;
@@ -4679,14 +4681,4 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     }).start();
   }
 
-  public static void main(String[] args) {
-    javax.swing.SwingUtilities.invokeLater(new Runnable() {
-
-      @Override
-      public void run() {
-        createAndShowGUI(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true)),
-                         null, null, true);
-      }
-    });
-  }
 }

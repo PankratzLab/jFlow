@@ -82,9 +82,9 @@ public class ManhattanPanel extends AbstractPanel {
     }
     if (xAxisLabel != null && !"".equals(xAxisLabel) && displayXLabel) {
       g.drawString(xAxisLabel,
-                   (getWidth() - axisYWidth/* WIDTH_Y_AXIS */)
+                   (getWidth() - getAxisYWidth()/* WIDTH_Y_AXIS */)
                                / 2 - fontMetrics.stringWidth(xAxisLabel) / 2
-                               + axisYWidth/* WIDTH_Y_AXIS */,
+                               + getAxisYWidth()/* WIDTH_Y_AXIS */,
                    getHeight() - 20);
     }
   }

@@ -54,14 +54,15 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   public static final boolean DEBUGGING = false;
 
   public static final int HEAD_BUFFER = 25;
-  public static final int HEIGHT_X_AXIS = 105;
-  public static final int WIDTH_Y_AXIS = 140;
+  public static final int HEIGHT_X_AXIS = 90;
+  public static final int WIDTH_Y_AXIS = 120;
   public static final int WIDTH_BUFFER = 50;
   public static final int AXIS_THICKNESS = 4;
   public static final int TICK_THICKNESS = 3;
   public static final int TICK_LENGTH = 15;
   public static final int DEFAULT_LOOKUP_RESOLUTION = 20;
   public static final int AXIS_FONT_SIZE = 28;
+  public static final int DEFAULT_X_AXIS_LABEL_PAD = 11;
   public static final double DOUBLE_INACCURACY_HEDGE = 0.00001;
   public static final double MINIMUM_ZOOM_PROPORTION_WINDOW = 0.0001;
   public static final float DEFAULT_MOUSE_WHEEL_MULTIPLIER = 0.5f;
@@ -84,8 +85,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   protected int canvasSectionMaximumX;
   protected int canvasSectionMinimumY;
   protected int canvasSectionMaximumY;
-  protected int axisYWidth = WIDTH_Y_AXIS;
-  protected int axisXHeight = HEIGHT_X_AXIS;
+  private int axisYWidth = WIDTH_Y_AXIS;
+  private int axisXHeight = HEIGHT_X_AXIS;
   protected int titleHeight = 0;
   protected double plotXmax, plotYmax;
   protected double plotXmin, plotYmin;
@@ -98,6 +99,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   protected GenericRectangle highlightRectangle;
   protected String xAxisLabel;
   protected String yAxisLabel;
+  protected int xAxisLabelPad = DEFAULT_X_AXIS_LABEL_PAD;
   protected String title;
   protected boolean displayXAxis;
   protected boolean displayXLabel;
@@ -111,7 +113,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   protected boolean yAxisWholeNumbers;
   protected int missingWidth;
   protected int nanWidth;
-  protected int axisFontSize = AXIS_FONT_SIZE;
+  private int axisFontSize = AXIS_FONT_SIZE;
   protected float forcePlotXmax, forcePlotYmax;
   protected float forcePlotXmin, forcePlotYmin;
   protected boolean createLookup;
@@ -128,7 +130,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   protected IntVector prox;
   protected int chartType;
 
-  private Logger log;
+  private Logger log = new Logger();
 
   private boolean inDrag;
   private volatile int startX, startY;
@@ -387,10 +389,30 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
   public abstract void assignAxisLabels();
 
+  public int getAxisYWidth() {
+    return axisYWidth;
+  }
+
+  public void setAxisYWidth(int axisYWidth) {
+    this.axisYWidth = axisYWidth;
+  }
+
+  public int getAxisXHeight() {
+    return axisXHeight;
+  }
+
+  public void setAxisXHeight(int axisXHeight) {
+    this.axisXHeight = axisXHeight;
+  }
+
   public void setAxisFontSize(int sz) {
     if (sz > 0) {
       axisFontSize = sz;
     }
+  }
+
+  public int getAxisFontSize() {
+    return axisFontSize;
   }
 
   public void setChartType(int chartType) {
@@ -596,7 +618,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
         log.report("Drawing base image.");
       }
       g.fillRect(0, 0, getWidth(), getHeight());
-      g.setFont(new Font("Arial", 0, axisFontSize));
+      g.setFont(new Font("Arial", 0, getAxisFontSize()));
 
       titleHeight = calcTitleHeight(g, base, fontMetrics);
 
@@ -843,8 +865,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
       drawYAxis(g, plotMinMaxStep);
       if (errorMessage != null) {
         g.drawString(errorMessage,
-                     (getWidth() - axisYWidth) / 2 - fontMetrics.stringWidth(errorMessage) / 2
-                                   + axisYWidth,
+                     (getWidth() - getAxisYWidth()) / 2 - fontMetrics.stringWidth(errorMessage) / 2
+                                   + getAxisYWidth(),
                      (getHeight() - HEAD_BUFFER - axisXHeight) / 2 - 20 + HEAD_BUFFER);
       }
       resetCanvasToPlotArea();
@@ -865,7 +887,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   }
 
   private void resetCanvasToPlotArea() {
-    canvasSectionMinimumX = axisYWidth;// WIDTH_Y_AXIS;
+    canvasSectionMinimumX = getAxisYWidth();// WIDTH_Y_AXIS;
     canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
     canvasSectionMinimumY = axisXHeight;// HEIGHT_X_AXIS;
     canvasSectionMaximumY = getHeight() - (HEAD_BUFFER + titleHeight);
@@ -876,7 +898,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
    * correctly for future responses to plot interaction
    */
   private void temporarilySetCanvasForXAxis() {
-    canvasSectionMinimumX = axisYWidth;
+    canvasSectionMinimumX = getAxisYWidth();
     canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
     canvasSectionMinimumY = titleHeight;
     canvasSectionMaximumY = axisXHeight;
@@ -888,7 +910,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
    */
   private void temporarilySetCanvasForYAxis() {
     canvasSectionMinimumX = 0;
-    canvasSectionMaximumX = axisYWidth;
+    canvasSectionMaximumX = getAxisYWidth();
     canvasSectionMinimumY = axisXHeight;
     canvasSectionMaximumY = getHeight() - (HEAD_BUFFER + titleHeight);
   }
@@ -938,15 +960,17 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
       if (strWidth > 0) {
         yLabel = new BufferedImage(strWidth, 36, BufferedImage.TYPE_INT_RGB);
         gfx = yLabel.createGraphics();
-        gfx.setFont(new Font("Arial", 0, axisFontSize));
+        gfx.setFont(new Font("Arial", 0, getAxisFontSize()));
         gfx.setColor(Color.WHITE);
         gfx.fillRect(0, 0, getWidth(), getHeight());
         gfx.setColor(Color.BLACK);
         gfx.drawString(yAxisLabel, 0, yLabel.getHeight() - 6);
 
-        g.drawImage(Grafik.rotateImage(yLabel, true), 10,
-                    (getHeight() + titleHeight - axisXHeight/* HEIGHT_X_AXIS */) / 2
-                                                          - fontMetrics.stringWidth(yAxisLabel) / 2,
+        int leftPad = 5; // TODO scale with window size if very small
+        g.drawImage(Grafik.rotateImage(yLabel,
+                                       true),
+                    leftPad, (getHeight() + titleHeight - axisXHeight) / 2
+                             - fontMetrics.stringWidth(yAxisLabel) / 2,
                     this);
       }
     }
@@ -965,7 +989,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
                                Color.BLACK);
           str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
           g.drawString(str, x1 - str.length() * 8,
-                       getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
+                       getHeight() - (canvasSectionMaximumY - TICK_LENGTH - (2 * xAxisLabelPad)
+                                      - 5));
         }
       }
     }
@@ -976,11 +1001,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
                            getHeight() - canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
     }
     if (xAxisLabel != null && !"".equals(xAxisLabel) && displayXLabel) {
-      g.drawString(xAxisLabel,
-                   (getWidth() - axisYWidth/* WIDTH_Y_AXIS */)
-                               / 2 - fontMetrics.stringWidth(xAxisLabel) / 2
-                               + axisYWidth/* WIDTH_Y_AXIS */,
-                   getHeight() - 20);
+      int yPad = getHeight() - xAxisLabelPad; // TODO scale with window size if very small
+      g.drawString(xAxisLabel, (getWidth() - getAxisYWidth()) / 2
+                               - fontMetrics.stringWidth(xAxisLabel) / 2 + getAxisYWidth(),
+                   yPad);
     }
   }
 
@@ -995,7 +1019,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
       switch (titleLocation) {
         default: // DEFAULT TO TOP
         case SwingConstants.NORTH:
-          titleX = (getWidth() - axisYWidth) / 2 + axisYWidth - titleWidth / 2;
+          titleX = (getWidth() - getAxisYWidth()) / 2 + getAxisYWidth() - titleWidth / 2;
           titleY = PAD + fontHeight;
           break;
         case SwingConstants.NORTH_EAST:
@@ -1003,7 +1027,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
           titleY = PAD + fontHeight;
           break;
         case SwingConstants.NORTH_WEST:
-          titleX = axisYWidth + 2 * PAD;
+          titleX = getAxisYWidth() + 2 * PAD;
           titleY = PAD + fontHeight;
           break;
       }
@@ -1220,7 +1244,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     for (int i = 0; i < 2; i++) {
       if (i == 0) {
         distance = (startX - curX) * (zoomSubsets[0][1] - zoomSubsets[0][0])
-                   / (getWidth() - WIDTH_BUFFER - axisYWidth/* WIDTH_Y_AXIS */);
+                   / (getWidth() - WIDTH_BUFFER - getAxisYWidth()/* WIDTH_Y_AXIS */);
       } else {
         distance = (curY - startY) * (zoomSubsets[1][1] - zoomSubsets[1][0])
                    / (getHeight() - HEAD_BUFFER - axisXHeight/* HEIGHT_X_AXIS */);
@@ -1329,8 +1353,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
     proportions = new float[2][2];
 
-    width = getWidth() - /* WIDTH_Y_AXIS */axisYWidth - WIDTH_BUFFER;
-    x = (float) p.getX() - axisYWidth;// WIDTH_Y_AXIS;
+    width = getWidth() - /* WIDTH_Y_AXIS */getAxisYWidth() - WIDTH_BUFFER;
+    x = (float) p.getX() - getAxisYWidth();// WIDTH_Y_AXIS;
     proportions[0][0] = x / width;
     proportions[0][1] = (width - x) / width;
 
@@ -1481,7 +1505,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
         } else {
           g.setFont(new Font("Arial", 0, size));
           g.drawString(PlotPoint.MISSING_STR, -size / 2, y + size / 2);
-          g.setFont(new Font("Arial", 0, axisFontSize));
+          g.setFont(new Font("Arial", 0, getAxisFontSize()));
         }
         break;
       case NOT_A_NUMBER:

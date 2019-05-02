@@ -76,6 +76,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
                                                                            // orange
   };
 
+  public static final int SHRUNK_FONT_SIZE = 15;
+
   byte[] alleleCounts;
   protected ScatterPlot sp;
   protected String[] samples;
@@ -120,6 +122,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
   public void assignAxisLabels() {
     xAxisLabel = shrunk ? " " : sp.getPlotType(panelIndex).getAxis1();
     yAxisLabel = shrunk ? " " : sp.getPlotType(panelIndex).getAxis2();
+  }
+
+  @Override
+  public int getAxisFontSize() {
+    return shrunk ? SHRUNK_FONT_SIZE : super.getAxisFontSize();
   }
 
   public boolean invertX() {
