@@ -195,6 +195,11 @@ public class APTAxiomPipeline {
       return intensityFile;
     }
 
+    public boolean isSuccess() {
+      return !isFailed() && Files.exists(getCallFile()) && Files.exists(getConfFile())
+             && Files.exists(getIntensityFile());
+    }
+
   }
 
   private APTAxiomResult runAPTAxiom(String celListFile, String pIDFile, String analysisName,
@@ -224,6 +229,11 @@ public class APTAxiomPipeline {
     String reportFile = outCurrent + analysisName + ".report.txt";
 
     APTAxiomResult aptResult = new APTAxiomResult(callFile, confFile, summaryFile);
+
+    if (aptResult.isSuccess()) {
+      log.reportTimeWarning("Found existing output files: " + outCurrent + analysisName + ".*.txt");
+      return aptResult;
+    }
 
     boolean progress = CmdLine.builder(log).build()
                               .run(Command.builder(aptCommand)
@@ -259,7 +269,7 @@ public class APTAxiomPipeline {
   }
 
   public static void run(String libraryFilePath, Project proj, String aptExeDir,
-                         int numThreads) throws Elision {
+                         String affyAnnotFile, int numThreads) throws Elision {
     Logger log = proj.getLog();
     if (!proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(CEL_EXTENSION)
         && !proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(CEL_GZ_EXTENSION)) {
@@ -273,26 +283,7 @@ public class APTAxiomPipeline {
     validateCelSelection(celFiles, log);
     log.reportTimeInfo("Found " + celFiles.length + " " + CEL_EXTENSION + " files to process");
 
-    String markerPositions = proj.MARKER_POSITION_FILENAME.getValue();
-    if (markerPositions == null || !Files.exists(markerPositions)) {
-      if (markerPositions != null) {
-        log.reportError("Could not find marker position file " + markerPositions);
-      }
-      // TODO FIXME integrate more axiom array subtypes
-      Resource markerPos = Resources.axiomTx(log).genome(build).getMarkerPositions();
-      if (!markerPos.isAvailable()) {
-        throw new IllegalArgumentException("Affymetrix marker positions file for build "
-                                           + build.getBuild()
-                                           + " is not available.  Parsing cannot continue.");
-      } else {
-        log.reportTime("No marker positions file found - copying resource from "
-                       + ext.parseDirectoryOfFile(markerPos.get()) + " to "
-                       + proj.MARKER_POSITION_FILENAME.getValue());
-        Files.copyFile(markerPos.get(), proj.MARKER_POSITION_FILENAME.getValue());
-        markerPositions = proj.MARKER_POSITION_FILENAME.getValue();
-      }
-    }
-    Set<String> markers = HashVec.loadFileToHashSet(markerPositions, new int[] {0}, "", true);
+    Set<String> markers = loadMarkerPositions(proj, log, build);
 
     APTAxiomPipeline pipeline = new APTAxiomPipeline(libraryFilePath, aptExeDir, log);
     Probesets probeSets = pipeline.getAnalysisProbesetList(celFiles[0],
@@ -313,11 +304,36 @@ public class APTAxiomPipeline {
 
     AffyParsingPipeline parser = new AffyParsingPipeline();
     parser.setProject(proj);
+    parser.setAnnotationFile(affyAnnotFile);
     parser.setGenotypeCallFile(aptResult.getCallFile());
     parser.setConfidencesFile(aptResult.getConfFile());
     parser.setNormIntensitiesFile(aptResult.getIntensityFile());
     parser.run();
 
+  }
+
+  private static Set<String> loadMarkerPositions(Project proj, Logger log, GenomeBuild build) {
+    String markerPositions = proj.MARKER_POSITION_FILENAME.getValue();
+    if (markerPositions == null || !Files.exists(markerPositions)) {
+      if (markerPositions != null) {
+        log.reportError("Could not find marker position file " + markerPositions);
+      }
+      // TODO FIXME integrate more axiom array subtypes
+      Resource markerPos = Resources.axiomTx(log).genome(build).getMarkerPositions();
+      if (!markerPos.isAvailable()) {
+        throw new IllegalArgumentException("Affymetrix marker positions file for build "
+                                           + build.getBuild()
+                                           + " is not available.  Parsing cannot continue.");
+      } else {
+        log.reportTime("No marker positions file found - copying resource from "
+                       + ext.parseDirectoryOfFile(markerPos.get()) + " to "
+                       + proj.MARKER_POSITION_FILENAME.getValue());
+        Files.copyFile(markerPos.get(), proj.MARKER_POSITION_FILENAME.getValue());
+        markerPositions = proj.MARKER_POSITION_FILENAME.getValue();
+      }
+    }
+    Set<String> markers = HashVec.loadFileToHashSet(markerPositions, new int[] {0}, "", true);
+    return markers;
   }
 
   public static final int DEFAULT_MARKER_BUFFER = 100;
@@ -328,12 +344,15 @@ public class APTAxiomPipeline {
 
     String DESC_LIB_PATH = "A directory with AffyPowerTools executables (should contain apt-genotype-axiom. Available at http://www.affymetrix.com/)";
     String DESC_EXE_PATH = "A directory with Affymetrix Library files (should contain a .cdf file, a .sketch file, etc. Available at http://www.affymetrix.com/)";
+    String DESC_ANNOT_FILE = "Affymetrix SNP Annotation file (e.g. GenomeWideSNP_6.na35.annot.csv)";
     String ARG_EXE_PATH = "aptExeDir";
     String ARG_LIB_PATH = "libraryFilePath";
+    String ARG_ANNOT_FILE = "annotFile";
 
     cli.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ, true);
     cli.addArg(ARG_EXE_PATH, DESC_EXE_PATH, true);
     cli.addArg(ARG_LIB_PATH, DESC_LIB_PATH, true);
+    cli.addArg(ARG_ANNOT_FILE, DESC_ANNOT_FILE, true);
     cli.addArg(CLI.ARG_THREADS, CLI.DESC_THREADS, "1", false);
 
     cli.parseWithExit(args);
@@ -341,7 +360,8 @@ public class APTAxiomPipeline {
     try {
       Project proj = new Project(cli.get(CLI.ARG_PROJ));
       try {
-        run(cli.get(ARG_LIB_PATH), proj, cli.get(ARG_EXE_PATH), cli.getI(CLI.ARG_THREADS));
+        run(cli.get(ARG_LIB_PATH), proj, cli.get(ARG_EXE_PATH), cli.get(ARG_ANNOT_FILE),
+            cli.getI(CLI.ARG_THREADS));
       } catch (Elision e1) {
         System.err.println(e1.getMessage());
       }

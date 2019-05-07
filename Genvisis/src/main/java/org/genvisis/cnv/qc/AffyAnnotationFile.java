@@ -26,15 +26,14 @@ public class AffyAnnotationFile {
                                                                   "Allele A", "Allele B",
                                                                   "Ref Allele", "Flank"},
                                                     headerFactors);
-      int hLen = headerFactors.length;
-      this.id1 = 0;
-      this.id2 = headerFactors.length > 1 ? 1 : 0;
-      this.chr = hLen + 1;
-      this.pos = hLen + 2;
-      this.a = hLen + 3;
-      this.b = hLen + 4;
-      this.ref = hLen + 5;
-      this.flank = hLen + 6;
+      this.chr = 0;
+      this.pos = 1;
+      this.a = 2;
+      this.b = 3;
+      this.ref = 4;
+      this.flank = 5;
+      this.id1 = 6;
+      this.id2 = 6 + (headerFactors.length > 1 ? 1 : 0);
     }
 
     public String[] headerFactors;

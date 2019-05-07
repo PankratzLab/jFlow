@@ -61,7 +61,7 @@ public class PCAPrep {
     }
     Files.writeIterable(tmp, baseLineMarkers);
     if (markerQC) {
-      String markerQCFile = outputBase + "_markerQC.txt";
+      String markerQCFile = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_markerQC.txt";
       proj.MARKER_METRICS_FILENAME.setValue(markerQCFile);
       qcMarkers(proj, baseLineMarkers, markersToQC, markersABCallrate, markerCallRateFilter,
                 numThreads);
@@ -76,7 +76,7 @@ public class PCAPrep {
       writeMarkersToQC(proj, baseLineMarkers, markersToQC);
     }
     markersForEverythingElse = markersToQC;
-    String qcFile = outputBase + "_lrr_sd.txt";
+    String qcFile = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_lrr_sd.txt";
     proj.SAMPLE_QC_FILENAME.setValue(qcFile);
 
     counts = org.genvisis.cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate,

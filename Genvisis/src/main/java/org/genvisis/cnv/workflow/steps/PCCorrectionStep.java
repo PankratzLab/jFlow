@@ -41,9 +41,8 @@ public class PCCorrectionStep extends Step {
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final Requirement<Integer> numPCsReq = new Requirement.PosIntRequirement("Number of principal components for correction.",
                                                                              MitoPipeline.DEFAULT_NUM_COMPONENTS);
-    final Requirement<File> outputBaseReq = new OutputFileRequirement("Output file path (relative to project directory) and baseName for principal components correction files",
-                                                                      new File(proj.PROJECT_DIRECTORY.getValue()
-                                                                               + MitoPipeline.FILE_BASE)) {
+    final Requirement<File> outputBaseReq = new OutputFileRequirement("Output file path (relative to project directory) and filename prefix for principal components correction files",
+                                                                      new File(MitoPipeline.FILE_BASE)) {
 
       @Override
       public boolean checkRequirement(String arg, Set<Step> stepSelections,

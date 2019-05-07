@@ -684,6 +684,13 @@ public final class Resources {
     }
 
     /**
+     * @return .annot.csv file
+     */
+    public Resource getAnnotationFile() {
+      return getResource("GenomeWideSNP_6.na35.annot.csv");
+    }
+
+    /**
      * @return HMM file
      */
     public Resource getHMM() {

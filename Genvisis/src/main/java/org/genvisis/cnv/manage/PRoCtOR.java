@@ -288,8 +288,16 @@ public class PRoCtOR {
     ShadowMarkerDataWriter smdw = new ShadowMarkerDataWriter();
     smdw.setOutputDirectory(newTransposedDir);
     smdw.setupMarkerFiles(proj);
-    Files.copyFile(proj.SAMPLELIST_FILENAME.getValue(),
-                   shadowProject.SAMPLELIST_FILENAME.getValue());
+    String sampList = proj.SAMPLELIST_FILENAME.getValue();
+    if (!sampList.startsWith(proj.PROJECT_DIRECTORY.getValue())) {
+      sampList = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue()) + sampList;
+    }
+    String newList = shadowProject.SAMPLELIST_FILENAME.getValue();
+    if (!newList.startsWith(shadowProject.PROJECT_DIRECTORY.getValue())) {
+      newList = ext.verifyDirFormat(shadowProject.PROJECT_DIRECTORY.getValue()) + newList;
+    }
+
+    Files.copyFile(sampList, newList);
 
     PcCorrectionProducer producer = new PcCorrectionProducer(principalComponentsResiduals,
                                                              numComponents, sampleSex,
@@ -377,7 +385,7 @@ public class PRoCtOR {
                    + "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
                    + "   (2) Number of principal components for correction (i.e. numComponents="
                    + numComponents + " (default))\n"
-                   + "   (3) Output file full path and baseName for principal components correction files (i.e. outputBase="
+                   + "   (3) Output file name-prefix for principal components correction files ( (i.e. outputBase="
                    + outputBase + " (default))\n"
                    + "   (4) Call-rate filter for determining high-quality markers (i.e. callrate="
                    + callrate + " (default))\n"

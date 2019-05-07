@@ -28,9 +28,9 @@ public class AffyMarkerBlastStep extends Step {
 
     final Requirement<File> probeFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_PROBE_FILE),
                                                                            new File(AffyMarkerBlast.EXAMPLE_PROBE_FILE));
-    String annotFile = proj.SNP_DATA_FILE.getValue().equals("") ? AffyMarkerBlast.DESC_ANNOT_FILE
+    String annotFile = proj.SNP_DATA_FILE.getValue().equals("") ? AffyMarkerBlast.EXAMPLE_ANNOT_FILE
                                                                 : proj.SNP_DATA_FILE.getValue();
-    final Requirement<File> annotFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(annotFile),
+    final Requirement<File> annotFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_ANNOT_FILE),
                                                                            new File(annotFile));
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
