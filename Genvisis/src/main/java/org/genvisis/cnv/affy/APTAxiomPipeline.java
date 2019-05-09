@@ -304,7 +304,11 @@ public class APTAxiomPipeline {
 
     AffyParsingPipeline parser = new AffyParsingPipeline();
     parser.setProject(proj);
-    parser.setAnnotationFile(affyAnnotFile);
+    if (affyAnnotFile == null) {
+      parser.setSkipGenotypes();
+    } else {
+      parser.setAnnotationFile(affyAnnotFile);
+    }
     parser.setGenotypeCallFile(aptResult.getCallFile());
     parser.setConfidencesFile(aptResult.getConfFile());
     parser.setNormIntensitiesFile(aptResult.getIntensityFile());
@@ -352,7 +356,10 @@ public class APTAxiomPipeline {
     cli.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ, true);
     cli.addArg(ARG_EXE_PATH, DESC_EXE_PATH, true);
     cli.addArg(ARG_LIB_PATH, DESC_LIB_PATH, true);
-    cli.addArg(ARG_ANNOT_FILE, DESC_ANNOT_FILE, true);
+    cli.addArg(ARG_ANNOT_FILE, DESC_ANNOT_FILE);
+    cli.addFlag("skipGenotypes",
+                "Do not import forward genotypes - use this flag if you don't have an annotation file.");
+    cli.addGroup(ARG_ANNOT_FILE, "skipGenotypes");
     cli.addArg(CLI.ARG_THREADS, CLI.DESC_THREADS, "1", false);
 
     cli.parseWithExit(args);
@@ -360,8 +367,8 @@ public class APTAxiomPipeline {
     try {
       Project proj = new Project(cli.get(CLI.ARG_PROJ));
       try {
-        run(cli.get(ARG_LIB_PATH), proj, cli.get(ARG_EXE_PATH), cli.get(ARG_ANNOT_FILE),
-            cli.getI(CLI.ARG_THREADS));
+        run(cli.get(ARG_LIB_PATH), proj, cli.get(ARG_EXE_PATH),
+            cli.has("skipGenotypes") ? null : cli.get(ARG_ANNOT_FILE), cli.getI(CLI.ARG_THREADS));
       } catch (Elision e1) {
         System.err.println(e1.getMessage());
       }

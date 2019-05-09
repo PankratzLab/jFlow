@@ -75,7 +75,8 @@ public class AxiomCELProcessingStep extends Step {
   public void run(Variables variables) {
     String aptExeDir = ext.verifyDirFormat(variables.get(aptExeReq).getPath());
     String aptLibDir = ext.verifyDirFormat(variables.get(aptLibReq).getPath());
-    String annotFile = variables.get(annotFileReq).getPath();
+    String annotFile = variables.get(this.skipGenoReq) ? null
+                                                       : variables.get(annotFileReq).getPath();
     int numThreads = variables.get(numThreadsReq);
 
     try {
@@ -101,7 +102,11 @@ public class AxiomCELProcessingStep extends Step {
     cmd.append(" proj=").append(proj.getPropertyFilename());
     cmd.append(" aptExeDir=").append(ext.verifyDirFormat(variables.get(aptExeReq).getPath()));
     cmd.append(" libraryFilePath=").append(ext.verifyDirFormat(variables.get(aptLibReq).getPath()));
-    cmd.append(" annotFile=").append(variables.get(annotFileReq).getPath());
+    if (variables.get(this.skipGenoReq)) {
+      cmd.append(" -skipGenotypes");
+    } else {
+      cmd.append(" annotFile=").append(variables.get(annotFileReq).getPath());
+    }
     cmd.append(" ").append(PSF.Ext.NUM_THREADS_COMMAND).append(variables.get(numThreadsReq));
     return cmd.toString();
   }
