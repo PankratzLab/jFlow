@@ -11,6 +11,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYP
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.PRoCtOR;
+import org.genvisis.cnv.qc.IntensityMarkers;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.OutputFileRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
@@ -115,7 +116,11 @@ public class PCCorrectionStep extends Step {
 
   @Override
   public void setNecessaryPreRunProperties(Variables variables) {
-    // not needed for step
+    // copy intensity markers file if needed
+    if (!Files.exists(proj.INTENSITY_PC_MARKERS_FILENAME.getValue())) {
+      Files.writeIterable(IntensityMarkers.getIntensityMarkers(proj),
+                          proj.INTENSITY_PC_MARKERS_FILENAME.getValue());
+    }
   }
 
   @Override

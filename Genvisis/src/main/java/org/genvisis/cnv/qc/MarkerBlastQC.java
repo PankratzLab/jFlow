@@ -87,8 +87,7 @@ public class MarkerBlastQC {
     Map<String, Marker> markerMap = markerSet.getMarkerNameMap();
     List<Marker> markers = markerSet.markersAsList();
     List<String> markerNames = markers.stream().map(Marker::getName).collect(Collectors.toList());
-    MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null,
-                                                                               proj.BLAST_ANNOTATION_FILENAME.getValue(),
+    MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null, blastVCF,
                                                                                proj.getMarkerSet(),
                                                                                true, proj.getLog());
     markerAnnotationLoader.setReportEvery(500000);
@@ -138,8 +137,7 @@ public class MarkerBlastQC {
     }
     MarkerSetInfo markerSet = proj.getMarkerSet();
     String[] markerNames = markerSet.getMarkerNames();
-    MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null,
-                                                                               proj.BLAST_ANNOTATION_FILENAME.getValue(),
+    MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null, blastVCF,
                                                                                proj.getMarkerSet(),
                                                                                true, log);
     markerAnnotationLoader.setReportEvery(500000);

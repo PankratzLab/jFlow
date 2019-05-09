@@ -386,7 +386,12 @@ public class Files {
     return copy;
   }
 
-  // causes trouble with Serialized data
+  /**
+   * FIXME: causes trouble with Serialized data
+   * @param from
+   * @param to
+   * @return
+   */
   public static boolean copyFile(String from, String to) {
     FileReader in;
     FileWriter out;

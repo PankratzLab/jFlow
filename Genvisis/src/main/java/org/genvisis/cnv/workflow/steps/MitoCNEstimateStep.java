@@ -9,6 +9,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_M
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.qc.GcAdjustor;
+import org.genvisis.cnv.qc.IntensityMarkers;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
@@ -138,6 +139,12 @@ public class MitoCNEstimateStep extends Step {
     } else {
       proj.LRRSD_CUTOFF.setValue(sampleLRRSdFilter);
     }
+
+    if (!Files.exists(proj.INTENSITY_PC_MARKERS_FILENAME.getValue())) {
+      Files.writeIterable(IntensityMarkers.getIntensityMarkers(proj),
+                          proj.INTENSITY_PC_MARKERS_FILENAME.getValue());
+    }
+
   }
 
   @Override
@@ -168,6 +175,7 @@ public class MitoCNEstimateStep extends Step {
     String useFile = null;
     boolean sampLrr = true;
     boolean plot = false;
+
     int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter,
                                   useFile, proj.getSampleList(), proj.getLog());
     if (retCode == PCAPrep.SUCCESS_CODE) {

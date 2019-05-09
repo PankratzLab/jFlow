@@ -108,13 +108,30 @@ public class PRoCtOR {
     }
     String projectDirectory = PennCNVPrep.getCorrectedProjectDirectory(proj, numComponents,
                                                                        correctionType, strategy);
+    String sampleDirectory = projectDirectory + proj.SAMPLE_DIRECTORY.getDefaultValue();
     String markerDirectory = projectDirectory + proj.MARKER_DATA_DIRECTORY.getDefaultValue();
 
-    PennCNVPrep.prepExport(proj, markerDirectory, numComponents, null, numThreads, numMarkerThreads,
+    String shadowProjFile = PennCNVPrep.getCorrectedProjectProperties(proj, numComponents,
+                                                                      correctionType, strategy);
+    proj.getLog().report("Saving shadow project properties to: " + shadowProjFile);
+    if (!Files.exists(new File(shadowProjFile))) {
+      Files.copyFile(proj.getPropertyFilename(), shadowProjFile);
+    }
+    proj.saveProperties(shadowProjFile);
+    Project shadowProj = new Project(shadowProjFile);
+
+    shadowProj.PROJECT_NAME.setValue(proj.PROJECT_NAME.getValue() + " - PC Corrected: "
+                                     + numComponents + "PCs, " + correctionType.name() + "; "
+                                     + strategy.name());
+    shadowProj.PROJECT_DIRECTORY.setValue(projectDirectory);
+    shadowProj.SAMPLE_DIRECTORY.setValue(sampleDirectory);
+    shadowProj.MARKER_DATA_DIRECTORY.setValue(markerDirectory);
+    shadowProj.IS_PC_CORRECTED_PROJECT.setValue(Boolean.TRUE);
+    shadowProj.importProperties(proj);
+    shadowProj.saveProperties();
+
+    PennCNVPrep.prepExport(proj, shadowProj, numComponents, null, numThreads, numMarkerThreads,
                            LS_TYPE.REGULAR, false, correctionType, strategy);
-    PennCNVPrep.exportSpecialPennCNV(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
-                                     numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false,
-                                     false, correctionType, strategy);
     if (setupCNVCallingIfSuccessfull) {
       GenvisisWorkflow.setupCNVCalling(projectDirectory);
     }
@@ -274,7 +291,7 @@ public class PRoCtOR {
    * @param numCorrectionThreads number of threads within a marker (max of 6 can be utilized)
    * @param numMarkerThreads number of markers corrected at once
    */
-  public static void correctProject(Project proj, String newTransposedDir,
+  public static void correctProject(Project proj, Project shadowProject,
                                     PrincipalComponentsResiduals principalComponentsResiduals,
                                     boolean preserveBafs, int[] sampleSex,
                                     boolean[] samplesToUseCluster, String[] markers,
@@ -282,22 +299,9 @@ public class PRoCtOR {
                                     CHROMOSOME_X_STRATEGY sexStrategy, int numComponents,
                                     int numCorrectionThreads, int numMarkerThreads) {
 
-    Project shadowProject = new Project();
-    // TODO update shadow project for new location of files,
-    // transposed/samples dirs, etc
     ShadowMarkerDataWriter smdw = new ShadowMarkerDataWriter();
-    smdw.setOutputDirectory(newTransposedDir);
+    smdw.setOutputDirectory(shadowProject.MARKER_DATA_DIRECTORY.getValue());
     smdw.setupMarkerFiles(proj);
-    String sampList = proj.SAMPLELIST_FILENAME.getValue();
-    if (!sampList.startsWith(proj.PROJECT_DIRECTORY.getValue())) {
-      sampList = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue()) + sampList;
-    }
-    String newList = shadowProject.SAMPLELIST_FILENAME.getValue();
-    if (!newList.startsWith(shadowProject.PROJECT_DIRECTORY.getValue())) {
-      newList = ext.verifyDirFormat(shadowProject.PROJECT_DIRECTORY.getValue()) + newList;
-    }
-
-    Files.copyFile(sampList, newList);
 
     PcCorrectionProducer producer = new PcCorrectionProducer(principalComponentsResiduals,
                                                              numComponents, sampleSex,

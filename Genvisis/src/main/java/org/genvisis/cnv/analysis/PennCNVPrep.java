@@ -628,6 +628,25 @@ public class PennCNVPrep {
     ensureExists(markerDirectory);
 
     new File(proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
+
+    String shadowProjFile = getCorrectedProjectProperties(proj, numComponents, correctionType,
+                                                          sexStrategy);
+    proj.getLog().report("Saving shadow project properties to: " + shadowProjFile);
+    if (!Files.exists(new File(shadowProjFile))) {
+      Files.copyFile(proj.getPropertyFilename(), shadowProjFile);
+    }
+    proj.saveProperties(shadowProjFile);
+    Project shadowProj = new Project(shadowProjFile);
+
+    shadowProj.PROJECT_NAME.setValue(proj.PROJECT_NAME.getValue() + " - PC Corrected: "
+                                     + numComponents + "PCs, " + correctionType.name() + "; "
+                                     + sexStrategy.name());
+    shadowProj.PROJECT_DIRECTORY.setValue(projectDirectory);
+    shadowProj.SAMPLE_DIRECTORY.setValue(sampleDirectory);
+    shadowProj.MARKER_DATA_DIRECTORY.setValue(markerDirectory);
+    shadowProj.IS_PC_CORRECTED_PROJECT.setValue(Boolean.TRUE);
+    shadowProj.importProperties(proj);
+
     if (shadowSamples) {
       if (numSampleChunks == 0) {
         // Conservatively use 75% of available memory for chunking
@@ -687,23 +706,6 @@ public class PennCNVPrep {
         proj.getLog().reportException(e);
       }
 
-      String shadowProjFile = getCorrectedProjectProperties(proj, numComponents, correctionType,
-                                                            sexStrategy);
-      proj.getLog().report("Saving shadow project properties to: " + shadowProjFile);
-      if (!Files.exists(new File(shadowProjFile))) {
-        Files.copyFile(proj.getPropertyFilename(), shadowProjFile);
-      }
-      proj.saveProperties(shadowProjFile);
-      Project shadowProj = new Project(shadowProjFile);
-
-      shadowProj.PROJECT_NAME.setValue(proj.PROJECT_NAME.getValue() + " - PC Corrected: "
-                                       + numComponents + "PCs, " + correctionType.name() + "; "
-                                       + sexStrategy.name());
-      shadowProj.PROJECT_DIRECTORY.setValue(projectDirectory);
-      shadowProj.SAMPLE_DIRECTORY.setValue(sampleDirectory);
-      shadowProj.MARKER_DATA_DIRECTORY.setValue(markerDirectory);
-      shadowProj.IS_PC_CORRECTED_PROJECT.setValue(Boolean.TRUE);
-      shadowProj.importProperties(proj);
       if (outliers.size() == 0) {// usually caused by skipping sample export, so will generate it
         shadowProj.NUM_THREADS.setValue(numMarkerThreads * numThreads);
         shadowProj.verifyAndGenerateOutliers(true);
@@ -713,14 +715,14 @@ public class PennCNVPrep {
       shadowProj.saveProperties();
 
     } else {
-      prepExport(proj, markerDirectory, numComponents, markerFile, numThreads, numMarkerThreads,
-                 lType, preserveBafs, correctionType, sexStrategy);
+      prepExport(proj, shadowProj, numComponents, markerFile, numThreads, numMarkerThreads, lType,
+                 preserveBafs, correctionType, sexStrategy);
     }
   }
 
-  public static void prepExport(Project proj, String mkrDir, int numComponents, String markerFile,
-                                int numThreads, int numMarkerThreads, LS_TYPE lType,
-                                boolean preserveBafs, CORRECTION_TYPE correctionType,
+  public static void prepExport(Project proj, Project shadowProject, int numComponents,
+                                String markerFile, int numThreads, int numMarkerThreads,
+                                LS_TYPE lType, boolean preserveBafs, CORRECTION_TYPE correctionType,
                                 CHROMOSOME_X_STRATEGY sexStrategy) {
     String[] markers;
     PrincipalComponentsResiduals principalComponentsResiduals = loadPcResids(proj, numComponents);
@@ -743,14 +745,7 @@ public class PennCNVPrep {
           .report("Info - loaded " + markers.length + " markers from " + markerFile + " to export");
 
     }
-    // PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, principalComponentsResiduals, null,
-    // proj.getSamplesToInclude(null), sex,
-    // markers,
-    // numComponents, dir, lType, numThreads,
-    // numMarkerThreads);
-    // specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(mkrDir, preserveBafs, correctionType,
-    // sexStrategy);
-    PRoCtOR.correctProject(proj, mkrDir, principalComponentsResiduals, preserveBafs, sex,
+    PRoCtOR.correctProject(proj, shadowProject, principalComponentsResiduals, preserveBafs, sex,
                            proj.getSamplesToInclude(null), markers, correctionType, sexStrategy,
                            numComponents, numThreads, numMarkerThreads);
   }
