@@ -2144,8 +2144,15 @@ public class Project implements PropertyChangeListener {
             String newFile = this.PROJECT_DIRECTORY.getValue()
                              + p.getValueString().replace(proj.PROJECT_DIRECTORY.getValueString(),
                                                           "");
-            Files.copyFileUsingFileChannels(p.getValueString(), newFile, log);
-            this.getProperty(p.getName()).parseValue(newFile);
+            if (Files.exists(p.getValueString())) {
+              Files.copyFileUsingFileChannels(p.getValueString(), newFile, log);
+              this.getProperty(p.getName()).parseValue(newFile);
+            } else {
+              String message = "Couldn't copy " + p.getName() + " file from " + p.getValueString()
+                               + " to " + newFile + "; File doesn't exist.";
+              getLog().reportTimeWarning(message);
+              proj.getLog().reportTimeWarning(message);
+            }
           } else {
             this.getProperty(p.getName()).parseValue(p.getValueString());
           }
@@ -2231,15 +2238,15 @@ public class Project implements PropertyChangeListener {
     /**
      * Your friendly Illumina arrays
      */
-    ILLUMINA(new String[] {"cnvi"}, 50, false/* , 650000 */),
+    ILLUMINA(new String[] {"cnvi"}, 50, false),
     /**
      * Supports CHP format
      */
-    AFFY_GW6(new String[] {"CN_"}, 25, false/* , 650000 */),
+    AFFY_GW6(new String[] {"CN_"}, 25, false),
     /**
      * Supports CHP and CNCHP formated input
      */
-    AFFY_GW6_CN(new String[] {"CN_"}, 25, false/* , 909622 */),
+    AFFY_GW6_CN(new String[] {"CN_"}, 25, false),
 
     /**
      * For bamFiles
