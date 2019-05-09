@@ -1721,6 +1721,7 @@ public class GeneScorePipeline {
   }
 
   private static final String SCORE_FILE = "score.profile";
+  private static final String MARKER_REGRESSION_FILE = "marker_results.out";
 
   private void runScore(Study study) {
     for (String dFile : metaFiles) {
@@ -1763,6 +1764,8 @@ public class GeneScorePipeline {
         Map<String, Integer> matchedMarkerIndices = new HashMap<>();
         Map<String, Float> matchedMarkerFreqs = new HashMap<>();
         Map<String, AlleleOrder> matchedMarkerAlleleOrders = new HashMap<>();
+        Map<String, Map<String, Double>> markerScores = new HashMap<>();
+
         for (int m = 0; m < markers.length; m++) {
           String mkr = markers[m];
           HitMarker hitMarker = hitMarkerData.get(mkr);
@@ -1799,7 +1802,9 @@ public class GeneScorePipeline {
             }
           }
           matchedMarkerFreqs.put(mkr, tot / cnt);
+          markerScores.put(mkr, new HashMap<>());
         }
+
         for (int i = 0; i < ids.length; i++) {
           float scoreSum = 0;
           float cnt2 = 0;
@@ -1814,19 +1819,22 @@ public class GeneScorePipeline {
             boolean nanFrq = Float.isNaN(mkrFrq);
             HitMarker hitMarker = hitMarkerData.get(mkr);
             float beta = hitMarker.getEffect().floatValue();
+            float mkrScr = Float.NaN;
 
             AlleleOrder alleleOrder = matchedMarkerAlleleOrders.get(mkr);
             if (alleleOrder.equals(StrandOps.AlleleOrder.OPPOSITE)) {
               cnt += isNaN ? 0 : 1;
               cnt2 += isNaN ? 0 : dosage;
-              scoreSum += (isNaN ? (nanFrq ? 0 : mkrFrq) : dosage) * beta;
+              mkrScr = (isNaN ? (nanFrq ? 0 : mkrFrq) : dosage) * beta;
             } else if (alleleOrder.equals(StrandOps.AlleleOrder.SAME)) {
               cnt += isNaN ? 0 : 1;
               cnt2 += isNaN ? 0 : (2.0 - dosage);
-              scoreSum += (2.0 - (isNaN ? (nanFrq ? 0 : mkrFrq) : dosage)) * beta;
+              mkrScr = (float) ((2.0 - (isNaN ? (nanFrq ? 0 : mkrFrq) : dosage)) * beta);
             } else {
               throw new IllegalStateException("Mismatched alleles were not caught when cross-filtering");
             }
+            scoreSum += mkrScr;
+            markerScores.get(mkr).put(ids[i][0] + "\t" + ids[i][1], (double) mkrScr);
           }
 
           double mkrRatio = cnt / (double) markers.length;
@@ -1838,6 +1846,41 @@ public class GeneScorePipeline {
 
         scoreWriter.flush();
         scoreWriter.close();
+
+        log.reportTime("Writing marker-specific results for "
+                       + new StringJoiner("//").add(study.studyName).add(dataFile)
+                                               .add(ext.formSciNot(filePrefix.getValue().indexThreshold,
+                                                                   5, false))
+                                               .toString());
+        String resultPrefix = new StringJoiner("\t").add(study.studyName).add(dataFile)
+                                                    .add(ext.formSciNot(filePrefix.getValue().indexThreshold,
+                                                                        5, false))
+                                                    .toString();
+
+        String middle = new StringJoiner("\t").add("0").add("N/A").add("N/A")
+                                              .add(String.valueOf(dataCounts.get(dFile)
+                                                                            .get(filePrefix.getKey())))
+                                              .add(String.valueOf(study.hitWindowCnts.get(filePrefix.getKey())
+                                                                                     .get(dataFile)))
+                                              .add(String.valueOf(study.hitSnpCounts.get(filePrefix.getKey())
+                                                                                    .get(dataFile)))
+                                              .add(String.valueOf(study.scores.get(filePrefix.getKey())
+                                                                              .get(dataFile)[0]))
+                                              .add(String.valueOf(study.scores.get(filePrefix.getKey())
+                                                                              .get(dataFile)[1]))
+                                              .toString();
+        PrintWriter markerWriter = Files.getAppropriateWriter(prefDir + "/"
+                                                              + MARKER_REGRESSION_FILE);
+        markerWriter.println(REGRESSION_HEADER);
+        for (String marker : matchedMarkerIndices.keySet()) {
+          for (int i = 0; i < study.phenoFiles.size(); i++) {
+            String pheno = study.phenoFiles.get(i);
+            PhenoData pd = study.phenoData.get(pheno);
+            RegressionResult rrResult = actualRegression(markerScores.get(marker), null, pd);
+            writeSingleResult(pheno, rrResult, resultPrefix, middle, markerWriter);
+          }
+        }
+        markerWriter.close();
       }
     }
   }
@@ -1936,129 +1979,134 @@ public class GeneScorePipeline {
           PrintWriter writer = Files.getAppropriateWriter(metaDir + "missingPhenos.id");
           for (int i = 0; i < study.phenoFiles.size(); i++) {
             PhenoData pd = study.phenoData.get(study.phenoFiles.get(i));
-            ArrayList<Double> depData = new ArrayList<>();
-            ArrayList<double[]> baselineIndeps = new ArrayList<>();
-            ArrayList<double[]> indepData = new ArrayList<>();
-            MultiSet<String> invalids = new HashMultiSet<>();
-            for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
-              if (scoreData.containsKey(indiv.getKey())) {
-                PhenoIndiv pdi = pd.indivs.get(indiv.getKey());
-                double[] baseData = new double[pd.covars.size() + covarData.size()];
-                double[] covarData1 = new double[pd.covars.size() + 1 + covarData.size()];
-                covarData1[0] = scoreData.get(indiv.getKey());
-                boolean validCovars = true;
-                for (int k = 1; k < pd.covars.size() + 1; k++) {
-                  Double d = pdi.getCovars().get(pd.covars.get(k - 1));
-                  if (d == null) {
-                    writer.println(indiv.getKey() + "\t" + pd.covars.get(k - 1));
-                    validCovars = false;
-                    invalids.add(pd.covars.get(k - 1));
-                  } else {
-                    baseData[k - 1] = d.doubleValue();
-                    covarData1[k] = d.doubleValue();
-                  }
-                }
-                for (int k = 0; k < covarOrder.size(); k++) {
-                  String covarKey = covarOrder.get(k);
-                  Double d = covarData.get(covarKey).get(indiv.getKey());
-                  if (d == null || d.isNaN()) {
-                    writer.println(indiv.getKey() + "\t" + covarKey);
-                    validCovars = false;
-                    invalids.add(covarKey);
-                  } else {
-                    baseData[pd.covars.size() + k] = d.doubleValue();
-                    covarData1[pd.covars.size() + k + 1] = d.doubleValue();
-                  }
-                }
-                if (validCovars) {
-                  depData.add(pdi.getDepvar());
-                  baselineIndeps.add(baseData);
-                  indepData.add(covarData1);
-                }
-              }
-            }
-            if (invalids.uniqueSet().size() > 0) {
-              for (String k : invalids.uniqueSet()) {
-                log.reportTimeWarning("Missing " + invalids.getCount(k) + " for covariate " + k
-                                      + ".");
-              }
-            }
-
-            double[][] baseCovars = new double[baselineIndeps.size()][];
-            double[][] covars = new double[indepData.size()][];
-            for (int k = 0; k < covars.length; k++) {
-              covars[k] = indepData.get(k);
-              baseCovars[k] = baselineIndeps.get(k);
-            }
-            int cases = 0;
-            int controls = 0;
-            Multiset<Double> phenos = ImmutableMultiset.copyOf(depData);
-            if (phenos.entrySet().size() == 2) {
-              if (phenos.elementSet()
-                        .equals(ImmutableSet.of(Double.valueOf(0.0), Double.valueOf(1.0)))) {
-                cases = phenos.count(Double.valueOf(1.0));
-                controls = phenos.count(Double.valueOf(0.0));
-              } else if (phenos.elementSet()
-                               .equals(ImmutableSet.of(Double.valueOf(1.0), Double.valueOf(2.0)))) {
-                cases = phenos.count(Double.valueOf(2.0));
-                controls = phenos.count(Double.valueOf(1.0));
-              } else {
-                log.reportError("Unrecognized case/control designations, cannot count cases and controls");
-              }
-            }
-            RegressionModel baseModel = RegressionModel.determineAppropriate(Doubles.toArray(depData),
-                                                                             baseCovars, false,
-                                                                             true);
-            RegressionModel model = RegressionModel.determineAppropriate(Doubles.toArray(depData),
-                                                                         covars, false, true);
-
-            RegressionResult.Builder rr = RegressionResult.builder();
-            rr.setNum(depData.size());
-            rr.setnCases(cases);
-            rr.setnControls(controls);
-            if (model.analysisFailed()) {
-              rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
-              rr.setBeta(Double.NaN);
-              rr.setSe(Double.NaN);
-              rr.setRsq(Double.NaN);
-              rr.setPval(Double.NaN);
-              rr.setLogistic(model.isLogistic());
-            } else {
-              int ind = -1;
-              for (int l = 0; l < model.getVarNames().length; l++) {
-                if ("Indep 1".equals(model.getVarNames()[l])) {
-                  ind = l;
-                  break;
-                }
-              }
-              if (ind == -1) {
-                rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
-                rr.setBeta(Double.NaN);
-                rr.setSe(Double.NaN);
-                rr.setRsq(model.getRsquare());
-                rr.setPval(Double.NaN);
-                rr.setLogistic(model.isLogistic());
-                rr.setStats(Double.NaN);
-              } else {
-                rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
-                rr.setBeta(model.getBetas()[ind]);
-                rr.setSe(model.getSEofBs()[ind]);
-                rr.setRsq(model.getRsquare());
-                rr.setPval(model.getSigs()[ind]);
-                rr.setLogistic(model.isLogistic());
-                rr.setStats(model.getStats()[ind]);
-              }
-            }
-            study.regressions.get(filePrefix.getKey()).get(dataFile).put(pd.phenoName, rr.build());
-
-            baseModel = null;
-            model = null;
+            RegressionResult rrResult = actualRegression(scoreData, writer, pd);
+            study.regressions.get(filePrefix.getKey()).get(dataFile).put(pd.phenoName, rrResult);
           }
         } catch (IOException e) {
           e.printStackTrace();
         }
       }
     }
+  }
+
+  private RegressionResult actualRegression(Map<String, Double> scoreData, PrintWriter writer,
+                                            PhenoData pd) {
+    ArrayList<Double> depData = new ArrayList<>();
+    ArrayList<double[]> baselineIndeps = new ArrayList<>();
+    ArrayList<double[]> indepData = new ArrayList<>();
+    MultiSet<String> invalids = new HashMultiSet<>();
+    for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
+      if (scoreData.containsKey(indiv.getKey())) {
+        PhenoIndiv pdi = pd.indivs.get(indiv.getKey());
+        double[] baseData = new double[pd.covars.size() + covarData.size()];
+        double[] covarData1 = new double[pd.covars.size() + 1 + covarData.size()];
+        covarData1[0] = scoreData.get(indiv.getKey());
+        boolean validCovars = true;
+        for (int k = 1; k < pd.covars.size() + 1; k++) {
+          Double d = pdi.getCovars().get(pd.covars.get(k - 1));
+          if (d == null) {
+            if (writer != null) {
+              writer.println(indiv.getKey() + "\t" + pd.covars.get(k - 1));
+            }
+            validCovars = false;
+            invalids.add(pd.covars.get(k - 1));
+          } else {
+            baseData[k - 1] = d.doubleValue();
+            covarData1[k] = d.doubleValue();
+          }
+        }
+        for (int k = 0; k < covarOrder.size(); k++) {
+          String covarKey = covarOrder.get(k);
+          Double d = covarData.get(covarKey).get(indiv.getKey());
+          if (d == null || d.isNaN()) {
+            if (writer != null) {
+              writer.println(indiv.getKey() + "\t" + covarKey);
+            }
+            validCovars = false;
+            invalids.add(covarKey);
+          } else {
+            baseData[pd.covars.size() + k] = d.doubleValue();
+            covarData1[pd.covars.size() + k + 1] = d.doubleValue();
+          }
+        }
+        if (validCovars) {
+          depData.add(pdi.getDepvar());
+          baselineIndeps.add(baseData);
+          indepData.add(covarData1);
+        }
+      }
+    }
+    if (invalids.uniqueSet().size() > 0) {
+      for (String k : invalids.uniqueSet()) {
+        log.reportTimeWarning("Missing " + invalids.getCount(k) + " for covariate " + k + ".");
+      }
+    }
+
+    double[][] baseCovars = new double[baselineIndeps.size()][];
+    double[][] covars = new double[indepData.size()][];
+    for (int k = 0; k < covars.length; k++) {
+      covars[k] = indepData.get(k);
+      baseCovars[k] = baselineIndeps.get(k);
+    }
+    int cases = 0;
+    int controls = 0;
+    Multiset<Double> phenos = ImmutableMultiset.copyOf(depData);
+    if (phenos.entrySet().size() == 2) {
+      if (phenos.elementSet().equals(ImmutableSet.of(Double.valueOf(0.0), Double.valueOf(1.0)))) {
+        cases = phenos.count(Double.valueOf(1.0));
+        controls = phenos.count(Double.valueOf(0.0));
+      } else if (phenos.elementSet()
+                       .equals(ImmutableSet.of(Double.valueOf(1.0), Double.valueOf(2.0)))) {
+        cases = phenos.count(Double.valueOf(2.0));
+        controls = phenos.count(Double.valueOf(1.0));
+      } else {
+        log.reportError("Unrecognized case/control designations, cannot count cases and controls");
+      }
+    }
+    RegressionModel baseModel = RegressionModel.determineAppropriate(Doubles.toArray(depData),
+                                                                     baseCovars, false, true);
+    RegressionModel model = RegressionModel.determineAppropriate(Doubles.toArray(depData), covars,
+                                                                 false, true);
+
+    RegressionResult.Builder rr = RegressionResult.builder();
+    rr.setNum(depData.size());
+    rr.setnCases(cases);
+    rr.setnControls(controls);
+    if (model.analysisFailed()) {
+      rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
+      rr.setBeta(Double.NaN);
+      rr.setSe(Double.NaN);
+      rr.setRsq(Double.NaN);
+      rr.setPval(Double.NaN);
+      rr.setLogistic(model.isLogistic());
+    } else {
+      int ind = -1;
+      for (int l = 0; l < model.getVarNames().length; l++) {
+        if ("Indep 1".equals(model.getVarNames()[l])) {
+          ind = l;
+          break;
+        }
+      }
+      if (ind == -1) {
+        rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
+        rr.setBeta(Double.NaN);
+        rr.setSe(Double.NaN);
+        rr.setRsq(model.getRsquare());
+        rr.setPval(Double.NaN);
+        rr.setLogistic(model.isLogistic());
+        rr.setStats(Double.NaN);
+      } else {
+        rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
+        rr.setBeta(model.getBetas()[ind]);
+        rr.setSe(model.getSEofBs()[ind]);
+        rr.setRsq(model.getRsquare());
+        rr.setPval(model.getSigs()[ind]);
+        rr.setLogistic(model.isLogistic());
+        rr.setStats(model.getStats()[ind]);
+      }
+    }
+    RegressionResult rrResult = rr.build();
+    return rrResult;
   }
 
   private void writeResults() {
