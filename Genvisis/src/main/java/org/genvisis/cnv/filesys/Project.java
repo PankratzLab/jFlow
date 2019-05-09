@@ -10,8 +10,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,8 +25,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Vector;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 
@@ -55,6 +55,8 @@ import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.Caching;
+import org.pankratzlab.common.Caching.SoftRefMemoizingSupplier;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.HashVec;
@@ -706,12 +708,13 @@ public class Project implements PropertyChangeListener {
                                                               false);
 
   private String projectPropertiesFilename;
-  private Reference<SampleList> sampleListRef = new SoftReference<>(null);
-  private Reference<SampleData> sampleDataRef = new SoftReference<>(null);
-  private HashSet<String> cnvFilesLoadedInSampleData;
+  private final SoftRefMemoizingSupplier<SampleList> sampleListSupplier = Caching.memoizeWithSoftRef(this::loadSampleList);
+  private final SoftRefMemoizingSupplier<SampleData> sampleDataSupplier = Caching.memoizeWithSoftRef(this::loadSampleData);
+  @Nullable
+  private String[] cnvFilesToLoadInSampleData = null;
   private ImmutableMap<String, SourceFileHeaderData> sourceFileHeaders;
-  private Reference<MarkerLookup> markerLookupRef = new SoftReference<>(null);
-  private Reference<MarkerDetailSet> markerSetRef = new SoftReference<>(null);
+  private final Supplier<MarkerLookup> markerLookupSupplier = Caching.memoizeWithSoftRef(this::loadMarkerLookup);
+  private final Supplier<MarkerDetailSet> markerSetSupplier = Caching.memoizeWithSoftRef(this::loadMarkerSet);
   private Logger log;
   private boolean gui;
   private ProgressMonitor progressMonitor;
@@ -725,7 +728,6 @@ public class Project implements PropertyChangeListener {
   public static final String IMPORT_FILE = "import.ser";
 
   public Project() {
-    cnvFilesLoadedInSampleData = new HashSet<>();
     log = new Logger();
     gui = false;
     projectPropertiesFilename = "example.properties";
@@ -975,16 +977,9 @@ public class Project implements PropertyChangeListener {
     this.projectPropertiesFilename = projectPropertiesFilename;
   }
 
-  public synchronized MarkerDetailSet getMarkerSet() {
-    MarkerDetailSet markerSet = markerSetRef.get();
-    if (markerSet == null) {
-      markerSet = loadMarkerSet();
-      markerSetRef = new SoftReference<>(markerSet);
-    } else {
-      // Previously this method would have loaded the Marker Set fresh from the serialized file.
-      // Prevent proliferation of possibly modified array references here
-      markerSet.clearArrayRefs();
-    }
+  public MarkerDetailSet getMarkerSet() {
+    MarkerDetailSet markerSet = markerSetSupplier.get();
+    markerSet.clearArrayRefs();
     return markerSet;
   }
 
@@ -1062,46 +1057,45 @@ public class Project implements PropertyChangeListener {
     return getMarkerSet().getMarkerNames();
   }
 
-  public synchronized MarkerLookup getMarkerLookup() {
-    MarkerLookup markerLookup = markerLookupRef.get();
-    if (markerLookup == null) {
+  public MarkerLookup getMarkerLookup() {
+    return markerLookupSupplier.get();
+  }
+
+  private MarkerLookup loadMarkerLookup() {
+    final MarkerLookup markerLookup;
+    if (Files.exists(MARKERLOOKUP_FILENAME.getValue())) {
+      markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue());
+    } else {
+      System.out.println("Failed to find MarkerLookup; generating one...");
+      TransposeData.recreateMarkerLookup(this);
       if (Files.exists(MARKERLOOKUP_FILENAME.getValue())) {
         markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue());
       } else {
-        System.out.println("Failed to find MarkerLookup; generating one...");
-        TransposeData.recreateMarkerLookup(this);
-        if (Files.exists(MARKERLOOKUP_FILENAME.getValue())) {
-          markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue());
-        } else {
-          log.reportError("Also failed to create MarkerLookup; failing");
-        }
+        log.reportError("Also failed to create MarkerLookup; failing");
+        markerLookup = null;
       }
-      markerLookupRef = new SoftReference<>(markerLookup);
     }
     return markerLookup;
   }
 
-  public synchronized void clearSampleList() {
-    sampleListRef.clear();
+  public void clearSampleList() {
+    sampleListSupplier.clear();
   }
 
-  public synchronized SampleList getSampleList() {
-    SampleList sampleList = sampleListRef.get();
-    if (sampleList == null) {
-      if (Files.exists(SAMPLELIST_FILENAME.getValue(false, false))) {
-        sampleList = SampleList.load(SAMPLELIST_FILENAME.getValue());
-      }
-      if (sampleList == null) {
-        log.report("Failed to find SampleList; generating one...");
-        sampleList = SampleList.generateSampleList(this);
-      }
-      if (sampleList != null && sampleList.getSamples().length == 0) {
-        log.report("SampleList is of length zero; generating a new one...");
-        sampleList = SampleList.generateSampleList(this);
-      }
-      sampleListRef = new SoftReference<>(sampleList);
-    }
+  public SampleList getSampleList() {
+    return sampleListSupplier.get();
+  }
 
+  private SampleList loadSampleList() {
+    SampleList sampleList = SampleList.load(SAMPLELIST_FILENAME.getValue());
+    if (sampleList == null) {
+      log.report("Failed to find SampleList; generating one...");
+      sampleList = SampleList.generateSampleList(this);
+    }
+    if (sampleList != null && sampleList.getSamples().length == 0) {
+      log.report("SampleList is of length zero; generating a new one...");
+      sampleList = SampleList.generateSampleList(this);
+    }
     return sampleList;
   }
 
@@ -1254,8 +1248,8 @@ public class Project implements PropertyChangeListener {
     }
   }
 
-  public synchronized void resetSampleData() {
-    sampleDataRef.clear();
+  public void resetSampleData() {
+    sampleDataSupplier.clear();
   }
 
   public SampleData getSampleData(boolean loadCNVs) {
@@ -1263,23 +1257,18 @@ public class Project implements PropertyChangeListener {
   }
 
   public synchronized SampleData getSampleData(String[] cnvFilenames) {
-    if (cnvFilenames != null) {
-      for (int i = 0; i < cnvFilenames.length; i++) {
-        if (!cnvFilesLoadedInSampleData.contains(cnvFilenames[i])) {
-          resetSampleData();
-          break;
-        }
-      }
+    cnvFilesToLoadInSampleData = cnvFilenames;
+    SampleData cachedSampleData = sampleDataSupplier.get();
+    if (cnvFilenames == null
+        || Stream.of(cnvFilenames).allMatch(cachedSampleData.getLoadedCNVFiles()::contains)) {
+      return cachedSampleData;
     }
-    SampleData sampleData = sampleDataRef.get();
-    if (sampleData == null) {
-      sampleData = new SampleData(this, SampleData.BASIC_CLASSES.length, cnvFilenames);
-      // System.err.println("SampleData loaded with "+(cnvFilenames == null?"no cnv
-      // files":Array.toStr(cnvFilenames, "/")));
-      cnvFilesLoadedInSampleData = HashVec.loadToHashSet(cnvFilenames);
-    }
-    sampleDataRef = new SoftReference<>(sampleData);
-    return sampleData;
+    resetSampleData();
+    return sampleDataSupplier.get();
+  }
+
+  private SampleData loadSampleData() {
+    return new SampleData(this, SampleData.BASIC_CLASSES.length, cnvFilesToLoadInSampleData);
   }
 
   public Hashtable<String, String> getFilteredHash() {
