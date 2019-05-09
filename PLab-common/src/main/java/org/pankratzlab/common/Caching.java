@@ -21,8 +21,9 @@ public class Caching {
    *
    * <p>
    * The returned supplier is thread-safe and will only call the delegate once unless the referent
-   * has been Garbage Collected. The supplier's serialized form does not contain the cached value,
-   * which will be recalculated when {@code get()} is called on the reserialized instance.
+   * has been Garbage Collected or manually cleared. The supplier's serialized form does not contain
+   * the cached value, which will be recalculated when {@code get()} is called on the reserialized
+   * instance.
    *
    * <p>
    * When the underlying delegate throws an exception then this memoizing supplier will keep
@@ -32,20 +33,21 @@ public class Caching {
    * If {@code delegate} is an instance created by an earlier call to
    * {@code memoizeWithSoftReference}, it is returned directly.
    */
-  public static <T> MemoizingSupplier<T> memoizeWithSoftRef(Supplier<T> delegate) {
+  public static <T> SoftRefMemoizingSupplier<T> memoizeWithSoftRef(Supplier<T> delegate) {
     if (delegate instanceof NonSerializableSoftRefMemoizingSupplier
         || delegate instanceof SerializableSoftRefMemoizingSupplier) {
-      return (MemoizingSupplier<T>) delegate;
+      return (SoftRefMemoizingSupplier<T>) delegate;
     }
     return delegate instanceof Serializable ? new SerializableSoftRefMemoizingSupplier<>(delegate)
                                             : new NonSerializableSoftRefMemoizingSupplier<>(delegate);
   }
 
-  private static interface MemoizingSupplier<T> extends Supplier<T> {
+  public static interface SoftRefMemoizingSupplier<T> extends Supplier<T> {
     public void clear();
   }
 
-  private static class SerializableSoftRefMemoizingSupplier<T> implements MemoizingSupplier<T>,
+  private static class SerializableSoftRefMemoizingSupplier<T>
+                                                           implements SoftRefMemoizingSupplier<T>,
                                                            Serializable {
     final Supplier<T> delegate;
     transient volatile SoftReference<T> value = new SoftReference<>(null);
@@ -92,7 +94,7 @@ public class Caching {
   }
 
   @VisibleForTesting
-  static class NonSerializableSoftRefMemoizingSupplier<T> implements MemoizingSupplier<T> {
+  static class NonSerializableSoftRefMemoizingSupplier<T> implements SoftRefMemoizingSupplier<T> {
     final Supplier<T> delegate;
     volatile SoftReference<T> value = new SoftReference<>(null);
 
