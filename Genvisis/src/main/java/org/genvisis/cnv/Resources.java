@@ -618,7 +618,7 @@ public final class Resources {
     private final GenomeBuild build;
 
     public AxiomTxGenomes(GenomeBuild build, Logger log) {
-      super(AffyAxiomTxV1.DIR, log, AffyGenomes.class);
+      super(AffyAxiomTxV1.DIR, log, AxiomTxGenomes.class);
       this.build = build;
     }
 
@@ -627,6 +627,20 @@ public final class Resources {
      */
     public Resource getMarkerPositions() {
       return getResource("Axiom_tx_v1." + build.getBuild() + ".markerPositions.txt");
+    }
+
+    /**
+     * @return
+     */
+    public Resource getIntensityPCMarkers_ProbeSets() {
+      return getResource("Axiom_tx_v1." + build.getBuild() + ".intensity.probeSet.txt");
+    }
+
+    /**
+     * @return
+     */
+    public Resource getIntensityPCMarkers_RSIds() {
+      return getResource("Axiom_tx_v1." + build.getBuild() + ".intensity.rsID.txt");
     }
 
     /**
