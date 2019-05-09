@@ -354,7 +354,7 @@ public class Project implements PropertyChangeListener {
   public final FileProperty MARKERLOOKUP_FILENAME = new FileProperty(this,
                                                                      PropertyKeys.KEY_MARKERLOOKUP_FILENAME,
                                                                      "", GROUP.SPECIAL_HIDDEN, true,
-                                                                     COPY.VALUE,
+                                                                     COPY.NO_COPY,
                                                                      "data/markerLookup.ser",
                                                                      false);
   public final FileProperty SAMPLELIST_FILENAME = new FileProperty(this,
