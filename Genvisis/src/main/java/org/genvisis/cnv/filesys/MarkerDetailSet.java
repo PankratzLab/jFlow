@@ -2,8 +2,6 @@ package org.genvisis.cnv.filesys;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,6 +11,7 @@ import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
@@ -26,7 +25,10 @@ import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.StrandOps;
 import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.Caching;
+import org.pankratzlab.common.Caching.SoftRefMemoizingSupplier;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Functionals;
 import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.GenomicPosition;
 import org.pankratzlab.common.Logger;
@@ -167,7 +169,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     }
   }
 
-  public static final long serialVersionUID = 10L;
+  public static final long serialVersionUID = 11L;
 
   public static final List<String> MARKER_POSITIONS_ISSUES_HEADER = Lists.newArrayList("Marker",
                                                                                        "DefinedChr",
@@ -180,14 +182,14 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   private final int hashCode;
   private final long markerSetFingerprint;
 
-  private transient Reference<Map<String, Marker>> markerNameMapRef = null;
-  private transient Reference<NavigableMap<Byte, NavigableSet<Marker>>> chrMapRef = null;
-  private transient Reference<NavigableMap<GenomicPosition, NavigableSet<Marker>>> genomicPositionMapRef = null;
-  private transient Reference<Map<Marker, Integer>> markerIndexMapRef = null;
-  private transient Reference<String[]> markerNameArrayRef = null;
+  private final Supplier<Map<String, Marker>> markerNameMapSupplier = Caching.memoizeWithSoftRef(Functionals.serializableSupplier(this::generateMarkerNameMap));
+  private final Supplier<NavigableMap<Byte, NavigableSet<Marker>>> chrMapSupplier = Caching.memoizeWithSoftRef(Functionals.serializableSupplier(this::generateChrMap));
+  private final Supplier<NavigableMap<GenomicPosition, NavigableSet<Marker>>> genomicPositionMapSupplier = Caching.memoizeWithSoftRef(Functionals.serializableSupplier(this::generateGenomicPositionMap));
+  private final Supplier<Map<Marker, Integer>> markerIndexMapSupplier = Caching.memoizeWithSoftRef(Functionals.serializableSupplier(this::generateMarkerIndexMap));
 
-  private transient Reference<byte[]> chrArrayRef = null;
-  private transient Reference<int[]> positionArrayRef = null;
+  private final SoftRefMemoizingSupplier<String[]> markerNameArraySupplier = Caching.memoizeWithSoftRef(Functionals.serializableSupplier(this::generateMarkerNameArray));
+  private final SoftRefMemoizingSupplier<byte[]> chrArraySupplier = Caching.memoizeWithSoftRef(Functionals.serializableSupplier(this::generateChrArray));
+  private final SoftRefMemoizingSupplier<int[]> positionArraySupplier = Caching.memoizeWithSoftRef(Functionals.serializableSupplier(this::generatePositionsArray));
 
   public MarkerDetailSet(MarkerSetInfo markerSet) {
     this(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions(),
@@ -621,12 +623,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   }
 
   public Map<String, Marker> getMarkerNameMap() {
-    Map<String, Marker> markerNameMap = markerNameMapRef == null ? null : markerNameMapRef.get();
-    if (markerNameMap == null) {
-      markerNameMap = generateMarkerNameMap();
-      markerNameMapRef = new SoftReference<>(markerNameMap);
-    }
-    return markerNameMap;
+    return markerNameMapSupplier.get();
   }
 
   /**
@@ -634,12 +631,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    *         {@link Marker}s on that chromosome
    */
   public NavigableMap<Byte, NavigableSet<Marker>> getChrMap() {
-    NavigableMap<Byte, NavigableSet<Marker>> chrMap = chrMapRef == null ? null : chrMapRef.get();
-    if (chrMap == null) {
-      chrMap = generateChrMap();
-      chrMapRef = new SoftReference<>(chrMap);
-    }
-    return chrMap;
+    return chrMapSupplier.get();
   }
 
   /**
@@ -647,13 +639,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    *         {@link NavigableSet} of {@link Marker}s
    */
   public NavigableMap<GenomicPosition, NavigableSet<Marker>> getGenomicPositionMap() {
-    NavigableMap<GenomicPosition, NavigableSet<Marker>> genomicPositionMap = genomicPositionMapRef == null ? null
-                                                                                                           : genomicPositionMapRef.get();
-    if (genomicPositionMap == null) {
-      genomicPositionMap = generateGenomicPositionMap();
-      genomicPositionMapRef = new SoftReference<>(genomicPositionMap);
-    }
-    return genomicPositionMap;
+    return genomicPositionMapSupplier.get();
   }
 
   public Iterable<Marker> getMarkersSortedByChrPos() {
@@ -661,13 +647,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   }
 
   public Map<Marker, Integer> getMarkerIndexMap() {
-    Map<Marker, Integer> markerIndexMap = markerIndexMapRef == null ? null
-                                                                    : markerIndexMapRef.get();
-    if (markerIndexMap == null) {
-      markerIndexMap = generateMarkerIndexMap();
-      markerIndexMapRef = new SoftReference<>(markerIndexMap);
-    }
-    return markerIndexMap;
+    return markerIndexMapSupplier.get();
   }
 
   /**
@@ -877,12 +857,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     // FIXME Maintaining a reference to a mutable returned array is dangerous. Fix anywhere that is
     // relying on this method not building a fresh array every time it is called and
     // remove/reimplement
-    String[] markerNames = markerNameArrayRef == null ? null : markerNameArrayRef.get();
-    if (markerNames == null) {
-      markerNames = generateMarkerNameArray();
-      markerNameArrayRef = new SoftReference<>(markerNames);
-    }
-    return markerNames;
+    return markerNameArraySupplier.get();
   }
 
   @Override
@@ -891,12 +866,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     // FIXME Maintaining a reference to a mutable returned array is dangerous. Fix anywhere that is
     // relying on this method not building a fresh array every time it is called and
     // remove/reimplement
-    byte[] chrs = chrArrayRef == null ? null : chrArrayRef.get();
-    if (chrs == null) {
-      chrs = generateChrArray();
-      chrArrayRef = new SoftReference<>(chrs);
-    }
-    return chrs;
+    return chrArraySupplier.get();
   }
 
   @Override
@@ -905,12 +875,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     // FIXME Maintaining a reference to a mutable returned array is dangerous. Fix anywhere that is
     // relying on this method not building a fresh array every time it is called and
     // remove/reimplement
-    int[] positions = positionArrayRef == null ? null : positionArrayRef.get();
-    if (positions == null) {
-      positions = generatePositionsArray();
-      positionArrayRef = new SoftReference<>(positions);
-    }
-    return positions;
+    return positionArraySupplier.get();
   }
 
   /**
@@ -920,9 +885,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    * risk
    */
   public void clearArrayRefs() {
-    markerNameArrayRef = null;
-    chrArrayRef = null;
-    positionArrayRef = null;
+    markerNameArraySupplier.clear();
+    chrArraySupplier.clear();
+    positionArraySupplier.clear();
   }
 
   @Override
