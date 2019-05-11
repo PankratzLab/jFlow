@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -42,8 +41,6 @@ import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.filtering.FilterCalls;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.TransposeData;
-import org.genvisis.cnv.qc.AffyAnnotationFile;
-import org.genvisis.cnv.qc.AffyAnnotationFile.IMPORT_SCHEME;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.seq.manage.BedOps;
@@ -2441,12 +2438,6 @@ public class lab {
 
       switch (args.length) {
         case 0:
-
-          String f = "G:\\Imputation Pipeline\\Axiom_tx_v1.na35.annot.csv";
-          AffyAnnotationFile aaf = new AffyAnnotationFile(f, IMPORT_SCHEME.PROBESET_ID,
-                                                          new Logger());
-          List<Marker> mkrs = aaf.load();
-          System.out.println();
 
           return;
         case 1:

@@ -89,7 +89,7 @@ public class ForestPanel extends AbstractPanel {
       ForestInput input;
       String errorMessage;
 
-      if (forestPlot.getDataIndices().size() == 0) {
+      if (forestPlot.getDataIndices().size() == 0 || forestPlot.getCurrentDataIndex() == -1) {
         errorMessage = "No data file selected, or no data found in input file.  Please select a data file.";
       } else {
         input = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex());
@@ -98,9 +98,6 @@ public class ForestPanel extends AbstractPanel {
                        + "\" actually exists and if the beta/se columns are named as expected (e.g., expecting beta.Study1 and not Study1.beta; overall results need to be exactly beta/se or effect/stderr)";
       }
       setNullMessage(errorMessage);
-      if (log != null) {
-        log.reportError("Error - " + errorMessage);
-      }
 
       points = new PlotPoint[0];
       setPointsGeneratable(false);

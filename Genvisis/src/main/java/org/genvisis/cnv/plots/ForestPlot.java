@@ -562,16 +562,18 @@ public class ForestPlot {
                                                                                     delim.endsWith("!"),
                                                                                     log)
                                                      : hdr.trim().split(delim);
-    for (int i = 0; i < dataFileHeaders.length; i++) {
+    hdrs: for (int i = 0; i < dataFileHeaders.length; i++) {
       for (int j = 0; j < BETA_META_HEADERS.length; j++) {
         if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADERS[j])) {
           if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_META_HEADERS[j])) {
             data.metaIndicies = new int[] {i, i + 1};
+            continue hdrs;
           }
         } else if (dataFileHeaders[i].contains("PanEthnic")
                    && dataFileHeaders[i].contains(BETA_INFIX)) {
           if (dataFileHeaders[i + 1].contains(SE_INFIX)) {
             data.metaIndicies = new int[] {i, i + 1};
+            continue hdrs;
           }
         }
       }
