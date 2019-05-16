@@ -32,6 +32,8 @@ import org.genvisis.seq.manage.StrandOps.AlleleOrder;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Command;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.GenomicPosition;
@@ -130,6 +132,7 @@ public class GeneScorePipeline {
                                                                            .add("BETA").add("SE")
                                                                            .toString();
   private final String metaDir;
+  private final String rLibsDir;
 
   private float[] indexThresholds = new float[] {DEFAULT_INDEX_THRESHOLD};
   private int[] windowMinSizePerSides = new int[] {DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
@@ -945,10 +948,11 @@ public class GeneScorePipeline {
 
   public GeneScorePipeline(String metaDir, float[] indexThresholds, int[] windowMins,
                            float[] windowExtThresholds, double missThresh, boolean runMetaHW,
-                           Logger log) {
+                           String rLibsDir, Logger log) {
     this.log = log;
     this.metaDir = ext.verifyDirFormat(metaDir);
     this.runMetaHW = runMetaHW;
+    this.rLibsDir = rLibsDir;
     // this.numThreads = numThreads;
     // this.runPlink = plink;
     // this.runRegression = runPlink && regression;
@@ -1198,7 +1202,7 @@ public class GeneScorePipeline {
           double beta = indices[1] == -1 ? Double.NaN : Double.parseDouble(temp[indices[1]]);
           double freq = Double.parseDouble(temp[indices[2]]);
           double pval = Double.parseDouble(temp[indices[3]]);
-          double se = indices[4] == -1 ? Double.NaN : Double.parseDouble(temp[indices[2]]);
+          double se = indices[4] == -1 ? Double.NaN : Double.parseDouble(temp[indices[4]]);
           mf.metaMarkers.put(mkr, new MetaMarker(mkr, beta, se, pval, freq));
         }
       } catch (IOException e) {
@@ -1475,6 +1479,7 @@ public class GeneScorePipeline {
       processStudy(study);
     }
     writeResults();
+    writeAndRunMR();
     log.reportTime("Processing Complete!");
   }
 
@@ -2198,9 +2203,19 @@ public class GeneScorePipeline {
             }
           }
         }
-
-        writeMarkerResults(study);
       }
+    }
+  }
+
+  private void writeAndRunMR() {
+    List<String> mrrScripts = new ArrayList<>();
+    for (Study study : studies) {
+      mrrScripts.addAll(writeMarkerResults(study));
+    }
+    for (String script : mrrScripts) {
+      log.reportTime("Executing " + script);
+      CmdLine.basic(log).run(Command.basic(script));
+
     }
   }
 
@@ -2228,7 +2243,8 @@ public class GeneScorePipeline {
 
   }
 
-  private void writeMarkerResults(Study study) {
+  private List<String> writeMarkerResults(Study study) {
+    List<String> mrrScripts = new ArrayList<>();
     for (MetaFile mf : metaFiles) {
       String dataFile = mf.metaRoot;
       for (Constraint constr : analysisConstraints) {
@@ -2258,7 +2274,7 @@ public class GeneScorePipeline {
           for (String marker : markersInOrder) {
             RegressionResult rrResult = actualRegression(study.markerScores.get(marker), null, pd);
             if (mf.metaMarkers.containsKey(marker)) {
-              markerWriter.println(resultPrefix + "\t" + marker + "\t"
+              markerWriter.println(resultPrefix + "\t" + pheno + "\t" + marker + "\t"
                                    + mf.metaMarkers.get(marker).beta + "\t"
                                    + mf.metaMarkers.get(marker).se + "\t" + rrResult.getBeta()
                                    + "\t" + rrResult.se);
@@ -2266,7 +2282,8 @@ public class GeneScorePipeline {
           }
         }
         markerWriter.close();
-        writeMRRScript(prefDir);
+        String mrrScript = writeMRRScript(prefDir);
+        mrrScripts.add(mrrScript);
 
         PrintWriter betaWriter = Files.getAppropriateWriter(prefDir + "/" + REGRESSION_BETA_FILE);
         betaWriter.print("MarkerName\tbeta\tse");
@@ -2298,10 +2315,43 @@ public class GeneScorePipeline {
         betaWriter.close();
       }
     }
+    return mrrScripts;
   }
 
-  private void writeMRRScript(File prefDir) {
+  private String writeMRRScript(File prefDir) {
 
+    List<String> commands = new ArrayList<>();
+    commands.add("setwd(\"" + prefDir.getAbsolutePath() + "\")");
+    commands.add("if (!require(MendelianRandomization)) {");
+    commands.add("  install.packages(\"MendelianRandomization\")");
+    commands.add("}");
+    commands.add("library(MendelianRandomization)");
+    commands.add("data <- read.table(\"marker_results.out\", sep=\"\\t\", header=T, stringsAsFactors=F)");
+    commands.add("filtered <- data[data$BETA != \".\" & data$SE != \"0\",]");
+    commands.add("bx <- filtered$META_BETA");
+    commands.add("bxse <- filtered$META_SE");
+    commands.add("by <- as.numeric(filtered$BETA)");
+    commands.add("byse <- as.numeric(filtered$SE)");
+    commands.add("input <- mr_input(bx=bx, bxse=bxse, by=by, byse=byse, snps=filtered$MARKERNAME, exposure=\"DepVar\", outcome=\"OutVar\")");
+    commands.add("results <- mr_allmethods(input)");
+    commands.add("print(results)");
+    commands.add("write.table(results$Values, \"MendelianRandomizationOutput.csv\", sep=\",\", row.names=F, quote=F)");
+    Files.writeIterable(commands, ext.verifyDirFormat(prefDir.getAbsolutePath())
+                                  + "MendelianRandomization.R");
+
+    commands = new ArrayList<>();
+    commands.add("cd " + prefDir.getAbsolutePath());
+    if (rLibsDir != null) {
+      commands.add("export R_LIBS_SITE=" + rLibsDir);
+    } else {
+      log.reportTime("No R library directory specified, MendelianRandomization library will be installed if not present in default R library directory.");
+    }
+    commands.add("Rscript MendelianRandomization.R");
+
+    String runScript = ext.verifyDirFormat(prefDir.getAbsolutePath()) + "MendelianRandomization.sh";
+    Files.writeIterable(commands, runScript);
+    Files.chmod(runScript);
+    return runScript;
   }
 
   private String getDirPath(Study study, String dataFile, String filePrefixKey) {
@@ -2400,6 +2450,7 @@ public class GeneScorePipeline {
     boolean runMetaHW = true;
     POPULATION pop = POPULATION.ALL;
     GenomeBuild build = GenomeBuild.HG19;
+    String rLibsDir = null;
 
     String usage = "\n"
                    + "GeneScorePipeline is a convention-driven submodule.  It relies on a standard folder structure and file naming scheme:\n"
@@ -2515,6 +2566,8 @@ public class GeneScorePipeline {
         mT = ext.parseDoubleArg(arg);
       } else if (arg.startsWith("runMetaHW=")) {
         runMetaHW = ext.parseBooleanArg(arg);
+      } else if (arg.startsWith("rLibsDir=")) {
+        rLibsDir = ext.parseStringArg(arg);
       } else if (arg.startsWith("log=")) {
         logFile = arg.split("=")[1];
       } else {
@@ -2547,7 +2600,8 @@ public class GeneScorePipeline {
     // System.err.println("Error - '-runPlink' option is required for '-writeHist' option");
     // System.exit(1);
     // }
-    GeneScorePipeline gsp = new GeneScorePipeline(workDir, iT, mZ, wT, mT, runMetaHW, log);
+    GeneScorePipeline gsp = new GeneScorePipeline(workDir, iT, mZ, wT, mT, runMetaHW, rLibsDir,
+                                                  log);
     gsp.runPipeline();
   }
 
