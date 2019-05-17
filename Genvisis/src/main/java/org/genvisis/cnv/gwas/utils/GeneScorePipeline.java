@@ -27,6 +27,7 @@ import org.genvisis.cnv.Resources.CHROMOSOME;
 import org.genvisis.cnv.gwas.utils.MergeExtractPipeline.DataSource;
 import org.genvisis.cnv.plots.AFPlot;
 import org.genvisis.cnv.plots.AFPlot.POPULATION;
+import org.genvisis.cnv.plots.ForestPlot;
 import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.seq.manage.StrandOps.AlleleOrder;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
@@ -2285,6 +2286,10 @@ public class GeneScorePipeline {
         String mrrScript = writeMRRScript(prefDir);
         mrrScripts.add(mrrScript);
 
+        String pref = new StringJoiner("//").add(study.studyName).add(dataFile)
+                                            .add(ext.formSciNot(constr.indexThreshold, 5, false))
+                                            .toString();
+        PrintWriter forestWriter = Files.getAppropriateWriter(prefDir + "/forest_input.txt");
         PrintWriter betaWriter = Files.getAppropriateWriter(prefDir + "/" + REGRESSION_BETA_FILE);
         betaWriter.print("MarkerName\tbeta\tse");
         for (String marker : markersInOrder) {
@@ -2311,8 +2316,14 @@ public class GeneScorePipeline {
             betaWriter.print(rrResult.getSe());
           }
           betaWriter.println();
+
+          forestWriter.println(pheno + "\t" + prefDir + "/" + REGRESSION_BETA_FILE + "\t\t" + pref
+                               + "," + pheno);
         }
         betaWriter.close();
+        forestWriter.close();
+
+        new ForestPlot(prefDir + "/forest_input.txt", log).screenCapAll("plots/", false, true);
       }
     }
     return mrrScripts;
