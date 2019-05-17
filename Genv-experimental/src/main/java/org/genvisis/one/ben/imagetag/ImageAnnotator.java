@@ -111,6 +111,7 @@ public class ImageAnnotator {
   private HashMap<Annotation, JRadioButtonMenuItem> annTravMap = new HashMap<>();
   private HashMap<Annotation, JMenuItem> annDelMap = new HashMap<>();
   private HashMap<Annotation, JMenuItem> annSaveMap = new HashMap<>();
+  private SORT_TYPE sortOrder = SORT_TYPE.GENOMIC_POSITION;
 
   private static final String PROP_FILE = ".imageannotator.properties";
   private static final String KEY_LAST_DIR_IMG = "LAST_DIR_IMG";
@@ -752,6 +753,31 @@ public class ImageAnnotator {
 
     mnNav.add(new JSeparator(SwingConstants.HORIZONTAL));
 
+    JMenuItem mntmSortByLbl = new JMenuItem();
+    mntmSortByLbl.setEnabled(false);
+    mntmSortByLbl.setText("Sort By:");
+    mnNav.add(mntmSortByLbl);
+
+    ButtonGroup sortGroup = new ButtonGroup();
+    for (SORT_TYPE sort : SORT_TYPE.values()) {
+      JRadioButtonMenuItem mntmSort = new JRadioButtonMenuItem();
+      sortGroup.add(mntmSort);
+      mntmSort.setAction(new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          ImageAnnotator.this.sortOrder = sort;
+          updateAvail();
+        }
+      });
+      mntmSort.setText("Sort by " + sort.dispName);
+      if (sort == sortOrder) {
+        mntmSort.setSelected(true);
+      }
+      mnNav.add(mntmSort);
+    }
+
+    mnNav.add(new JSeparator(SwingConstants.HORIZONTAL));
+
     JMenuItem mntmNavOptLbl = new JMenuItem();
     mntmNavOptLbl.setEnabled(false);
     mntmNavOptLbl.setText("Other Options:");
@@ -946,19 +972,19 @@ public class ImageAnnotator {
   }
 
   private void reloadControls() {
-    String[] fcsKeys = annotator.getRoots().toArray(new String[0]);
+    String[] keys = annotator.getRoots().toArray(new String[0]);
     // Comparator adapted from
     // https://stackoverflow.com/questions/41085394/java-comparator-alphanumeric-strings
-    Arrays.sort(fcsKeys, Comparator.comparingLong(s -> hasNumeric(
-                                                                  // if there are any digits in the
-                                                                  // string, delete all non-digit
-                                                                  // characters and compare the
-                                                                  // resulting values
-                                                                  s.toString()) ? Long.parseLong(s.toString().replaceAll("\\D", "")) : 0)
-                                   // then delete all digit characters and compare the resulting
-                                   // strings
-                                   .thenComparing(s -> s.toString().replaceAll("\\d", "")));
-    DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<>(fcsKeys);
+    Arrays.sort(keys, Comparator.comparingLong(s -> hasNumeric(
+                                                               // if there are any digits in the
+                                                               // string, delete all non-digit
+                                                               // characters and compare the
+                                                               // resulting values
+                                                               s.toString()) ? Long.parseLong(s.toString().replaceAll("\\D", "")) : 0)
+                                // then delete all digit characters and compare the resulting
+                                // strings
+                                .thenComparing(s -> s.toString().replaceAll("\\d", "")));
+    DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<>(keys);
     sampleCombo.setModel(dcbm);
     if (sampleCombo.getModel().getSize() > 0) {
       sampleCombo.setSelectedIndex(0);
@@ -1399,8 +1425,8 @@ public class ImageAnnotator {
     lastSelectedFile = node.getImageFile();
   }
 
-  private void sortAIs(List<AnnotatedImage> imgs) {
-    imgs.sort(new Comparator<AnnotatedImage>() {
+  private static enum SORT_TYPE {
+    GENOMIC_POSITION("Genomic Position", new Comparator<AnnotatedImage>() {
 
       @Override
       public int compare(AnnotatedImage o1, AnnotatedImage o2) {
@@ -1421,7 +1447,31 @@ public class ImageAnnotator {
                                                 + o2.getName().charAt(o2.getName().length() - 1)));
         return comp;
       }
+    }), SEGMENT_SIZE("Segment Size", new Comparator<AnnotatedImage>() {
+
+      @Override
+      public int compare(AnnotatedImage o1, AnnotatedImage o2) {
+        String n1 = o1.getName().substring(0, o1.getName().indexOf('~') - 1);
+        String n2 = o2.getName().substring(0, o2.getName().indexOf('~') - 1);
+        int[] chrPos1 = Positions.parseUCSClocation(n1);
+        int[] chrPos2 = Positions.parseUCSClocation(n2);
+        int size1 = chrPos1[2] - chrPos1[1];
+        int size2 = chrPos2[2] - chrPos2[1];
+        return Integer.compare(size1, size2);
+      }
     });
+
+    private SORT_TYPE(String displayName, Comparator<AnnotatedImage> aiComp) {
+      this.dispName = displayName;
+      this.comparator = aiComp;
+    }
+
+    final String dispName;
+    final Comparator<AnnotatedImage> comparator;
+  }
+
+  private void sortAIs(List<AnnotatedImage> imgs) {
+    imgs.sort(sortOrder.comparator);
   }
 
   private void updateAvail() {
