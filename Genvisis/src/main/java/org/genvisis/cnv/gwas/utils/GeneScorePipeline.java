@@ -87,6 +87,7 @@ public class GeneScorePipeline {
   private static final String ARG_WINDOW_EXT = "winThresh=";
   private static final String ARG_MISS_THRESH = "missThresh=";
   private static final String ARG_R_LIBS_DIR = "rLibsDir=";
+  private static final String FLAG_PLOT_ODDS_RATIO = "-plotOddsRatio";
 
   private static float DEFAULT_INDEX_THRESHOLD = (float) 0.00000005;
   private static int DEFAULT_WINDOW_MIN_SIZE_PER_SIDE = 500000;// 500kb each side is technically a
@@ -136,6 +137,7 @@ public class GeneScorePipeline {
                                                                            .toString();
   private final String metaDir;
   private final String rLibsDir;
+  private final boolean plotOddsRatio;
 
   private float[] indexThresholds = new float[] {DEFAULT_INDEX_THRESHOLD};
   private int[] windowMinSizePerSides = new int[] {DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
@@ -951,11 +953,12 @@ public class GeneScorePipeline {
 
   public GeneScorePipeline(String metaDir, float[] indexThresholds, int[] windowMins,
                            float[] windowExtThresholds, double missThresh, boolean runMetaHW,
-                           String rLibsDir, Logger log) {
+                           String rLibsDir, boolean plotOddsRatio, Logger log) {
     this.log = log;
     this.metaDir = ext.verifyDirFormat(metaDir);
     this.runMetaHW = runMetaHW;
     this.rLibsDir = rLibsDir;
+    this.plotOddsRatio = plotOddsRatio;
     // this.numThreads = numThreads;
     // this.runPlink = plink;
     // this.runRegression = runPlink && regression;
@@ -2325,7 +2328,8 @@ public class GeneScorePipeline {
         betaWriter.close();
         forestWriter.close();
 
-        new ForestPlot(prefDir + "/forest_input.txt", log).screenCapAll("plots/", false, true);
+        new ForestPlot(prefDir + "/forest_input.txt", log).screenCapAll("plots/", plotOddsRatio,
+                                                                        true);
       }
     }
     return mrrScripts;
@@ -2464,6 +2468,7 @@ public class GeneScorePipeline {
     POPULATION pop = POPULATION.ALL;
     GenomeBuild build = GenomeBuild.HG19;
     String rLibsDir = null;
+    boolean plotOddsRatio = false;
 
     String usage = "\n"
                    + "GeneScorePipeline is a convention-driven submodule.  It relies on a standard folder structure and file naming scheme:\n"
@@ -2510,7 +2515,10 @@ public class GeneScorePipeline {
                    + runMetaHW + " (default))\n"
 
                    + "   (7) Directory of R libraries to generate Mendelian Randomization script from .meta SNPs (i.e. "
-                   + ARG_R_LIBS_DIR + "/panfs/roc/msisoft/R/3.3.3/ (not activated by default))\n" +
+                   + ARG_R_LIBS_DIR + "/panfs/roc/msisoft/R/3.3.3/ (not activated by default))\n"
+
+                   + "   (8) Flag to plot Odds Ratios isntead of Relative Risk in Forest Plots (i.e. "
+                   + FLAG_PLOT_ODDS_RATIO + " (not activated by default))\n" +
 
                    // " (8) Number of threads to use for computation (i.e. threads=" + threads + "
                    // (default))\n" +
@@ -2584,6 +2592,8 @@ public class GeneScorePipeline {
         runMetaHW = ext.parseBooleanArg(arg);
       } else if (arg.startsWith(ARG_R_LIBS_DIR)) {
         rLibsDir = ext.parseStringArg(arg);
+      } else if (arg.equals(FLAG_PLOT_ODDS_RATIO)) {
+        plotOddsRatio = true;
       } else if (arg.startsWith("log=")) {
         logFile = arg.split("=")[1];
       } else {
@@ -2617,7 +2627,7 @@ public class GeneScorePipeline {
     // System.exit(1);
     // }
     GeneScorePipeline gsp = new GeneScorePipeline(workDir, iT, mZ, wT, mT, runMetaHW, rLibsDir,
-                                                  log);
+                                                  plotOddsRatio, log);
     gsp.runPipeline();
   }
 
