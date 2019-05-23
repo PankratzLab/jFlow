@@ -86,6 +86,7 @@ public class GeneScorePipeline {
   private static final String ARG_WINDOW_SIZE = "minWinSize=";
   private static final String ARG_WINDOW_EXT = "winThresh=";
   private static final String ARG_MISS_THRESH = "missThresh=";
+  private static final String ARG_R_LIBS_DIR = "rLibsDir=";
 
   private static float DEFAULT_INDEX_THRESHOLD = (float) 0.00000005;
   private static int DEFAULT_WINDOW_MIN_SIZE_PER_SIDE = 500000;// 500kb each side is technically a
@@ -2506,7 +2507,10 @@ public class GeneScorePipeline {
                    + "   (5) minimum ratio of missing data for an individual's gene loading score to be included in the final analysis (i.e. "
                    + ARG_MISS_THRESH + DEFAULT_MIN_MISS_THRESH + " (default))\n"
                    + "   (6) Enable/Disable HitWindows on input '.meta' files (only applicable if #snps > 1000) (i.e. runMetaHW="
-                   + runMetaHW + " (default))\n" +
+                   + runMetaHW + " (default))\n"
+
+                   + "   (7) Directory of R libraries to generate Mendelian Randomization script from .meta SNPs (i.e. "
+                   + ARG_R_LIBS_DIR + "/panfs/roc/msisoft/R/3.3.3/ (not activated by default))\n" +
 
                    // " (8) Number of threads to use for computation (i.e. threads=" + threads + "
                    // (default))\n" +
@@ -2578,7 +2582,7 @@ public class GeneScorePipeline {
         mT = ext.parseDoubleArg(arg);
       } else if (arg.startsWith("runMetaHW=")) {
         runMetaHW = ext.parseBooleanArg(arg);
-      } else if (arg.startsWith("rLibsDir=")) {
+      } else if (arg.startsWith(ARG_R_LIBS_DIR)) {
         rLibsDir = ext.parseStringArg(arg);
       } else if (arg.startsWith("log=")) {
         logFile = arg.split("=")[1];
