@@ -75,6 +75,7 @@ import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.primitives.Doubles;
 
@@ -2267,19 +2268,19 @@ public class GeneScorePipeline {
         PrintWriter markerWriter = Files.getAppropriateWriter(prefDir + "/"
                                                               + MARKER_REGRESSION_FILE);
         markerWriter.println(MARKER_RESULT_HEADER);
-        List<String> markersInOrder = new ArrayList<>(study.markerScores.keySet());
+
+        List<String> markersInOrder = ImmutableList.copyOf(Sets.intersection(study.markerScores.keySet(),
+                                                                             mf.metaMarkers.keySet()));
 
         for (int i = 0; i < study.phenoFiles.size(); i++) {
           String pheno = study.phenoFiles.get(i);
           PhenoData pd = study.phenoData.get(pheno);
           for (String marker : markersInOrder) {
             RegressionResult rrResult = actualRegression(study.markerScores.get(marker), null, pd);
-            if (mf.metaMarkers.containsKey(marker)) {
-              markerWriter.println(resultPrefix + "\t" + pheno + "\t" + marker + "\t"
-                                   + mf.metaMarkers.get(marker).beta + "\t"
-                                   + mf.metaMarkers.get(marker).se + "\t" + rrResult.getBeta()
-                                   + "\t" + rrResult.se);
-            }
+            markerWriter.println(resultPrefix + "\t" + pheno + "\t" + marker + "\t"
+                                 + mf.metaMarkers.get(marker).beta + "\t"
+                                 + mf.metaMarkers.get(marker).se + "\t" + rrResult.getBeta() + "\t"
+                                 + rrResult.se);
           }
         }
         markerWriter.close();
