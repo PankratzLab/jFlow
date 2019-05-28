@@ -267,9 +267,13 @@ public class GeneScorePipeline {
     // constraint -> datafile
     Map<Constraint, Map<MetaFile, Integer>> dataCounts = new HashMap<>();
     // constraint -> datafile
-    Table<MetaFile, Constraint, Map<String, HitMarker>> markerData = HashBasedTable.create();
-    // marker -> id1\tid2 -> score
-    Map<String, Map<String, Double>> markerScores = new HashMap<>();
+    Table<Constraint, MetaFile, Map<String, HitMarker>> markerData = HashBasedTable.create();
+    // constraint -> marker -> id1\tid2 -> score
+    Map<Constraint, Map<String, Map<String, Double>>> markerScores = new HashMap<>();
+    // constraint -> id1\tid2 -> score
+    Map<Constraint, Map<String, Double>> indivScores = new HashMap<>();
+    // constraint -> id1\tid2 -> mkrRatio, 2 * cnt, cnt2
+    Map<Constraint, Map<String, double[]>> indivScoreData = new HashMap<>();
 
     /**
      * Returns a hashSet containing all markers present in the data files that are present in
@@ -1783,7 +1787,7 @@ public class GeneScorePipeline {
                                                              .entrySet().stream()
                                                              .collect(Collectors.toMap(Map.Entry::getKey,
                                                                                        e -> formHitMarker(e.getValue())));
-          study.markerData.put(mf, constr, dataList);
+          study.markerData.put(constr, mf, dataList);
         } catch (IOException e) {
           log.reportIOException(crossFilterFile);
         }
@@ -1799,7 +1803,6 @@ public class GeneScorePipeline {
                          hitMarkerDataLine.get(StandardFileColumns.beta(BETA_COL_NAME), null));
   }
 
-  private static final String SCORE_FILE = "score.profile";
   private static final String MARKER_REGRESSION_FILE = "marker_results.out";
   private static final String REGRESSION_BETA_FILE = "markers_beta.out";
 
@@ -1813,19 +1816,13 @@ public class GeneScorePipeline {
           log.reportTime("Error - no subfolder for '" + analysisKey + "' analysis");
           continue;
         }
-        if ((new File(prefDir + "/" + SCORE_FILE)).exists()) {
-          log.reportTime("Plink analysis results file already exists! [ --> '" + prefDir + "/"
-                         + SCORE_FILE + "']");
-          continue;
-        }
         DosageData data = study.data.get(mf, constr);
         if (data.isEmpty()) {
+          log.reportError("Dosage data was empty for {" + dataFile + "\t" + analysisKey + "}");
           continue;
         }
 
-        Map<String, HitMarker> hitMarkerData = study.markerData.get(mf, constr);
-        PrintWriter scoreWriter;
-        scoreWriter = Files.getAppropriateWriter(prefDir + "/" + SCORE_FILE);
+        Map<String, HitMarker> hitMarkerData = study.markerData.get(constr, mf);
 
         String[][] ids = data.getIds();
         float[][] dose = data.getDosageValues();
@@ -1835,14 +1832,17 @@ public class GeneScorePipeline {
         }
         if (dose == null) {
           log.reportError("No dosage data available for {" + dataFile + "\t" + analysisKey + "}");
-          scoreWriter.close();
           continue;
         }
+
         String[] markers = data.getMarkerSet().getMarkerNames();
         String[][] alleles = data.getMarkerSet().getAlleles();
         Map<String, Integer> matchedMarkerIndices = new HashMap<>();
         Map<String, Float> matchedMarkerFreqs = new HashMap<>();
         Map<String, AlleleOrder> matchedMarkerAlleleOrders = new HashMap<>();
+        study.markerScores.put(constr, new HashMap<>());
+        study.indivScores.put(constr, new HashMap<>());
+        study.indivScoreData.put(constr, new HashMap<>());
 
         for (int m = 0; m < markers.length; m++) {
           String mkr = markers[m];
@@ -1880,7 +1880,7 @@ public class GeneScorePipeline {
             }
           }
           matchedMarkerFreqs.put(mkr, tot / cnt);
-          study.markerScores.put(mkr, new HashMap<>());
+          study.markerScores.get(constr).put(mkr, new HashMap<>());
         }
 
         for (int i = 0; i < ids.length; i++) {
@@ -1912,18 +1912,18 @@ public class GeneScorePipeline {
               throw new IllegalStateException("Mismatched alleles were not caught when cross-filtering");
             }
             scoreSum += mkrScr;
-            study.markerScores.get(mkr).put(ids[i][0] + "\t" + ids[i][1], (double) mkrScr);
+            study.markerScores.get(constr).get(mkr).put(ids[i][0] + "\t" + ids[i][1],
+                                                        (double) mkrScr);
           }
 
           double mkrRatio = cnt / (double) markers.length;
           if (mkrRatio > minMissThresh) {
-            scoreWriter.println(ids[i][0] + "\t" + ids[i][1] + "\t" + markers.length + "\t"
-                                + (2 * cnt) + "\t" + cnt2 + "\t" + ext.formDeci(scoreSum, 3));
+            study.indivScores.get(constr).put(ids[i][0] + "\t" + ids[i][1], (double) scoreSum);
+            study.indivScoreData.get(constr).put(ids[i][0] + "\t" + ids[i][1],
+                                                 new double[] {mkrRatio, 2 * cnt, cnt2});
           }
         }
 
-        scoreWriter.flush();
-        scoreWriter.close();
       }
     }
   }
@@ -1935,98 +1935,53 @@ public class GeneScorePipeline {
     return config;
   }
 
-  // private void runPlink(Study study) {
-  // for (String dFile : dataFiles) {
-  // String dataFile = ext.rootOf(dFile, false);
-  //
-  // for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
-  // File prefDir = new File(study.studyDir + dataFile + "/" + filePrefix.getKey() + "/");
-  // if (!prefDir.exists()) {
-  // log.report(ext.getTime()+"]\tError - no subfolder for '" + filePrefix.getKey() + "' analysis");
-  // continue;
-  // }
-  // if ((new File(prefDir + "/plink.profile")).exists()) {
-  // log.report(ext.getTime()+"]\tPlink analysis results file already exists! [ --> '" + prefDir +
-  // "/plink.profile" + "']");
-  // continue;
-  // }
-  // String mkrDataFile = prefDir + "/subsetData_" + filePrefix.getKey() + ".xln";
-  // log.report(ext.getTime()+"]\tRunning plink command [ --> '");
-  // String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile ../../" + study.plinkPref +
-  // " --score " + mkrDataFile;
-  // log.report(cmd + "']");
-  // /*boolean results = */CmdLine.run(cmd, prefDir.getAbsolutePath());
-  // }
-  // }
-  // }
-
   private void runRegression(Study study) {
     for (MetaFile mf : metaFiles) {
-      String dataFile = mf.metaRoot;
-
       for (Constraint constr : analysisConstraints) {
-        String analysisKey = constr.analysisString;
         if (study.data.get(mf, constr).isEmpty()) {
           continue;
         }
-        try {
-          File prefDir = new File(getDirPath(study, dataFile, analysisKey));
 
-          String scoreFile = prefDir + "/" + SCORE_FILE;
+        DosageData data = study.data.get(mf, constr);
+        String[][] ids = data.getIds();
+        TrioScoreTest trioTests = new TrioScoreTest();
 
-          HashMap<String, Double> scoreData = new HashMap<>();
+        int sibs = 0;
 
-          try (BufferedReader scoreReader = Files.getAppropriateReader(scoreFile)) {
-            String line;
-            while ((line = scoreReader.readLine()) != null) {
-              String[] parts = line.split("\t");
-              String score = parts[parts.length - 1];
-              scoreData.put(parts[0] + "\t" + parts[1], Double.parseDouble(score));
-            }
+        for (Trio trio : data.getTrios()) {
+          String caseID = ids[trio.getChildIndex()][PSF.Plink.FAM_FID_INDEX] + "\t"
+                          + ids[trio.getChildIndex()][PSF.Plink.FAM_IID_INDEX];
+          if (ids[trio.getChildIndex()].length > PSF.Plink.FAM_AFF_INDEX
+              && !PSF.Plink.affIsCase(ids[trio.getChildIndex()][PSF.Plink.FAM_AFF_INDEX])) {
+            sibs++;
+            continue;
           }
-
-          DosageData data = study.data.get(mf, constr);
-          String[][] ids = data.getIds();
-          TrioScoreTest trioTests = new TrioScoreTest();
-
-          int sibs = 0;
-
-          for (Trio trio : data.getTrios()) {
-            String caseID = ids[trio.getChildIndex()][PSF.Plink.FAM_FID_INDEX] + "\t"
-                            + ids[trio.getChildIndex()][PSF.Plink.FAM_IID_INDEX];
-            if (ids[trio.getChildIndex()].length > PSF.Plink.FAM_AFF_INDEX
-                && !PSF.Plink.affIsCase(ids[trio.getChildIndex()][PSF.Plink.FAM_AFF_INDEX])) {
-              sibs++;
-              continue;
-            }
-            String fatherID = ids[trio.getFatherIndex()][PSF.Plink.FAM_FID_INDEX] + "\t"
-                              + ids[trio.getFatherIndex()][PSF.Plink.FAM_IID_INDEX];
-            String motherID = ids[trio.getMotherIndex()][PSF.Plink.FAM_FID_INDEX] + "\t"
-                              + ids[trio.getMotherIndex()][PSF.Plink.FAM_IID_INDEX];
-            if (scoreData.containsKey(caseID) && scoreData.containsKey(fatherID)
-                && scoreData.containsKey(motherID)) {
-              double caseScore = scoreData.get(caseID);
-              double fatherScore = scoreData.get(fatherID);
-              double motherScore = scoreData.get(motherID);
-              trioTests.addScore(caseScore, fatherScore, motherScore);
-            }
-            TrioScoreTest.Results trioTestResults = trioTests.runTests();
-            if (trioTestResults != null) study.trioScoreTests.put(constr, mf, trioTestResults);
+          String fatherID = ids[trio.getFatherIndex()][PSF.Plink.FAM_FID_INDEX] + "\t"
+                            + ids[trio.getFatherIndex()][PSF.Plink.FAM_IID_INDEX];
+          String motherID = ids[trio.getMotherIndex()][PSF.Plink.FAM_FID_INDEX] + "\t"
+                            + ids[trio.getMotherIndex()][PSF.Plink.FAM_IID_INDEX];
+          if (study.indivScores.get(constr).containsKey(caseID)
+              && study.indivScores.get(constr).containsKey(fatherID)
+              && study.indivScores.get(constr).containsKey(motherID)) {
+            double caseScore = study.indivScores.get(constr).get(caseID);
+            double fatherScore = study.indivScores.get(constr).get(fatherID);
+            double motherScore = study.indivScores.get(constr).get(motherID);
+            trioTests.addScore(caseScore, fatherScore, motherScore);
           }
+          TrioScoreTest.Results trioTestResults = trioTests.runTests();
+          if (trioTestResults != null) study.trioScoreTests.put(constr, mf, trioTestResults);
+        }
 
-          if (sibs > 0) {
-            log.reportTimeWarning(sibs + " trios (of " + data.getTrios().size()
-                                  + " total trios) were excluded from paired score analyses because the children were not coded as cases in the fam data.");
-          }
+        if (sibs > 0) {
+          log.reportTimeWarning(sibs + " trios (of " + data.getTrios().size()
+                                + " total trios) were excluded from paired score analyses because the children were not coded as cases in the fam data.");
+        }
 
-          PrintWriter writer = Files.getAppropriateWriter(metaDir + "missingPhenos.id");
-          for (int i = 0; i < study.phenoFiles.size(); i++) {
-            PhenoData pd = study.phenoData.get(study.phenoFiles.get(i));
-            RegressionResult rrResult = actualRegression(scoreData, writer, pd);
-            study.regressions.get(constr).get(mf).put(pd.phenoName, rrResult);
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
+        PrintWriter writer = Files.getAppropriateWriter(metaDir + "missingPhenos.id");
+        for (int i = 0; i < study.phenoFiles.size(); i++) {
+          PhenoData pd = study.phenoData.get(study.phenoFiles.get(i));
+          RegressionResult rrResult = actualRegression(study.indivScores.get(constr), writer, pd);
+          study.regressions.get(constr).get(mf).put(pd.phenoName, rrResult);
         }
       }
     }
@@ -2273,14 +2228,16 @@ public class GeneScorePipeline {
                                                               + MARKER_REGRESSION_FILE);
         markerWriter.println(MARKER_RESULT_HEADER);
 
-        List<String> markersInOrder = ImmutableList.copyOf(Sets.intersection(study.markerScores.keySet(),
+        List<String> markersInOrder = ImmutableList.copyOf(Sets.intersection(study.markerScores.get(constr)
+                                                                                               .keySet(),
                                                                              mf.metaMarkers.keySet()));
 
         for (int i = 0; i < study.phenoFiles.size(); i++) {
           String pheno = study.phenoFiles.get(i);
           PhenoData pd = study.phenoData.get(pheno);
           for (String marker : markersInOrder) {
-            RegressionResult rrResult = actualRegression(study.markerScores.get(marker), null, pd);
+            RegressionResult rrResult = actualRegression(study.markerScores.get(constr).get(marker),
+                                                         null, pd);
             markerWriter.println(resultPrefix + "\t" + pheno + "\t" + marker + "\t"
                                  + mf.metaMarkers.get(marker).beta + "\t"
                                  + mf.metaMarkers.get(marker).se + "\t" + rrResult.getBeta() + "\t"
@@ -2314,7 +2271,8 @@ public class GeneScorePipeline {
           betaWriter.print("\t");
           betaWriter.print(rrPheno.getSe());
           for (String marker : markersInOrder) {
-            RegressionResult rrResult = actualRegression(study.markerScores.get(marker), null, pd);
+            RegressionResult rrResult = actualRegression(study.markerScores.get(constr).get(marker),
+                                                         null, pd);
             betaWriter.print("\t");
             betaWriter.print(rrResult.getBeta());
             betaWriter.print("\t");
