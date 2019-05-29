@@ -36,10 +36,11 @@ public class SnpTest {
     private String phenoName;
     private String[] covars = null;
     private String outputFile;
+    private String excludeFile;
 
     public SnpTestCommand(String snpTestLocation, String dataFile, String sampleFile,
                           boolean isVCFData, String vcfDataField, String phenoName, String[] covars,
-                          int chr, String outputFile) {
+                          int chr, String outputFile, String excludeFile) {
       this.snpTestLocation = snpTestLocation;
       this.dataFile = dataFile;
       this.sampleFile = sampleFile;
@@ -48,6 +49,7 @@ public class SnpTest {
       this.phenoName = phenoName;
       this.covars = covars;
       this.outputFile = outputFile;
+      this.excludeFile = excludeFile;
     }
 
     private String getCommand() {
@@ -67,10 +69,15 @@ public class SnpTest {
           snpTestString.append(" ").append(cov);
         }
       } else {
+        log.report("No covariates specified, using all available covariates.");
         snpTestString.append(" -cov_all");
       }
       snpTestString.append(" -lower_sample_limit 10");
       snpTestString.append(" -o ").append(outputFile);
+      if (excludeFile != null) {
+        snpTestString.append(" -exclude_samples ").append(excludeFile);
+      }
+      snpTestString.append(" -chunk 200 ");
 
       return snpTestString.toString();
     }
@@ -121,7 +128,7 @@ public class SnpTest {
       log.reportTimeWarning("Could not determine sample file used.  Number of samples will be set to 'N' in results file.");
     }
 
-    String outputTempl = "output_chr#.out";
+    String outputTempl = "output_chr#.out.gz";
     int fileInd = 0;
     for (int i = 1; i < 28; i++) {
       String outFile = outputTempl.replace("#", Integer.toString(i));
@@ -152,6 +159,7 @@ public class SnpTest {
   String dataFileExtension;
   String repl = "#";
   String sampleFile;
+  String excludesFile;
   String pheno;
   String[] covars = null;
   boolean isVCFOverride = false;
@@ -183,6 +191,10 @@ public class SnpTest {
 
   public void setCovars(String[] covars) {
     this.covars = covars;
+  }
+
+  public void setExcludes(String excludesFile) {
+    this.excludesFile = excludesFile;
   }
 
   private void checkNeeds() throws IllegalStateException {
@@ -270,9 +282,18 @@ public class SnpTest {
     List<String> cmdOuts = new ArrayList<>();
     for (Entry<Integer, String> file : dataFiles.entrySet()) {
       String outFile = "./output_chr" + file.getKey() + ".out";
-      cmds.add(new SnpTestCommand(snpTestExec, file.getValue(), sampleFile,
-                                  file.getValue().contains(".vcf") || isVCFOverride, vcfField,
-                                  pheno, covars, file.getKey(), outFile).getCommand());
+      String excludes = null;
+      if (this.excludesFile != null) {
+        excludes = this.excludesFile;
+        cmds.add(new SnpTestCommand(snpTestExec, file.getValue(), sampleFile,
+                                    file.getValue().contains(".vcf") || isVCFOverride, vcfField,
+                                    pheno, covars, file.getKey(), outFile, excludes).getCommand());
+      } else {
+        cmds.add(new SnpTestCommand(snpTestExec, file.getValue(), sampleFile,
+                                    file.getValue().contains(".vcf") || isVCFOverride, vcfField,
+                                    pheno, covars, file.getKey(), outFile, null).getCommand());
+      }
+
       cmdOuts.add(outFile);
     }
     Files.writeIterable(cmds, "./input.txt");
@@ -302,6 +323,7 @@ public class SnpTest {
   private static final String ARG_REPL = "repl";
   private static final String ARG_VCFOVERRIDE = "vcfOverride";
   private static final String ARG_VCFFIELD = "vcfField";
+  private static final String ARG_EXCLUDES = "exclude";
 
   private static final String DESC_SNPTEST = "SnpTest executable (full path included unless on path)";
   private static final String DESC_DATADIR = "Data file directory";
@@ -314,6 +336,7 @@ public class SnpTest {
   private static final String DESC_REPL = "Special character in data file template into which chromosome number will be placed.";
   private static final String DESC_VCFOVERRIDE = "Override to specify if the data files are or are not VCF files";
   private static final String DESC_VCFFIELD = "Genotype field to use in VCF files (defaults to 'GP' / genotype probabilities)";
+  private static final String DESC_EXCLUDES = "File with a list of samples that should be excluded from analysis. These should match samples from the sample file.";
 
   public static void main(String[] args) throws IOException {
     CLI cli = new CLI(SnpTest.class);
@@ -361,6 +384,7 @@ public class SnpTest {
     cli.addArg(ARG_REPL, DESC_REPL, false);
     cli.addArg(ARG_VCFOVERRIDE, DESC_VCFOVERRIDE, false);
     cli.addArg(ARG_VCFFIELD, DESC_VCFFIELD, false);
+    cli.addArg(ARG_EXCLUDES, DESC_EXCLUDES, false);
 
     cli.addGroup(ARG_DATA, ARG_DATAEXT);
 
@@ -395,6 +419,9 @@ public class SnpTest {
     }
     if (cli.has(ARG_VCFFIELD)) {
       run.vcfField = cli.get(ARG_VCFFIELD);
+    }
+    if (cli.has(ARG_EXCLUDES)) {
+      run.setExcludes(cli.get(ARG_EXCLUDES));
     }
 
     run.run();
