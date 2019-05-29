@@ -282,17 +282,10 @@ public class SnpTest {
     List<String> cmdOuts = new ArrayList<>();
     for (Entry<Integer, String> file : dataFiles.entrySet()) {
       String outFile = "./output_chr" + file.getKey() + ".out";
-      String excludes = null;
-      if (this.excludesFile != null) {
-        excludes = this.excludesFile;
-        cmds.add(new SnpTestCommand(snpTestExec, file.getValue(), sampleFile,
-                                    file.getValue().contains(".vcf") || isVCFOverride, vcfField,
-                                    pheno, covars, file.getKey(), outFile, excludes).getCommand());
-      } else {
-        cmds.add(new SnpTestCommand(snpTestExec, file.getValue(), sampleFile,
-                                    file.getValue().contains(".vcf") || isVCFOverride, vcfField,
-                                    pheno, covars, file.getKey(), outFile, null).getCommand());
-      }
+      String excludes = this.excludesFile;
+      cmds.add(new SnpTestCommand(snpTestExec, file.getValue(), sampleFile,
+                                  file.getValue().contains(".vcf") || isVCFOverride, vcfField,
+                                  pheno, covars, file.getKey(), outFile, excludes).getCommand());
 
       cmdOuts.add(outFile);
     }
