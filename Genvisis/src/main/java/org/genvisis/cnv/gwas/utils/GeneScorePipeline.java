@@ -275,6 +275,10 @@ public class GeneScorePipeline {
     // constraint -> id1\tid2 -> mkrRatio, 2 * cnt, cnt2
     Map<Constraint, Map<String, double[]>> indivScoreData = new HashMap<>();
 
+    public void dumpStudy() {
+
+    }
+
     /**
      * Returns a hashSet containing all markers present in the data files that are present in
      * hitMkrSet.
@@ -1803,7 +1807,10 @@ public class GeneScorePipeline {
                          hitMarkerDataLine.get(StandardFileColumns.beta(BETA_COL_NAME), null));
   }
 
-  private static final String MARKER_REGRESSION_FILE = "marker_results.out";
+  private static final String MARKER_REGRESSION_PREFIX = "marker_results_";
+  private static final String MARKER_REGRESSION_EXTEN = ".out";
+  private static final String MENDELIAN_RANDOMIZATION_PREFIX = "MendelianRandomization_";
+  private static final String MENDELIAN_RANDOMIZATION_EXTEN = ".csv";
   private static final String REGRESSION_BETA_FILE = "markers_beta.out";
 
   private void runScore(Study study) {
@@ -2224,10 +2231,6 @@ public class GeneScorePipeline {
                                                                         false))
                                                     .toString();
 
-        PrintWriter markerWriter = Files.getAppropriateWriter(prefDir + "/"
-                                                              + MARKER_REGRESSION_FILE);
-        markerWriter.println(MARKER_RESULT_HEADER);
-
         List<String> markersInOrder = ImmutableList.copyOf(Sets.intersection(study.markerScores.get(constr)
                                                                                                .keySet(),
                                                                              mf.metaMarkers.keySet()));
@@ -2235,6 +2238,10 @@ public class GeneScorePipeline {
         for (int i = 0; i < study.phenoFiles.size(); i++) {
           String pheno = study.phenoFiles.get(i);
           PhenoData pd = study.phenoData.get(pheno);
+
+          String mrrInputFile = MARKER_REGRESSION_PREFIX + pheno + MARKER_REGRESSION_EXTEN;
+          PrintWriter markerWriter = Files.getAppropriateWriter(prefDir + "/" + mrrInputFile);
+          markerWriter.println(MARKER_RESULT_HEADER);
           for (String marker : markersInOrder) {
             RegressionResult rrResult = actualRegression(study.markerScores.get(constr).get(marker),
                                                          null, pd);
@@ -2243,10 +2250,10 @@ public class GeneScorePipeline {
                                  + mf.metaMarkers.get(marker).se + "\t" + rrResult.getBeta() + "\t"
                                  + rrResult.se);
           }
+          markerWriter.close();
+          String mrrScript = writeMRRScript(prefDir, pheno);
+          mrrScripts.add(mrrScript);
         }
-        markerWriter.close();
-        String mrrScript = writeMRRScript(prefDir);
-        mrrScripts.add(mrrScript);
 
         String pref = new StringJoiner("//").add(study.studyName).add(dataFile)
                                             .add(ext.formSciNot(constr.indexThreshold, 5, false))
@@ -2293,7 +2300,7 @@ public class GeneScorePipeline {
     return mrrScripts;
   }
 
-  private String writeMRRScript(File prefDir) {
+  private String writeMRRScript(File prefDir, String pheno) {
 
     List<String> commands = new ArrayList<>();
     commands.add("setwd(\"" + prefDir.getAbsolutePath() + "\")");
@@ -2301,7 +2308,8 @@ public class GeneScorePipeline {
     commands.add("  install.packages(\"MendelianRandomization\")");
     commands.add("}");
     commands.add("library(MendelianRandomization)");
-    commands.add("data <- read.table(\"marker_results.out\", sep=\"\\t\", header=T, stringsAsFactors=F)");
+    commands.add("data <- read.table(\"" + MARKER_REGRESSION_PREFIX + pheno
+                 + MARKER_REGRESSION_EXTEN + "\", sep=\"\\t\", header=T, stringsAsFactors=F)");
     commands.add("filtered <- data[data$BETA != \".\" & data$SE != \"0\",]");
     commands.add("bx <- filtered$META_BETA");
     commands.add("bxse <- filtered$META_SE");
@@ -2310,9 +2318,10 @@ public class GeneScorePipeline {
     commands.add("input <- mr_input(bx=bx, bxse=bxse, by=by, byse=byse, snps=filtered$MARKERNAME, exposure=\"DepVar\", outcome=\"OutVar\")");
     commands.add("results <- mr_allmethods(input)");
     commands.add("print(results)");
-    commands.add("write.table(results$Values, \"MendelianRandomizationOutput.csv\", sep=\",\", row.names=F, quote=F)");
+    commands.add("write.table(results$Values, \"" + MENDELIAN_RANDOMIZATION_PREFIX + pheno
+                 + MENDELIAN_RANDOMIZATION_EXTEN + "\", sep=\",\", row.names=F, quote=F)");
     Files.writeIterable(commands, ext.verifyDirFormat(prefDir.getAbsolutePath())
-                                  + "MendelianRandomization.R");
+                                  + MENDELIAN_RANDOMIZATION_PREFIX + pheno + ".R");
 
     commands = new ArrayList<>();
     commands.add("cd " + prefDir.getAbsolutePath());
@@ -2321,9 +2330,10 @@ public class GeneScorePipeline {
     } else {
       log.reportTime("No R library directory specified, MendelianRandomization library will be installed if not present in default R library directory.");
     }
-    commands.add("Rscript MendelianRandomization.R");
+    commands.add("Rscript " + MENDELIAN_RANDOMIZATION_PREFIX + pheno + ".R");
 
-    String runScript = ext.verifyDirFormat(prefDir.getAbsolutePath()) + "MendelianRandomization.sh";
+    String runScript = ext.verifyDirFormat(prefDir.getAbsolutePath())
+                       + MENDELIAN_RANDOMIZATION_PREFIX + pheno + ".sh";
     Files.writeIterable(commands, runScript);
     Files.chmod(runScript);
     return runScript;
