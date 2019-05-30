@@ -20,6 +20,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -339,7 +340,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
         } while (image == null || imageStatus != IMAGE_COMPLETE);
       }
 
-      SwingUtilities.invokeLater(() -> {
+      Runnable screenFunc = () -> {
         try {
           ImageIO.write(image, "png", imgFile);
         } catch (IOException ie) {
@@ -349,7 +350,16 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
             JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
           }
         }
-      });
+      };
+      if (!SwingUtilities.isEventDispatchThread()) {
+        try {
+          SwingUtilities.invokeAndWait(screenFunc);
+        } catch (InvocationTargetException | InterruptedException e) {
+          log.reportException(e);
+        }
+      } else {
+        screenFunc.run();
+      }
     } else {
       if (headless) {
         log.reportError("Error creating directory in which to save the plot");

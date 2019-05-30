@@ -753,6 +753,7 @@ public class ForestPlot {
         getLog().report("Attempting marker #" + i);
       }
       setCurrentData(i);
+      updateGUI();
       screenCap(subdir, versionIfExists, size);
     }
 
