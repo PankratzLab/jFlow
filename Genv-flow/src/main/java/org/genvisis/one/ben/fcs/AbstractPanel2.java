@@ -2290,9 +2290,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     if (size == 0) {
       return;
     }
-    // if (point.getTempColor() != null && point.getTempColor() == Color.BLACK) {
-    // return;
-    // }
 
     if (beEfficient) {
       int code = getEfficientPointCode(x, y, size, color);
@@ -2302,7 +2299,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         pointsPlotted.add(code);
       }
     }
-    // g.setColor(colorScheme[color]);
     g.setColor(point.getTempColor() == null ? colorScheme[color] : point.getTempColor());
 
     switch (point.getType()) {
@@ -2393,6 +2389,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         temp = (hgt + 10) * numHashes;
       }
     }
+
     numHashes = Math.max(numHashes, 1);
     while (range / plotStep > numHashes) {
       plotStep += stepStep;
@@ -2457,7 +2454,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
       while (range / plotStep > numHashes) {
         plotStep += stepStep;
       }
-      // System.out.println("2");
       return new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf)),
                            Double.parseDouble(ext.formDeci(plotMin, sf))};
     } else {

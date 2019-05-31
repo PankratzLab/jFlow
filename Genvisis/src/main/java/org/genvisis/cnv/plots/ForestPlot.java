@@ -17,6 +17,7 @@ import java.util.TreeMap;
 import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.plots.AbstractPanel.AXIS_SCALE;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.Files;
@@ -934,6 +935,7 @@ public class ForestPlot {
 
   public void setOddsRatioDisplay(boolean selected) {
     forestPanel.oddsDisplay = selected;
+    forestPanel.setXAxis(selected ? AXIS_SCALE.LOG : AXIS_SCALE.LIN);
   }
 
   protected boolean isLoadingFile() {

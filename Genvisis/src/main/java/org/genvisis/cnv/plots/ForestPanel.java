@@ -9,6 +9,9 @@ import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.pankratzlab.common.ArrayUtils;
@@ -17,6 +20,9 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.Maths;
 
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeSet;
 import com.google.common.primitives.Bytes;
 
 /**
@@ -55,7 +61,6 @@ public class ForestPanel extends AbstractPanel {
   public static final Color META_COLOR = Color.BLACK;
 
   private final ForestPlot forestPlot;
-  private final Logger log;
   private boolean rectangleGeneratable;
   private final DecimalFormat precision2Decimal;
   private final boolean antiAlias = true;
@@ -360,7 +365,6 @@ public class ForestPanel extends AbstractPanel {
     String str;
     FontMetrics fontMetrics = g.getFontMetrics();
     // int[] order = null;
-    int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
 
     if (g instanceof Graphics2D) {
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -516,26 +520,51 @@ public class ForestPanel extends AbstractPanel {
         while (loopMax < plotXmax) {
           loopMax += plotMinMaxStep[2];
         }
+        // draw x axis ticks and labels
+        List<Double> xTix = new ArrayList<>();
+
         for (double x = plotXmin; x <= plotXmax; x += plotMinMaxStep[2]) {
-          if (x >= plotXmin || !truncate) {
-            Grafik.drawThickLine(g, getXPixel(x), getHeight() - canvasSectionMaximumY, getXPixel(x),
+          if ((x >= plotXmin && x <= plotXmax) || !truncate) {
+            xTix.add(x);
+          }
+        }
+        RangeSet<Integer> segs = TreeRangeSet.create();
+        for (int tick = 0; tick < xTix.size(); tick++) {
+          double x = xTix.get(tick);
+          str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
+          int strW = SwingUtilities.computeStringWidth(fontMetrics, str);
+          int xPix = getXPixel(x);
+          int div4 = strW / 4;
+
+          Range<Integer> drawRange = Range.closed(xPix - div4 * 3, xPix + div4);
+          boolean draw = false;
+          if (tick == 0 || !segs.intersects(drawRange) && (xPix + div4) < canvasSectionMaximumX) {
+            segs.add(drawRange);
+            draw = true;
+          }
+          if (draw) {
+            g.drawString(str, xPix - (div4 * 3),
+                         getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
+          }
+          Grafik.drawThickLine(g, xPix, getHeight() - canvasSectionMaximumY, xPix,
+                               getHeight() - (canvasSectionMaximumY - TICK_LENGTH) + (draw ? 5 : 0),
+                               TICK_THICKNESS, Color.BLACK);
+        }
+
+        boolean forceDrawMaxTick = false;
+        if (forceDrawMaxTick) {
+          if (Math.abs(loopMax - plotXmax) > DOUBLE_INACCURACY_HEDGE) {
+            Grafik.drawThickLine(g, getXPixel(plotXmax), getHeight() - canvasSectionMaximumY,
+                                 getXPixel(plotXmax),
                                  getHeight() - (canvasSectionMaximumY - TICK_LENGTH),
                                  TICK_THICKNESS, Color.BLACK);
-            str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
-            g.drawString(str, getXPixel(x) - str.length() * 8,
+            str = ext.formDeci(Math.abs(plotXmax) < DOUBLE_INACCURACY_HEDGE ? 0 : plotXmax, sigFigs,
+                               true);
+            g.drawString(str, getXPixel(plotXmax) - str.length() * 8,
                          getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
           }
         }
-        if (Math.abs(loopMax - plotXmax) > DOUBLE_INACCURACY_HEDGE) {
-          Grafik.drawThickLine(g, getXPixel(plotXmax), getHeight() - canvasSectionMaximumY,
-                               getXPixel(plotXmax),
-                               getHeight() - (canvasSectionMaximumY - TICK_LENGTH), TICK_THICKNESS,
-                               Color.BLACK);
-          str = ext.formDeci(Math.abs(plotXmax) < DOUBLE_INACCURACY_HEDGE ? 0 : plotXmax, sigFigs,
-                             true);
-          g.drawString(str, getXPixel(plotXmax) - str.length() * 8,
-                       getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
-        }
+
         Grafik.drawThickLine(g, canvasSectionMinimumX - (int) Math.ceil(AXIS_THICKNESS / 2.0),
                              getHeight() - canvasSectionMaximumY,
                              canvasSectionMaximumX + (int) Math.ceil(AXIS_THICKNESS / 2.0),
@@ -569,8 +598,6 @@ public class ForestPanel extends AbstractPanel {
         double step = 1;// Math.max(1, Math.round(plotMinMaxStep[2] * 2) / 2.0f);
         for (double y = plotMinMaxStep[3]; y <= plotYmax; y += step) {
           if ((y >= plotYmin && y == (int) y && y <= points.length && y > 0) || !truncate) {
-            // Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, getYPixel(y),
-            // canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
             str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
             str = str.split("\\.")[0];
             int index = Integer.parseInt(str) - 1;
@@ -591,28 +618,7 @@ public class ForestPanel extends AbstractPanel {
                                                    .getMetaConf(oddsDisplay)[1]),
                      getWidth() - rightsize + 15, getHeight() - /* HEIGHT_X_AXIS */getAxisXHeight()
                                                   - fontMetrics.getHeight() - 10);
-        // Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin),
-        // canvasSectionMaximumX, getYPixel(plotYmax) - (int) Math.ceil((double) TICK_THICKNESS /
-        // 2.0), AXIS_THICKNESS, Color.BLACK);
-        // g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
-        // yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36,
-        // BufferedImage.TYPE_INT_RGB);
-        // gfx = yLabel.createGraphics();
-        // gfx.setFont(new Font("Arial", 0, 28));
-        // gfx.setColor(Color.WHITE);
-        // gfx.fillRect(0, 0, getWidth(), getHeight());
-        // gfx.setColor(Color.BLACK);
-        // gfx.drawString(yAxisLabel, 0, yLabel.getHeight() - 6);
-        //
-        // g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight() - HEIGHT_X_AXIS) / 2 -
-        // fontMetrics.stringWidth(yAxisLabel) / 2, this);
       }
-      //
-      // if (errorMessage != null) {
-      // g.drawString(errorMessage, (getWidth() - WIDTH_Y_AXIS) / 2 -
-      // fontMetrics.stringWidth(errorMessage) / 2 + WIDTH_Y_AXIS, (getHeight() - HEAD_BUFFER -
-      // HEIGHT_X_AXIS) / 2 - 20 + HEAD_BUFFER);
-      // }
 
     }
 
@@ -622,21 +628,91 @@ public class ForestPanel extends AbstractPanel {
     canvasSectionMinimumY = /* HEIGHT_X_AXIS */getAxisXHeight() + (fontMetrics.getHeight() * 2);
     canvasSectionMaximumY = getHeight() - (4 * HEAD_BUFFER);
 
-    // Draw the lines
-    for (int i = 0; lines != null && i < lines.length && isFlow(); i++) {
-      if ((base && (getLayersInBase() == null
-                    || Bytes.indexOf(getLayersInBase(), lines[i].getLayer()) >= 0))
-          || (!base && Bytes.indexOf(getExtraLayersVisible(), lines[i].getLayer()) >= 0)) {
-        Grafik.drawThickLine(g, getXPixel(lines[i].getStartX()), getYPixel(lines[i].getStartY()),
-                             getXPixel(lines[i].getStopX()), getYPixel(lines[i].getStopY()),
-                             lines[i].getThickness(), colorScheme[lines[i].getColor()]);
-      }
-    }
+    g.setClip(canvasSectionMinimumX, HEAD_BUFFER, canvasSectionMaximumX - canvasSectionMinimumX + 1,
+              getHeight() - getAxisXHeight() - 24);
+    drawLines(g, base);
 
     if (isRectangleGeneratable()) {
       generateRectangles(g);
     }
 
+    drawRectangles(g, base);
+    g.setClip(null);
+
+    if (base) {
+
+      g.setClip(canvasSectionMinimumX - 2, HEAD_BUFFER,
+                canvasSectionMaximumX - canvasSectionMinimumX + 1,
+                getHeight() - getAxisXHeight() - 24);
+      g.setColor(Color.BLACK);
+      double val = forestPlot.getCurrentMetaStudy().getMetaBeta(false)
+                   - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(false);
+      if (oddsDisplay) {
+        val = Math.exp(val);
+      }
+      int xL = getXPixel(val);
+      val = forestPlot.getCurrentMetaStudy().getMetaBeta(false);
+      if (oddsDisplay) {
+        val = Math.exp(val);
+      }
+      int xM = getXPixel(val);
+      val = forestPlot.getCurrentMetaStudy().getMetaBeta(false)
+            + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(false);
+      if (oddsDisplay) {
+        val = Math.exp(val);
+      }
+      int xR = getXPixel(val);
+
+      int yM = getHeight() - /* HEIGHT_X_AXIS */getAxisXHeight() - fontMetrics.getHeight() - 15;
+      int yU = yM - (fontMetrics.getHeight() / 2) - 1;
+      int yD = yM + (fontMetrics.getHeight() / 2) + 1;
+
+      Grafik.drawThickLine(g, xL, yM, xM, yU, 2, META_COLOR);
+      Grafik.drawThickLine(g, xM, yU, xR, yM, 2, META_COLOR);
+      Grafik.drawThickLine(g, xL, yM, xM, yD, 2, META_COLOR);
+      Grafik.drawThickLine(g, xM, yD, xR, yM, 2, META_COLOR);
+
+      int yMin = (4 * HEAD_BUFFER) - 5;
+      int yMax = getHeight() - /* HEIGHT_X_AXIS */getAxisXHeight();
+
+      // draw Y axis line
+      Grafik.drawThickLine(g, getXPixel(oddsDisplay ? 1.0 : 0.0), yMin,
+                           getXPixel(oddsDisplay ? 1.0 : 0.0), yMax, 4, Color.BLACK);
+
+      // draw dashed Y axis line
+      int dashSize = 10;
+      int dashSpacing = 5;
+      int yStart;
+      for (int i = 0; i < ((yMax - yMin) / (dashSize + dashSpacing)) + 1; i++) {
+        yStart = yMin + (dashSize * i) + (dashSpacing * i);
+        Grafik.drawThickLine(g, xM + 1, yStart, xM + 1, yStart + dashSize, 2, Color.GRAY);
+      }
+
+      g.setClip(null);
+
+      g.setColor(Color.BLACK);
+      g.setFont(new Font("Arial", Font.PLAIN, 22));
+      if (forestPlot.getDataIndices().size() > 0) {
+        String comm = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).comment;
+        if (!"".equals(comm)) {
+          int w = g.getFontMetrics().stringWidth(comm) / 2;
+          // TODO handle this better than checking GraphicsEnvironment.isHeadless() to determine
+          // where to put title
+          g.drawString(comm, getWidth() / 2 - w,
+                       (GraphicsEnvironment.isHeadless() ? 1 : 3) * HEAD_BUFFER + 10);
+        }
+      }
+    }
+
+    setImageStatus(IMAGE_COMPLETE);
+    refreshOtherComponents();
+  }
+
+  protected void drawRectangles(Graphics g, boolean base) {
+    int rectangleXPixel;
+    int rectangleYPixel;
+    int rectangleWidthPixel;
+    int rectangleHeightPixel;
     // Draw the rectangles for clusterFilters
     int actWidth, actHeight, wDiff, hDiff;
     for (int i = 0; rectangles != null && i < rectangles.length && isFlow(); i++) {
@@ -679,71 +755,6 @@ public class ForestPanel extends AbstractPanel {
         }
       }
     }
-
-    if (base) {
-      g.setColor(Color.BLACK);
-      double val = forestPlot.getCurrentMetaStudy().getMetaBeta(false)
-                   - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(false);
-      if (oddsDisplay) {
-        val = Math.exp(val);
-      }
-      int xL = getXPixel(val);
-      val = forestPlot.getCurrentMetaStudy().getMetaBeta(false);
-      if (oddsDisplay) {
-        val = Math.exp(val);
-      }
-      int xM = getXPixel(val);
-      val = forestPlot.getCurrentMetaStudy().getMetaBeta(false)
-            + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(false);
-      if (oddsDisplay) {
-        val = Math.exp(val);
-      }
-      int xR = getXPixel(val);
-      // int xL = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay) - 1.96 *
-      // forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay));
-      // int xM = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay));
-      // int xR = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay) + 1.96 *
-      // forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay));
-
-      int yM = getHeight() - /* HEIGHT_X_AXIS */getAxisXHeight() - fontMetrics.getHeight() - 15;
-      int yU = yM - (fontMetrics.getHeight() / 2) - 1;
-      int yD = yM + (fontMetrics.getHeight() / 2) + 1;
-
-      Grafik.drawThickLine(g, xL, yM, xM, yU, 2, META_COLOR);
-      Grafik.drawThickLine(g, xM, yU, xR, yM, 2, META_COLOR);
-      Grafik.drawThickLine(g, xL, yM, xM, yD, 2, META_COLOR);
-      Grafik.drawThickLine(g, xM, yD, xR, yM, 2, META_COLOR);
-
-      int yMin = (4 * HEAD_BUFFER) - 5;
-      int yMax = getHeight() - /* HEIGHT_X_AXIS */getAxisXHeight();
-
-      Grafik.drawThickLine(g, getXPixel(oddsDisplay ? 1.0 : 0.0), yMin,
-                           getXPixel(oddsDisplay ? 1.0 : 0.0), yMax, 3, Color.BLACK);
-
-      int dashSize = 10;
-      int dashSpacing = 5;
-      int yStart;
-      for (int i = 0; i < ((yMax - yMin) / (dashSize + dashSpacing)) + 1; i++) {
-        yStart = yMin + (dashSize * i) + (dashSpacing * i);
-        Grafik.drawThickLine(g, xM + 1, yStart, xM + 1, yStart + dashSize, 2, Color.GRAY);
-      }
-
-      g.setColor(Color.BLACK);
-      g.setFont(new Font("Arial", Font.PLAIN, 22));
-      if (forestPlot.getDataIndices().size() > 0) {
-        String comm = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).comment;
-        if (!"".equals(comm)) {
-          int w = g.getFontMetrics().stringWidth(comm) / 2;
-          // TODO handle this better than checking GraphicsEnvironment.isHeadless() to determine
-          // where to put title
-          g.drawString(comm, getWidth() / 2 - w,
-                       (GraphicsEnvironment.isHeadless() ? 1 : 3) * HEAD_BUFFER + 10);
-        }
-      }
-    }
-
-    setImageStatus(IMAGE_COMPLETE);
-    refreshOtherComponents();
   }
 
   @Override
