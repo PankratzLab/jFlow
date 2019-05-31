@@ -144,11 +144,9 @@ public class ImageAnnotator {
     return value;
   }
 
-  /**
-   * Launch the application.
-   */
-  public static void main(String[] args) {
-    EventQueue.invokeLater(new Runnable() {
+  /** Launch the application. */
+  public static void launch() {
+    Runnable r = new Runnable() {
 
       public void run() {
         try {
@@ -158,7 +156,13 @@ public class ImageAnnotator {
           e.printStackTrace();
         }
       }
-    });
+    };
+
+    EventQueue.invokeLater(r);
+  }
+
+  public static void main(String[] args) {
+    launch();
   }
 
   private boolean showDebug = PRELOAD_DEBUG;
@@ -170,9 +174,7 @@ public class ImageAnnotator {
   private static final int PRELOAD_INTERVAL = 1700;
   Timer cacheBalancingTimer = new Timer();
 
-  /**
-   * Create the application.
-   */
+  /** Create the application. */
   public ImageAnnotator() {
     loadProperties();
     initialize();
@@ -397,9 +399,7 @@ public class ImageAnnotator {
     return this.lastOpenedImageDir;
   }
 
-  /**
-   * Initialize the contents of the frame.
-   */
+  /** Initialize the contents of the frame. */
   private void initialize() {
     frmAnnotator = new JFrame();
     frmAnnotator.setTitle("ImageAnnotator");
@@ -1671,7 +1671,6 @@ public class ImageAnnotator {
         fireInteractionEvent();
       }
     }
-
   };
 
   class InteractionEvent {
@@ -1680,7 +1679,6 @@ public class ImageAnnotator {
     DIRECTION direction;
     public TRAVERSAL traversal;
     public Annotation traversalAnn;
-
   }
 
   private DIRECTION getRecentUserDirection(int win) {
@@ -1795,7 +1793,7 @@ public class ImageAnnotator {
     int really = set.getCount(SPEED.FAST);
 
     int comb = (int) ((slow * -1.5) + fast + really * .5); // weight slow heavier to decay more
-                                                           // quickly
+    // quickly
     if (mod > Math.abs(comb) || Math.abs(comb) < (win / 2)) {
       return SPEED.MODERATE;
     } else if (comb < 0) {
@@ -1890,5 +1888,4 @@ public class ImageAnnotator {
     }
   };
   private JMenu mnSaveAnn;
-
 }

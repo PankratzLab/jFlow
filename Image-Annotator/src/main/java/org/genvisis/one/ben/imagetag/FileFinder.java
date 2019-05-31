@@ -39,9 +39,7 @@ public class FileFinder extends JDialog {
     return ff.list.getSelectedValuesList();
   }
 
-  /**
-   * Create the dialog.
-   */
+  /** Create the dialog. */
   private FileFinder(String[] options, boolean multiSelect) {
     this.fullOptions = options;
     setTitle("File Finder");
@@ -56,25 +54,27 @@ public class FileFinder extends JDialog {
     }
     {
       textField = new JTextField();
-      textField.addKeyListener(new KeyAdapter() {
+      textField.addKeyListener(
+          new KeyAdapter() {
 
-        @Override
-        public void keyReleased(KeyEvent e) {
-          super.keyTyped(e);
-          SwingUtilities.invokeLater(() -> {
-            String txt = textField.getText();
-            final DefaultListModel<String> newMod = new DefaultListModel<>();
-            for (String opt : fullOptions) {
-              if (RabinKarp.runRabinKarp(txt, opt) < opt.length()) {
-                newMod.addElement(opt);
-              }
+            @Override
+            public void keyReleased(KeyEvent e) {
+              super.keyTyped(e);
+              SwingUtilities.invokeLater(
+                  () -> {
+                    String txt = textField.getText();
+                    final DefaultListModel<String> newMod = new DefaultListModel<>();
+                    for (String opt : fullOptions) {
+                      if (RabinKarp.runRabinKarp(txt, opt) < opt.length()) {
+                        newMod.addElement(opt);
+                      }
+                    }
+                    list.setModel(newMod);
+                    list.revalidate();
+                    repaint();
+                  });
             }
-            list.setModel(newMod);
-            list.revalidate();
-            repaint();
           });
-        }
-      });
       contentPanel.add(textField, "cell 0 1,growx");
       textField.setColumns(10);
     }
@@ -87,8 +87,10 @@ public class FileFinder extends JDialog {
       contentPanel.add(scrollPane, "cell 0 3,grow");
       {
         list = new JList<>((String[]) Arrays.copyOf(options, options.length));
-        list.setSelectionMode(multiSelect ? ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
-                                          : ListSelectionModel.SINGLE_SELECTION);
+        list.setSelectionMode(
+            multiSelect
+                ? ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+                : ListSelectionModel.SINGLE_SELECTION);
         scrollPane.setViewportView(list);
       }
     }
@@ -98,27 +100,29 @@ public class FileFinder extends JDialog {
       getContentPane().add(buttonPane, BorderLayout.SOUTH);
       {
         JButton okButton = new JButton();
-        okButton.setAction(new AbstractAction() {
+        okButton.setAction(
+            new AbstractAction() {
 
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            FileFinder.this.setVisible(false);
-          }
-        });
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                FileFinder.this.setVisible(false);
+              }
+            });
         okButton.setText("OK");
         buttonPane.add(okButton);
         getRootPane().setDefaultButton(okButton);
       }
       {
         JButton cancelButton = new JButton();
-        cancelButton.setAction(new AbstractAction() {
+        cancelButton.setAction(
+            new AbstractAction() {
 
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            FileFinder.this.list.clearSelection();
-            FileFinder.this.setVisible(false);
-          }
-        });
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                FileFinder.this.list.clearSelection();
+                FileFinder.this.setVisible(false);
+              }
+            });
         cancelButton.setText("Cancel");
         buttonPane.add(cancelButton);
       }
@@ -139,8 +143,7 @@ public class FileFinder extends JDialog {
 
       // precompute R^(m-1) % q for use in removing leading digit
       long RM = 1;
-      for (int i = 1; i <= m - 1; i++)
-        RM = (R * RM) % q;
+      for (int i = 1; i <= m - 1; i++) RM = (R * RM) % q;
       long patHash = hash(pat, m, R, q);
 
       int n = txt.length();
@@ -168,14 +171,12 @@ public class FileFinder extends JDialog {
     // Compute hash for key[0..m-1].
     private static long hash(String key, int m, int R, long q) {
       long h = 0;
-      for (int j = 0; j < m; j++)
-        h = (R * h + key.charAt(j)) % q;
+      for (int j = 0; j < m; j++) h = (R * h + key.charAt(j)) % q;
       return h;
     }
 
     private static boolean check(String txt, int i, int m, String pat) {
-      for (int j = 0; j < m; j++)
-        if (pat.charAt(j) != txt.charAt(i + j)) return false;
+      for (int j = 0; j < m; j++) if (pat.charAt(j) != txt.charAt(i + j)) return false;
       return true;
     }
 
@@ -185,5 +186,4 @@ public class FileFinder extends JDialog {
       return prime.longValue();
     }
   }
-
 }

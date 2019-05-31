@@ -36,8 +36,10 @@ public class Annotator implements IAnnotator {
         c = ann.toUpperCase().charAt(ind);
       }
       if (ind == ann.length()) {
-        System.err.println("Error - all possible mnemonic characters already used for annotation {"
-                           + ann + "}.  Using alphanumerics instead.");
+        System.err.println(
+            "Error - all possible mnemonic characters already used for annotation {"
+                + ann
+                + "}.  Using alphanumerics instead.");
         String alphanum = "abcdefghijklmnopqrstuvwxyz0123456789";
         ind = 0;
         while (mnemonicMap.containsValue(alphanum.charAt(ind))) {
@@ -80,8 +82,8 @@ public class Annotator implements IAnnotator {
   }
 
   @Override
-  public void replaceAnnotation(AnnotatedImage.Annotation prevAnnot,
-                                AnnotatedImage.Annotation newAnnot) {
+  public void replaceAnnotation(
+      AnnotatedImage.Annotation prevAnnot, AnnotatedImage.Annotation newAnnot) {
     this.annotations.set(this.annotations.indexOf(prevAnnot), newAnnot);
     for (HashMap<String, AnnotatedImage> annMap : imageMap.values()) {
       for (AnnotatedImage ai : annMap.values()) {
@@ -106,35 +108,40 @@ public class Annotator implements IAnnotator {
   @Override
   public void loadImgDir(String dir) {
     File dFil = new File(dir);
-    File[] subDirs = dFil.listFiles(new FileFilter() {
+    File[] subDirs =
+        dFil.listFiles(
+            new FileFilter() {
 
-      @Override
-      public boolean accept(File pathname) {
-        return pathname.isDirectory();
-      }
-    });
+              @Override
+              public boolean accept(File pathname) {
+                return pathname.isDirectory();
+              }
+            });
     for (File d : subDirs) {
       String rootIdent = d.getName();
       rootKeys.add(rootIdent);
       HashMap<String, AnnotatedImage> imgs = new HashMap<>();
       imageMap.put(rootIdent, imgs);
-      String[] imgFiles = d.list(new FilenameFilter() {
+      String[] imgFiles =
+          d.list(
+              new FilenameFilter() {
 
-        @Override
-        public boolean accept(File dir, String name) {
-          return name.startsWith(rootIdent) && (name.endsWith(".png") || name.endsWith(".jpg"));
-        }
-      });
+                @Override
+                public boolean accept(File dir, String name) {
+                  return name.startsWith(rootIdent)
+                      && (name.endsWith(".png") || name.endsWith(".jpg"));
+                }
+              });
       for (String img : imgFiles) {
-        AnnotatedImage ai = parseAnnotatedImage(ext.verifyDirFormat(d.getAbsolutePath()), rootIdent,
-                                                img);
+        AnnotatedImage ai =
+            parseAnnotatedImage(ext.verifyDirFormat(d.getAbsolutePath()), rootIdent, img);
         imgs.put(img, ai);
       }
     }
   }
 
-  private static AnnotatedImage parseAnnotatedImage(String dirPath, String rootID,
-                                                    String imgFileName) {
+  private static AnnotatedImage parseAnnotatedImage(
+      String dirPath, String rootID, String imgFileName) {
     String f = imgFileName.startsWith("_") ? imgFileName.substring(1) : imgFileName;
     f = ext.rootOf(f);
     String[] parts = (f.startsWith(rootID) ? f.substring(rootID.length() + 1) : f).split("_", -1);
@@ -239,8 +246,12 @@ public class Annotator implements IAnnotator {
     backupExistingFile(annotFile);
     PrintWriter writer = Files.getAppropriateWriter(annotFile);
     for (AnnotatedImage.Annotation a : map.keySet()) {
-      StringBuilder sb = new StringBuilder(ANNOT_TOKEN).append("\t").append(a.annotation)
-                                                       .append("\t").append(a.mnemonic);
+      StringBuilder sb =
+          new StringBuilder(ANNOT_TOKEN)
+              .append("\t")
+              .append(a.annotation)
+              .append("\t")
+              .append(a.mnemonic);
       writer.println(sb.toString());
     }
     writer.println();
