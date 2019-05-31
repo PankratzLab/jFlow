@@ -52,7 +52,7 @@ public class ManhattanPlot {
   public ManhattanPlot(Project proj) {
     if (!GraphicsEnvironment.isHeadless()) {
       parentFrame = new JFrame("Genvisis - ManhattanPlot");
-      parentFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+      parentFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
       createMenubar();
     }
 
