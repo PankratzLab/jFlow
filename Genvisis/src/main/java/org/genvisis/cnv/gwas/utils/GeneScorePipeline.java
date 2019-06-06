@@ -319,15 +319,27 @@ public class GeneScorePipeline {
           // metaFiles by SNPS (meta_SNP)
           for (MetaFile mf : allMetas) {
             for (String mkr : allMarkers) {
-              writer.print("\t" + markerScores.get(constr, mf).get(indiv, mkr));
+              Double score = markerScores.get(constr, mf).get(indiv, mkr);
+              writer.print("\t" + (score == null ? "." : score.doubleValue()));
             }
           }
           // phenoFiles by phenos/covars (pheno_pheno, pheno_covar1)
           for (String pheno : phenoData.keySet()) {
-            Map<String, Double> covars = phenoData.get(pheno).indivs.get(indiv).covars;
-            writer.print("\t" + phenoData.get(pheno).indivs.get(indiv).getDepvar());
-            for (String covar : phenoData.get(pheno).covars) {
-              writer.print("\t" + covars.get(covar));
+            PhenoData pd = phenoData.get(pheno);
+            PhenoIndiv pi = pd.indivs.get(indiv);
+            if (pi == null) {
+              log.reportTimeWarning("ID " + indiv + " not found for phenotype " + pheno);
+              writer.print("\t.");
+              for (@SuppressWarnings("unused")
+              String covar : pd.covars) {
+                writer.print("\t.");
+              }
+            } else {
+              Map<String, Double> covars = pi.covars;
+              writer.print("\t" + pi.getDepvar());
+              for (String covar : pd.covars) {
+                writer.print("\t" + covars.get(covar));
+              }
             }
           }
           writer.println();
