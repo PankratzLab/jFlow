@@ -12,6 +12,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -157,6 +158,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
   @Override
   public void mouseMoved(MouseEvent event) {
     Graphics g = getGraphics();
+    Set<Integer> nearby;
     IntVector iv;
     String pos;
     int x, y;
@@ -171,26 +173,25 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
       }
 
       // iv = locLookup.get(pos);
-      iv = lookupNearbyPoints(x, y, pos);
+      nearby = lookupNearbyPoints(x, y, pos);
       prox = new IntVector();
       g.setColor(Color.RED);
-      for (int i = 0; iv != null && i < iv.size(); i++) {
+      for (Integer i : nearby) {
         if (Distance.euclidean(new int[] {x, y},
-                               new int[] {getXPixel(data[iv.elementAt(i)][0]),
-                                          getYPixel(data[iv.elementAt(i)][1])}) < HIGHLIGHT_DISTANCE) {
+                               new int[] {getXPixel(data[i][0]),
+                                          getYPixel(data[i][1])}) < HIGHLIGHT_DISTANCE) {
           g.setColor(Color.RED);
-          if (sampleData.individualShouldBeExcluded(samples[iv.elementAt(i)][0])) {
+          if (sampleData.individualShouldBeExcluded(samples[i][0])) {
             if (hideExcluded) {
               continue;
             }
-            g.fillOval(getXPixel(data[iv.elementAt(i)][0]) - SIZE_FAILED / 2,
-                       getYPixel(data[iv.elementAt(i)][1]) - SIZE_FAILED / 2, SIZE_FAILED,
-                       SIZE_FAILED);
+            g.fillOval(getXPixel(data[i][0]) - SIZE_FAILED / 2,
+                       getYPixel(data[i][1]) - SIZE_FAILED / 2, SIZE_FAILED, SIZE_FAILED);
           } else {
-            g.fillOval(getXPixel(data[iv.elementAt(i)][0]) - SIZE / 2,
-                       getYPixel(data[iv.elementAt(i)][1]) - SIZE / 2, SIZE, SIZE);
+            g.fillOval(getXPixel(data[i][0]) - SIZE / 2, getYPixel(data[i][1]) - SIZE / 2, SIZE,
+                       SIZE);
           }
-          prox.add(iv.elementAt(i));
+          prox.add(i);
         }
       }
       // if (linkSamples && prox != null && prox.size() > 0) {

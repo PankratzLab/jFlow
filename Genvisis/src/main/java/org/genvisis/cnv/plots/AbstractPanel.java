@@ -25,6 +25,7 @@ import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -45,6 +46,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.mining.Distance;
 import org.pankratzlab.common.stats.Maths;
 
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
 
 public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener,
@@ -284,7 +286,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   protected double plotXmin, plotYmin;
   protected volatile BufferedImage image;
   protected String prevPos = "";
-  protected Hashtable<String, IntVector> locLookup;
+  protected Hashtable<String, Set<Integer>> locLookup;
   protected PlotPoint[] points; // make private when worked out
   protected GenericLine[] lines;
   protected GenericRectangle[] rectangles;
@@ -1001,7 +1003,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
                 if (locLookup.containsKey(pos)) {
                   locLookup.get(pos).add(i);
                 } else {
-                  locLookup.put(pos, new IntVector(new int[] {i}));
+                  locLookup.put(pos, Sets.newHashSet(i));
                 }
               }
             }
@@ -1472,7 +1474,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   @Override
   public void mouseMoved(MouseEvent event) {
     Graphics g = getGraphics();
-    IntVector indicesOfNearbyPoints;
+    Set<Integer> indicesOfNearbyPoints;
     String pos;
     int x, y, dataPointIndex;
     byte size;
@@ -1492,8 +1494,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
       size = SIZE * 2;
       g.setColor(Color.GRAY);
-      for (int i = 0; indicesOfNearbyPoints != null && i < indicesOfNearbyPoints.size(); i++) {
-        dataPointIndex = indicesOfNearbyPoints.elementAt(i);
+      for (Integer i : indicesOfNearbyPoints) {
+        dataPointIndex = i.intValue();
         if (Distance.euclidean(new int[] {x, y},
                                new int[] {getXPixel(points[dataPointIndex].getRawX()),
                                           getYPixel(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
@@ -2075,16 +2077,18 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     this.lookupResolution = lookupResolution;
   }
 
-  public IntVector lookupNearbyPoints(int x, int y, String pos) {
-    IntVector iv = locLookup.get(pos);
-    IntVector indicesOfDataPoints = new IntVector();
+  public Set<Integer> lookupNearbyPoints(int x, int y, String pos) {
+    Set<Integer> iv = locLookup.get(pos);
+    Set<Integer> indicesOfDataPoints = Sets.newConcurrentHashSet();
 
-    for (int i = 0; iv != null && i < iv.size(); i++) {
-      if (Distance.euclidean(new int[] {x, y},
-                             new int[] {getXPixel(points[iv.elementAt(i)].getRawX()),
-                                        getYPixel(points[iv.elementAt(i)].getRawY())}) < HIGHLIGHT_DISTANCE) {
-        indicesOfDataPoints.add(iv.elementAt(i));
-      }
+    if (iv != null) {
+      iv.parallelStream().forEach(i -> {
+        if (Distance.euclidean(new int[] {x, y},
+                               new int[] {getXPixel(points[i].getRawX()),
+                                          getYPixel(points[i].getRawY())}) < HIGHLIGHT_DISTANCE) {
+          indicesOfDataPoints.add(i);
+        }
+      });
     }
 
     return indicesOfDataPoints;

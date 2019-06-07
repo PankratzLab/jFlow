@@ -160,6 +160,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   public static final String MASK_MISSING = "Mask missing values";
   public static final String UNMASK_MISSING = "Unmask missing values";
   public static final String MENDELIAN_ERROR = "Mendelian Errors";
+  public static final String ALLOW_HIGHTLIGHTING = "Allow Highlighting";
   public static final Color BACKGROUND_COLOR = Color.WHITE;
   public static final String DEFAULT_MESSAGE = "enter new annotation here";
   public static final String[] GENOTYPE_OPTIONS = new String[] {"-", "A/A", "A/B", "B/B"};
@@ -245,6 +246,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   private String[] samples, sampleFIDIIDs;
   private volatile PLOT_TYPE[] plotTypes;
   private volatile int[] classes;
+  private boolean allowHighlighting;
   private byte size;
   private float gcThreshold;
   private long sampleListFingerprint;
@@ -509,6 +511,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     maskMissing = new boolean[4];
     symmetry = new boolean[] {true, true, true, true};
     excludeSamples = new boolean[] {true, true, true, true};
+    allowHighlighting = true;
     correction = new boolean[4];
     displayMendelianErrors = new boolean[4];
     plotTypes = new PLOT_TYPE[] {PLOT_TYPE.X_Y, PLOT_TYPE.X_Y, PLOT_TYPE.X_Y, PLOT_TYPE.X_Y};
@@ -826,6 +829,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       updateGUI();
     } else if (command.equals(MENDELIAN_ERROR)) {
       displayMendelianErrors[selectedPanelIndex] = mendelianErrorBox.isSelected();
+      updateGUI();
+    } else if (command.equals(ALLOW_HIGHTLIGHTING)) {
+      allowHighlighting = !allowHighlighting;
       updateGUI();
     } else if (command.equals(NEW_LIST_COMMAND)) {
       ListEditor le = ListEditor.createMarkerListCreator(proj);
@@ -1707,6 +1713,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
   public boolean hideExcludedSamples(int index) {
     return excludeSamples[index];
+  }
+
+  public boolean allowHighlighting() {
+    return allowHighlighting;
   }
 
   public void last() {
@@ -3184,6 +3194,13 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       mendelianErrorBox.setEnabled(false);
     }
 
+    JCheckBox allowHighlightingBox = new JCheckBox("Allow Highlighting");
+    allowHighlightingBox.setFont(checkBoxFont);
+    allowHighlightingBox.setBackground(BACKGROUND_COLOR);
+    allowHighlightingBox.setActionCommand(ALLOW_HIGHTLIGHTING);
+    allowHighlightingBox.addActionListener(this);
+    allowHighlightingBox.setSelected(allowHighlighting);
+
     // JPanel boxPanel = new JPanel();
     // boxPanel.setLayout(new GridLayout(3, 2));
     // boxPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
@@ -3207,6 +3224,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     boxPanel.add(excludeSampleBox);// , gbc);
     boxPanel.add(maskMissingBox);// , gbc);
     boxPanel.add(mendelianErrorBox);
+    boxPanel.add(allowHighlightingBox);
     plotPanel.add(boxPanel, BorderLayout.WEST);
     controlPanel.add(plotPanel);
 

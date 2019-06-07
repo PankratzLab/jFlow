@@ -15,7 +15,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -37,7 +39,6 @@ import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CountVector;
 import org.pankratzlab.common.HashVec;
-import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
@@ -82,7 +83,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
   protected ScatterPlot sp;
   protected String[] samples;
   protected SampleData sampleData;
-  protected IntVector indicesOfNearbyPoints;
+  protected Set<Integer> indicesOfNearbyPoints;
   private boolean updateQcPanel; // A control variable. Do not update QcPanel when resizing, or etc.
   private int mouseStartX;
   private int mouseStartY;
@@ -624,6 +625,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
       repaint();
     }
     indicesOfNearbyPoints = lookupNearbyPoints(x, y, pos);
+    prevPos = pos;
+
+    if (!sp.allowHighlighting()) {
+      return;
+    }
 
     mData = sp.getCurrentMarkerData();
     datapoints = mData.getDatapoints(plotType.getLegacyIndex());
@@ -636,8 +642,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     g.setFont(new Font("Arial", 0, (int) (xFontSize * 1.5)));
     xWidth = g.getFontMetrics(g.getFont()).stringWidth("X");
 
-    for (int l = 0; indicesOfNearbyPoints != null && l < indicesOfNearbyPoints.size(); l++) {
-      int i1 = indicesOfNearbyPoints.elementAt(l);
+    for (Integer l : indicesOfNearbyPoints) {
+      int i1 = l.intValue();
       if (sampIndMap.containsKey(points[i1].getId())) {
         i = sampIndMap.get(points[i1].getId());
         indi = sampleData.getIndiFromSampleHash(samples[i]);
@@ -658,7 +664,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
         }
       }
     }
-    prevPos = pos;
   }
 
   @Override
@@ -796,11 +801,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
       if (indicesOfNearbyPoints != null && indicesOfNearbyPoints.size() > 0) {
         menu = new JPopupMenu();
         numberToInclude = Math.min(50, indicesOfNearbyPoints.size());
+        Iterator<Integer> nearbyIter = indicesOfNearbyPoints.iterator();
         for (int i = 0; i < numberToInclude; i++) {
-          if (!sampIndMap.containsKey(points[indicesOfNearbyPoints.elementAt(i)].getId())) {
+          int next = nearbyIter.next();
+          if (!sampIndMap.containsKey(points[next].getId())) {
             continue;
           }
-          int sampleIndex = sampIndMap.get(points[indicesOfNearbyPoints.elementAt(i)].getId());
+          int sampleIndex = sampIndMap.get(points[next].getId());
           IndiPheno indi = sampleData.getIndiFromSampleHash(samples[sampleIndex]);
           byte classCode;
           if (sampleData.getClassName(currentClass).startsWith(SampleData.PLINK_CLASS_PREFIX)) {
