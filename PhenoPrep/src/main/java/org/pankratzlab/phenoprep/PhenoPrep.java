@@ -930,7 +930,7 @@ public class PhenoPrep {
 
   public static void summarizeAll(String dir, String idColName, String phenosCommaDelimited,
                                   String covarsCommaDelimited, int normalization, String idFile,
-                                  boolean histogram, String phenoFile) {
+                                  String extrasFile, boolean histogram, String phenoFile) {
     PrintWriter writer;
     String[] phenos, transforms;
     Logger log;
@@ -1013,8 +1013,8 @@ public class PhenoPrep {
                   PhenoPrep.parse(dir, phenoFile, idColName, pheno, transform, 3.0, winsorize,
                                   remove, makeResids, afterResids, inverseNormalize,
                                   covarsCommaDelimited, idFile, false, false, false, false, true,
-                                  true, null, outFile, true, false, false, normalize, normSigned,
-                                  null, histogram, log);
+                                  true, extrasFile, outFile, true, false, false, normalize,
+                                  normSigned, null, histogram, log);
                 }
                 if (Files.exists(dir + outFile)) {
                   rawData = HashVec.loadFileToStringArray(dir + outFile, true, new int[] {1}, false,
@@ -1318,8 +1318,8 @@ public class PhenoPrep {
 
     try {
       if (summarizeAll) {
-        summarizeAll(dir, idColName, phenos, covarsCommaDelimited, normalization, idFile, histogram,
-                     filename);
+        summarizeAll(dir, idColName, phenos, covarsCommaDelimited, normalization, idFile, extras,
+                     histogram, filename);
       } else if (phenos.contains(",")) {
         parse(dir, filename, idColName, phenos.split(","), transform, sdThreshold, winsorize,
               remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile,
