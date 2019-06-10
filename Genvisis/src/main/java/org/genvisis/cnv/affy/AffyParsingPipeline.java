@@ -33,6 +33,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -130,15 +131,14 @@ public class AffyParsingPipeline {
     }
     reader.close();
 
+    List<Marker> mkrsInCELs = new ArrayList<>();
     if (!skipGenos && Files.exists(annotFile)) {
-
       // load marker annotations to get alleles
       AffyAnnotationFile aaf = new AffyAnnotationFile(annotFile, IMPORT_SCHEME.PROBESET_ID,
                                                       proj.getLog());
 
       try {
         markerNameMap = new HashMap<>();
-        List<Marker> mkrsInCELs = new ArrayList<>();
         for (Marker m : aaf.load()) {
           if (markersInCELs.contains(m.getName())) {
             mkrsInCELs.add(m);
@@ -147,8 +147,6 @@ public class AffyParsingPipeline {
         // only import overlap:
         markersInCELs = mkrsInCELs.stream().map(Marker::getName).collect(Collectors.toSet());
         mkrsInCELs.stream().forEach(m -> markerNameMap.put(m.getName(), m)); // setup marker map
-        MarkerDetailSet mds = new MarkerDetailSet(mkrsInCELs); // create MDS
-        mds.serialize(proj.MARKER_DETAILS_FILENAME.getValue());
       } catch (IOException e4) {
         proj.getLog()
             .reportError("Couldn't load marker allele info from Affymetric annotation file: "
@@ -159,7 +157,16 @@ public class AffyParsingPipeline {
     }
 
     // create naive MarkerSet file
-    Markers.orderMarkers(markersInCELs.toArray(new String[markersInCELs.size()]), proj);
+    String[] mkrs = markersInCELs.toArray(new String[markersInCELs.size()]);
+    int[] order = Markers.orderMarkers(mkrs, proj);
+
+    // create MDS in proper order
+    if (!skipGenos && Files.exists(annotFile)) {
+      Marker[] mkrMkrs = mkrsInCELs.toArray(new Marker[mkrsInCELs.size()]);
+      mkrMkrs = Sort.getOrdered(mkrMkrs, order);
+      MarkerDetailSet mds = new MarkerDetailSet(ArrayUtils.toList(mkrMkrs)); // create MDS
+      mds.serialize(proj.MARKER_DETAILS_FILENAME.getValue());
+    }
   }
 
   private void binMarkers(long numMkrsPerFile) {
