@@ -591,7 +591,7 @@ public class PhenoPrep {
     delimiter = ext.determineDelimiter(temp);
     commaDelimitedFile = delimiter.equals(",");
     header = Files.getHeaderOfFile(extras, log);
-    idIndex = ext.indexOfStr(idColName, header);
+    idIndex = ext.indexOfStr(idColName, header, false, true);
     if (idIndex == -1) {
       log.reportError("Error - extras file '" + extras + "' does not contain the same id linker ("
                       + idColName + ") as the main file (header found: ["
