@@ -98,7 +98,7 @@ public class PhenoPrep {
       outFile = dir + outFile;
     }
 
-    if (Files.isRelativePath(extras)) {
+    if (extras != null && Files.isRelativePath(extras)) {
       extras = dir + extras;
     }
 
@@ -594,7 +594,8 @@ public class PhenoPrep {
     idIndex = ext.indexOfStr(idColName, header);
     if (idIndex == -1) {
       log.reportError("Error - extras file '" + extras + "' does not contain the same id linker ("
-                      + idColName + ") as the main file; aborting all");
+                      + idColName + ") as the main file (header found: ["
+                      + ArrayUtils.toStr(header, delimiter) + "]); aborting all");
       System.exit(1);
     }
     indices = ext.indexFactors(ArrayUtils.removeFromArray(header, idIndex), header, true, log,
@@ -928,6 +929,12 @@ public class PhenoPrep {
     }
   }
 
+  public static void checkExistsOrThrowException(String filename, String fileDesc) {
+    if (!Files.exists(filename)) {
+      throw new IllegalArgumentException(fileDesc + " " + filename + " doesn't exist.");
+    }
+  }
+
   public static void summarizeAll(String dir, String idColName, String phenosCommaDelimited,
                                   String covarsCommaDelimited, int normalization, String idFile,
                                   String extrasFile, boolean histogram, String phenoFile) {
@@ -940,6 +947,10 @@ public class PhenoPrep {
     double[] data;
     double mean, stdev, skewness, kurtosis;
     boolean normalize, normSigned;
+
+    checkExistsOrThrowException(idFile, "ID File");
+    // checkExistsOrThrowException(extrasFile, "Extras File"); // extras file can be null
+    checkExistsOrThrowException(phenoFile, "Base Pheno File");
 
     log = new Logger(dir + "summarizeAll.log");
     log.report("id col name is " + idColName);
