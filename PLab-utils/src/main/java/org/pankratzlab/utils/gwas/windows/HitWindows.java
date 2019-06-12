@@ -120,6 +120,7 @@ public class HitWindows {
                                 + additionalAnnotationVariableNames[i] + "} in file " + filename);
         }
       }
+      indices = ArrayUtils.removeAllValues(indices, -1);
       count = 0;
       // log.report("Parsing... "+filename);
       while ((temp = reader.readLine()) != null) {
