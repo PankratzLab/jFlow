@@ -13,6 +13,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Vector;
 
 import org.genvisis.cnv.gwas.MergeDatasets;
@@ -753,16 +756,12 @@ public class Metal {
     }
   }
 
-  public static void fromParameters(String filename, Logger log) {
+  public static void fromParameters(String crfFileName, Logger log) {
     List<String> params;
     String[] inputFiles, tempFiles;
     String outputFile;
     Hits hits;
-    String[] fileParameters;
-    String[] header;
-    int[] indices;
-    BufferedReader reader;
-    String[] line;
+    String[] filesToCombine;
     Hashtable<String, int[]> markerPositionHash;
     // Vector<String> markers;
     // Vector<String> chrs;
@@ -772,7 +771,6 @@ public class Metal {
     String[][] genes;
     PrintWriter writer;
     byte build;
-    int[] chrPosition, trav;
     String[] hitList;
     int countMissing;
     boolean gcControlOn;
@@ -780,7 +778,7 @@ public class Metal {
     double[] gcValues;
     int countMismatches;
 
-    params = Files.parseControlFile(filename, "metal",
+    params = Files.parseControlFile(crfFileName, "metal",
                                     new String[] {"outfile_root", "build=37",
                                                   /* "genomic_control=TRUE", */"hits_p<=0.001",
                                                   "se<=5", "maf>=0.001",
@@ -893,11 +891,13 @@ public class Metal {
       // System.err.println("Error - metaAnalysis gets hang or does not start.");
       // }
 
-      // sort results for both, determine minimum-pvalue, report only those minP<0.001
+      // sort results for both, determine minimum-pvalue, report only those
+      // minP<0.00001
       if (!Files.exists("hits.txt")) {
         hits = new Hits();
         hits.incorporateFromFile(outputFile + "_InvVar1.out", thresholdForHits, log);
-        // hits.incorporateFromFile(outputFile+"_NWeighted1.out", thresholdForHits, log);
+        // We only want to use one or the other of these - default to inverse variance
+        // hits.incorporateFromFile(outputFile + "_NWeighted1.out", thresholdForHits, log);
         hits.writeHits("hits.txt");
       }
 
@@ -914,74 +914,33 @@ public class Metal {
       // geneNames = new Vector<String>();
       markerPositionHash = new Hashtable<>();
       countMismatches = 0;
-      fileParameters = new String[4 + inputFiles.length];
+      // Holds the file names of everything to combine plus the indices of desired columns
+      filesToCombine = new String[4 + inputFiles.length];
+      String[][] headers = new String[filesToCombine.length][];
 
-      fileParameters[1] = "hits.txt 0 1=minPval skip=0";
-      fileParameters[2] = outputFile
-                          + "_InvVar1.out 0 'Allele1' 'Allele2' 'Effect'=Beta 'StdErr' 'P-value' 'Direction'";
-      fileParameters[3] = outputFile + "_NWeighted1.out 0 'Weight' 'P-value'";
-      Hashtable<String, Hashtable<String, String>> altHeaders = new Hashtable<>();
+      filesToCombine[1] = "hits.txt 0 1";
+      headers[1] = new String[] {"minPval"};
+      filesToCombine[2] = outputFile + "_InvVar1.out 0 1 2 3 4 5 6";
+      headers[2] = new String[] {"Allele1", "Allele2", "Beta", "StdErr", "P-value", "Direction"};
+      filesToCombine[3] = outputFile + "_NWeighted1.out 0 5 7";
+      headers[3] = new String[] {"Weight", "P-value_N-weighted"};
       String[][] headersWithAlts = new String[][] {Aliases.ALLELES[0], Aliases.ALLELES[1],
                                                    Aliases.ALLELE_FREQS, Aliases.NS,
                                                    Aliases.EFFECTS, Aliases.STD_ERRS,
                                                    Aliases.PVALUES, Aliases.IMPUTATION_EFFICIENCY};
       for (int i = 0; i < inputFiles.length; i++) {
-        header = Files.getHeaderOfFile(inputFiles[i], log);
-        indices = ext.indexFactors(headersWithAlts, header, true, false, true, true, log);
-        fileParameters[i + 4] = inputFiles[i] + " 0";
-        altHeaders.put(ext.removeDirectoryInfo(inputFiles[i]), new Hashtable<String, String>());
-        for (int j = 0; j < indices.length; j++) {
-          if (indices[j] != -1) {
-            fileParameters[i + 4] += " '" + header[indices[j]] + "'";
-            altHeaders.get(ext.removeDirectoryInfo(inputFiles[i]))
-                      .put(header[indices[j]], headersWithAlts[j][0] + "." + ext.rootOf(filename));
-          }
-        }
-        System.out.println(fileParameters[i + 4]);
-        for (String file : altHeaders.keySet()) {
-          for (String headerOrig : altHeaders.get(file).keySet()) {
-            System.out.println(file + "\toriginal: " + headerOrig + "\tnew: "
-                               + altHeaders.get(file).get(headerOrig));
-          }
-        }
-        indices = ext.indexFactors(new String[][] {Aliases.CHRS, Aliases.POSITIONS}, header, true,
-                                   false, true, true, log);
-        if (indices[0] != -1) {
-          try {
-            reader = Files.getAppropriateReader(inputFiles[i]);// new BufferedReader(new
-                                                               // FileReader(inputFiles[i]));
-            String hdr = reader.readLine(); // header
-            String delim = ext.determineDelimiter(hdr);
-            while (reader.ready()) {
-              line = reader.readLine().split(delim);
-              if (!ext.isMissingValue(line[indices[0]]) && !ext.isMissingValue(line[indices[1]])) {
-                trav = new int[] {Integer.parseInt(line[indices[0]]),
-                                  Integer.parseInt(line[indices[1]])};
-                if (markerPositionHash.containsKey(line[0])) {
-                  chrPosition = markerPositionHash.get(line[0]);
-                  if (trav[0] != chrPosition[0] || trav[1] != chrPosition[1]) {
-                    if (countMismatches < 42) {
-                      log.reportError("Error - mismatched positions for marker " + line[0] + " ("
-                                      + ArrayUtils.toStr(trav, ":") + " versus "
-                                      + ArrayUtils.toStr(chrPosition, ":") + ")");
-                    } else if (countMismatches == 42) {
-                      log.reportError("...");
-                    }
-                    countMismatches++;
-                  }
-                }
-                markerPositionHash.put(line[0], trav);
-              }
-            }
-            reader.close();
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-        }
+        countMismatches = processFile(crfFileName, log, inputFiles, filesToCombine,
+                                      markerPositionHash, countMismatches, headers, headersWithAlts,
+                                      i);
       }
       log.report("There were a total of " + countMismatches + " mismatches on position");
 
       hitList = HashVec.loadFileToStringArray("hits.txt", false, new int[] {0}, false);
+
+      pruneNonHits(markerPositionHash, hitList);
+
+      Map<String, Integer> sortedMarkerIndex = null;
+
       try {
         writer = Files.openAppropriateWriter("genes.txt");
         writer.println("MarkerName\tChr\tPosition\tGene(s)");
@@ -994,6 +953,7 @@ public class Metal {
               markerPositions[i] = markerPositionHash.get(hitList[i]);
             } else {
               markerPositions[i] = new int[] {0, i};
+              markerPositionHash.put(hitList[i], markerPositions[i]);
               countMissing++;
               if (countMissing < 10) {
                 log.reportError("Warning - no map position available for " + hitList[i]);
@@ -1003,6 +963,9 @@ public class Metal {
           if (countMissing >= 10) {
             log.reportError("No map positions for a total of " + countMissing + " markers");
           }
+          sortedMarkerIndex = getChrPosSortedOrder(markerPositionHash);
+          hitList = getOrdered(hitList, sortedMarkerIndex);
+
           System.out.println(ext.getTime() + "\tstarting genes");
           genes = MapSNPsAndGenes.mapSNPsToGenes(markerPositions, build, 50000, log);
           System.out.println(ext.getTime() + "\tfinished genes");
@@ -1018,12 +981,25 @@ public class Metal {
         e.printStackTrace();
       }
 
-      fileParameters[0] = "genes.txt" + " 0=MarkerName 1=Chr 2=Position 3=Gene(s)";
-      Files.combine(hitList, fileParameters, null, "MarkerName", ".", "topHits.xln", log, true,
-                    true, false, altHeaders);
+      filesToCombine[0] = "genes.txt 0 1 2 3";
 
-      String[][] results = HitWindows.determine("topHits.xln", 0.00000005f, 500000, 0.000005f,
-                                                new String[0], log);
+      headers[0] = new String[] {"Chr", "Position", "Gene(s)"};
+
+      // Create sorted temp files for each input file, limiting fields to just hits.
+      for (int fileIdx = 0; fileIdx < filesToCombine.length; fileIdx++) {
+        createSortedTempFile(sortedMarkerIndex, fileIdx, filesToCombine, log);
+      }
+
+      try {
+        Files.combineStreaming(hitList, filesToCombine, headers, "MarkerName", ".", "topHits.xln",
+                               log, true, true, false);
+      } catch (IOException e) {
+        log.reportError("Failed to combine files");
+        System.exit(-2);
+      }
+
+      String[][] results = HitWindows.determineSortedStreamingReader("topHits.xln", 0.00000005,
+                                                                     500000, 0.000005, log);
       try {
         results = includeExtraInfoFromTopHits(results);
       } catch (IOException e) {
@@ -1034,6 +1010,152 @@ public class Metal {
 
     }
   }
+
+  private static void createSortedTempFile(Map<String, Integer> sortedMarkerIndex, int fileIndex,
+                                           String[] fileNames, Logger log) {
+    String[] sortedLines = new String[sortedMarkerIndex.size()];
+    String fileName = fileNames[fileIndex].trim().split(PSF.Regex.GREEDY_WHITESPACE)[0];
+    String delim = Files.suggestDelimiter(fileName, log);
+    try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+      while (reader.ready()) {
+        String line = reader.readLine();
+        String key = line.split(delim)[0];
+        if (sortedMarkerIndex.containsKey(key)) {
+          // NB: implicitly strips out the header
+          sortedLines[sortedMarkerIndex.get(key)] = line;
+        }
+      }
+    } catch (FileNotFoundException e1) {
+      e1.printStackTrace();
+    } catch (IOException e1) {
+      e1.printStackTrace();
+    }
+
+    File tempOut = null;
+    try (PrintWriter writer = new PrintWriter(tempOut = File.createTempFile("metal_" + fileName
+                                                                            + "_", ".txt"))) {
+      tempOut.deleteOnExit();
+      for (String line : sortedLines) {
+        if (line != null) {
+          writer.println(line);
+        }
+      }
+      fileNames[fileIndex] = tempOut.getAbsolutePath()
+                             + fileNames[fileIndex].substring(fileName.length());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private static String[] getOrdered(String[] hitList, Map<String, Integer> sortedMarkerIndex) {
+    String[] sorted = new String[hitList.length];
+    for (String marker : hitList) {
+      sorted[sortedMarkerIndex.get(marker)] = marker;
+    }
+    return sorted;
+  }
+
+  private static int processFile(String crfFile, Logger log, String[] inputFiles,
+                                 String[] filesToCombine,
+                                 Hashtable<String, int[]> markerPositionHash, int countMismatches,
+                                 String[][] headers, String[][] headersWithAlts, int fileIndex) {
+    String[] fileHeader;
+    int[] indices;
+    BufferedReader reader;
+    String[] line;
+    int[] chrPosition;
+    int[] trav;
+    fileHeader = Files.getHeaderOfFile(inputFiles[fileIndex], log);
+    indices = ext.indexFactors(headersWithAlts, fileHeader, true, false, true, true, log);
+    filesToCombine[fileIndex + 4] = inputFiles[fileIndex] + " "
+                                    + ext.indexFactors(new String[][] {Aliases.MARKER_NAMES},
+                                                       fileHeader, true, false, true, true, log)[0];
+    List<String> newHeader = new ArrayList<>();
+    for (int j = 0; j < indices.length; j++) {
+      if (indices[j] != -1) {
+        filesToCombine[fileIndex + 4] += (" " + indices[j]);
+        String renamedColumn = headersWithAlts[j][0] + "."
+                               + ext.rootOf(inputFiles[fileIndex], true);
+        System.out.println(inputFiles[fileIndex] + "\toriginal: " + fileHeader[indices[j]]
+                           + "\tnew: " + renamedColumn);
+        newHeader.add(renamedColumn);
+      }
+    }
+    System.out.println();
+    headers[fileIndex + 4] = newHeader.toArray(new String[0]);
+    indices = ext.indexFactors(new String[][] {Aliases.CHRS, Aliases.POSITIONS}, fileHeader, true,
+                               false, true, true, log);
+    if (indices[0] != -1) {
+      try {
+        reader = Files.getAppropriateReader(inputFiles[fileIndex]);
+        String hdr = reader.readLine(); // header
+        String delim = ext.determineDelimiter(hdr);
+        while (reader.ready()) {
+          line = reader.readLine().split(delim);
+          if (!ext.isMissingValue(line[indices[0]]) && !ext.isMissingValue(line[indices[1]])) {
+            trav = new int[] {Integer.parseInt(line[indices[0]]),
+                              Integer.parseInt(line[indices[1]])};
+            if (markerPositionHash.containsKey(line[0])) {
+              chrPosition = markerPositionHash.get(line[0]);
+              if (trav[0] != chrPosition[0] || trav[1] != chrPosition[1]) {
+                if (countMismatches < 42) {
+                  log.reportError("Error - mismatched positions for marker " + line[0] + " ("
+                                  + ArrayUtils.toStr(trav, ":") + " versus "
+                                  + ArrayUtils.toStr(chrPosition, ":") + ")");
+                } else if (countMismatches == 42) {
+                  log.reportError("...");
+                }
+                countMismatches++;
+              }
+            }
+            markerPositionHash.put(line[0], trav);
+          }
+        }
+        reader.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return countMismatches;
+  }
+
+  /**
+   * Remove all markers not in the hitList from markerPositionHash
+   */
+  private static void pruneNonHits(Hashtable<String, int[]> markerPositionHash, String[] hitList) {
+    Set<String> markersToKeep = new HashSet<>();
+    for (int i = 0; i < hitList.length; i++) {
+      markersToKeep.add(hitList[i]);
+    }
+    markerPositionHash.keySet().retainAll(markersToKeep);
+  }
+
+  /**
+   * @return A map of marker name to index, when sorted by chromosome and position
+   */
+  private static Map<String, Integer> getChrPosSortedOrder(Hashtable<String, int[]> markerPositionHash) {
+
+    String[] markers = new String[markerPositionHash.size()];
+    int[] chrs = new int[markerPositionHash.size()];
+    int[] positions = new int[markerPositionHash.size()];
+
+    int i = 0;
+    for (Entry<String, int[]> entry : markerPositionHash.entrySet()) {
+      markers[i] = entry.getKey();
+      chrs[i] = entry.getValue()[0];
+      positions[i] = entry.getValue()[1];
+      i++;
+    }
+
+    int[] order = Sort.getSort2DIndices(chrs, positions);
+    Map<String, Integer> markerIndex = new HashMap<>();
+    for (i = 0; i < markers.length; i++) {
+      markerIndex.put(markers[order[i]], i);
+    }
+
+    return markerIndex;
+  }
+
   // private static void generateForestPlotParams(String )
 
   private static String[][] includeExtraInfoFromTopHits(String[][] hwResults) throws IOException {
