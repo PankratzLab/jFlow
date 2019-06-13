@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
@@ -281,6 +282,160 @@ public class HitWindows {
     return Matrix.toStringArrays(v);
   }
 
+  /**
+   * Only significant regions are kept in memory. The input file is read one line at a time. This is
+   * useful when you have a large file but few regions.
+   *
+   * <p>
+   * NB: this will still create memory problems if you have a lot regions. That would require a
+   * method that just writes regions as they're created.
+   *
+   * @param filename Sorted marker file to read
+   * @param significant significant p-value cutoff
+   * @param windowSize Up/downstream region size
+   * @param suggestive suggestive p-value cutoff
+   * @param log
+   * @return Region array
+   */
+  public static String[][] determineSortedStreamingReader(String filename, double significant,
+                                                          int windowSize, double suggestive,
+                                                          Logger log) {
+    String[] header;
+    int markerCount;
+    int[] indices;
+    String temp, delimiter;
+    String[][] factors;
+    int afIndex = 4;
+    int reqFactors = 4;
+    int numFactors = 5;
+    factors = new String[numFactors][];
+    factors[0] = Aliases.MARKER_NAMES;
+    factors[1] = Aliases.CHRS;
+    factors[2] = Aliases.POSITIONS;
+    factors[3] = Aliases.PVALUES;
+    factors[afIndex] = Aliases.ALLELE_FREQS;
+    List<SNPMarkerRegion> markerGrouping = new ArrayList<SNPMarkerRegion>();
+
+    try (BufferedReader reader = Files.getAppropriateReader(filename)) {
+      markerCount = 0;
+      long prevSuggestPosition = -windowSize;
+      int prevChrNum = 0, prevPosition = 0;
+      temp = reader.readLine();
+      delimiter = ext.determineDelimiter(temp);
+      header = temp.trim().split(delimiter);
+      indices = ext.indexFactors(factors, header, false, false, true, true, log);
+      for (int i = 0; i < reqFactors; i++) {
+        if (indices[i] < 0) {
+          log.reportError("Aborting after failing to find the appropriate column headers in file "
+                          + filename);
+          log.reportError("Missing:");
+          for (int j = 0; j < indices.length; j++) {
+            if (indices[j] == -1) {
+              log.reportError("  " + ArrayUtils.toStr(factors[j], "/"));
+            }
+          }
+          return null;
+        }
+      }
+
+      indices = ArrayUtils.removeAllValues(indices, -1);
+
+      List<SNPMarker> currentGroup = new ArrayList<SNPMarker>();
+      // Iterate over the input file, skipping the first line.
+      // It is assumed that the first line contains the headers; e.g. MarkerName, Chromosome, etc.
+      // TODO the last region calculated is not present in the output - why might that be?
+      while (reader.ready()) {
+        String line = reader.readLine();
+        String[] fields;
+        if (delimiter.equals(",")) {
+          fields = ext.splitCommasIntelligently(line, true, log);
+        } else {
+          fields = line.trim().split(delimiter);
+        }
+        fields = ArrayUtils.subArray(fields, indices);
+
+        int chrNum = Positions.chromosomeNumber(fields[1]);
+        int position = Integer.parseInt(fields[2]);
+        double pvalue = ext.isMissingValue(fields[3]) ? 999 : Double.parseDouble(fields[3]);
+        if (chrNum <= 0) {
+          continue;
+        } else if (position <= 0) {
+          continue;
+        } else if (pvalue < 0.0 || pvalue > 1.0) {
+          continue;
+        } else if (chrNum < prevChrNum) {
+          continue;
+        } else if (chrNum == prevChrNum && position < prevPosition) {
+          throw new IllegalStateException("HitWindows.determineStreaming failed: File not sorted");
+        } else {
+          // Moved onto a new chromosome,
+          // reset position and push out the group that was being worked on.
+          if (chrNum > prevChrNum) {
+            if (0 < currentGroup.size()) {
+              addIfSignificant(markerGrouping, currentGroup, significant);
+              currentGroup = new ArrayList<SNPMarker>();
+            }
+            prevSuggestPosition = -windowSize;
+            prevChrNum = chrNum;
+            prevPosition = 0;
+            markerCount = 0;
+          }
+          // This is either a suggestive value or a significant value,
+          // regardless, add to the current group.
+          if (pvalue < suggestive) {
+            if (windowSize < (position - prevSuggestPosition) && 0 < currentGroup.size()) {
+              addIfSignificant(markerGrouping, currentGroup, significant);
+              currentGroup = new ArrayList<SNPMarker>();
+            }
+            prevSuggestPosition = position;
+            currentGroup.add(new SNPMarker(fields[0], chrNum, position, pvalue, markerCount));
+            markerCount = 0;
+          } else {
+            // Non-suggestive marker, increment counter.
+            markerCount++;
+          }
+        }
+      }
+      if (0 < currentGroup.size()) {
+        addIfSignificant(markerGrouping, currentGroup, significant);
+      }
+    } catch (FileNotFoundException fnfe) {
+      log.reportError("Error: file \"" + filename + "\" not found in current directory");
+      return null;
+    } catch (IOException ioe) {
+      log.reportError("Error reading file \"" + filename + "\"");
+      return null;
+    } catch (NumberFormatException e) {
+      // Invalid number formatting.
+    }
+
+    String[][] result = new String[markerGrouping.size() + 1][];
+    result[0] = new String[] {"Region", "MarkerName", "Chr", "Position", "p-value", "Region+Window",
+                              "RegionStart", "RegionStop", "NumSigMarkers", "NumSuggestiveMarkers",
+                              "NumTotalMarkers", "SizeOfRegion"};
+    for (int i = 0; i < markerGrouping.size(); i++) {
+      result[i + 1] = ((i + 1) + "\t" + markerGrouping.get(i).toString()).split("\t");
+    }
+    return result;
+  }
+
+  private static void addIfSignificant(List<SNPMarkerRegion> markerRegions,
+                                       List<SNPMarker> currentGroup, double significant) { // TODO
+                                                                                           // Auto-generated
+                                                                                           // method
+                                                                                           // stub
+    boolean foundSignificant = false;
+    for (SNPMarker marker : currentGroup) {
+      if (marker.pvalue < significant) {
+        foundSignificant = true;
+      }
+    }
+    if (!foundSignificant) {
+      return;
+    }
+    markerRegions.add(new SNPMarkerRegion(currentGroup, significant));
+  }
+
   public static void generateHitsLookup(String inputHits, int window, String outputFile,
                                         String mapfile, Logger log) {
     BufferedReader reader;
@@ -543,6 +698,114 @@ public class HitWindows {
       // windowMinSizePerSide, windowExtensionThreshold);
     } catch (Exception e) {
       e.printStackTrace();
+    }
+  }
+
+  // -- Taken from Kaitlin Clarke's submission
+  /**
+   * Class to be used to hold the necessary information, with regards to a SNP marker. This class is
+   * used to hold markers that have either a suggestive or significant p-value.
+   */
+  private static class SNPMarker {
+    public String name;
+    public int chrNum;
+    public int position;
+    public double pvalue;
+    public int markerCount;
+
+    /**
+     * SNPMarker constructor.
+     *
+     * @param name String containing the marker name.
+     * @param chrNum Chromosome number.
+     * @param position Position in the chromosome.
+     * @param pvalue P-value of the marker.
+     * @param markerCount The number of non-suggestive markers prior to this one after the prior
+     *          suggestive/significant marker.
+     */
+    public SNPMarker(String name, int chrNum, int position, double pvalue, int markerCount) {
+      this.name = name;
+      this.chrNum = chrNum;
+      this.position = position;
+      this.pvalue = pvalue;
+      this.markerCount = markerCount;
+    }
+
+    @Override
+    public String toString() {
+      return this.name + "\t" + this.chrNum + "\t" + this.position + "\t" + this.pvalue;
+    }
+  }
+
+  /** Summary class for a region of significant/suggestive SNP markers. */
+  private static class SNPMarkerRegion implements Comparable<SNPMarkerRegion> {
+    SNPMarker highSNPMarker;
+    int regionStart;
+    int regionStop;
+    long sigSNPCount;
+    long suggestSNPCount;
+    int totalCount;
+
+    /**
+     * Constructor for SNPMarkerRegion. Responsible for summarizing the SNP markers in the marker
+     * list.
+     *
+     * @param markerList List of SNPMarker.
+     * @param significant Value to be referenced against to denote that the value is deemed
+     *          significant.
+     */
+    public SNPMarkerRegion(List<SNPMarker> markerList, double significant) {
+      highSNPMarker = markerList.get(0);
+      regionStart = regionStop = highSNPMarker.position;
+      if (highSNPMarker.pvalue < significant) {
+        sigSNPCount = 1;
+      }
+      suggestSNPCount = totalCount = 1;
+
+      for (int index = 0; ++index < markerList.size();) {
+        SNPMarker marker = markerList.get(index);
+        regionStop = marker.position;
+        if (marker.pvalue < significant) {
+          sigSNPCount++;
+        }
+        suggestSNPCount++;
+        totalCount += marker.markerCount + 1;
+        if (marker.pvalue < highSNPMarker.pvalue) {
+          highSNPMarker = marker;
+        }
+      }
+    }
+
+    /**
+     * Override this method so that we can use Collection.sort()
+     *
+     * @param other the other region to compare against.
+     * @return -1 if this is less than other, 1 if this is greater than other, 0 if equal.
+     */
+    @Override
+    public int compareTo(SNPMarkerRegion other) {
+      if (this.highSNPMarker.chrNum != other.highSNPMarker.chrNum) {
+        return this.highSNPMarker.chrNum < other.highSNPMarker.chrNum ? -1 : 1;
+      }
+      if (this.highSNPMarker.position != other.highSNPMarker.position) {
+        return this.highSNPMarker.position < other.highSNPMarker.position ? -1 : 1;
+      }
+      return 0;
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder builder = new StringBuilder();
+      builder.append(highSNPMarker.toString()).append('\t');
+      builder.append("chr").append(highSNPMarker.chrNum).append(":").append(regionStart).append("-")
+             .append(regionStop).append('\t');
+      builder.append(regionStart).append('\t');
+      builder.append(regionStop).append('\t');
+      builder.append(sigSNPCount).append('\t');
+      builder.append(suggestSNPCount).append('\t');
+      builder.append(totalCount).append('\t');
+      builder.append(regionStop - this.regionStart + 1).append('\t');
+      return builder.toString();
     }
   }
 }
