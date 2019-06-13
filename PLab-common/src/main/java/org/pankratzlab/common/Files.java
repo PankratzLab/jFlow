@@ -1135,7 +1135,7 @@ public class Files {
               for (int j = 0; j < data[i][keys.length].length; j++) {
                 String f = ext.removeDirectoryInfo(fileNames.get(i));
                 if (altHeaderMap.containsKey(f)
-                    && altHeaderMap.get(f).contains(data[i][keys.length][j])) {
+                    && altHeaderMap.get(f).containsKey(data[i][keys.length][j])) {
                   tmp[j] = altHeaderMap.get(f).get(data[i][keys.length][j]);
                 } else {
                   tmp[j] = data[i][keys.length][j];
