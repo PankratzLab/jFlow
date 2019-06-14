@@ -9,12 +9,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -37,6 +40,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Positions;
 
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
@@ -680,22 +684,14 @@ public class CNVCaller {
    */
   private static int[][] getSNPDist(Project proj, PreparedMarkerSet markerSet, boolean reverse,
                                     boolean[] projectIndicesToUse) {
-    int[][] chrPos = markerSet.getPositionsByChr();
-    int[][] tmp = new int[chrPos.length][];
-    int projectIndex = 0;
-    for (int i = 0; i < chrPos.length; i++) {
-      ArrayList<Integer> updated = new ArrayList<>();
-      for (int j = 0; j < chrPos[i].length; j++) {
-        if (projectIndicesToUse[projectIndex]) {
-          updated.add(chrPos[i][j]);
-        }
-        projectIndex++;
-      }
-      tmp[i] = Ints.toArray(updated);
-    }
+    int[][] tmp = new int[MarkerSet.CHR_INDICES][];
+    Set<Marker> markersToUse = markerSet.includeProjectOrderMask(projectIndicesToUse);
+    markerSet.getChrMap()
+             .forEach((chr, markers) -> tmp[chr] = Sets.intersection(markers, markersToUse).stream()
+                                                       .mapToInt(Marker::getPosition).toArray());
     int[][] snpDists = new int[tmp.length][];
     for (int i = 0; i < tmp.length; i++) {
-      int[] distsTmp = new int[tmp[i].length];
+      int[] distsTmp = tmp[i] == null ? new int[0] : new int[tmp[i].length];
       int[] posTmp = reverse ? ArrayUtils.reverse(tmp[i]) : tmp[i];
       if (distsTmp.length > 0) {
         distsTmp[posTmp.length - 1] = 0;
