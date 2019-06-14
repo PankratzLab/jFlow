@@ -441,7 +441,8 @@ public class ImportProjectGUI extends JDialog {
       return false;
     }
     String projDir = txtFldProjDir.getText().trim();
-    Project actualProj = Project.initializeProject(name, projDir);
+    Project actualProj = Project.initializeProject(name, projDir, false);
+    actualProj.setLoadingProperties();
 
     Map<String, String> importProps = actualProj.loadImportMetaFile();
     if (importProps != null && !importProps.isEmpty()) {
@@ -452,6 +453,7 @@ public class ImportProjectGUI extends JDialog {
         }
       }
     }
+    actualProj.doneLoadingProperties();
 
     boolean foundOldSampleList = Files.exists(projDir + DEFAULT_SAMPLELIST)
                                  && !Files.exists(projDir + DEFAULT_SAMPLELIST_ALT);

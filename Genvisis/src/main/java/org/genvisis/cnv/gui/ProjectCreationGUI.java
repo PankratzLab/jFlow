@@ -663,9 +663,6 @@ public class ProjectCreationGUI extends JDialog {
     actualProj.XY_SCALE_FACTOR.setValue(xy);
     actualProj.TARGET_MARKERS_FILENAMES.setValue(new String[] {ext.removeDirectoryInfo(tgtMkrs)});
     actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());
-    // if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
-    // proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
-    // }
     if (comboBoxArrayType.getSelectedItem() == ARRAY.ILLUMINA) {
       actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
                                                                                 : cols[sampCol]);

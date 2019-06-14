@@ -742,18 +742,19 @@ public class Project implements PropertyChangeListener {
   }
 
   public Project(String filename, String logfile) {
-    this(filename, logfile, true);
+    this(filename, logfile, true, true);
   }
 
   // Set LOG_LEVEL to a negative value, if you do not want a log file to be generated in addition to
   // standard out/err
-  public Project(String filename, String logfile, boolean createHeaders) {
+  public Project(String filename, String logfile, boolean createHeaders, boolean writeImportFile) {
     this();
 
     if (filename == null) {
       filename = org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true);
     }
 
+    this.loadingProperties = !writeImportFile;
     projectPropertiesFilename = filename;
     screenProperties();
     loadProperties(filename);
@@ -812,7 +813,9 @@ public class Project implements PropertyChangeListener {
     log.report("\nCurrent project: " + getProperty(PROJECT_NAME) + "\n");
     log.report("Log level (verbosity) is set to " + getProperty(LOG_LEVEL) + "\n");
 
+    this.loadingProperties = !writeImportFile;
     updateProject(this);
+    this.loadingProperties = false;
   }
 
   private static void updateProject(Project proj) {
@@ -821,8 +824,18 @@ public class Project implements PropertyChangeListener {
     updateProperty(proj.MARKERSET_FILENAME, ".bim", "marker set");
     proj.saveProperties(new Property[] {proj.SAMPLELIST_FILENAME, proj.MARKERLOOKUP_FILENAME,
                                         proj.MARKERSET_FILENAME});
+    if (!proj.loadingProperties) {
+      proj.updateImportMetaFile();
+    }
+  }
 
-    proj.updateImportMetaFile();
+  public void setLoadingProperties() {
+    this.loadingProperties = true;
+  }
+
+  public void doneLoadingProperties() {
+    this.loadingProperties = false;
+    updateImportMetaFile();
   }
 
   private static void updateProperty(FileProperty prop, String prevExt, String fileDescriptor) {
@@ -2341,6 +2354,15 @@ public class Project implements PropertyChangeListener {
    * @throws IllegalArgumentException if a {@link Project} with name already exists
    */
   public static Project initializeProject(String name, String projectDir) {
+    return initializeProject(name, projectDir, true);
+  }
+
+  /**
+   * @param name project name
+   * @return Initialized {@link Project}
+   * @throws IllegalArgumentException if a {@link Project} with name already exists
+   */
+  public static Project initializeProject(String name, String projectDir, boolean writeImportFile) {
     String filename = LaunchProperties.formProjectPropertiesFilename(name);
     if (Files.exists(filename, true)) {
       throw new IllegalArgumentException(filename + " already exists, cannot initialize project");
@@ -2348,7 +2370,7 @@ public class Project implements PropertyChangeListener {
       Files.writeLines(filename, PropertyKeys.KEY_PROJECT_NAME + "=" + name,
                        PropertyKeys.KEY_PROJECT_DIRECTORY + "=" + ext.verifyDirFormat(projectDir));
     }
-    return new Project(filename, null, false);
+    return new Project(filename, null, false, writeImportFile);
   }
 
   /**

@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -2440,9 +2439,11 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          proj = new Project("/home/pankrat2/cole0482/projects/Ovation_p2.properties");
-          System.out.println("Fingerprint for markers: " + MarkerSet.fingerprintForMarkers(proj));
-          System.out.println("Fingerprint for samples: " + MarkerSet.fingerprintForSamples(proj));
+          // System.out.println(new
+          // Project("/home/pankrat2/cole0482/projects/Ovation_p1.properties").loadImportMetaFile());
+          System.out.println((HashMap<String, String>) SerializedFiles.readSerial("F:\\OvationAxiom\\projects\\proj01\\data\\import.ser",
+                                                                                  new Logger(),
+                                                                                  false));
 
           return;
         case 1:
