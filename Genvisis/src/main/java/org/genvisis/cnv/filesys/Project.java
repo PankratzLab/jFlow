@@ -162,7 +162,7 @@ public class Project implements PropertyChangeListener {
 
   public final IntegerProperty LOG_LEVEL = new IntegerProperty(this, PropertyKeys.KEY_LOG_LEVEL, "",
                                                                GROUP.GLOBAL, true, COPY.VALUE, -1,
-                                                               12, 1);
+                                                               20, 1);
   public final StringProperty PROJECT_NAME = new StringProperty(this, PropertyKeys.KEY_PROJECT_NAME,
                                                                 "Project Name",
                                                                 GROUP.PROJECT_NAME_LOCS, true,

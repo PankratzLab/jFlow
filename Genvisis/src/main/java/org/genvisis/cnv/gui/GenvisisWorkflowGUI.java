@@ -354,7 +354,6 @@ public class GenvisisWorkflowGUI extends JDialog {
         }
       }
     });
-    refreshLabels(this, steps);
     setMinimumSize(new Dimension(100, 100));
     UITools.setSize(this, new Dimension(750, 850));
     setTitle(TOP_LABEL);
@@ -387,6 +386,9 @@ public class GenvisisWorkflowGUI extends JDialog {
     actMap.put("Action.escape", escapeAction);
 
     pack();
+
+    this.constructing = false;
+    refreshLabels(this, steps);
   }
 
   protected void doClose() {
@@ -790,14 +792,19 @@ public class GenvisisWorkflowGUI extends JDialog {
     return Collections.unmodifiableSet(allSteps);
   }
 
+  private volatile boolean constructing = true;
+
   /**
    * Validate all elements of the given {@link Step}s and refresh the specified UI.
    *
    * @param stepsToRefresh
    */
   public static void refreshLabels(final GenvisisWorkflowGUI gui, Collection<Step> steps) {
+    if (gui.constructing) return;
     final Collection<Step> stepsToRefresh = gui.getAllRelatedSteps(steps);
-    new Thread(new Runnable() {
+    gui.proj.getLog().report("Refreshing " + stepsToRefresh.size() + " steps in workflow", true,
+                             true, 12);
+    Thread refreshThread = new Thread(new Runnable() {
 
       @Override
       public void run() {
@@ -826,8 +833,12 @@ public class GenvisisWorkflowGUI extends JDialog {
             continue;
           }
           final int update = ++i;
-          if (!step.checkIfOutputExists(variables.get(step))
-              || gui.checkBoxes.get(step).isSelected()) {
+          long t1 = System.currentTimeMillis();
+          boolean outputExists = step.checkIfOutputExists(variables.get(step));
+          long t2 = System.currentTimeMillis();
+          gui.proj.getLog().report("Took " + ext.formatMillisElapsed(t2 - t1)
+                                   + " to check output for step " + step.getName(), true, true, 12);
+          if (!outputExists || gui.checkBoxes.get(step).isSelected()) {
             boolean check = step.hasRequirements(selectedSteps, variables);
             gui.descLabels.get(step).setForeground(check ? greenDark : Color.RED);
             gui.checkBoxes.get(step).setForeground(check ? greenDark : Color.RED);
@@ -890,12 +901,11 @@ public class GenvisisWorkflowGUI extends JDialog {
               gui.progVal.setVisible(false);
             }
           });
-        } catch (
-
-        InvocationTargetException e) {} catch (InterruptedException e) {}
+        } catch (InvocationTargetException e) {} catch (InterruptedException e) {}
 
       }
-    }).start();
+    });
+    refreshThread.start();
 
   }
 
