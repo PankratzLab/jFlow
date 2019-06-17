@@ -302,8 +302,11 @@ public class GeneScorePipeline {
         writer.print("FID\tIID\tSCORE");
         // metaFiles by SNPS (meta_SNP)
         for (MetaFile mf : allMetas) {
+          Map<String, HitMarker> hitMarkerData = markerData.get(constr, mf);
           for (String mkr : allMarkers) {
-            writer.print("\t" + mf.metaRoot + "_" + mkr);
+            HitMarker hm = hitMarkerData.get(mkr);
+            writer.print("\t" + mf.metaRoot + "_" + mkr
+                         + (hm == null ? "" : ("_" + hm.effectAllele)));
           }
         }
         // phenoFiles by phenos/covars (pheno_pheno, pheno_covar1)
@@ -1985,6 +1988,9 @@ public class GeneScorePipeline {
             study.indivScores.put(constr, ids[i][0] + "\t" + ids[i][1], (double) scoreSum);
             study.indivScoreData.put(constr, ids[i][0] + "\t" + ids[i][1],
                                      new double[] {mkrRatio, 2 * cnt, cnt2});
+          } else {
+            log.reportTimeWarning("Missingness threshold not met for ID (" + ids[i][0] + " | "
+                                  + ids[i][1] + ")");
           }
         }
 
