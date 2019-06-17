@@ -299,7 +299,7 @@ public class GeneScorePipeline {
       for (Constraint constr : allConstraints) {
         PrintWriter writer = Files.getAppropriateWriter(studyDir + constr.analysisString
                                                         + "_audit.xln");
-        writer.print("FID\tIID");
+        writer.print("FID\tIID\tSCORE");
         // metaFiles by SNPS (meta_SNP)
         for (MetaFile mf : allMetas) {
           for (String mkr : allMarkers) {
@@ -316,6 +316,8 @@ public class GeneScorePipeline {
         writer.println();
         for (String indiv : allIndivs) {
           writer.print(indiv);
+          writer.print("\t");
+          writer.print(indivScores.get(constr, indiv));
           // metaFiles by SNPS (meta_SNP)
           for (MetaFile mf : allMetas) {
             for (String mkr : allMarkers) {
