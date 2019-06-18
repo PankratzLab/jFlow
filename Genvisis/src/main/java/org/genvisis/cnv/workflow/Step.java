@@ -1,6 +1,7 @@
 package org.genvisis.cnv.workflow;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +32,7 @@ public abstract class Step {
   private final String name;
   private final String desc;
   private final RequirementSet requirements;
-  private final Set<Step> relatedSteps; // Not included in equality to prevent infinite recursion
+  private final Set<Step> dependentSteps; // Not included in equality to prevent infinite recursion
   private final Set<Requirement.Flag> stepFlags;
 
   /**
@@ -49,18 +50,28 @@ public abstract class Step {
     this.desc = desc;
     this.requirements = requirements;
     this.stepFlags = Sets.immutableEnumSet(flags);
-    ImmutableSet.Builder<Step> relatedStepsBuilder = ImmutableSet.builder();
-    relatedStepsBuilder.add(this);
+    this.dependentSteps = new HashSet<>();
     for (Requirement<?> req : requirements.getFlatRequirementsList()) {
       if (req instanceof Requirement.StepRequirement && req != null) {
         Step requiredStep = ((Requirement.StepRequirement) req).getRequiredStep();
         if (requiredStep != null) {
-          relatedStepsBuilder.add(requiredStep);
-          relatedStepsBuilder.addAll(requiredStep.getRelatedSteps());
+          requiredStep.addDependent(this);
         }
       }
     }
-    this.relatedSteps = relatedStepsBuilder.build();
+  }
+
+  private void addDependent(Step step) {
+    this.dependentSteps.add(step);
+  }
+
+  public Set<Step> getSelfAndDependents() {
+    ImmutableSet.Builder<Step> dependentStepsBuilder = ImmutableSet.builder();
+    dependentStepsBuilder.add(this);
+    for (Step step : dependentSteps) {
+      dependentStepsBuilder.addAll(step.getSelfAndDependents());
+    }
+    return dependentStepsBuilder.build();
   }
 
   public String getName() {
@@ -157,14 +168,6 @@ public abstract class Step {
       varMap.put(r, r.getDefaultValue());
     }
     return varMap;
-  }
-
-  /**
-   * @return A {@link Collection} of the complete network of {@link Step)s related to this {@code
-   *         Step) - including this {@code Step), direct and transitive dependencies.
-   */
-  public Collection<Step> getRelatedSteps() {
-    return relatedSteps;
   }
 
   public Collection<Requirement.Flag> getFlags() {

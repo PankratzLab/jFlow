@@ -15,7 +15,6 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -103,6 +102,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 
   private static final String TOP_LABEL = "Genvisis Project Workflow:";
 
+  private volatile boolean constructing = true;
   volatile boolean cancelled = false;
   volatile Set<Step> selected;
   List<Step> steps;
@@ -527,7 +527,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 
         @Override
         public void changedUpdate(DocumentEvent e) {
-          refreshLabels(GenvisisWorkflowGUI.this, step.getRelatedSteps());
+          refreshLabels(GenvisisWorkflowGUI.this, step.getSelfAndDependents());
         }
       });
       if (req.getDefaultValue() == null) {
@@ -567,7 +567,8 @@ public class GenvisisWorkflowGUI extends JDialog {
             int retValue = chooser.showDialog(GenvisisWorkflowGUI.this, "Select");
 
             if (retValue == JFileChooser.CANCEL_OPTION) {
-              refreshLabels(GenvisisWorkflowGUI.this, step.getRelatedSteps());
+              // refreshLabels(GenvisisWorkflowGUI.this, step.getRelatedSteps());
+              refreshLabels(GenvisisWorkflowGUI.this, step.getSelfAndDependents());
               return;
             } else {
               File newFile = chooser.getSelectedFile();
@@ -577,7 +578,7 @@ public class GenvisisWorkflowGUI extends JDialog {
               }
               fileField.setText(txt);
             }
-            refreshLabels(GenvisisWorkflowGUI.this, step.getRelatedSteps());
+            refreshLabels(GenvisisWorkflowGUI.this, step.getSelfAndDependents());
           }
         });
         fileBtn.setText("...");
@@ -763,7 +764,7 @@ public class GenvisisWorkflowGUI extends JDialog {
       refrenceGUI = gui;
       stepsToRefresh = new HashSet<>();
       for (final Step s : steps) {
-        stepsToRefresh.addAll(s.getRelatedSteps());
+        stepsToRefresh.addAll(s.getSelfAndDependents());
       }
 
     }
@@ -774,26 +775,6 @@ public class GenvisisWorkflowGUI extends JDialog {
     }
   }
 
-  private Set<Step> getAllRelatedSteps(final Collection<Step> refreshSteps) {
-    HashSet<Step> allSteps = new HashSet<>();
-    allSteps.addAll(refreshSteps);
-    boolean go = true;
-    while (go) {
-      int stepCnt = allSteps.size();
-      for (Step s : this.steps) {
-        if (!Collections.disjoint(refreshSteps, s.getRelatedSteps())) {
-          allSteps.add(s);
-        }
-      }
-      if (allSteps.size() == stepCnt) {
-        go = false;
-      }
-    }
-    return Collections.unmodifiableSet(allSteps);
-  }
-
-  private volatile boolean constructing = true;
-
   /**
    * Validate all elements of the given {@link Step}s and refresh the specified UI.
    *
@@ -801,7 +782,7 @@ public class GenvisisWorkflowGUI extends JDialog {
    */
   public static void refreshLabels(final GenvisisWorkflowGUI gui, Collection<Step> steps) {
     if (gui.constructing) return;
-    final Collection<Step> stepsToRefresh = gui.getAllRelatedSteps(steps);
+    final Collection<Step> stepsToRefresh = steps;// gui.getAllRelatedSteps(steps);
     gui.proj.getLog().report("Refreshing " + stepsToRefresh.size() + " steps in workflow", true,
                              true, 12);
     Thread refreshThread = new Thread(new Runnable() {
