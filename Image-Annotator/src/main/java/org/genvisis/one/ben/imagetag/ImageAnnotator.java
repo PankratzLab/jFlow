@@ -542,16 +542,8 @@ public class ImageAnnotator {
           String file = ai.getImageFile();
 
           menu.removeAll();
-          JMenuItem mntmCopyUCSC = new JMenuItem();
-          mntmCopyUCSC.setAction(new AbstractAction() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists(file)));
-            }
-          });
-          mntmCopyUCSC.setText("Copy UCSC Location to Clipboard");
-          menu.add(mntmCopyUCSC);
+          addContextItemsToMenu(menu, file);
           menu.show(e.getComponent(), e.getX(), e.getY());
         }
       }
@@ -697,53 +689,7 @@ public class ImageAnnotator {
 
     mnFile.add(new JSeparator(SwingConstants.HORIZONTAL));
 
-    JMenuItem mntmCopyUCSC = new JMenuItem();
-    mntmCopyUCSC.setAction(new AbstractAction() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists(lastSelectedFile)));
-      }
-    });
-    mntmCopyUCSC.setText("Copy UCSC Location to Clipboard");
-    mntmCopyUCSC.setMnemonic('U');
-    mnFile.add(mntmCopyUCSC);
-
-    JMenuItem mntmCopyUCSCLink = new JMenuItem();
-    mntmCopyUCSCLink.setAction(new AbstractAction() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(Positions.getUCSClink(parseSampleChrPosIfExists(lastSelectedFile)));
-      }
-    });
-    mntmCopyUCSCLink.setText("Copy UCSC Link to Clipboard");
-    mntmCopyUCSCLink.setMnemonic('L');
-    mnFile.add(mntmCopyUCSCLink);
-
-    JMenuItem mntmCopySample = new JMenuItem();
-    mntmCopySample.setAction(new AbstractAction() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(sampleCombo.getSelectedItem().toString());
-      }
-    });
-    mntmCopySample.setText("Copy Sample Name to Clipboard");
-    mntmCopySample.setMnemonic('N');
-    mnFile.add(mntmCopySample);
-
-    JMenuItem mntmCopySampleFile = new JMenuItem();
-    mntmCopySampleFile.setAction(new AbstractAction() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(lastSelectedFile);
-      }
-    });
-    mntmCopySampleFile.setText("Copy File Path to Clipboard");
-    mntmCopySampleFile.setMnemonic('N');
-    mnFile.add(mntmCopySampleFile);
+    addContextItemsToMenu(mnFile, lastSelectedFile);
 
     mnFile.add(new JSeparator(SwingConstants.HORIZONTAL));
 
@@ -856,6 +802,56 @@ public class ImageAnnotator {
     mnNav.add(mntmNavAdvAfterAnnot);
 
     return menuBar;
+  }
+
+  private void addContextItemsToMenu(JComponent mnFile, String file) {
+    JMenuItem mntmCopyUCSC = new JMenuItem();
+    mntmCopyUCSC.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists(file)));
+      }
+    });
+    mntmCopyUCSC.setText("Copy UCSC Location to Clipboard");
+    mntmCopyUCSC.setMnemonic('U');
+    mnFile.add(mntmCopyUCSC);
+
+    JMenuItem mntmCopyUCSCLink = new JMenuItem();
+    mntmCopyUCSCLink.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(Positions.getUCSClink(parseSampleChrPosIfExists(file)));
+      }
+    });
+    mntmCopyUCSCLink.setText("Copy UCSC Link to Clipboard");
+    mntmCopyUCSCLink.setMnemonic('L');
+    mnFile.add(mntmCopyUCSCLink);
+
+    JMenuItem mntmCopySample = new JMenuItem();
+    mntmCopySample.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(sampleCombo.getSelectedItem().toString());
+      }
+    });
+    mntmCopySample.setText("Copy Sample Name to Clipboard");
+    mntmCopySample.setMnemonic('N');
+    mnFile.add(mntmCopySample);
+
+    JMenuItem mntmCopySampleFile = new JMenuItem();
+    mntmCopySampleFile.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(file);
+      }
+    });
+    mntmCopySampleFile.setText("Copy File Path to Clipboard");
+    mntmCopySampleFile.setMnemonic('N');
+    mnFile.add(mntmCopySampleFile);
   }
 
   private void addAnnotationToTraversalMenu(Annotation annot) {
