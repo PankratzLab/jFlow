@@ -2,11 +2,13 @@ package org.genvisis.cnv.workflow.steps;
 
 import java.io.File;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.hmm.CNVCaller.CALLING_SCOPE;
 import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
@@ -17,10 +19,12 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
+import org.genvisis.cnv.workflow.StepTask;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.gui.Task;
 
 public class CallCNVsStep extends Step {
 
@@ -110,6 +114,19 @@ public class CallCNVsStep extends Step {
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
   }
 
+  private StepTask st;
+
+  public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Variables variables,
+                                     List<Step> selectedSteps) {
+    CALLING_SCOPE scope = variables.get(callingTypeReq);
+    int numSteps = proj.getSamples().length;
+    if (scope == CALLING_SCOPE.BOTH) {
+      numSteps *= 2;
+    }
+    st = new StepTask(gui, this, selectedSteps, variables, numSteps);
+    return st;
+  }
+
   @Override
   public void run(Variables variables) {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
@@ -135,7 +152,7 @@ public class CallCNVsStep extends Step {
     if (scope != CALLING_SCOPE.CHROMOSOMAL) {
       CNVCaller.callAutosomalCNVs(proj, output, samples, null, null, null,
                                   CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
-                                  PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
+                                  PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1, st);
       String file = proj.PROJECT_DIRECTORY.getValue() + output;
       if (Files.exists(file)) {
         proj.CNV_FILENAMES.addValue(file);
@@ -144,7 +161,7 @@ public class CallCNVsStep extends Step {
     if (scope != CALLING_SCOPE.AUTOSOMAL) {
       CNVCaller.callGenomeCnvs(proj, output, cents, null, CNVCaller.DEFAULT_MIN_SITES,
                                CNVCaller.DEFAULT_MIN_CONF, PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT,
-                               numThreads, 1);
+                               numThreads, 1, st);
       String[] files = {proj.PROJECT_DIRECTORY.getValue() + output + "_23M.cnv",
                         proj.PROJECT_DIRECTORY.getValue() + output + "_23F.cnv",
                         proj.PROJECT_DIRECTORY.getValue() + output + "_24M.cnv"};
