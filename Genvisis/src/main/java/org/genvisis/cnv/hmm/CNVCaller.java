@@ -33,6 +33,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
@@ -463,13 +464,24 @@ public class CNVCaller {
         if (snpDists[curChr].length > MIN_MARKERS_PER_CHROMOSOME && chrIndices.containsKey(chr)) {
           int[] currentChrIndices = Ints.toArray(chrIndices.get(chr));
           int[] currentChrPositions = ArrayUtils.subArray(analysisPositions, currentChrIndices);
-          double[] currentChrLrr = ArrayUtils.subArray(analysisLrrs, currentChrIndices);
-          double[] currentChrBaf = ArrayUtils.subArray(analysisBafs, currentChrIndices);
-          double[] currentChrPfbs = ArrayUtils.subArray(analysisPfbs, currentChrIndices);
-          boolean[] currentChrCnDef = ArrayUtils.subArray(copyNumberDef, currentChrIndices);
-          String[] currentNames = ArrayUtils.subArray(ArrayUtils.subArray(markerSet.getMarkerNames(),
-                                                                          analysisProjectIndices),
-                                                      currentChrIndices);
+          int[] sortedIndices = Sort.getSortedIndices(currentChrPositions);
+          currentChrPositions = Sort.getOrdered(currentChrPositions, sortedIndices);
+          double[] currentChrLrr = Sort.getOrdered(ArrayUtils.subArray(analysisLrrs,
+                                                                       currentChrIndices),
+                                                   sortedIndices);
+          double[] currentChrBaf = Sort.getOrdered(ArrayUtils.subArray(analysisBafs,
+                                                                       currentChrIndices),
+                                                   sortedIndices);
+          double[] currentChrPfbs = Sort.getOrdered(ArrayUtils.subArray(analysisPfbs,
+                                                                        currentChrIndices),
+                                                    sortedIndices);
+          boolean[] currentChrCnDef = Sort.getOrdered(ArrayUtils.subArray(copyNumberDef,
+                                                                          currentChrIndices),
+                                                      sortedIndices);
+          String[] currentNames = Sort.getOrdered(ArrayUtils.subArray(ArrayUtils.subArray(markerSet.getMarkerNames(),
+                                                                                          analysisProjectIndices),
+                                                                      currentChrIndices),
+                                                  sortedIndices);
           CNVCallerWorker worker = new CNVCallerWorker(proj, dna, (byte) curChr,
                                                        currentChrPositions, currentNames, pennHmm,
                                                        currentChrLrr, currentChrBaf, currentChrPfbs,
