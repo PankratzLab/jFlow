@@ -11,6 +11,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -52,6 +54,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -60,6 +63,7 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TreeSelectionEvent;
@@ -493,8 +497,8 @@ public class ImageAnnotator {
 
   public static final String CHR_POS_REGEX = "(.*)_?chr([12]?[0-9[XYM]]+)[:-_]([\\d,]+)[-_]([\\d,]+).*?";
 
-  private int[] parseSampleChrPosIfExists() {
-    Matcher m = Pattern.compile(CHR_POS_REGEX).matcher(lastSelectedFile);
+  private int[] parseSampleChrPosIfExists(String nameOrFile) {
+    Matcher m = Pattern.compile(CHR_POS_REGEX).matcher(nameOrFile);
     if (m.matches()) {
       byte chr = Positions.chromosomeNumber(m.group(2), false, new Logger());
       int stt = Integer.parseInt(m.group(3));
@@ -523,6 +527,41 @@ public class ImageAnnotator {
           comp.setForeground(Color.BLACK);
         }
         return comp;
+      }
+    });
+    final JPopupMenu menu = new JPopupMenu();
+    tree.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        super.mousePressed(e);
+        if (SwingUtilities.isRightMouseButton(e)) {
+          int row = tree.getRowForLocation(e.getX(), e.getY());
+          TreePath path = tree.getPathForRow(row);
+          DefaultMutableTreeNode last = (DefaultMutableTreeNode) path.getLastPathComponent();
+          AnnotatedImage ai = (AnnotatedImage) last.getUserObject();
+          String file = ai.getImageFile();
+
+          menu.removeAll();
+          JMenuItem mntmCopyUCSC = new JMenuItem();
+          mntmCopyUCSC.setAction(new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists(file)));
+            }
+          });
+          mntmCopyUCSC.setText("Copy UCSC Location to Clipboard");
+          menu.add(mntmCopyUCSC);
+          menu.show(e.getComponent(), e.getX(), e.getY());
+        }
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        super.mouseReleased(e);
+        if (SwingUtilities.isRightMouseButton(e) && menu.isVisible()) {
+          menu.setVisible(false);
+        }
       }
     });
     tree.setModel(dtm);
@@ -663,7 +702,7 @@ public class ImageAnnotator {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists()));
+        ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists(lastSelectedFile)));
       }
     });
     mntmCopyUCSC.setText("Copy UCSC Location to Clipboard");
@@ -675,7 +714,7 @@ public class ImageAnnotator {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(Positions.getUCSClink(parseSampleChrPosIfExists()));
+        ext.setClipboard(Positions.getUCSClink(parseSampleChrPosIfExists(lastSelectedFile)));
       }
     });
     mntmCopyUCSCLink.setText("Copy UCSC Link to Clipboard");
