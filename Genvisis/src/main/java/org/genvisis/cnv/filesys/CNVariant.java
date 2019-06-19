@@ -281,12 +281,13 @@ public class CNVariant extends AnnotatedSegment {
   public static List<CNVariant> loadFromBED(String bedFile) {
     return loadFromBED(bedFile, "_");
   }
-  
+
   public static List<CNVariant> loadFromBED(String bedFile, String filenameDelim) {
-    String id = ext.removeDirectoryInfo(bedFile).split(filenameDelim)[0]; // ID is defined as the first token
+    String id = ext.removeDirectoryInfo(bedFile).split(filenameDelim)[0]; // ID is defined as the
+                                                                          // first token
                                                                           // in the filename
     try (BEDFileReader reader = new BEDFileReader(bedFile, false);) {
-  
+
       return reader.iterator().stream().map(bf -> {
         return new CNVariant(id, id, Positions.chromosomeNumber(bf.getContig()), bf.getStart(),
                              bf.getEnd(), 2, -1, -1, 0);
