@@ -33,13 +33,17 @@
 	</properties>
 
 	<dependencies>
-	<dependency>
-		<groupId>no.tornado</groupId>
-		<artifactId>fxlauncher</artifactId>
-	</dependency>
-	<dependency>
+		<dependency>
+			<groupId>no.tornado</groupId>
+			<artifactId>fxlauncher</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.genvisis</groupId>
 			<artifactId>PLab-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.genvisis</groupId>
+			<artifactId>SEQ</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -78,128 +82,118 @@
 			</properties>
 		</profile>
 		<!-- JFX distribution -->
-        <profile>
-            <id>jfx-distribution</id>
-            <build>
-                <plugins>
-                    <!-- Compile project jar to appdir -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <configuration>
-                            <outputDirectory>${app.dir}</outputDirectory>
-                        </configuration>
-                    </plugin>
-                    <!-- Copy dependencies to appdir -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <configuration>
-                            <excludeScope>provided</excludeScope>
-                            <outputDirectory>${app.dir}</outputDirectory>
-                            <stripVersion>true</stripVersion>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>copy-dependencies</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <!-- Generate app.xml manifest -->
-                        <executions>
-                            <execution>
-                                <id>create-manifest</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>java</goal>
-                                </goals>
-                                <configuration>
-                                    <mainClass>fxlauncher.CreateManifest</mainClass>
-                                    <arguments>
-                                        <argument>${app.url}</argument>
-                                        <argument>${app.mainClass}</argument>
-                                        <argument>${app.dir}</argument>
-                                        <argument>--accept-downgrade=${app.acceptDowngrade}</argument>
-                                        <argument>--include-extensions=dll,properties</argument>
-                                        <argument>${app.parameters}</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                            <!-- Embed app.xml inside fxlauncher.xml so we don't need to reference 
-                                app.xml to start the app -->
-                            <execution>
-                                <id>embed-manifest-in-launcher</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>jar</executable>
-                                    <workingDirectory>${app.dir}</workingDirectory>
-                                    <arguments>
-                                        <argument>uf</argument>
-                                        <argument>fxlauncher.jar</argument>
-                                        <argument>app.xml</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                            <!-- Optional step to include custom UI, see https://github.com/edvin/fxlauncher-custom-ui -->
-                            <!--<execution> -->
-                            <!--<id>embed-custom-ui-in-launcher</id> -->
-                            <!--<phase>install</phase> -->
-                            <!--<goals> -->
-                            <!--<goal>exec</goal> -->
-                            <!--</goals> -->
-                            <!--<configuration> -->
-                            <!--<executable>jar</executable> -->
-                            <!--<workingDirectory>${app.dir}</workingDirectory> -->
-                            <!--<arguments> -->
-                            <!--<argument>uf</argument> -->
-                            <!--<argument>fxlauncher.jar</argument> -->
-                            <!--<argument>-C</argument> -->
-                            <!--<argument>${project.basedir}/../fxlauncher-custom-ui/target/classes</argument> -->
-                            <!--<argument>.</argument> -->
-                            <!--</arguments> -->
-                            <!--</configuration> -->
-                            <!--</execution> -->
-                            <!-- TODO this execution should be its own profile -->
-                            <!-- Copy application artifacts to remote site using scp (optional) -->
-                            <!-- <execution>
-                                <id>deploy-app</id>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>scp</executable>
-                                    <arguments>
-                                        <argument>-r</argument>
-                                        <argument>${app.dir}/.</argument>
-                                        <argument>${app.deploy.target}</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution> -->
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.3</version>
-                        <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        
-        <!-- JFX native installer -->
+		<profile>
+			<id>jfx-distribution</id>
+			<build>
+				<plugins>
+					<!-- Compile project jar to appdir -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<configuration>
+							<outputDirectory>${app.dir}</outputDirectory>
+						</configuration>
+					</plugin>
+					<!-- Copy dependencies to appdir -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<configuration>
+							<excludeScope>provided</excludeScope>
+							<outputDirectory>${app.dir}</outputDirectory>
+							<stripVersion>true</stripVersion>
+						</configuration>
+						<executions>
+							<execution>
+								<phase>install</phase>
+								<goals>
+									<goal>copy-dependencies</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<!-- Generate app.xml manifest -->
+						<executions>
+							<execution>
+								<id>create-manifest</id>
+								<phase>install</phase>
+								<goals>
+									<goal>java</goal>
+								</goals>
+								<configuration>
+									<mainClass>fxlauncher.CreateManifest</mainClass>
+									<arguments>
+										<argument>${app.url}</argument>
+										<argument>${app.mainClass}</argument>
+										<argument>${app.dir}</argument>
+										<argument>--accept-downgrade=${app.acceptDowngrade}</argument>
+										<argument>--include-extensions=dll,properties</argument>
+										<argument>${app.parameters}</argument>
+									</arguments>
+								</configuration>
+							</execution>
+							<!-- Embed app.xml inside fxlauncher.xml so we don't need to reference 
+								app.xml to start the app -->
+							<execution>
+								<id>embed-manifest-in-launcher</id>
+								<phase>install</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>jar</executable>
+									<workingDirectory>${app.dir}</workingDirectory>
+									<arguments>
+										<argument>uf</argument>
+										<argument>fxlauncher.jar</argument>
+										<argument>app.xml</argument>
+									</arguments>
+								</configuration>
+							</execution>
+							<!-- Optional step to include custom UI, see https://github.com/edvin/fxlauncher-custom-ui -->
+							<!--<execution> -->
+							<!--<id>embed-custom-ui-in-launcher</id> -->
+							<!--<phase>install</phase> -->
+							<!--<goals> -->
+							<!--<goal>exec</goal> -->
+							<!--</goals> -->
+							<!--<configuration> -->
+							<!--<executable>jar</executable> -->
+							<!--<workingDirectory>${app.dir}</workingDirectory> -->
+							<!--<arguments> -->
+							<!--<argument>uf</argument> -->
+							<!--<argument>fxlauncher.jar</argument> -->
+							<!--<argument>-C</argument> -->
+							<!--<argument>${project.basedir}/../fxlauncher-custom-ui/target/classes</argument> -->
+							<!--<argument>.</argument> -->
+							<!--</arguments> -->
+							<!--</configuration> -->
+							<!--</execution> -->
+							<!-- TODO this execution should be its own profile -->
+							<!-- Copy application artifacts to remote site using scp (optional) -->
+							<!-- <execution> <id>deploy-app</id> <goals> <goal>exec</goal> </goals> 
+								<configuration> <executable>scp</executable> <arguments> <argument>-r</argument> 
+								<argument>${app.dir}/.</argument> <argument>${app.deploy.target}</argument> 
+								</arguments> </configuration> </execution> -->
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>3.3</version>
+						<configuration>
+							<source>1.8</source>
+							<target>1.8</target>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- JFX native installer -->
 		<profile>
 			<id>jfx-installer</id>
 			<build>
@@ -229,7 +223,7 @@
 									<!-- TODO transfer these <configuration> <jfxMainAppJarName>${outname}-jfx.jar</jfxMainAppJarName> 
 										<nativeReleaseVersion>${jfxInstallVer}</nativeReleaseVersion> <additionalAppResources>${resourcesDir}</additionalAppResources> 
 										</configuration> -->
-		
+
 									<arguments>
 										<argument>-deploy</argument>
 										<argument>-native</argument>
@@ -254,8 +248,9 @@
 										<argument>-BjvmOptions=-Xmx1g</argument>
 										<argument>-BjvmOptions=-Xms256m</argument>
 										<argument>-BshortcutHint=true</argument>
-										<!-- TODO <argument>copyright=(c)2009-2016 Nathan Pankratz, GNU General 
-											Public License, v2</argument> <argument>-manifestAttrs</argument> <argument>Implementation-Build=$buildNumber},Implementation-Date=${maven.build.timestamp}Implementation-Version=${project.version},Compile-Time=${timestamp}</argument> 
+										<!-- TODO <argument>copyright=(c)2009-2016 Nathan Pankratz, GNU 
+											General Public License, v2</argument> <argument>-manifestAttrs</argument> 
+											<argument>Implementation-Build=$buildNumber},Implementation-Date=${maven.build.timestamp}Implementation-Version=${project.version},Compile-Time=${timestamp}</argument> 
 											<argument>licenseFile=</argument> <argument>-Bicon=</argument> -->
 									</arguments>
 								</configuration>

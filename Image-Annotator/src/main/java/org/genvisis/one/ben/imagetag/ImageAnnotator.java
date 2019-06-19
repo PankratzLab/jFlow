@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -77,16 +78,19 @@ import javax.swing.tree.TreePath;
 import org.apache.commons.collections4.MultiSet;
 import org.apache.commons.collections4.multiset.HashMultiSet;
 import org.genvisis.one.ben.imagetag.AnnotatedImage.Annotation;
+import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Images;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Sets;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -1507,6 +1511,31 @@ public class ImageAnnotator {
 
   private void sortAIs(List<AnnotatedImage> imgs) {
     imgs.sort(sortOrder.comparator);
+  }
+
+  private int[] validateAgainstFile(String bedFile) {
+    Set<Segment> bedSegs = new HashSet<>(BEDFileReader.loadToSegments(bedFile));
+
+    HashMap<String, HashMap<String, AnnotatedImage>> map = annotator.getAnnotationMap();
+    String sampleName = (String) sampleCombo.getSelectedItem();
+    HashMap<String, AnnotatedImage> ann = map.get(sampleName);
+    List<String> files = ann == null ? new ArrayList<>() : new ArrayList<>(ann.keySet());
+
+    Set<Segment> fileSegs = new HashSet<>();
+    for (String file : files) {
+      int[] v = parseSampleChrPosIfExists(file);
+      Segment seg = new Segment((byte) v[0], v[1], v[2]);
+      fileSegs.add(seg);
+    }
+
+    int bedSegCnt = bedSegs.size();
+    int filesCnt = fileSegs.size();
+
+    int overlapCnt = Sets.intersection(bedSegs, fileSegs).size();
+    int extraBedSegs = Sets.difference(bedSegs, fileSegs).size();
+    int extraFileSegs = Sets.difference(fileSegs, bedSegs).size();
+
+    return new int[] {bedSegCnt, filesCnt, overlapCnt, extraBedSegs, extraFileSegs};
   }
 
   private void updateAvail() {
