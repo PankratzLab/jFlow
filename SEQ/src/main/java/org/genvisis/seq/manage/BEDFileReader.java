@@ -4,6 +4,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.LocusSet;
@@ -41,6 +43,15 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
   public static BEDFileReader createStrictBEDFileReader(final String file,
                                                         final boolean requireIndex) {
     return new BEDFileReader(file, requireIndex, new BEDCodec());
+  }
+
+  public static List<Segment> loadToSegments(String bedFile) {
+    try (BEDFileReader reader = new BEDFileReader(bedFile, false);) {
+
+      return reader.iterator().stream().map(bf -> {
+        return new Segment(Positions.chromosomeNumber(bf.getContig()), bf.getStart(), bf.getEnd());
+      }).collect(Collectors.toList());
+    }
   }
 
   public BEDFileReader(final String file, final boolean requireIndex) {
