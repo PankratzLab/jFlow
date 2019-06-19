@@ -16,9 +16,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import org.genvisis.cnv.annotator.AnnotatedSegment;
 import org.genvisis.cnv.hmm.PennHmm;
+import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ByteVector;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.IntVector;
@@ -274,6 +276,22 @@ public class CNVariant extends AnnotatedSegment {
     }
 
     return null;
+  }
+
+  public static List<CNVariant> loadFromBED(String bedFile) {
+    return loadFromBED(bedFile, "_");
+  }
+  
+  public static List<CNVariant> loadFromBED(String bedFile, String filenameDelim) {
+    String id = ext.removeDirectoryInfo(bedFile).split(filenameDelim)[0]; // ID is defined as the first token
+                                                                          // in the filename
+    try (BEDFileReader reader = new BEDFileReader(bedFile, false);) {
+  
+      return reader.iterator().stream().map(bf -> {
+        return new CNVariant(id, id, Positions.chromosomeNumber(bf.getContig()), bf.getStart(),
+                             bf.getEnd(), 2, -1, -1, 0);
+      }).collect(Collectors.toList());
+    }
   }
 
   // TODO what was this created for? Incomplete
