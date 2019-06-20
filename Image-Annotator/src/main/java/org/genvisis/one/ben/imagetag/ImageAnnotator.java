@@ -13,6 +13,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -65,6 +66,7 @@ import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TreeSelectionEvent;
@@ -154,6 +156,16 @@ public class ImageAnnotator {
 
   /** Launch the application. */
   public static void launch() {
+
+    // set system-wide anti-aliasing
+    System.setProperty("awt.useSystemAAFontSettings", "on");
+    System.setProperty("swing.aatext", "true");
+
+    ToolTipManager.sharedInstance().setInitialDelay(0);
+    ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE - 1);
+    ToolTipManager.sharedInstance().setReshowDelay(0);
+    UIManager.put("ToolTip.background", Color.decode("#F5F5DC"));
+
     Runnable r = new Runnable() {
 
       public void run() {
@@ -468,7 +480,17 @@ public class ImageAnnotator {
 
     controlPanel = new JPanel();
     splitPane_1.setLeftComponent(controlPanel);
-    controlPanel.setLayout(new MigLayout("", "[110.00,grow]", "[][][grow][][]"));
+    controlPanel.setLayout(new MigLayout("hidemode 3", "[110.00,grow]", "[][][grow][][]"));
+
+    validationLabel = new JLabel("Validation Results:");
+    validationLabel.setFocusable(false);
+    validationLabel.setVisible(false);
+    controlPanel.add(validationLabel, "cell 0 0, split 2, growx");
+    validationCountLabel = new JLabel();
+    validationCountLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+    validationCountLabel.setFocusable(false);
+    validationCountLabel.setVisible(false);
+    controlPanel.add(validationCountLabel, "cell 0 0, growx, alignx right");
 
     sampleCombo = new JComboBox<>();
     sampleCombo.addActionListener(comboListener);
@@ -690,6 +712,12 @@ public class ImageAnnotator {
     mntmExport.setText("Export Annotated Samples List");
     mntmExport.setMnemonic('E');
     mnFile.add(mntmExport);
+
+    JMenuItem mntmValidate = new JMenuItem();
+    mntmValidate.setAction(validateAction);
+    mntmValidate.setText("Validate Against BED File");
+    mntmValidate.setMnemonic('V');
+    mnFile.add(mntmValidate);
 
     mnFile.add(new JSeparator(SwingConstants.HORIZONTAL));
 
@@ -1513,7 +1541,108 @@ public class ImageAnnotator {
     imgs.sort(sortOrder.comparator);
   }
 
-  private int[] validateAgainstFile(String bedFile) {
+  class ValidationResult {
+    final int countBedSegs;
+    final int countFiles;
+    final int countOverlap;
+    final Set<Segment> extraSegsBed;
+    final Set<Segment> extraSegsFile;
+
+    public ValidationResult(int cntBedSegs, int cntFiles, int cntOverlap, Set<Segment> xtraSegsBed,
+                            Set<Segment> xtraSegsFile) {
+      this.countBedSegs = cntBedSegs;
+      this.countFiles = cntFiles;
+      this.countOverlap = cntOverlap;
+      this.extraSegsBed = xtraSegsBed;
+      this.extraSegsFile = xtraSegsFile;
+    }
+
+  }
+
+  private void runValidation() {
+    JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
+    jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    jfc.setDialogTitle("Select BED File");
+    int opt = jfc.showOpenDialog(frmAnnotator);
+    if (opt == JFileChooser.APPROVE_OPTION) {
+      String bedFile = jfc.getSelectedFile().getAbsolutePath();
+      ValidationResult result = validateAgainstFile(bedFile);
+      String text = "";
+      int diff1 = result.countBedSegs - result.countOverlap;
+      int diff2 = result.countFiles - result.countOverlap;
+      boolean valid = diff1 == 0 && diff2 == 0;
+      if (diff1 > 0) {
+        text += "+" + diff1;
+      } else {
+        text += diff1;
+      }
+      text += "/";
+      if (diff2 > 0) {
+        text += "+" + diff2;
+      } else {
+        text += diff2;
+      }
+
+      String mouseoverText = "<html>";
+      mouseoverText += bedFile;
+      mouseoverText += "<hr />";
+      if (diff1 != 0) {
+        mouseoverText += "Found [" + result.extraSegsBed.size() + "] extra BED segments.<br />";
+      }
+      if (diff2 != 0) {
+        mouseoverText += "Found [" + result.extraSegsFile.size() + "] extra image files.<br />";
+      }
+      mouseoverText += "Found [" + result.countOverlap + "] overlapping segments/images.<br />";
+
+      mouseoverText += "</html>";
+
+      final JPopupMenu menu = new JPopupMenu();
+      JMenuItem copyExtraBedSegs = new JMenuItem();
+      copyExtraBedSegs.setAction(new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+          ext.setClipboard(ArrayUtils.toStr(result.extraSegsBed, "\n"));
+        }
+      });
+      copyExtraBedSegs.setText("Copy Extra BED Segments to Clipboard");
+      menu.add(copyExtraBedSegs);
+      JMenuItem copyExtraImages = new JMenuItem();
+      copyExtraImages.setAction(new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+          ext.setClipboard(ArrayUtils.toStr(result.extraSegsFile, "\n"));
+        }
+      });
+      copyExtraImages.setText("Copy Extra Image Files to Clipboard");
+      menu.add(copyExtraImages);
+
+      validationCountLabel.setText(text);
+      validationCountLabel.setForeground(valid ? Color.GREEN : Color.RED);
+      validationCountLabel.setToolTipText(mouseoverText);
+      validationCountLabel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+          super.mousePressed(e);
+          if (SwingUtilities.isRightMouseButton(e)) {
+            menu.show(e.getComponent(), e.getX(), e.getY());
+          }
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+          super.mouseReleased(e);
+          if (SwingUtilities.isRightMouseButton(e) && menu.isVisible()) {
+            menu.setVisible(false);
+          }
+        }
+      });
+      validationLabel.setVisible(true);
+      validationCountLabel.setVisible(true);
+      controlPanel.revalidate();
+    }
+  }
+
+  private ValidationResult validateAgainstFile(String bedFile) {
     Set<Segment> bedSegs = new HashSet<>(BEDFileReader.loadToSegments(bedFile));
 
     HashMap<String, HashMap<String, AnnotatedImage>> map = annotator.getAnnotationMap();
@@ -1532,10 +1661,12 @@ public class ImageAnnotator {
     int filesCnt = fileSegs.size();
 
     int overlapCnt = Sets.intersection(bedSegs, fileSegs).size();
-    int extraBedSegs = Sets.difference(bedSegs, fileSegs).size();
-    int extraFileSegs = Sets.difference(fileSegs, bedSegs).size();
+    Set<Segment> extraBedSegs = new HashSet<>();
+    Sets.difference(bedSegs, fileSegs).copyInto(extraBedSegs);
+    Set<Segment> extraFileSegs = new HashSet<>();
+    Sets.difference(fileSegs, bedSegs).copyInto(extraFileSegs);
 
-    return new int[] {bedSegCnt, filesCnt, overlapCnt, extraBedSegs, extraFileSegs};
+    return new ValidationResult(bedSegCnt, filesCnt, overlapCnt, extraBedSegs, extraFileSegs);
   }
 
   private void updateAvail() {
@@ -1692,6 +1823,15 @@ public class ImageAnnotator {
         }
       }
       tree.setEnabled(true);
+      if (prevSample != null && !prevSample.equals(currSample)) {
+        validationLabel.setVisible(false);
+        validationCountLabel.setVisible(false);
+        validationCountLabel.setText("");
+        validationCountLabel.setToolTipText("");
+        for (MouseListener list : validationCountLabel.getMouseListeners()) {
+          validationCountLabel.removeMouseListener(list);
+        }
+      }
       updateAvail();
       if (stt) {
         fireInteractionEvent();
@@ -1937,6 +2077,14 @@ public class ImageAnnotator {
     }
   };
 
+  private final Action validateAction = new AbstractAction() {
+
+    @Override
+    public void actionPerformed(ActionEvent arg0) {
+      runValidation();
+    }
+  };
+
   private final Action saveAsAction = new AbstractAction() {
 
     @Override
@@ -1952,4 +2100,6 @@ public class ImageAnnotator {
     }
   };
   private JMenu mnSaveAnn;
+  private JLabel validationLabel;
+  private JLabel validationCountLabel;
 }
