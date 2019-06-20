@@ -169,7 +169,10 @@ public class AFPlot {
                                                        afSas)
                                                 .filter(new AbstractColumnFilter(snpCol, chrCol,
                                                                                  posCol, refCol,
-                                                                                 altCol) {
+                                                                                 altCol, afAll,
+                                                                                 afEas, afEur,
+                                                                                 afAfr, afAmr,
+                                                                                 afSas) {
 
                                                   @Override
                                                   public boolean filter(DataLine values) {
