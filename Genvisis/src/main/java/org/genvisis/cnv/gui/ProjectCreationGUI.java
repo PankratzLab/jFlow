@@ -34,6 +34,7 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
 import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
@@ -663,12 +664,26 @@ public class ProjectCreationGUI extends JDialog {
     actualProj.XY_SCALE_FACTOR.setValue(xy);
     actualProj.TARGET_MARKERS_FILENAMES.setValue(new String[] {ext.removeDirectoryInfo(tgtMkrs)});
     actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());
-    if (comboBoxArrayType.getSelectedItem() == ARRAY.ILLUMINA) {
-      actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
-                                                                                : cols[sampCol]);
-      actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
-      actualProj.setSourceFileHeaders(headers);
+
+    switch ((ARRAY) comboBoxArrayType.getSelectedItem()) {
+      case AFFY_AXIOM:
+      case AFFY_GW6:
+      case AFFY_GW6_CN:
+        actualProj.HMM_FILENAME.setValue(Resources.affy(dummy.getLog()).getHMM().get());
+        break;
+      case ILLUMINA:
+        actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
+                                                                                  : cols[sampCol]);
+        actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
+        actualProj.setSourceFileHeaders(headers);
+        break;
+      case NGS:
+        break;
+      default:
+        break;
+
     }
+
     actualProj.saveProperties();
     proj = actualProj;
     return true;
