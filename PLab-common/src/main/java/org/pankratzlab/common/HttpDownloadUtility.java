@@ -7,8 +7,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import javax.xml.ws.http.HTTPException;
-
 public class HttpDownloadUtility {
 
   public static class HttpDownloadException extends Exception {
@@ -118,7 +116,8 @@ public class HttpDownloadUtility {
     URL url = new URL(fileURL);
     HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
     if (httpConn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-      throw new HttpDownloadException(new HTTPException(httpConn.getResponseCode()));
+      throw new HttpDownloadException(httpConn.getResponseCode() + ": "
+                                      + httpConn.getResponseMessage());
     }
 
     // Read the HTTP connection as a digest, allowing the MD5 to be computed

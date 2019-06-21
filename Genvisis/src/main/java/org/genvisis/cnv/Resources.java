@@ -1312,8 +1312,8 @@ public final class Resources {
       } catch (IOException e) {
         // If remote MD5 isn't available, that can be OK.
       } catch (HttpDownloadException e) {
-        log.reportTimeWarning("MD5 check of " + getName() + " failed with error: "
-                              + e.getLocalizedMessage());
+        log.reportTimeWarning("MD5 check of " + getName() + " failed with error: ["
+                              + e.getLocalizedMessage() + "]");
       }
       return md5;
     }
