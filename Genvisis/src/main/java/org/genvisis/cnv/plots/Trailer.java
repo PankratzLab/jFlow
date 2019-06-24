@@ -1263,7 +1263,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
         for (GeneData gene : genes) {
           begin = getX(gene.getStart());
           width = g.getFontMetrics(g.getFont()).stringWidth(gene.getGeneName());
-          if (!Segment.overlapsAny(new Segment(begin - width - 5, begin - 1), segs)) {
+          if (!Segment.overlapsAny(new Segment(Math.max(0, begin - width - 5),
+                                               Math.max(0, begin - 1)),
+                                   segs)) {
             g.drawString(gene.getGeneName(), begin - width - 3, 0 * 15 + 10);
           }
         }
