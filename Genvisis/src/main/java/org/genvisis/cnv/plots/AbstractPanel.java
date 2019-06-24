@@ -1103,9 +1103,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     int rectangleHeightPixel;
     // Draw the rectangles for clusterFilters
     for (int i = 0; rectangles != null && i < rectangles.length && flow; i++) {
-      if ((base && (getLayersInBase() == null
-                    || Bytes.indexOf(getLayersInBase(), rectangles[i].getLayer()) >= 0))
-          || (!base && Bytes.indexOf(getExtraLayersVisible(), rectangles[i].getLayer()) >= 0)) {
+      if ((base
+           && (layersInBase == null || Bytes.indexOf(layersInBase, rectangles[i].getLayer()) >= 0))
+          || (!base && Bytes.indexOf(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
         rectangleXPixel = Math.min(getXPixel(rectangles[i].getStartXValue()),
                                    getXPixel(rectangles[i].getStopXValue()));
         rectangleYPixel = Math.min(getYPixel(rectangles[i].getStartYValue()),
@@ -1973,13 +1973,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   public double getXValueFromXPixel(int mouseX) {
     switch (getXAxis()) {
       case LIN:
-        return (int) this.linTransform.inverseX(mouseX);
+        return this.linTransform.inverseX(mouseX);
       case LOG:
-        return (int) this.logTransform.inverseX(mouseX);
+        return this.logTransform.inverseX(mouseX);
       default:
         log.reportError("No transform object available for " + getXAxis().name()
                         + "; defaulting to linear.");
-        return (int) this.linTransform.inverseX(mouseX);
+        return this.linTransform.inverseX(mouseX);
     }
   }
 
@@ -1993,13 +1993,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   public double getYValueFromYPixel(int mouseY) {
     switch (getXAxis()) {
       case LIN:
-        return (int) this.linTransform.inverseY(mouseY);
+        return this.linTransform.inverseY(mouseY);
       case LOG:
-        return (int) this.logTransform.inverseY(mouseY);
+        return this.logTransform.inverseY(mouseY);
       default:
         log.reportError("No transform object available for " + getXAxis().name()
                         + "; defaulting to linear.");
-        return (int) this.linTransform.inverseY(mouseY);
+        return this.linTransform.inverseY(mouseY);
     }
   }
 
