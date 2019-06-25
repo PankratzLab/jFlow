@@ -33,13 +33,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.filtering.CNVFilter;
 import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.filtering.FilterCalls;
 import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
@@ -2439,11 +2442,25 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          // System.out.println(new
-          // Project("/home/pankrat2/cole0482/projects/Ovation_p1.properties").loadImportMetaFile());
-          System.out.println((HashMap<String, String>) SerializedFiles.readSerial("F:\\OvationAxiom\\projects\\proj01\\data\\import.ser",
-                                                                                  new Logger(),
-                                                                                  false));
+          proj = new Project("/home/pankrat2/cole0482/projects/Ovation_p2.properties");
+          System.out.println("Fingerprint for Markers: " + MarkerSet.fingerprintForMarkers(proj));
+          System.out.println("Fingerprint for Samples: " + MarkerSet.fingerprintForSamples(proj));
+          System.out.println(proj.SAMPLELIST_FILENAME.getValue() + ": "
+                             + SampleList.load(proj.SAMPLELIST_FILENAME.getValue())
+                                         .getFingerprint());
+          System.out.println("SampleList: " + proj.getSampleList().getFingerprint());
+          System.out.println("markers.0.mdRAF: "
+                             + MarkerDataLoader.loadFingerprint("/scratch.global/cole0482/Ovation/proj02/transposed/markers.0.mdRAF"));
+
+          proj = new Project("/home/pankrat2/cole0482/projects/Ovation_p2_pcCorrected_100PCsXY_BIOLOGICAL.properties");
+          System.out.println("Fingerprint for Markers: " + MarkerSet.fingerprintForMarkers(proj));
+          System.out.println("Fingerprint for Samples: " + MarkerSet.fingerprintForSamples(proj));
+          System.out.println(proj.SAMPLELIST_FILENAME.getValue() + ": "
+                             + SampleList.load(proj.SAMPLELIST_FILENAME.getValue())
+                                         .getFingerprint());
+          System.out.println("SampleList: " + proj.getSampleList().getFingerprint());
+          System.out.println("markers.19.19208.21609.mdRAF: "
+                             + MarkerDataLoader.loadFingerprint("/scratch.global/cole0482/Ovation/proj02/pcCorrected_100PCs_XY_BIOLOGICAL/transposed/markers.19.19208.21609.mdRAF"));
 
           return;
         case 1:

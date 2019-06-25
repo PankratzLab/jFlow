@@ -44,7 +44,7 @@ public class MarkerDataLoader implements Runnable {
   private boolean initiated;
   private boolean killed;
   private boolean killComplete;
-  private long sampleFingerprint;
+  private long fingerprintForMarkers;
   private int readAheadLimit;
   private int numberCurrentlyLoaded;
   // private boolean plinkFormat;
@@ -76,7 +76,7 @@ public class MarkerDataLoader implements Runnable {
 
     markerData = new MarkerData[markerNames.length];
     loaded = new boolean[markerNames.length];
-    sampleFingerprint = proj.getSampleList().getFingerprint();
+    fingerprintForMarkers = proj.getSampleList().getFingerprint();
     numberCurrentlyLoaded = 0;
     initiated = false;
     waitTimesSeen = new HashSet<>();
@@ -381,7 +381,7 @@ public class MarkerDataLoader implements Runnable {
       // } else {
       collection = loadFromRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj,
                                proj.MARKER_DATA_DIRECTORY.getValue(false, true) + filename,
-                               markerIndicesInProj, markerIndicesInFile, sampleFingerprint,
+                               markerIndicesInProj, markerIndicesInFile, fingerprintForMarkers,
                                outlierHash, log);
       // }
 
@@ -552,6 +552,7 @@ public class MarkerDataLoader implements Runnable {
         log.reportError("Error - mismatched sample fingerprints between sample list ("
                         + sampleFingerprint + ") and file '" + currentMarkFilename + "' ("
                         + fingerprint + ")");
+        new Exception().printStackTrace();
         System.exit(1);
       }
 
@@ -818,6 +819,7 @@ public class MarkerDataLoader implements Runnable {
         log.reportError("Error - mismatched sample fingerprints between sample list ("
                         + fingerprintShouldBe + ") and file '" + markerDataRafFileName + "' ("
                         + fingerprintActual + ")");
+        new Exception().printStackTrace();
         System.exit(1);
       }
       numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
@@ -918,6 +920,7 @@ public class MarkerDataLoader implements Runnable {
         log.reportError("Error - mismatched sample fingerprints between sample list ("
                         + fingerprintShouldBe + ") and file '" + markerDataRafFileName + "' ("
                         + fingerprintActual + ")");
+        new Exception().printStackTrace();
         System.exit(1);
       }
       numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
@@ -987,34 +990,47 @@ public class MarkerDataLoader implements Runnable {
     this.thread = thread;
   }
 
+  public static long loadFingerprint(String markerFilename) {
+    byte[] parameters;
+    int markernamesSectionLength;
+    long fingerPrint;
+
+    try (RandomAccessFile file = new RandomAccessFile(markerFilename, "r")) {
+      parameters = new byte[TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN];
+      file.read(parameters);
+      fingerPrint = Compression.bytesToLong(parameters, TransposeData.MARKERDATA_FINGERPRINT_START);
+      markernamesSectionLength = Compression.bytesToInt(parameters,
+                                                        TransposeData.MARKERDATA_MARKERNAMELEN_START);
+
+      parameters = new byte[markernamesSectionLength];
+      file.read(parameters);
+      return fingerPrint;
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return -1;
+  }
+
   @SuppressWarnings("unchecked")
   public static MarkerData[] loadFromRAF(String markerFilename, int[] targetMarkerIndicesInFile) {
     MarkerData[] result = null;
     RandomAccessFile file;
     int numBytesPerMarker;
-    float[] gcs = null;
-    float[] xs = null;
-    float[] ys = null;
-    float[] bafs = null;
-    float[] lrrs = null;
-    byte[] abGenotypes = null;
-    byte[] forwardGenotypes = null;
-    byte[] genotypeTmp;
     long seekLocation;
     byte[][] readBuffer;
-    int indexReadBuffer;
     byte[] parameters;
     int markernamesSectionLength;
     Hashtable<String, Float> outOfRangeValues = null;
     byte nullStatus = 0;
     byte numBytesPerSampleMarker = 0;
-    int indexStart;
     int nSamples;
     int numMarkersInThisFile;
     long fingerPrint;
     String[] markerNames;
     int lengthOfOutOfRangeHashtable;
-    boolean isGcNull, isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull, isNegativeXOrYAllowed;
+    boolean isGcNull, isXNull, isBafNull, isLrrNull, isGenotypeNull;
 
     try {
       file = new RandomAccessFile(markerFilename, "r");
@@ -1026,11 +1042,11 @@ public class MarkerDataLoader implements Runnable {
       nullStatus = parameters[TransposeData.MARKERDATA_NULLSTATUS_START];
       isGcNull = Sample.isGcNull(nullStatus);
       isXNull = Sample.isXNull(nullStatus);
-      isYNull = Sample.isYNull(nullStatus);
+      // isYNull = Sample.isYNull(nullStatus);
       isBafNull = Sample.isBafNull(nullStatus);
       isLrrNull = Sample.isLrrNull(nullStatus);
       isGenotypeNull = Sample.isAbAndForwardGenotypeNull(nullStatus);
-      isNegativeXOrYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
+      // isNegativeXOrYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
       numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
       numBytesPerMarker = numBytesPerSampleMarker * nSamples;
       fingerPrint = Compression.bytesToLong(parameters, TransposeData.MARKERDATA_FINGERPRINT_START);
