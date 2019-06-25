@@ -319,7 +319,8 @@ public class HitWindows {
     try (BufferedReader reader = Files.getAppropriateReader(filename)) {
       markerCount = 0;
       long prevSuggestPosition = -windowSize;
-      int prevChrNum = 0, prevPosition = 0;
+      int prevChrNum = Integer.MIN_VALUE;
+      int prevPosition = Integer.MIN_VALUE;
       temp = reader.readLine();
       delimiter = ext.determineDelimiter(temp);
       header = temp.trim().split(delimiter);
@@ -357,9 +358,7 @@ public class HitWindows {
         int chrNum = Positions.chromosomeNumber(fields[1]);
         int position = Integer.parseInt(fields[2]);
         double pvalue = ext.isMissingValue(fields[3]) ? 999 : Double.parseDouble(fields[3]);
-        if (chrNum <= 0) {
-          continue;
-        } else if (position <= 0) {
+        if (position <= 0) {
           continue;
         } else if (pvalue < 0.0 || pvalue > 1.0) {
           continue;
