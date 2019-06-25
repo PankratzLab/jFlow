@@ -842,7 +842,8 @@ public class ImageAnnotator {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists(file)));
+        ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists(file == null ? lastSelectedFile
+                                                                                        : file)));
       }
     });
     mntmCopyUCSC.setText("Copy UCSC Location to Clipboard");
@@ -854,7 +855,8 @@ public class ImageAnnotator {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(Positions.getUCSClink(parseSampleChrPosIfExists(file)));
+        ext.setClipboard(Positions.getUCSClink(parseSampleChrPosIfExists(file == null ? lastSelectedFile
+                                                                                      : file)));
       }
     });
     mntmCopyUCSCLink.setText("Copy UCSC Link to Clipboard");
@@ -878,7 +880,7 @@ public class ImageAnnotator {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(file);
+        ext.setClipboard(file == null ? lastSelectedFile : file);
       }
     });
     mntmCopySampleFile.setText("Copy File Path to Clipboard");
