@@ -19,6 +19,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1588,22 +1589,40 @@ public class ImageAnnotator {
       String mouseoverText = "<html>";
       mouseoverText += bedFile;
       mouseoverText += "<hr />";
-      if (diff1 != 0) {
-        mouseoverText += "Found [" + result.extraSegsBed.size() + "] extra BED segments.<br />";
-      }
-      if (diff2 != 0) {
-        mouseoverText += "Found [" + result.extraSegsFile.size() + "] extra image files.<br />";
-      }
+      mouseoverText += "Found [" + result.extraSegsBed.size() + "] extra BED segments.<br />";
+      mouseoverText += "Found [" + result.extraSegsFile.size() + "] extra image files.<br />";
       mouseoverText += "Found [" + result.countOverlap + "] overlapping segments/images.<br />";
 
       mouseoverText += "</html>";
+
+      StringBuilder builder = new StringBuilder();
+      for (Segment seg : result.extraSegsBed) {
+        builder.append(seg.getChromosomeUCSC() + ":" + (seg.getStart() - 1) + "-" + seg.getStop())
+               .append("\n");
+      }
+      String extraBedSegStr = builder.toString();
+
+      builder = new StringBuilder();
+      for (Segment seg : result.extraSegsFile) {
+        builder.append(seg.getChromosomeUCSC() + ":" + (seg.getStart() - 1) + "-" + seg.getStop())
+               .append("\n");
+      }
+      String extraFileSegStr = builder.toString();
+
+      PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(bedFile, false)
+                                                      + "_validation.out");
+      writer.println("#Extra BED Segments");
+      writer.print(extraBedSegStr);
+      writer.println("#Extra IMAGE Segments");
+      writer.print(extraFileSegStr);
+      writer.close();
 
       final JPopupMenu menu = new JPopupMenu();
       JMenuItem copyExtraBedSegs = new JMenuItem();
       copyExtraBedSegs.setAction(new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent arg0) {
-          ext.setClipboard(ArrayUtils.toStr(result.extraSegsBed, "\n"));
+          ext.setClipboard(extraBedSegStr);
         }
       });
       copyExtraBedSegs.setText("Copy Extra BED Segments to Clipboard");
@@ -1612,7 +1631,7 @@ public class ImageAnnotator {
       copyExtraImages.setAction(new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent arg0) {
-          ext.setClipboard(ArrayUtils.toStr(result.extraSegsFile, "\n"));
+          ext.setClipboard(extraFileSegStr);
         }
       });
       copyExtraImages.setText("Copy Extra Image Files to Clipboard");
@@ -1655,7 +1674,7 @@ public class ImageAnnotator {
     Set<Segment> fileSegs = new HashSet<>();
     for (String file : files) {
       int[] v = parseSampleChrPosIfExists(file);
-      Segment seg = new Segment((byte) v[0], v[1], v[2]);
+      Segment seg = new Segment((byte) v[0], v[1] + 1, v[2]);
       fileSegs.add(seg);
     }
 
