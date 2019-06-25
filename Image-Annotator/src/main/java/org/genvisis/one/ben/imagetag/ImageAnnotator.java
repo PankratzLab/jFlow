@@ -28,6 +28,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
@@ -1015,6 +1016,8 @@ public class ImageAnnotator {
       File f = jfc.getSelectedFile();
       String fS = ext.verifyDirFormat(f.getAbsolutePath());
       setLastUsedImageDir(fS);
+      validationFiles.clear();
+      annotator = new Annotator();
       annotator.loadImgDir(fS);
       setAnnotationsChanged();
       reloadControls();
@@ -1562,105 +1565,115 @@ public class ImageAnnotator {
 
   }
 
-  private void runValidation() {
+  private void runValidationGUI() {
     JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
     jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     jfc.setDialogTitle("Select BED File");
     int opt = jfc.showOpenDialog(frmAnnotator);
     if (opt == JFileChooser.APPROVE_OPTION) {
       String bedFile = jfc.getSelectedFile().getAbsolutePath();
-      ValidationResult result = validateAgainstFile(bedFile);
-      String text = "";
-      int diff1 = result.countBedSegs - result.countOverlap;
-      int diff2 = result.countFiles - result.countOverlap;
-      boolean valid = diff1 == 0 && diff2 == 0;
-      if (diff1 > 0) {
-        text += "+" + diff1;
-      } else {
-        text += diff1;
-      }
-      text += "/";
-      if (diff2 > 0) {
-        text += "+" + diff2;
-      } else {
-        text += diff2;
-      }
-
-      String mouseoverText = "<html>";
-      mouseoverText += bedFile;
-      mouseoverText += "<hr />";
-      mouseoverText += "Found [" + result.extraSegsBed.size() + "] extra BED segments.<br />";
-      mouseoverText += "Found [" + result.extraSegsFile.size() + "] extra image files.<br />";
-      mouseoverText += "Found [" + result.countOverlap + "] overlapping segments/images.<br />";
-
-      mouseoverText += "</html>";
-
-      StringBuilder builder = new StringBuilder();
-      for (Segment seg : result.extraSegsBed) {
-        builder.append(seg.getChromosomeUCSC() + ":" + (seg.getStart() - 1) + "-" + seg.getStop())
-               .append("\n");
-      }
-      String extraBedSegStr = builder.toString();
-
-      builder = new StringBuilder();
-      for (Segment seg : result.extraSegsFile) {
-        builder.append(seg.getChromosomeUCSC() + ":" + (seg.getStart() - 1) + "-" + seg.getStop())
-               .append("\n");
-      }
-      String extraFileSegStr = builder.toString();
-
-      PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(bedFile, false)
-                                                      + "_validation.out");
-      writer.println("#Extra BED Segments");
-      writer.print(extraBedSegStr);
-      writer.println("#Extra IMAGE Segments");
-      writer.print(extraFileSegStr);
-      writer.close();
-
-      final JPopupMenu menu = new JPopupMenu();
-      JMenuItem copyExtraBedSegs = new JMenuItem();
-      copyExtraBedSegs.setAction(new AbstractAction() {
-        @Override
-        public void actionPerformed(ActionEvent arg0) {
-          ext.setClipboard(extraBedSegStr);
-        }
-      });
-      copyExtraBedSegs.setText("Copy Extra BED Segments to Clipboard");
-      menu.add(copyExtraBedSegs);
-      JMenuItem copyExtraImages = new JMenuItem();
-      copyExtraImages.setAction(new AbstractAction() {
-        @Override
-        public void actionPerformed(ActionEvent arg0) {
-          ext.setClipboard(extraFileSegStr);
-        }
-      });
-      copyExtraImages.setText("Copy Extra Image Files to Clipboard");
-      menu.add(copyExtraImages);
-
-      validationCountLabel.setText(text);
-      validationCountLabel.setForeground(valid ? Color.GREEN : Color.RED);
-      validationCountLabel.setToolTipText(mouseoverText);
-      validationCountLabel.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mousePressed(MouseEvent e) {
-          super.mousePressed(e);
-          if (SwingUtilities.isRightMouseButton(e)) {
-            menu.show(e.getComponent(), e.getX(), e.getY());
-          }
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-          super.mouseReleased(e);
-          if (SwingUtilities.isRightMouseButton(e) && menu.isVisible()) {
-            menu.setVisible(false);
-          }
-        }
-      });
-      validationLabel.setVisible(true);
-      validationCountLabel.setVisible(true);
-      controlPanel.revalidate();
+      validationFiles.put(currSample, bedFile);
+      runValidation(bedFile);
     }
+  }
+
+  private void runValidation(String bedFile) {
+    ValidationResult result = validateAgainstFile(bedFile);
+    String text = "";
+    int diff1 = result.countBedSegs - result.countOverlap;
+    int diff2 = result.countFiles - result.countOverlap;
+    boolean valid = diff1 == 0 && diff2 == 0;
+    if (diff1 > 0) {
+      text += "+" + diff1;
+    } else {
+      text += diff1;
+    }
+    text += "/";
+    if (diff2 > 0) {
+      text += "+" + diff2;
+    } else {
+      text += diff2;
+    }
+
+    String mouseoverText = "<html>";
+    mouseoverText += bedFile;
+    mouseoverText += "<hr />";
+    mouseoverText += "Found [" + result.extraSegsBed.size() + "] extra BED segments.<br />";
+    mouseoverText += "Found [" + result.extraSegsFile.size() + "] extra image files.<br />";
+    mouseoverText += "Found [" + result.countOverlap + "] overlapping segments/images.<br />";
+
+    mouseoverText += "</html>";
+
+    StringBuilder builder = new StringBuilder();
+    for (Segment seg : result.extraSegsBed) {
+      builder.append(seg.getChromosomeUCSC() + ":" + (seg.getStart() - 1) + "-" + seg.getStop())
+             .append("\n");
+    }
+    String extraBedSegStr = builder.toString();
+
+    builder = new StringBuilder();
+    for (Segment seg : result.extraSegsFile) {
+      builder.append(seg.getChromosomeUCSC() + ":" + (seg.getStart() - 1) + "-" + seg.getStop())
+             .append("\n");
+    }
+    String extraFileSegStr = builder.toString();
+
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(bedFile, false)
+                                                        + "_validation.out");
+        writer.println("#Extra BED Segments");
+        writer.print(extraBedSegStr);
+        writer.println("#Extra IMAGE Segments");
+        writer.print(extraFileSegStr);
+        writer.close();
+      }
+    }).start();
+
+    final JPopupMenu menu = new JPopupMenu();
+    JMenuItem copyExtraBedSegs = new JMenuItem();
+    copyExtraBedSegs.setAction(new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        ext.setClipboard(extraBedSegStr);
+      }
+    });
+    copyExtraBedSegs.setText("Copy Extra BED Segments to Clipboard");
+    menu.add(copyExtraBedSegs);
+    JMenuItem copyExtraImages = new JMenuItem();
+    copyExtraImages.setAction(new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        ext.setClipboard(extraFileSegStr);
+      }
+    });
+    copyExtraImages.setText("Copy Extra Image Files to Clipboard");
+    menu.add(copyExtraImages);
+
+    validationCountLabel.setText(text);
+    validationCountLabel.setForeground(valid ? Color.GREEN : Color.RED);
+    validationCountLabel.setToolTipText(mouseoverText);
+    validationCountLabel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        super.mousePressed(e);
+        if (SwingUtilities.isRightMouseButton(e)) {
+          menu.show(e.getComponent(), e.getX(), e.getY());
+        }
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        super.mouseReleased(e);
+        if (SwingUtilities.isRightMouseButton(e) && menu.isVisible()) {
+          menu.setVisible(false);
+        }
+      }
+    });
+    validationLabel.setVisible(true);
+    validationCountLabel.setVisible(true);
+    controlPanel.revalidate();
   }
 
   private ValidationResult validateAgainstFile(String bedFile) {
@@ -1817,6 +1830,8 @@ public class ImageAnnotator {
   private volatile String prevSample;
   private volatile String currSample;
 
+  private Map<String, String> validationFiles = new HashMap<>();
+
   ActionListener comboListener = new ActionListener() {
 
     @Override
@@ -1852,6 +1867,15 @@ public class ImageAnnotator {
         for (MouseListener list : validationCountLabel.getMouseListeners()) {
           validationCountLabel.removeMouseListener(list);
         }
+      }
+      String file = validationFiles.get(currSample);
+      if (file == null
+          && Files.exists(lastOpenedImageDir + currSample + "/" + currSample + ".bed")) {
+        file = lastOpenedImageDir + currSample + "/" + currSample + ".bed";
+        validationFiles.put(currSample, file);
+      }
+      if (file != null && Files.exists(file)) {
+        runValidation(file);
       }
       updateAvail();
       if (stt) {
@@ -2102,7 +2126,7 @@ public class ImageAnnotator {
 
     @Override
     public void actionPerformed(ActionEvent arg0) {
-      runValidation();
+      runValidationGUI();
     }
   };
 
