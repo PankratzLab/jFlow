@@ -560,7 +560,7 @@ public class ImageAnnotator {
     final JPopupMenu menu = new JPopupMenu();
     tree.addMouseListener(new MouseAdapter() {
       @Override
-      public void mousePressed(MouseEvent e) {
+      public void mouseClicked(MouseEvent e) {
         super.mousePressed(e);
         if (SwingUtilities.isRightMouseButton(e)) {
           int row = tree.getRowForLocation(e.getX(), e.getY());
@@ -572,17 +572,23 @@ public class ImageAnnotator {
           menu.removeAll();
 
           addContextItemsToMenu(menu, file);
+
+          menu.add(new JSeparator(SwingConstants.HORIZONTAL));
+
+          JMenuItem closeItem = new JMenuItem();
+          closeItem.setAction(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+              menu.setVisible(false);
+            }
+          });
+          closeItem.setText("Close");
+          menu.add(closeItem);
+
           menu.show(e.getComponent(), e.getX(), e.getY());
         }
       }
 
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        super.mouseReleased(e);
-        if (SwingUtilities.isRightMouseButton(e) && menu.isVisible()) {
-          menu.setVisible(false);
-        }
-      }
     });
     tree.setModel(dtm);
     tree.setShowsRootHandles(false);
