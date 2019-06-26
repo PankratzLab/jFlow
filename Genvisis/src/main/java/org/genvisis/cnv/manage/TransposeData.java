@@ -559,6 +559,7 @@ public class TransposeData {
 
   public static void reverseTransposeStreaming(Project proj, String label) {
     long fingerprintForMarkers;
+    long fingerprintForSamples;
 
     Hashtable<String, Float>[] sampRafFileOutliers;
     Hashtable<String, Float> allOutliers;
@@ -579,7 +580,8 @@ public class TransposeData {
     final String[] listOfAllSamplesInProj = samples;
     final String[] listOfAllMarkersInProj = proj.getMarkerNames();
 
-    fingerprintForMarkers = proj.getMarkerSet().getFingerprint();
+    fingerprintForMarkers = MarkerSet.fingerprintForMarkers(proj);
+    fingerprintForSamples = MarkerSet.fingerprintForSamples(proj);
 
     // compute null status (see GenvisisTechDoc.docx for explanation)
     final byte nullStatus = getNullstatusFromRandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue()
@@ -674,7 +676,7 @@ public class TransposeData {
                   sampOutlrs = Compression.objToBytes(sampRafFileOutliers[sampInds[s]]);
                 }
                 fos.write(getParameterSectionForSampRaf(listOfAllMarkersInProj.length, nullStatus,
-                                                        sampOutlrs.length, fingerprintForMarkers));
+                                                        sampOutlrs.length, fingerprintForSamples));
                 fos.flush();
                 fos.close();
                 sampOutlrs = null;
@@ -986,13 +988,13 @@ public class TransposeData {
                                                                                         null, null,
                                                                                         batch[0],
                                                                                         batch.length,
-                                                                                        fingerprintForSamples,
+                                                                                        fingerprintForMarkers,
                                                                                         log);
             } else {
               readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompressIndices(markerFile,
                                                                                           null,
                                                                                           batch,
-                                                                                          fingerprintForSamples,
+                                                                                          fingerprintForMarkers,
                                                                                           log);
             }
             timerLoadFiles += (new Date().getTime() - timerTmp);
@@ -1017,7 +1019,7 @@ public class TransposeData {
             markFileParameterSection = getParameterSectionForSampRaf(listOfAllMarkersInProj.length,
                                                                      nullStatus,
                                                                      markFileOutliersBytes.length,
-                                                                     fingerprintForMarkers);
+                                                                     fingerprintForSamples);
 
             filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + listOfAllSamplesInProj[batch[j]]
                        + Sample.SAMPLE_FILE_EXTENSION;
@@ -1357,7 +1359,7 @@ public class TransposeData {
 
   public static byte[] getParameterSectionForSampRaf(int numMarkersInProj, byte nullStatus,
                                                      int numBytesOfOutlierHashtableInCurrentFile,
-                                                     long fingerprintForMarkers) {
+                                                     long fingerprintForSamples) {
     byte[] markerFileHead;
 
     markerFileHead = new byte[Sample.PARAMETER_SECTION_BYTES];
@@ -1368,7 +1370,7 @@ public class TransposeData {
     System.arraycopy(Compression.intToBytes(numBytesOfOutlierHashtableInCurrentFile), 0,
                      markerFileHead, Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOCATION,
                      Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LENGTH);
-    System.arraycopy(Compression.longToBytes(fingerprintForMarkers), 0, markerFileHead,
+    System.arraycopy(Compression.longToBytes(fingerprintForSamples), 0, markerFileHead,
                      Sample.PARAMETER_SECTION_FINGPRNT_LOCATION,
                      Sample.PARAMETER_SECTION_FINGPRNT_LENGTH);
 
