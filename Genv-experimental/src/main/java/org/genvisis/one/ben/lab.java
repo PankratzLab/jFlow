@@ -31,18 +31,17 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.genvisis.clinFlow.Conversion;
+import org.genvisis.clinFlow.Deidentifier;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.filtering.CNVFilter;
 import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.filtering.FilterCalls;
 import org.genvisis.cnv.manage.MDL;
-import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
@@ -2442,25 +2441,24 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          proj = new Project("/home/pankrat2/cole0482/projects/Ovation_p2.properties");
-          System.out.println("Fingerprint for Markers: " + MarkerSet.fingerprintForMarkers(proj));
-          System.out.println("Fingerprint for Samples: " + MarkerSet.fingerprintForSamples(proj));
-          System.out.println(proj.SAMPLELIST_FILENAME.getValue() + ": "
-                             + SampleList.load(proj.SAMPLELIST_FILENAME.getValue())
-                                         .getFingerprint());
-          System.out.println("SampleList: " + proj.getSampleList().getFingerprint());
-          System.out.println("markers.0.mdRAF: "
-                             + MarkerDataLoader.loadFingerprint("/scratch.global/cole0482/Ovation/proj02/transposed/markers.0.mdRAF"));
+          Logger log = new Logger();
+          String dir = "F:\\Flow_stage2\\deidentFailureTesting\\";
+          Deidentifier deid = new Deidentifier(dir, dir, dir);
 
-          proj = new Project("/home/pankrat2/cole0482/projects/Ovation_p2_pcCorrected_100PCsXY_BIOLOGICAL.properties");
-          System.out.println("Fingerprint for Markers: " + MarkerSet.fingerprintForMarkers(proj));
-          System.out.println("Fingerprint for Samples: " + MarkerSet.fingerprintForSamples(proj));
-          System.out.println(proj.SAMPLELIST_FILENAME.getValue() + ": "
-                             + SampleList.load(proj.SAMPLELIST_FILENAME.getValue())
-                                         .getFingerprint());
-          System.out.println("SampleList: " + proj.getSampleList().getFingerprint());
-          System.out.println("markers.19.19208.21609.mdRAF: "
-                             + MarkerDataLoader.loadFingerprint("/scratch.global/cole0482/Ovation/proj02/pcCorrected_100PCs_XY_BIOLOGICAL/transposed/markers.19.19208.21609.mdRAF"));
+          List<Conversion> toRun = deid.identify();
+          log.reportTime("Found " + toRun.size() + " files to convert.");
+          for (Conversion c : toRun) {
+            try {
+              if (Deidentifier.exists(c)) {
+                log.reportTime("Found existing conversion results for " + c.fcs);
+                continue;
+              }
+            } catch (IOException e) {
+              // just redo
+            }
+            Deidentifier.processSingleFCS(c);
+            log.reportTime("Converted " + c.fcs);
+          }
 
           return;
         case 1:

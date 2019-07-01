@@ -47,22 +47,22 @@ public class FCSHeader {
     System.arraycopy(fileFormat.getBytes(StandardCharsets.US_ASCII), 0, byt, 0, 6);
 
     byte[] t1 = Integer.toString(textStart).getBytes(StandardCharsets.US_ASCII);
-    System.arraycopy(t1, 0, byt, TEXT_START_END_BYTE - t1.length, t1.length);
+    System.arraycopy(t1, 0, byt, TEXT_START_END_BYTE - (t1.length - 1), t1.length);
 
     byte[] t2 = Integer.toString(textStop).getBytes(StandardCharsets.US_ASCII);
-    System.arraycopy(t2, 0, byt, TEXT_END_END_BYTE - t2.length, t2.length);
+    System.arraycopy(t2, 0, byt, TEXT_END_END_BYTE - (t2.length - 1), t2.length);
 
     byte[] d1 = Integer.toString(dataStart).getBytes(StandardCharsets.US_ASCII);
-    System.arraycopy(d1, 0, byt, DATA_START_END_BYTE - d1.length, d1.length);
+    System.arraycopy(d1, 0, byt, DATA_START_END_BYTE - (d1.length - 1), d1.length);
 
     byte[] d2 = Integer.toString(dataStop).getBytes(StandardCharsets.US_ASCII);
-    System.arraycopy(d2, 0, byt, DATA_END_END_BYTE - d2.length, d2.length);
+    System.arraycopy(d2, 0, byt, DATA_END_END_BYTE - (d2.length - 1), d2.length);
 
     byte[] a1 = Integer.toString(analysisStart).getBytes(StandardCharsets.US_ASCII);
-    System.arraycopy(a1, 0, byt, ANALYSIS_START_END_BYTE - a1.length, a1.length);
+    System.arraycopy(a1, 0, byt, ANALYSIS_START_END_BYTE - (a1.length - 1), a1.length);
 
     byte[] a2 = Integer.toString(analysisStop).getBytes(StandardCharsets.US_ASCII);
-    System.arraycopy(a2, 0, byt, ANALYSIS_END_END_BYTE - a2.length, a2.length);
+    System.arraycopy(a2, 0, byt, ANALYSIS_END_END_BYTE - (a2.length - 1), a2.length);
 
     return byt;
   }
