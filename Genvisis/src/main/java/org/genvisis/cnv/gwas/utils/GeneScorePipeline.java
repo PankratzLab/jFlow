@@ -268,6 +268,7 @@ public class GeneScorePipeline {
     Table<Constraint, MetaFile, Map<String, HitMarker>> markerData = HashBasedTable.create();
     // constraint -> marker -> id1\tid2 -> score
     Table<Constraint, MetaFile, Table<String, String, Double>> markerScores = HashBasedTable.create();
+    Table<Constraint, MetaFile, Table<String, String, Double>> markerDosages = HashBasedTable.create();
     // constraint -> id1\tid2 -> score
     Table<Constraint, String, Double> indivScores = HashBasedTable.create();
     // constraint -> id1\tid2 -> mkrRatio, 2 * cnt, cnt2
@@ -1959,6 +1960,7 @@ public class GeneScorePipeline {
             String mkr = mkrIndexEntry.getKey();
             int mkrIndex = mkrIndexEntry.getValue();
             float dosage = dose[mkrIndex][i];
+            double mkrDose = Float.NaN;
             boolean isNaN = Float.isNaN(dosage);
             float mkrFrq = matchedMarkerFreqs.get(mkr);
             boolean nanFrq = Float.isNaN(mkrFrq);
@@ -1969,11 +1971,11 @@ public class GeneScorePipeline {
             AlleleOrder alleleOrder = matchedMarkerAlleleOrders.get(mkr);
             if (alleleOrder.equals(StrandOps.AlleleOrder.OPPOSITE)) {
               cnt += isNaN ? 0 : 1;
-              cnt2 += isNaN ? 0 : dosage;
+              cnt2 += isNaN ? 0 : (mkrDose = dosage);
               mkrScr = (isNaN ? (nanFrq ? 0 : mkrFrq) : dosage) * beta;
             } else if (alleleOrder.equals(StrandOps.AlleleOrder.SAME)) {
               cnt += isNaN ? 0 : 1;
-              cnt2 += isNaN ? 0 : (2.0 - dosage);
+              cnt2 += isNaN ? 0 : (mkrDose = (2.0 - dosage));
               mkrScr = (float) ((2.0 - (isNaN ? (nanFrq ? 0 : mkrFrq) : dosage)) * beta);
             } else {
               throw new IllegalStateException("Mismatched alleles were not caught when cross-filtering");
@@ -1981,6 +1983,7 @@ public class GeneScorePipeline {
             scoreSum += mkrScr;
             study.markerScores.get(constr, mf).put(ids[i][0] + "\t" + ids[i][1], mkr,
                                                    (double) mkrScr);
+            study.markerDosages.get(constr, mf).put(ids[i][0] + "\t" + ids[i][1], mkr, mkrDose);
           }
 
           double mkrRatio = cnt / (double) markers.length;
