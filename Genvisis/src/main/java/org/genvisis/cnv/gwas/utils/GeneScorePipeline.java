@@ -1912,6 +1912,7 @@ public class GeneScorePipeline {
         Map<String, Float> matchedMarkerFreqs = new HashMap<>();
         Map<String, AlleleOrder> matchedMarkerAlleleOrders = new HashMap<>();
         study.markerScores.put(constr, mf, HashBasedTable.create());
+        study.markerDosages.put(constr, mf, HashBasedTable.create());
 
         for (int m = 0; m < markers.length; m++) {
           String mkr = markers[m];
