@@ -13,7 +13,7 @@
 
 	<properties>
 		<assemblyName>genvflow</assemblyName>
-		<mainClass>org.genvisis.one.ben.flowannot.FlowAnnotator</mainClass>
+		<mainClass>org.genvisis.clinFlow.DeidentifierGUI</mainClass>
 		<resourcesDir>${project.basedir}/buildRsrc</resourcesDir>
 		<genvisis.jvm.version>1.8</genvisis.jvm.version>
 	</properties>
