@@ -325,8 +325,8 @@ public class GeneScorePipeline {
           // metaFiles by SNPS (meta_SNP)
           for (MetaFile mf : allMetas) {
             for (String mkr : allMarkers) {
-              Double score = markerScores.get(constr, mf).get(indiv, mkr);
-              writer.print("\t" + (score == null ? "." : score.doubleValue()));
+              Double dosage = markerDosages.get(constr, mf).get(indiv, mkr);
+              writer.print("\t" + (dosage == null ? "." : dosage.doubleValue()));
             }
           }
           // phenoFiles by phenos/covars (pheno_pheno, pheno_covar1)
