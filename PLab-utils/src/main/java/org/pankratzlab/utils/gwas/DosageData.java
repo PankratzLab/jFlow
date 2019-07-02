@@ -867,8 +867,11 @@ public class DosageData implements Serializable {
     dosageValues = new float[genotypeProbabilities.length][genotypeProbabilities[0].length];
     for (int i = 0; i < dosageValues.length; i++) {
       for (int j = 0; j < ids.length; j++) {
-        dosageValues[i][j] = genotypeProbabilities[i][j][0] * 2
-                             + genotypeProbabilities[i][j][1] * 1;
+        float value = genotypeProbabilities[i][j].length > 2 ? genotypeProbabilities[i][j][2]
+                                                             : (1
+                                                                - (genotypeProbabilities[i][j][0]
+                                                                   + genotypeProbabilities[i][j][1]));
+        dosageValues[i][j] = value * 2 + genotypeProbabilities[i][j][1] * 1;
       }
     }
   }
