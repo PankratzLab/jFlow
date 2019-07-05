@@ -24,8 +24,6 @@ import org.pankratzlab.common.ext;
 
 public class ParseMXCResults {
 
-  private static String usage = "";
-
   private static String[] getKeys(String[][] matrix, String colname, Logger log) {
     String[] headers = matrix[0];
     int index = -1;
@@ -487,10 +485,6 @@ public class ParseMXCResults {
   }
 
   public static void main(String[] args) throws IOException {
-    if (args.length == 0) {
-      System.out.println(usage);
-      System.exit(1);
-    }
     Logger log = new Logger();
 
     CLI cli = new CLI("MetaXcan");
