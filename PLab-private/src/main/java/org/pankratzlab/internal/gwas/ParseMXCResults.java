@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Hashtable;
+
 import org.apache.commons.cli.ParseException;
 import org.genvisis.cnv.plots.ManhattanPlot;
 import org.genvisis.cnv.plots.QQPlot;
@@ -445,7 +446,8 @@ public class ParseMXCResults {
         // check if this gene is in range
         int c = Integer.parseInt(mxc[j][2]);
         int pos = Integer.parseInt(mxc[j][1]);
-        if (c < chr) continue;
+        if (c < chr)
+          continue;
         else if (c > chr || pos > endPos) break;
 
         if (pos < startPos) continue;
