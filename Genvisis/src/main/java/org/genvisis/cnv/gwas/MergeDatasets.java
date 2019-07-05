@@ -42,9 +42,9 @@ public class MergeDatasets {
   public static final String[] VALID_ALLELES = {"A", "C", "G", "T", "I", "D"};
   public static final String[] NULL_ALLELES = {".", "-", "N", "NA", "0"};
 
-  public static final double HOMOGENEITY_THRESHOLD = 0.001;
+  public static final double DEFAULT_HOMOGENEITY_THRESHOLD = 0.001;
   // public static final double LOOSE_HOMOGENEITY_THRESHOLD = 0.015;
-  public static final double LOOSE_HOMOGENEITY_THRESHOLD = 0.05;
+  public static final double DEFAULT_LOOSE_HOMOGENEITY_THRESHOLD = 0.05;
 
   public static final String CHI_SQUARE_DROPS_FILENAME = "lackOfHomogeneity.dat";
   public static final String FISHER_OR_CHI_SQUARE_DROPS_FILENAME = "FisherOrChiSquareDrops.dat";
@@ -159,11 +159,24 @@ public class MergeDatasets {
   }
 
   public static void checkForHomogeneity(String dir) {
-    checkForHomogeneity(dir, null, null, "UNAFF", new Logger());
+    checkForHomogeneity(dir, DEFAULT_HOMOGENEITY_THRESHOLD, DEFAULT_LOOSE_HOMOGENEITY_THRESHOLD);
+  }
+
+  public static void checkForHomogeneity(String dir, double homogeneityThreshold,
+                                         double looseHomogeneityThreshold) {
+    checkForHomogeneity(dir, null, null, "UNAFF", homogeneityThreshold, looseHomogeneityThreshold,
+                        new Logger());
   }
 
   public static void checkForHomogeneity(String dir, String[] dirs, String outputDir,
                                          String hweCountFlag, Logger log) {
+    checkForHomogeneity(dir, dirs, outputDir, hweCountFlag, DEFAULT_HOMOGENEITY_THRESHOLD,
+                        DEFAULT_LOOSE_HOMOGENEITY_THRESHOLD, log);
+  }
+
+  public static void checkForHomogeneity(String dir, String[] dirs, String outputDir,
+                                         String hweCountFlag, double homogeneityThreshold,
+                                         double looseHomogeneityThreshold, Logger log) {
     Hashtable<String, Hashtable<String, String>> hashes;
     Vector<String> v = new Vector<>();
     Hashtable<String, String> hash;
@@ -322,7 +335,7 @@ public class MergeDatasets {
                                                             false, false),
                                  (genotypeCounts.length - 1) * (genotypeCounts[0].length - 1));
             writer2.print("\t" + p);
-            if (p < LOOSE_HOMOGENEITY_THRESHOLD) {
+            if (p < looseHomogeneityThreshold) {
               writer3.println("#" + markerNames[i]);
               writer3.print("alleles <- matrix(c(");
               for (int j = 0; j < genotypeCounts.length; j++) {
@@ -335,7 +348,7 @@ public class MergeDatasets {
           }
           writer2.println();
 
-          if (p < HOMOGENEITY_THRESHOLD) {
+          if (p < homogeneityThreshold) {
             writer.println(markerNames[i]);
           }
         }
@@ -590,6 +603,10 @@ public class MergeDatasets {
   }
 
   public static void parseHomo(String dir) {
+    parseHomo(dir, DEFAULT_HOMOGENEITY_THRESHOLD);
+  }
+
+  public static void parseHomo(String dir, double homogeneityThreshold) {
     BufferedReader reader;
     PrintWriter writer, writer2;
     String[] files;
@@ -636,7 +653,7 @@ public class MergeDatasets {
                     record[3] = record[2];
                   }
                   writer.println(ArrayUtils.toStr(record));
-                  if (Double.parseDouble(record[3]) < HOMOGENEITY_THRESHOLD) {
+                  if (Double.parseDouble(record[3]) < homogeneityThreshold) {
                     writer2.println(record[0]);
                   }
                   trav = -1;
@@ -663,8 +680,7 @@ public class MergeDatasets {
       System.out.println("Found results for " + count + " markers in " + ext.getTimeElapsed(time));
       System.out.println("There were "
                          + Files.countLines(dir + FISHER_OR_CHI_SQUARE_DROPS_FILENAME, 0)
-                         + " markers that had a minimum p-value less than "
-                         + HOMOGENEITY_THRESHOLD);
+                         + " markers that had a minimum p-value less than " + homogeneityThreshold);
     } catch (Exception e) {
       System.err.println("Error writing to " + dir + "FisherResults.xln");
       e.printStackTrace();
@@ -743,6 +759,8 @@ public class MergeDatasets {
     // String dir = "D:/tWork/Consortium/00src/";
     String batch = "";
     // String batch = "cidr/,miami/,ngrc/";
+    double homogeneityThreshold = DEFAULT_HOMOGENEITY_THRESHOLD;
+    double looseHomogeneityThreshold = DEFAULT_LOOSE_HOMOGENEITY_THRESHOLD;
     boolean checkHomo = false;
     boolean consens = false;
     boolean parseHomo = false;
@@ -752,21 +770,31 @@ public class MergeDatasets {
 
     String usage = "\n" + "gwas.MergeDatasets requires 0-1 arguments\n"
                    + "   (1) directory (i.e. dir=" + dir + " (default))\n"
-                   + "   (2) check for homogeneity among control frequencies (i.e. -checkHomo (not the default))\n"
+                   + "   (2) p-value threshold to reject markers at (i.e. homogeneityThreshold="
+                   + homogeneityThreshold + " (default))\n"
+                   + "   (3) p-value threshold for Chi Square to use Fisher's Exact instead (i.e. looseHomogeneityThreshold="
+                   + looseHomogeneityThreshold + " (default))\n"
+                   + "   (4) check for homogeneity among control frequencies (i.e. -checkHomo (not the default))\n"
                    + " OR:\n"
-                   + "   (2) parse test of homogeneity results (i.e. -parseHomo (not the default))\n"
+                   + "   (4) parse test of homogeneity results (i.e. -parseHomo (not the default))\n"
                    + " OR:\n"
-                   + "   (2) set up batch merge (i.e. batch=dir1/,dir2/,lastDir/ (not the default))\n"
-                   + "   (3) root of plink files (i.e. " + rootArg + plinkRoot + " (default))\n"
+                   + "   (4) set up batch merge (i.e. batch=dir1/,dir2/,lastDir/ (not the default))\n"
+                   + "   (5) root of plink files (i.e. " + rootArg + plinkRoot + " (default))\n"
                    + " OR:\n"
-                   + "   (2) update indiviudal map with mergedMap (i.e. update=plink.bim (not the default))\n"
+                   + "   (4) update indiviudal map with mergedMap (i.e. update=plink.bim (not the default))\n"
                    + " OR:\n"
-                   + "   (2) mergedMap filename (i.e. map=allSNPs.xln (not the default))\n" + "";
+                   + "   (4) mergedMap filename (i.e. map=allSNPs.xln (not the default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
         System.err.println(usage);
         System.exit(1);
+      } else if (arg.startsWith("homogeneityThreshold=")) {
+        homogeneityThreshold = ext.parseDoubleArg(arg);
+        numArgs--;
+      } else if (arg.startsWith("looseHomogeneityThreshold=")) {
+        looseHomogeneityThreshold = ext.parseDoubleArg(arg);
+        numArgs--;
       } else if (arg.startsWith("dir=")) {
         dir = arg.split("=")[1];
         numArgs--;
@@ -811,9 +839,9 @@ public class MergeDatasets {
 
     try {
       if (checkHomo) {
-        checkForHomogeneity(dir);
+        checkForHomogeneity(dir, homogeneityThreshold, looseHomogeneityThreshold);
       } else if (parseHomo) {
-        parseHomo(dir);
+        parseHomo(dir, homogeneityThreshold);
       } else if (!update.equals("")) {
         updateMap(update, map);
       } else if (!batch.equals("")) {
