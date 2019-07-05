@@ -2,7 +2,6 @@ package org.pankratzlab.internal.gwas;
 
 import java.io.File;
 import java.util.ArrayList;
-
 import org.genvisis.cnv.Launch;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
@@ -53,7 +52,7 @@ public class MetaXcan {
     String freqFile = "freq.tbl";
     String refFile = "1000G.xln";
     String data = "Metal_results.tbl";
-    String mxc_folder = "MetaXcan/software/";
+    String mxc_folder = "/home/pankrat2/shared/bin/MetaXcan/software/";
     String out = "results/mxc.csv";
     String db = "DGN-HapMap-2015/DGN-WB_0.5.db";
     String covar = "covariance.DGN-WB_0.5.txt.gz";
