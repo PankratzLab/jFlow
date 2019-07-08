@@ -155,8 +155,6 @@ public class PRoCtOR {
     Map<String, Byte> statMap = new ConcurrentHashMap<>();
     Map<String, Hashtable<String, Float>> oorTables = new ConcurrentHashMap<>();
 
-    HashMap<Integer, Map<String, String>> chrFileMap = new HashMap<>();
-
     // proj is old proj
     public void setupMarkerFiles(Project proj) {
       samples = proj.getSamples();
@@ -173,18 +171,13 @@ public class PRoCtOR {
           String mkrFile = getMDRAFName(b, total, total + cnt);
           String[] mkrNmArr = new String[cnt];
           for (int i = total; i < total + cnt; i++) {
-            markerLookup.put(mkrs.get(i).getName(), mkrFile);
-            markerIndexLocal.put(mkrs.get(i).getName(), i - total);
-            mkrNmArr[i - total] = mkrs.get(i).getName();
+            String mkrName = mkrs.get(i).getName();
+            markerLookup.put(mkrName, mkrFile);
+            markerIndexLocal.put(mkrName, i - total);
+            mkrNmArr[i - total] = mkrName;
           }
           mkrNames.put(mkrFile, mkrNmArr);
           oorTables.put(mkrFile, new Hashtable<>());
-          Map<String, String> files = chrFileMap.get((int) b);
-          if (files == null) {
-            files = new HashMap<>();
-            chrFileMap.put((int) b, files);
-          }
-          files.put(total + "\t" + (total + cnt), mkrFile);
           total = total + cnt;
         }
       }

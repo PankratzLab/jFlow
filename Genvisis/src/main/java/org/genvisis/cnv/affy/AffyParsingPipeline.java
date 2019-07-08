@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.Compression;
@@ -37,6 +37,7 @@ import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -132,6 +133,7 @@ public class AffyParsingPipeline {
     reader.close();
 
     List<Marker> mkrsInCELs = new ArrayList<>();
+
     if (!skipGenos && Files.exists(annotFile)) {
       // load marker annotations to get alleles
       AffyAnnotationFile aaf = new AffyAnnotationFile(annotFile, IMPORT_SCHEME.PROBESET_ID,
@@ -145,7 +147,9 @@ public class AffyParsingPipeline {
           }
         }
         // only import overlap:
-        markersInCELs = mkrsInCELs.stream().map(Marker::getName).collect(Collectors.toSet());
+
+        markersInCELs = mkrsInCELs.stream().map(Marker::getName)
+                                  .collect(ImmutableSet.toImmutableSet());
         mkrsInCELs.stream().forEach(m -> markerNameMap.put(m.getName(), m)); // setup marker map
       } catch (IOException e4) {
         proj.getLog()
@@ -162,8 +166,9 @@ public class AffyParsingPipeline {
 
     // create MDS in proper order
     if (!skipGenos && Files.exists(annotFile)) {
-      Marker[] mkrMkrs = mkrsInCELs.toArray(new Marker[mkrsInCELs.size()]);
-      mkrMkrs = Sort.getOrdered(mkrMkrs, order);
+      Marker[] mkrMkrs = Sort.getOrdered(Stream.of(mkrs).map(markerNameMap::get)
+                                               .toArray(Marker[]::new),
+                                         order);
       MarkerDetailSet mds = new MarkerDetailSet(ArrayUtils.toList(mkrMkrs)); // create MDS
       mds.serialize(proj.MARKER_DETAILS_FILENAME.getValue());
     }

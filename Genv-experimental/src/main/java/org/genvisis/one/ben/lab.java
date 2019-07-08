@@ -31,10 +31,9 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.genvisis.clinFlow.Conversion;
-import org.genvisis.clinFlow.Deidentifier;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -2441,23 +2440,10 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          Logger log = new Logger();
-          String dir = "F:\\Flow_stage2\\deidentFailureTesting\\";
-          Deidentifier deid = new Deidentifier(dir, dir, dir);
-
-          List<Conversion> toRun = deid.identify();
-          log.reportTime("Found " + toRun.size() + " files to convert.");
-          for (Conversion c : toRun) {
-            try {
-              if (Deidentifier.exists(c)) {
-                log.reportTime("Found existing conversion results for " + c.fcs);
-                continue;
-              }
-            } catch (IOException e) {
-              // just redo
-            }
-            Deidentifier.processSingleFCS(c);
-            log.reportTime("Converted " + c.fcs);
+          proj = new Project("D:\\projects\\Ovation_P2.properties");
+          List<Marker> list = proj.getMarkerSet().markersAsList();
+          for (Marker m : list) {
+            System.out.println(m.getChr() + ":" + m.getPosition() + " - " + m.getName());
           }
 
           return;
