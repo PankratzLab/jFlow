@@ -2297,9 +2297,9 @@ public class GeneScorePipeline {
                                                                         false))
                                                     .toString();
 
-        Set<String> mkrs = study.markerScores.cellSet().stream()
-                                             .map(e -> e.getValue().columnKeySet())
-                                             .flatMap(s -> s.stream()).collect(Collectors.toSet());
+        Set<String> mkrs = study.markerDosages.cellSet().stream()
+                                              .map(e -> e.getValue().columnKeySet())
+                                              .flatMap(s -> s.stream()).collect(Collectors.toSet());
         List<String> markersInOrder = ImmutableList.copyOf(Sets.intersection(mkrs,
                                                                              mf.metaMarkers.keySet()));
 
@@ -2347,8 +2347,9 @@ public class GeneScorePipeline {
           betaWriter.print("\t");
           betaWriter.print(rrPheno.getSe());
           for (String marker : markersInOrder) {
-            RegressionResult rrResult = actualRegression(study.markerScores.get(constr, mf)
-                                                                           .columnMap().get(marker),
+            RegressionResult rrResult = actualRegression(study.markerDosages.get(constr, mf)
+                                                                            .columnMap()
+                                                                            .get(marker),
                                                          null, pd);
             betaWriter.print("\t");
             betaWriter.print(rrResult.getBeta());
