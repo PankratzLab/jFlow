@@ -270,6 +270,120 @@
 			</build>
 		</profile>
 
+		<!-- This profile builds image annotator .jar and optionally distributes it to
+				 other locations (local and remote) -->
+		<profile>
+			<id>makejar</id>
+			<activation>
+				<property>
+					<name>makejar</name>
+				</property>
+			</activation>
+			<properties>
+				<assemblyName>ImageAnnotator</assemblyName>
+				<mainClass>org.genvisis.one.ben.imagetag.ImageAnnotator</mainClass>
+			</properties>
+			<build>
+				<plugins>
+					<!-- Build the assembly uberjar -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<configuration>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-assembly</id>
+								<phase>install</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<dependencies>
+							<dependency>
+								<groupId>ant-contrib</groupId>
+								<artifactId>ant-contrib</artifactId>
+								<version>1.0b3</version>
+								<exclusions>
+									<exclusion>
+										<groupId>ant</groupId>
+										<artifactId>ant</artifactId>
+									</exclusion>
+								</exclusions>
+							</dependency>
+							<dependency>
+								<groupId>org.apache.ant</groupId>
+								<artifactId>ant-nodeps</artifactId>
+								<version>1.8.1</version>
+							</dependency>
+						</dependencies>
+						<executions>
+							<!-- make the jar executable -->
+							<execution>
+								<id>chmod-jar</id>
+								<phase>install</phase>
+								<configuration>
+									<target>
+										<chmod file="${project.build.directory}/${assemblyName}.jar" perm="ugo+rx"/>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<!-- upload the jar to a remote location -->
+							<execution>
+								<id>upload-annotator</id>
+								<phase>install</phase>
+								<configuration>
+									<target>
+										<ac:if xmlns:ac="antlib:net.sf.antcontrib">
+											<ac:and>
+												<ac:isset property="genv.upload.path"/>
+												<ac:isset property="genv.upload.exe"/>
+											</ac:and>
+											<ac:then>
+												<exec dir="${project.basedir}" executable="${genv.upload.exe}" failonerror="true">
+													<arg value="${project.build.directory}/${assemblyName}.jar"/>
+													<arg value="${genv.upload.path}"/>
+												</exec>
+											</ac:then>
+										</ac:if>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<!-- copy the jar to a local location -->
+							<execution>
+								<id>copy-annotator</id>
+								<phase>install</phase>
+								<configuration>
+									<target>
+										<ac:if xmlns:ac="antlib:net.sf.antcontrib">
+											<ac:isset property="genv.copy.path"/>
+											<ac:then>
+												<copy todir="${genv.copy.path}" file="${project.build.directory}/${assemblyName}.jar" />
+											</ac:then>
+										</ac:if>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 </project>
