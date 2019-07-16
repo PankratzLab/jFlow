@@ -329,11 +329,8 @@ public class CNVCaller {
               throw new IllegalArgumentException();
             } else {
               double[] dataToCorrect = analysisLrrs;
-              if (analysisProjectIndices.length != markerSet.getMarkerNames().length) {// only
-                                                                                       // current
-                                                                                       // indicies
-                                                                                       // will be
-                                                                                       // used
+              if (analysisProjectIndices.length != markerSet.getMarkerNames().length) {
+                // only current indicies will be used
                 dataToCorrect = new double[markerSet.getMarkerNames().length];
                 for (int j = 0; j < analysisProjectIndices.length; j++) {
                   dataToCorrect[analysisProjectIndices[j]] = analysisLrrs[j];

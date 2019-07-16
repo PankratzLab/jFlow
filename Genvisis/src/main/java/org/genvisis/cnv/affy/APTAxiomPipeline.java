@@ -53,6 +53,9 @@ public class APTAxiomPipeline {
 
   private void validatePreReq() {
     String exeFile = aptExeDir + APT_GENOTYPE_AXIOM;
+    if (Files.isWindows()) {
+      exeFile += ".exe";
+    }
     if (!Files.exists(exeFile)) {
       log.reportError(exeFile + " did not exist");
       throw new IllegalArgumentException();

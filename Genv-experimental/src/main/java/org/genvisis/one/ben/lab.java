@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -41,6 +40,7 @@ import org.genvisis.cnv.filtering.CNVFilter;
 import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.filtering.FilterCalls;
 import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
@@ -2440,11 +2440,22 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          proj = new Project("D:\\projects\\Ovation_P2.properties");
-          List<Marker> list = proj.getMarkerSet().markersAsList();
-          for (Marker m : list) {
-            System.out.println(m.getChr() + ":" + m.getPosition() + " - " + m.getName());
-          }
+          proj = new Project("G:\\WorkFiles\\projects\\Ovation-P1.properties");
+          String[] samples = proj.getSamples();
+          Sample s1 = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue() + samples[0]
+                                                      + Sample.SAMPLE_FILE_EXTENSION);
+          Sample s2 = MarkerDataLoader.compileSamplesFromMDRAF(proj, new String[] {samples[0]})[0];
+
+          float[][] gcs = new float[2][];
+          float[][] xs = new float[2][];
+
+          gcs[0] = s1.getGCs();
+          gcs[1] = s2.getGCs();
+
+          xs[0] = s1.getXs();
+          xs[1] = s2.getXs();
+
+          System.out.println();
 
           return;
         case 1:

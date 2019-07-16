@@ -338,9 +338,11 @@ public class Launch extends JFrame implements ActionListener {
                        + projects.get(indexOfCurrentProj))) {
         propFileToUse = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
                         + projects.get(indexOfCurrentProj);
-        log.reportTimeWarning("Caution - this project properties file (\""
-                              + projects.get(indexOfCurrentProj)
-                              + "\") contains a space, which can cause problems with certain scripts.  Please replace these with underscores.");
+        if (projects.get(indexOfCurrentProj).indexOf(' ') != -1) {
+          log.reportTimeWarning("Caution - this project properties file (\""
+                                + projects.get(indexOfCurrentProj)
+                                + "\") contains a space, which can cause problems with certain scripts.  Please replace these with underscores.");
+        }
       } else {
         log.reportError("Couldn't find a properties file for the project "
                         + projectsBox.getModel().getElementAt(indexOfCurrentProj) + ", expected "

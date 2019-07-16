@@ -327,6 +327,7 @@ public class AffyParsingPipeline {
             .reportTimeWarning("Exception occurred when closing input files.  This may not be a problem.");
       }
 
+      proj.getLog().reportTime("Finished processing files, now writing outliers...");
       // use a set so we only process each file once
       HashSet<String> files = new HashSet<>(markerFileMap.values());
       for (String mkrFile : files) {

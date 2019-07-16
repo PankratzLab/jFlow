@@ -3262,10 +3262,14 @@ public class Files {
   }
 
   public static void write(String str, String filename) {
+    write(str, filename, false);
+  }
+
+  public static void write(String str, String filename, boolean append) {
     PrintWriter writer;
 
     try {
-      writer = openAppropriateWriter(filename);
+      writer = openAppropriateWriter(filename, append);
       writer.println(str);
       writer.flush();
       writer.close();
@@ -3280,10 +3284,14 @@ public class Files {
   }
 
   public static void writeArray(String[] entries, String filename) {
+    writeArray(entries, filename, false);
+  }
+
+  public static void writeArray(String[] entries, String filename, boolean append) {
     PrintWriter writer;
 
     try {
-      writer = openAppropriateWriter(filename);
+      writer = openAppropriateWriter(filename, append);
       for (String element : entries) {
         writer.println(element);
       }

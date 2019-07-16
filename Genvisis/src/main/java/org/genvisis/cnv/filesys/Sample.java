@@ -1119,6 +1119,8 @@ public class Sample implements Serializable {
           index += bytesPerSampleMarker;
         }
       }
+      readBuffer = null;
+      temp = null;
       result = new Sample(sampleName, fingerPrint, gcs, xs, ys, bafs, lrrs, fwdGenotypes,
                           abGenotypes, isNegativeXOrYAllowed(nullStatus));
     } catch (IOException e) {
