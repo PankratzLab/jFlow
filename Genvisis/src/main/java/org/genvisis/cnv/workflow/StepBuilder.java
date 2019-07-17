@@ -98,7 +98,7 @@ public class StepBuilder {
   }
 
   IlluminaMarkerBlastStep generateIlluminaMarkerBlastAnnotationStep(Project proj,
-                                                                    ParseSamplesStep parseSamplesStep) {
+                                                                    Step parseSamplesStep) {
     return register(IlluminaMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
@@ -137,7 +137,7 @@ public class StepBuilder {
     return register(ReverseTransposeTarget.create(proj, parseAffyCELs));
   }
 
-  TransposeStep generateTransposeStep(Project proj, ParseSamplesStep parseSamplesStep) {
+  TransposeStep generateTransposeStep(Project proj, Step parseSamplesStep) {
     return register(TransposeStep.create(proj, parseSamplesStep));
   }
 
@@ -153,9 +153,8 @@ public class StepBuilder {
     return register(MarkerQCStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
-  SexChecksStep generateSexChecksStep(Project proj, ParseSamplesStep parseSamplesStep,
-                                      IlluminaMarkerBlastStep markerBlastStep,
-                                      SampleDataStep sampleDataStep, TransposeStep transposeStep,
+  SexChecksStep generateSexChecksStep(Project proj, IlluminaMarkerBlastStep markerBlastStep,
+                                      SampleDataStep sampleDataStep, Step transposeStep,
                                       SampleQCStep sampleQCStep) {
     return register(SexChecksStep.create(proj, markerBlastStep, sampleDataStep, transposeStep,
                                          sampleQCStep));

@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -2440,22 +2441,21 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          proj = new Project("G:\\WorkFiles\\projects\\Ovation-P1.properties");
-          String[] samples = proj.getSamples();
-          Sample s1 = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue() + samples[0]
-                                                      + Sample.SAMPLE_FILE_EXTENSION);
-          Sample s2 = MarkerDataLoader.compileSamplesFromMDRAF(proj, new String[] {samples[0]})[0];
-
-          float[][] gcs = new float[2][];
-          float[][] xs = new float[2][];
-
-          gcs[0] = s1.getGCs();
-          gcs[1] = s2.getGCs();
-
-          xs[0] = s1.getXs();
-          xs[1] = s2.getXs();
-
-          System.out.println();
+          proj = new Project("G:\\WorkFiles\\projects\\Ovation-P1_pcCorrected_20PCsLRR_ONLY_BIOLOGICAL.properties");
+          MarkerSet markerSet = MarkerSet.load(proj.MARKERSET_FILENAME.getValue());
+          for (String file1 : Files.list(proj.MARKER_DATA_DIRECTORY.getValue(), "",
+                                         MarkerData.MARKER_DATA_FILE_EXTENSION, false, true)) {
+            String name = ext.removeDirectoryInfo(file1);
+            String[] parts = name.split("\\.");
+            byte chr = Byte.parseByte(parts[1]);
+            int start = Integer.parseInt(parts[2]);
+            int end = Integer.parseInt(parts[3]);
+            int chrInd = ext.firstIndexOfByte(chr, markerSet.getChrs());
+            String[] num = new String[end - start];
+            System.arraycopy(markerSet.getMarkerNames(), chrInd + start, num, 0, end - start);
+            String[] names = MarkerDataLoader.loadMarkerNames(file1);
+            System.out.println(name + " -- " + ArrayUtils.equals(names, num, false));
+          }
 
           return;
         case 1:

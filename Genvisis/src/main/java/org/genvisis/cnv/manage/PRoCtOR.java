@@ -310,6 +310,9 @@ public class PRoCtOR {
       while (train.hasNext()) {
         PrincipalComponentsIntensity principalComponentsIntensity = train.next();
         MarkerData markerData = principalComponentsIntensity.getCentroidCompute().getMarkerData();
+        if (!markerData.getMarkerName().equals(markers[index])) {
+          throw new IllegalStateException();
+        }
 
         try {
           if (principalComponentsIntensity.isFail()) {
@@ -361,8 +364,7 @@ public class PRoCtOR {
       }
     }
 
-    TransposeData.reverseTranspose(shadowProject);
-
+    // TransposeData.reverseTranspose(shadowProject);
   }
 
   public static void main(String[] args) {

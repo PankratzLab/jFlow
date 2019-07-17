@@ -179,6 +179,22 @@ public class ext {
     return str;
   }
 
+  public static int firstIndexOfByte(byte target, byte[] array) {
+    int index = -1;
+
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] == target) {
+        if (index == -1) {
+          index = i;
+          break;
+        } else {
+          return -2;
+        }
+      }
+    }
+    return index;
+  }
+
   public static int indexOfInt(int target, int[] array) {
     int index = -1;
 

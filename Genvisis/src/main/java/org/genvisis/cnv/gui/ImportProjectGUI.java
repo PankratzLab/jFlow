@@ -66,6 +66,7 @@ public class ImportProjectGUI extends JDialog {
   private static final String PROJECT = "PROJECT";
   private static final String SAMPLEDATA = "SAMPLEDATA";
   private static final String DEFAULT_PROJ_NAME = "New Project";
+  private static final int PROJECT_NAME_MAX_LENGTH = 50;
 
   volatile boolean cancelled = false;
 
@@ -361,10 +362,11 @@ public class ImportProjectGUI extends JDialog {
 
   private boolean checkProjectName() {
     String name = txtFldProjName.getText().trim();
-    if (name.isEmpty() || DEFAULT_PROJ_NAME.equals(name) || name.length() > 23
+    if (name.isEmpty() || DEFAULT_PROJ_NAME.equals(name) || name.length() > PROJECT_NAME_MAX_LENGTH
         || LaunchProperties.projectExists(name)) {
       JOptionPane.showMessageDialog(null,
-                                    "Project name must be 1-23 characters in length, must not be \""
+                                    "Project name must be 1-" + PROJECT_NAME_MAX_LENGTH
+                                          + " characters in length, must not be \""
                                           + DEFAULT_PROJ_NAME
                                           + "\", and must not clash with an existing project.",
                                     "Error", JOptionPane.ERROR_MESSAGE);

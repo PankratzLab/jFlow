@@ -1,5 +1,6 @@
 package org.genvisis.cnv.workflow;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -8,12 +9,37 @@ import java.util.Set;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
+import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.pankratzlab.common.gui.Task;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 public abstract class Step {
+
+  public static final Step EMPTY_STEP = new Step("", "", RequirementSetBuilder.and(),
+                                                 new ArrayList<>()) {
+
+    @Override
+    public void setNecessaryPreRunProperties(Variables variables) {
+      // noop
+    }
+
+    @Override
+    public void run(Variables variables) {
+      // noop
+    }
+
+    @Override
+    public String getCommandLine(Variables variables) {
+      return "";
+    }
+
+    @Override
+    public boolean checkIfOutputExists(Variables variables) {
+      return true;
+    }
+  };
 
   public static enum FINAL_CODE {
     COMPLETE("Complete"), FAILED("Failed"), CANCELLED("Cancelled");
