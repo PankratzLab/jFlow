@@ -5449,20 +5449,20 @@ public class ArrayUtils {
         Matcher m = p.matcher(object1);
         Integer number1 = null;
         if (!m.find()) {
-          return object1.compareTo(object2);
+          return object1.compareToIgnoreCase(object2);
         } else {
           Integer number2 = null;
           number1 = Integer.parseInt(m.group());
           m = p.matcher(object2);
           if (!m.find()) {
-            return object1.compareTo(object2);
+            return object1.compareToIgnoreCase(object2);
           } else {
             number2 = Integer.parseInt(m.group());
             int comparison = number1.compareTo(number2);
             if (comparison != 0) {
               return comparison;
             } else {
-              return object1.compareTo(object2);
+              return object1.compareToIgnoreCase(object2);
             }
           }
         }
