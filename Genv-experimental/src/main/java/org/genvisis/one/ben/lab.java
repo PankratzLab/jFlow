@@ -716,13 +716,6 @@ public class lab {
 
   }
 
-  private static void testRevTran() {
-    Project proj = new Project("D:/projects/FarrarReparse.properties");
-    TransposeData.reverseTranspose(proj);
-    System.out.println("TEST");
-    testRev();
-  }
-
   private static void filterFCSList() {
     String filename = "F:/Flow/test3/filter/list.txt";
     String file = "F:/Flow/test3/filter/already.txt";
