@@ -62,15 +62,20 @@ public class ProjectCreationGUI extends JDialog {
   private static final String PROJECT_DIR_TOOLTIP = "<html>Directory in which to create, store, and manage all project files.</html>";
   private static final String SOURCE_DIR_TOOLTIP = "<html>Directory of source (e.g. FinalReport.txt.gz) files; this can be different than the Project Directory.</html>";
   private static final String SOURCE_EXT_TOOLTIP = "<html>Extension of source files (e.g. for \"FinalReport.txt.gz\", the extension would be \".txt.gz\".</html>";
-  private static final String XY_TOOLTIP = "<html>The raw probe intensity / bin counts are divided by this number to get a transformed<br />value between -32 and +32). "
-                                           + "Suggested values for scale factor based on array:<br />"
-                                           + (Arrays.stream(ARRAY.values()).map(a -> {
-                                             return Arrays.stream(a.name().toLowerCase().split("_"))
-                                                          .map(ext::capitalizeFirst)
-                                                          .collect(Collectors.joining(" "))
-                                                    + ": use the default of "
-                                                    + a.getDefaultScaleFactor();
-                                           }).collect(Collectors.joining("<br />"))) + "</html>";
+  private static final String XY_TOOLTIP = new StringBuilder("<html>The raw probe intensity / bin counts are divided by this number to get a transformed<br />value between -32 and +32). ").append("Suggested values for scale factor based on array:<br />")
+                                                                                                                                                                                            .append(Arrays.stream(ARRAY.values())
+                                                                                                                                                                                                          .map(a -> {
+                                                                                                                                                                                                            return new StringBuilder(Arrays.stream(a.name()
+                                                                                                                                                                                                                                                    .toLowerCase()
+                                                                                                                                                                                                                                                    .split("_"))
+                                                                                                                                                                                                                                           .map(ext::capitalizeFirst)
+                                                                                                                                                                                                                                           .collect(Collectors.joining(" "))).append(": use the default of ")
+                                                                                                                                                                                                                                                                             .append(a.getDefaultScaleFactor())
+                                                                                                                                                                                                                                                                             .toString();
+                                                                                                                                                                                                          })
+                                                                                                                                                                                                          .collect(Collectors.joining("<br />")))
+                                                                                                                                                                                            .append("</html>")
+                                                                                                                                                                                            .toString();
   private static final String MKR_SUBSET_TOOLTIP = "<html>If you only want to import a subset of markers, then provide a text file with one marker name per line.</html>";
   private static final String CREATE = "Create";
   private static final String CREATE_TOOL = "<html>Create new project.<br />  No source file validation is available for this type of project.</html>";
