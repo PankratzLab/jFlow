@@ -2251,22 +2251,22 @@ public class Project implements PropertyChangeListener {
     /**
      * Your friendly Illumina arrays
      */
-    ILLUMINA(new String[] {"cnvi"}, 50, false),
+    ILLUMINA(new String[] {"cnvi"}, 50, false, 1),
     /**
      * Supports CHP format
      */
-    AFFY_GW6(new String[] {"CN_"}, 25, false),
+    AFFY_GW6(new String[] {"CN_"}, 25, false, 100),
     /**
      * Supports CHP and CNCHP formated input
      */
-    AFFY_GW6_CN(new String[] {"CN_"}, 25, false),
+    AFFY_GW6_CN(new String[] {"CN_"}, 25, false, 100),
 
     /**
      * For bamFiles
      */
-    NGS(new String[] {"*"}, 100, false/* , 0 */),
+    NGS(new String[] {"*"}, 100, false/* , 0 */, 2000),
 
-    AFFY_AXIOM(new String[] {}, 25, true)
+    AFFY_AXIOM(new String[] {}, 25, true, 2000)
 
     // DBGAP(new String[] {}, 0, 909622)
     ;
@@ -2274,20 +2274,26 @@ public class Project implements PropertyChangeListener {
     /**
      * Used for copy number only probe-set identification
      */
-    private String[] cnFlags;
+    private final String[] cnFlags;
     /**
      * Length of the probe sequences on the array
      */
-    private int probeLength;
+    private final int probeLength;
     /**
      * Can the X/Y values of this array be negative?
      */
-    private boolean canXYBeNegative;
+    private final boolean canXYBeNegative;
+    /**
+     * Default suggested scale factor for this array type
+     */
+    private final int defaultScale;
 
-    private ARRAY(String[] cnFlags, int probeLength, boolean canXYBeNegative) {
+    private ARRAY(String[] cnFlags, int probeLength, boolean canXYBeNegative,
+                  int defaultScaleFactor) {
       this.cnFlags = cnFlags;
       this.probeLength = probeLength;
       this.canXYBeNegative = canXYBeNegative;
+      this.defaultScale = defaultScaleFactor;
     }
 
     public String[] getCnFlags() {
@@ -2295,16 +2301,8 @@ public class Project implements PropertyChangeListener {
       return cnFlags;
     }
 
-    public void setCnFlags(String[] cnFlags) {
-      this.cnFlags = cnFlags;
-    }
-
     public int getProbeLength() {
       return probeLength;
-    }
-
-    public void setProbeLength(int probeLength) {
-      this.probeLength = probeLength;
     }
 
     public boolean getCanXYBeNegative() {
@@ -2327,6 +2325,10 @@ public class Project implements PropertyChangeListener {
         }
         return false;
       }
+    }
+
+    public int getDefaultScaleFactor() {
+      return defaultScale;
     }
 
   }

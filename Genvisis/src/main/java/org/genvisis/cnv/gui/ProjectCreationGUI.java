@@ -10,8 +10,10 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -60,7 +62,15 @@ public class ProjectCreationGUI extends JDialog {
   private static final String PROJECT_DIR_TOOLTIP = "<html>Directory in which to create, store, and manage all project files.</html>";
   private static final String SOURCE_DIR_TOOLTIP = "<html>Directory of source (e.g. FinalReport.txt.gz) files; this can be different than the Project Directory.</html>";
   private static final String SOURCE_EXT_TOOLTIP = "<html>Extension of source files (e.g. for \"FinalReport.txt.gz\", the extension would be \".txt.gz\".</html>";
-  private static final String XY_TOOLTIP = "<html>The raw probe intensity / bin counts are divided by this number to get a transformed<br />value between -32 and +32). Suggested values for scale factor based on array:<br />Illumina: use the default of 1.<br />Affy6: use 100.<br />Axiom: use 2000.<br />DBGAP: use 2000.</html>";
+  private static final String XY_TOOLTIP = "<html>The raw probe intensity / bin counts are divided by this number to get a transformed<br />value between -32 and +32). "
+                                           + "Suggested values for scale factor based on array:<br />"
+                                           + (Arrays.stream(ARRAY.values()).map(a -> {
+                                             return Arrays.stream(a.name().toLowerCase().split("_"))
+                                                          .map(ext::capitalizeFirst)
+                                                          .collect(Collectors.joining(" "))
+                                                    + ": use the default of "
+                                                    + a.getDefaultScaleFactor();
+                                           }).collect(Collectors.joining("<br />"))) + "</html>";
   private static final String MKR_SUBSET_TOOLTIP = "<html>If you only want to import a subset of markers, then provide a text file with one marker name per line.</html>";
   private static final String CREATE = "Create";
   private static final String CREATE_TOOL = "<html>Create new project.<br />  No source file validation is available for this type of project.</html>";
@@ -460,6 +470,18 @@ public class ProjectCreationGUI extends JDialog {
 
       JOptionPane.showMessageDialog(null, errorMsg.toString(), "Error", JOptionPane.ERROR_MESSAGE);
       return false;
+    }
+
+    double xy = ((Double) spinnerXY.getValue()).doubleValue();
+    int defaultScale = ((ARRAY) comboBoxArrayType.getSelectedItem()).getDefaultScaleFactor();
+    if (xy != defaultScale) {
+      int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
+                                               "<html>Chosen scale factor (" + xy
+                                                                        + ") is different from the default ("
+                                                                        + defaultScale
+                                                                        + "). Continue?</html>",
+                                               "Confirm Scale Factor", JOptionPane.YES_NO_OPTION);
+      return resp == JOptionPane.YES_OPTION;
     }
 
     return true;
