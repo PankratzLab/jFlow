@@ -217,6 +217,19 @@ public class PlinkData {
      * @param proj Project to lookup from
      * @param plinkFID FID from plink file
      * @param plinkIID IID from plink file
+     * @return the project FID + \t + IID or null if could not be identified
+     */
+    public String getProjFIDIID(Project proj, String plinkFID, String plinkIID) {
+      String fid = getProjFID(proj, plinkFID, plinkIID);
+      String iid = getProjIID(proj, plinkFID, plinkIID);
+      if (fid == null || iid == null) return null;
+      return fid + "\t" + iid;
+    }
+
+    /**
+     * @param proj Project to lookup from
+     * @param plinkFID FID from plink file
+     * @param plinkIID IID from plink file
      * @return the project DNA or null if could not be identified
      */
     public abstract String getProjDNA(Project proj, String plinkFID, String plinkIID);
