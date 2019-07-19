@@ -44,8 +44,8 @@ public class Plink {
   public static final int[][] BUILD_37_PARS = {{}};
 
   public static final String[] FLAGS = new String[] {"duplicate", "parent-offspring", "sibling",
-                                                     "avuncular,gg", "first cousins,halfsibs",
-                                                     "second cousins"};
+                                                     "avuncular,grandparent,halfsibs",
+                                                     "first cousins", "second cousins"};
   public static final double[][] THRESHOLDS = new double[][] {{0, 0, 0, 0.90}, // duplicate
                                                               {0, 0.80, 0, 0.49}, // parent-offspring
                                                               {0, 0.30, 0.10, 0.35}, // sibling
