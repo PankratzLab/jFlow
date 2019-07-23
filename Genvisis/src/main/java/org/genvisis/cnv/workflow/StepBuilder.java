@@ -32,6 +32,7 @@ import org.genvisis.cnv.workflow.steps.SampleQCStep;
 import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
 import org.genvisis.cnv.workflow.steps.SexChecksStep;
 import org.genvisis.cnv.workflow.steps.TransposeStep;
+import org.pankratzlab.common.CLI;
 
 /**
  * Helper class to minimize manual bookkeeping when instantiating steps. Each
@@ -52,11 +53,15 @@ public class StepBuilder {
   public static final String PUTATIVE_WHITE_FILE_DESCRIPTION = "File with FID/IID pairs of putative white samples";
 
   public StepBuilder(Project proj) {
-    numThreadsReq = new Requirement.PosIntRequirement(NUM_THREADS_DESC,
-                                                      proj.NUM_THREADS.getValue());
+    numThreadsReq = createNumThreadsReq(proj);
     buildSteps = new ArrayList<>();
     priorityMap = new HashMap<>();
     p = 0.0;
+  }
+
+  public static Requirement<Integer> createNumThreadsReq(Project proj) {
+    return new Requirement.PosIntRequirement(CLI.ARG_THREADS, NUM_THREADS_DESC,
+                                             proj.NUM_THREADS.getValue());
   }
 
   public Requirement<Integer> getNumThreadsReq() {
@@ -230,13 +235,8 @@ public class StepBuilder {
     return register(CallCNVsStep.create(proj, pfbStep, gcModelStep, numThreadsReq));
   }
 
-  PCCorrectionStep generatePCCorrectedProjectStep(Project proj, ParseSamplesStep parseSamplesStep) {
+  public PCCorrectionStep generatePCCorrectedProjectStep(Project proj, Step parseSamplesStep) {
     return register(PCCorrectionStep.create(proj, parseSamplesStep, numThreadsReq));
-  }
-
-  PCCorrectionStep generatePCCorrectedProjectStep(Project proj,
-                                                  ReverseTransposeTarget reverseTransposeStep) {
-    return register(PCCorrectionStep.create(proj, reverseTransposeStep, numThreadsReq));
   }
 
   ABLookupStep generateABLookupStep(Project proj, ParseSamplesStep parseSamplesStep) {
@@ -245,6 +245,26 @@ public class StepBuilder {
 
   ABLookupStep generateABLookupStep(Project proj, ReverseTransposeTarget reverseTransposeStep) {
     return register(ABLookupStep.create(proj, reverseTransposeStep));
+  }
+
+  public Step generateSamplesParsingStep(Project proj) {
+    StepBuilder sb = new StepBuilder(proj);
+    switch (proj.getArrayType()) {
+      case AFFY_AXIOM:
+        AxiomCELProcessingStep parseAxiomCELs = sb.generateAxiomCELProcessingStep(proj);
+        return sb.generateReverseTransposeStep(proj, parseAxiomCELs);
+      case AFFY_GW6:
+      case AFFY_GW6_CN:
+        Step parseAffyCELs = sb.generateAffyCELProcessingStep(proj);
+        return sb.generateReverseTransposeStep(proj, parseAffyCELs);
+      case ILLUMINA:
+        IlluminaMarkerPositionsStep markerPositions = sb.generateIlluminaMarkerPositionsStep(proj);
+        return sb.generateParseSamplesStep(proj, markerPositions);
+      case NGS:
+      default:
+        throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
+                                                + proj.getArrayType() + ".");
+    }
   }
 
   public static int resolveThreads(Project proj, int numThreads) {

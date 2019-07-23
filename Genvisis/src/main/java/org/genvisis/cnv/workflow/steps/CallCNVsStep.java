@@ -33,19 +33,25 @@ public class CallCNVsStep extends Step {
 
   public static CallCNVsStep create(Project proj, Step pfbStep, Step gcModelStep,
                                     Requirement<Integer> numThreadsReq) {
-    final Requirement<File> hmmFile = new Requirement.FileRequirement("Hidden Markov Model File Must Exist",
+    final Requirement<File> hmmFile = new Requirement.FileRequirement("hmmFile",
+                                                                      "Hidden Markov Model File Must Exist",
                                                                       new File(proj.HMM_FILENAME.getValue()));
     final Requirement<Step> pfbStepReq = new Requirement.StepRequirement(pfbStep);
-    final Requirement<File> pfbFileReq = new Requirement.FileRequirement("PFB File Must Exist",
+    final Requirement<File> pfbFileReq = new Requirement.FileRequirement("pfbFile",
+                                                                         "PFB File Must Exist",
                                                                          new File(proj.CUSTOM_PFB_FILENAME.getValue()));
     final Requirement<Step> gcModelStepReq = new Requirement.StepRequirement(gcModelStep);
-    final Requirement<File> gcModelFileReq = new Requirement.FileRequirement("GCMODEL File Must Exist",
+    final Requirement<File> gcModelFileReq = new Requirement.FileRequirement("gcModelFile",
+                                                                             "GCMODEL File Must Exist",
                                                                              new File(proj.GC_MODEL_FILENAME.getValue()));
-    final Requirement<CALLING_SCOPE> callingTypeReq = new Requirement.EnumRequirement<CALLING_SCOPE>(CNVCaller.CNV_SCOPE_DESC,
+    final Requirement<CALLING_SCOPE> callingTypeReq = new Requirement.EnumRequirement<CALLING_SCOPE>("callingScope",
+                                                                                                     CNVCaller.CNV_SCOPE_DESC,
                                                                                                      CNVCaller.CALLING_SCOPE.AUTOSOMAL);
-    final Requirement<Boolean> useCentroidsReq = new Requirement.OptionalBoolRequirement("If calling chromosomal CNVs, use sex-specific centroids to recalculate LRR/BAF values?",
+    final Requirement<Boolean> useCentroidsReq = new Requirement.OptionalBoolRequirement("recalcCentroidLRRs",
+                                                                                         "If calling chromosomal CNVs, use sex-specific centroids to recalculate LRR/BAF values?",
                                                                                          true);
-    final Requirement<File> outputFileReq = new Requirement.OutputFileRequirement("Output filename.",
+    final Requirement<File> outputFileReq = new Requirement.OutputFileRequirement("out",
+                                                                                  "Output filename.",
                                                                                   new File("cnvs/genvisis.cnv")) {
 
       @Override

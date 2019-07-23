@@ -39,10 +39,10 @@ public class AffyCELProcessingStep extends Step {
 
   public static AffyCELProcessingStep create(Project proj, Requirement<Integer> numThreadsReq) {
 
-    OptionalBoolRequirement fullReq = new OptionalBoolRequirement(DESC_FULL, false);
-    DirRequirement aptExtReq = new DirRequirement(DESC_APT_EXT, new File(""));
-    DirRequirement aptLibReq = new DirRequirement(DESC_APT_LIB, new File(""));
-    FileRequirement sketchReq = new FileRequirement(DESC_SKETCH, new File(""));
+    OptionalBoolRequirement fullReq = new OptionalBoolRequirement("full", DESC_FULL, false);
+    DirRequirement aptExtReq = new DirRequirement("aptExe", DESC_APT_EXT, new File(""));
+    DirRequirement aptLibReq = new DirRequirement("aptLib", DESC_APT_LIB, new File(""));
+    FileRequirement sketchReq = new FileRequirement("sketch", DESC_SKETCH, new File(""));
 
     return new AffyCELProcessingStep(proj, aptExtReq, aptLibReq, sketchReq, fullReq, numThreadsReq);
   }

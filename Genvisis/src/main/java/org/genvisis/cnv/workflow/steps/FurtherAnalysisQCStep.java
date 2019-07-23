@@ -39,9 +39,11 @@ public class FurtherAnalysisQCStep extends Step {
     final Requirement<Step> plinkExportStepReq = new Requirement.StepRequirement(plinkExportStep);
     final Requirement<Step> gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
     final Requirement<Step> ancestryStepReq = new Requirement.StepRequirement(ancestryStep);
-    final Requirement<File> unrelatedsFileReq = new Requirement.FileRequirement("File with list of unrelated FID/IID pairs to use for marker QC",
+    final Requirement<File> unrelatedsFileReq = new Requirement.FileRequirement("unrelatedsFile",
+                                                                                "File with list of unrelated FID/IID pairs to use for marker QC",
                                                                                 new File(""));
-    final Requirement<File> europeansFilesReq = new Requirement.FileRequirement("File with list of European samples to use for Hardy-Weinberg equilibrium tests",
+    final Requirement<File> europeansFilesReq = new Requirement.FileRequirement("europeansFile",
+                                                                                "File with list of European samples to use for Hardy-Weinberg equilibrium tests",
                                                                                 new File(""));
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(RequirementSetBuilder.or()
@@ -55,7 +57,8 @@ public class FurtherAnalysisQCStep extends Step {
     for (QcMetric metric : QcMetric.values()) {
       Map<QcMetric, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
       String defaultVal = defaultThresholds.get(metric);
-      final Requirement<String> metricReq = new Requirement.ThresholdRequirement(metric.getUserDescription(),
+      final Requirement<String> metricReq = new Requirement.ThresholdRequirement(metric.name(),
+                                                                                 metric.getUserDescription(),
                                                                                  defaultVal);
       reqSet.add(metricReq);
       metricRequirements.put(metric, metricReq);

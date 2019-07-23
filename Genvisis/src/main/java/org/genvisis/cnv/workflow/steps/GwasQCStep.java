@@ -45,7 +45,8 @@ public class GwasQCStep extends Step {
         throw new IllegalArgumentException("Invalid " + proj.getArrayType().getClass().getName()
                                            + ": " + proj.getArrayType().toString());
     }
-    final Requirement<String> callrateReq = new Requirement.ThresholdRequirement(QcMetric.CALLRATE.getUserDescription(),
+    final Requirement<String> callrateReq = new Requirement.ThresholdRequirement(QcMetric.CALLRATE.name(),
+                                                                                 QcMetric.CALLRATE.getUserDescription(),
                                                                                  defaultCallrate);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(callrateReq);

@@ -28,12 +28,15 @@ public class AnnotateSampleDataStep extends Step {
                                               final Step gwasQCStep) {
     final Requirement<Step> sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
     final Requirement<Step> createSampleDataStepReq = new Requirement.StepRequirement(createSampleDataStep);
-    final Requirement<Boolean> skipIDingDuplicatesReq = new Requirement.BoolRequirement("Skip identifying duplicates",
+    final Requirement<Boolean> skipIDingDuplicatesReq = new Requirement.BoolRequirement("skipDuplicates",
+                                                                                        "Skip identifying duplicates",
                                                                                         false);
     final Requirement<Step> gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
-    final Requirement<Boolean> notGcCorrectedLrrSdReq = new Requirement.BoolRequirement("Do not use GC corrected LRR SD?",
+    final Requirement<Boolean> notGcCorrectedLrrSdReq = new Requirement.BoolRequirement("dontUseGCLRRSD",
+                                                                                        "Do not use GC corrected LRR SD?",
                                                                                         false);
-    final Requirement<String> gcCorrectedLrrSdReq = new Requirement<String>("GC Corrected LRR SD must exist in Sample QC File",
+    final Requirement<String> gcCorrectedLrrSdReq = new Requirement<String>("gcLRRInSampQC",
+                                                                            "GC Corrected LRR SD must exist in Sample QC File",
                                                                             Requirement.RequirementInputType.NONE) {
 
       @Override
@@ -51,18 +54,22 @@ public class AnnotateSampleDataStep extends Step {
       }
 
     };
-    final Requirement<Double> lrrSdThresholdReq = new Requirement.DoubleRequirement("LRR SD Threshold",
+    final Requirement<Double> lrrSdThresholdReq = new Requirement.DoubleRequirement("lrrSDThreshold",
+                                                                                    "LRR SD Threshold",
                                                                                     proj.LRRSD_CUTOFF.getValue(),
                                                                                     proj.LRRSD_CUTOFF.getMinValue(),
                                                                                     proj.LRRSD_CUTOFF.getMaxValue());
 
-    final Requirement<Double> callrateThresholdReq = new Requirement.DoubleRequirement("Callrate Threshold",
+    final Requirement<Double> callrateThresholdReq = new Requirement.DoubleRequirement("callrateThreshold",
+                                                                                       "Callrate Threshold",
                                                                                        proj.SAMPLE_CALLRATE_THRESHOLD.getValue(),
                                                                                        proj.SAMPLE_CALLRATE_THRESHOLD.getMinValue(),
                                                                                        proj.SAMPLE_CALLRATE_THRESHOLD.getMaxValue());
-    final Requirement<Integer> numQReq = new Requirement.PosIntRequirement("Number of Quantiles to Generate",
+    final Requirement<Integer> numQReq = new Requirement.PosIntRequirement("numQuantiles",
+                                                                           "Number of Quantiles to Generate",
                                                                            10);
-    final Requirement<Boolean> replaceFIDIIDReq = new Requirement.OptionalBoolRequirement("Replace FID and IID with data from Pedigree",
+    final Requirement<Boolean> replaceFIDIIDReq = new Requirement.OptionalBoolRequirement("replaceIDs",
+                                                                                          "Replace FID and IID with data from Pedigree",
                                                                                           false);
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(sampleQCStepReq)

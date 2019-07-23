@@ -20,10 +20,12 @@ public class PlinkExportStep extends Step {
 
   public static PlinkExportStep create(Project proj, final Step parseSamplesStep) {
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-    final Requirement<File> pedigreeRequirement = new Requirement.FileRequirement("A pedigree.dat file must exist.",
+    final Requirement<File> pedigreeRequirement = new Requirement.FileRequirement("pedigree",
+                                                                                  "A pedigree.dat file must exist.",
                                                                                   new File(proj.PEDIGREE_FILENAME.getValue(false,
                                                                                                                            false)));
-    final Requirement<Boolean> createPedigreeRequirement = new Requirement.BoolRequirement("Create a minimal pedigree.dat file [will pull information from SexChecks step results].",
+    final Requirement<Boolean> createPedigreeRequirement = new Requirement.BoolRequirement("createMinimal",
+                                                                                           "Create a minimal pedigree.dat file [will pull information from SexChecks step results].",
                                                                                            false);
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)

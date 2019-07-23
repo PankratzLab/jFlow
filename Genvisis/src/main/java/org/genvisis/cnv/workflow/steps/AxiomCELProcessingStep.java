@@ -37,13 +37,15 @@ public class AxiomCELProcessingStep extends Step {
   public static final String DESC_APT_LIB = "Directory with AffyPowerTools library files (should contain a .cdf file, a .sketch file, etc. Available at http://www.affymetrix.com/)";
 
   public static AxiomCELProcessingStep create(Project proj, Requirement<Integer> numThreadsReq) {
-    DirRequirement aptExtReq = new DirRequirement(DESC_APT_EXT, new File(""));
-    DirRequirement aptLibReq = new DirRequirement(DESC_APT_LIB, new File(""));
+    DirRequirement aptExtReq = new DirRequirement("aptExe", DESC_APT_EXT, new File(""));
+    DirRequirement aptLibReq = new DirRequirement("aptLib", DESC_APT_LIB, new File(""));
     String annotFile = proj.SNP_DATA_FILE.getValue().equals("") ? AffyMarkerBlast.EXAMPLE_ANNOT_FILE
                                                                 : proj.SNP_DATA_FILE.getValue();
-    FileRequirement annotFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_ANNOT_FILE),
+    FileRequirement annotFileReq = new Requirement.FileRequirement("annotFile",
+                                                                   ext.capitalizeFirst(AffyMarkerBlast.DESC_ANNOT_FILE),
                                                                    new File(annotFile));
-    BoolRequirement skipGenoReq = new BoolRequirement("Do not import forward genotypes.", false);
+    BoolRequirement skipGenoReq = new BoolRequirement("skipGenotypes",
+                                                      "Do not import forward genotypes.", false);
 
     return new AxiomCELProcessingStep(proj, aptExtReq, aptLibReq, annotFileReq, skipGenoReq,
                                       numThreadsReq);

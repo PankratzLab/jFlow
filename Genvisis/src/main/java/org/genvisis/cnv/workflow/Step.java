@@ -2,6 +2,7 @@ package org.genvisis.cnv.workflow;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +10,10 @@ import java.util.Set;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
+import org.genvisis.cnv.workflow.Requirement.StepRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
+import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.Files;
 import org.pankratzlab.common.gui.Task;
 
 import com.google.common.collect.ImmutableSet;
@@ -186,6 +190,37 @@ public abstract class Step {
    */
   public abstract String getCommandLine(Variables variables);
 
+  public String getStepCommandLine(Project proj, Variables variables) {
+    StringBuilder builder = new StringBuilder(Files.getRunString());
+    builder.append(" ").append(this.getClass().getName());
+    builder.append(" ").append(CLI.ARG_PROJ).append("=").append(proj.getPropertyFilename());
+    for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
+      if (r instanceof StepRequirement) continue;
+      if (variables.hasValid(r)) {
+        builder.append(" ").append(r.getKey()).append("=").append(variables.getString(r));
+      }
+    }
+    return builder.toString();
+  }
+
+  public Variables parseArguments(String[] args) {
+    Variables vars = new Variables();
+    Map<String, Requirement<?>> reqMap = new HashMap<>();
+    for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
+      if (r instanceof StepRequirement) continue;
+      reqMap.put(r.getKey(), r);
+    }
+    for (String arg : args) {
+      String[] pts = arg.split("=");
+      if (pts[0].equals(CLI.ARG_PROJ)) continue;
+      if (!reqMap.containsKey(pts[0])) {
+        throw new IllegalArgumentException("Unrecognized argument: " + arg);
+      }
+      vars.parseOrFail(reqMap.get(pts[0]), pts[1]);
+    }
+    return vars;
+  }
+
   @SuppressWarnings("unchecked")
   public Variables getDefaultRequirementValues() {
     Variables varMap = new Variables();
@@ -234,6 +269,19 @@ public abstract class Step {
                                      List<Step> selectedSteps) {
     StepTask st = new StepTask(gui, this, selectedSteps, variables);
     return st;
+  }
+
+  public static Project parseProject(String[] args) {
+    Project proj = null;
+    for (String a : args) {
+      if (a.startsWith(CLI.ARG_PROJ)) {
+        proj = new Project(a.split("=")[1]);
+      }
+    }
+    if (proj == null) {
+      throw new IllegalArgumentException("Error - no project properties argument found.");
+    }
+    return proj;
   }
 
 }

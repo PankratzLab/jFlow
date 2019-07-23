@@ -26,7 +26,8 @@ public class AncestryStep extends Step {
 
   public static AncestryStep create(Project proj, Step gwasQCStep) {
     final Requirement<Step> gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
-    final Requirement.ResourceRequirement hapMapFoundersReq = new Requirement.ResourceRequirement("PLINK root of HapMap founders",
+    final Requirement.ResourceRequirement hapMapFoundersReq = new Requirement.ResourceRequirement("hapMapPlinkRoot",
+                                                                                                  "PLINK root of HapMap founders",
                                                                                                   Resources.hapMap(proj.getLog())
                                                                                                            .getUnambiguousHapMapFounders());
 
@@ -39,19 +40,22 @@ public class AncestryStep extends Step {
       defaultSnpFile = "";
     }
 
-    final Requirement.OptionalFileRequirement snpIDLookupFileReq = new OptionalFileRequirement("A SNP name replacement file with two columns, the first being the original SNP name and the second containing the replacement name.",
+    final Requirement.OptionalFileRequirement snpIDLookupFileReq = new OptionalFileRequirement("snpNameLookupFile",
+                                                                                               "A SNP name replacement file with two columns, the first being the original SNP name and the second containing the replacement name.",
                                                                                                new File(defaultSnpFile));
     final RequirementSet reqSet = RequirementSetBuilder.and().add(gwasQCStepReq)
                                                        .add(putativeWhitesReq)
                                                        .add(hapMapFoundersReq)
                                                        .add(snpIDLookupFileReq);
-    final Requirement.ResourceRequirement hapMapAncestryReq = new Requirement.ResourceRequirement("HapMap Samples Ancestry File",
+    final Requirement.ResourceRequirement hapMapAncestryReq = new Requirement.ResourceRequirement("hapMapAncestry",
+                                                                                                  "HapMap Samples Ancestry File",
                                                                                                   Resources.hapMap(proj.getLog())
                                                                                                            .getHapMapAncestries());
     return new AncestryStep(proj, snpIDLookupFileReq, hapMapFoundersReq, hapMapAncestryReq, reqSet);
   }
 
-  private final static Requirement<File> putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
+  private final static Requirement<File> putativeWhitesReq = new FileRequirement("putativeWhitesFile",
+                                                                                 "File with FID/IID pairs of putative white samples",
                                                                                  new File(""));
 
   final Project proj;

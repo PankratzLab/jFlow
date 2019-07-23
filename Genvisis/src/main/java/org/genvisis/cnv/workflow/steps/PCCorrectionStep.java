@@ -21,6 +21,9 @@ import org.genvisis.cnv.workflow.StepBuilder;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 public class PCCorrectionStep extends Step {
 
   public static final String NAME = "Create PC-Corrected Project";
@@ -40,9 +43,11 @@ public class PCCorrectionStep extends Step {
   public static PCCorrectionStep create(Project proj, Step parseSamplesStep,
                                         Requirement<Integer> numThreadsReq) {
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-    final Requirement<Integer> numPCsReq = new Requirement.PosIntRequirement("Number of principal components for correction.",
+    final Requirement<Integer> numPCsReq = new Requirement.PosIntRequirement("numPCs",
+                                                                             "Number of principal components for correction.",
                                                                              MitoPipeline.DEFAULT_NUM_COMPONENTS);
-    final Requirement<File> outputBaseReq = new OutputFileRequirement("Output file path (relative to project directory) and filename prefix for principal components correction files",
+    final Requirement<File> outputBaseReq = new OutputFileRequirement("outDirAndBase",
+                                                                      "Output file path (relative to project directory) and filename prefix for principal components correction files",
                                                                       new File(MitoPipeline.FILE_BASE)) {
 
       @Override
@@ -53,18 +58,24 @@ public class PCCorrectionStep extends Step {
         return super.checkRequirement(finalReport, stepSelections, variables);
       }
     };
-    final Requirement<Double> callrateReq = new Requirement.DoubleRequirement("Call-rate filter for determining high-quality markers",
+    final Requirement<Double> callrateReq = new Requirement.DoubleRequirement("callrateFilter",
+                                                                              "Call-rate filter for determining high-quality markers",
                                                                               MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER,
                                                                               0.0, 1.0);
-    final Requirement<Boolean> recomputeLrrReq = new Requirement.OptionalBoolRequirement("Re-compute Log-R Ratio values? (usually false if LRRs already exist)",
+    final Requirement<Boolean> recomputeLrrReq = new Requirement.OptionalBoolRequirement("recomputeLRRs",
+                                                                                         "Re-compute Log-R Ratio values? (usually false if LRRs already exist)",
                                                                                          false);
-    final Requirement<File> tempDirReq = new Requirement.OptionalDirRequirement("Temporary directory for intermediate files (which tend to be very large)",
+    final Requirement<File> tempDirReq = new Requirement.OptionalDirRequirement("tempDir",
+                                                                                "Temporary directory for intermediate files (which tend to be very large)",
                                                                                 new File(""));
-    final Requirement<CORRECTION_TYPE> correctionStrategyReq = new Requirement.EnumRequirement<CORRECTION_TYPE>("Correction Type",
+    final Requirement<CORRECTION_TYPE> correctionStrategyReq = new Requirement.EnumRequirement<CORRECTION_TYPE>("correction",
+                                                                                                                "Correction Type",
                                                                                                                 CORRECTION_TYPE.XY);
-    final Requirement<CHROMOSOME_X_STRATEGY> sexChromosomeStrategyReq = new Requirement.EnumRequirement<CHROMOSOME_X_STRATEGY>("Sex Chromosome Strategy",
+    final Requirement<CHROMOSOME_X_STRATEGY> sexChromosomeStrategyReq = new Requirement.EnumRequirement<CHROMOSOME_X_STRATEGY>("sexChrStrat",
+                                                                                                                               "Sex Chromosome Strategy",
                                                                                                                                CHROMOSOME_X_STRATEGY.BIOLOGICAL);
-    final Requirement<Boolean> setupCNVCalling = new Requirement.OptionalBoolRequirement("Create script with steps to process corrected data and call CNVs?",
+    final Requirement<Boolean> setupCNVCalling = new Requirement.OptionalBoolRequirement("callCNVs",
+                                                                                         "Create script with steps to process corrected data and call CNVs?",
                                                                                          false);
 
     return new PCCorrectionStep(proj, parseSamplesStepReq, numPCsReq, outputBaseReq, callrateReq,
@@ -145,33 +156,7 @@ public class PCCorrectionStep extends Step {
 
   @Override
   public String getCommandLine(Variables variables) {
-    int numComponents = variables.get(numPCsReq);
-    String outputBase = variables.get(outputBaseReq).getPath();
-    double markerCallRateFilter = variables.get(callrateReq);
-    boolean recomputeLRRPCs = variables.get(recomputeLrrReq);
-    String tmpDir = variables.hasValid(tempDirReq) ? variables.get(tempDirReq).getAbsolutePath()
-                                                   : null;
-    CORRECTION_TYPE correctionType = variables.get(correctionStrategyReq);
-    CHROMOSOME_X_STRATEGY strategy = variables.get(sexChromosomeStrategyReq);
-
-    int totalThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
-
-    boolean cnvCalling = variables.get(setupCNVCalling);
-    String projPropFile = proj.getPropertyFilename();
-    StringBuilder cmd = new StringBuilder();
-    cmd.append(Files.getRunString()).append(" org.genvisis.cnv.manage.PRoCtOR").append(" proj=")
-       .append(projPropFile).append(" numComponents=").append(numComponents).append(" outputBase=")
-       .append(outputBase).append(" callrate=").append(markerCallRateFilter)
-       .append(" recomputeLRR=").append(recomputeLRRPCs).append(" type=").append(correctionType)
-       .append(" sexStrategy=").append(strategy).append(" numThreads=").append(totalThreads);
-    if (tmpDir != null) {
-      cmd.append(" tmp=").append(tmpDir);
-    }
-    if (cnvCalling) {
-      cmd.append(" -callCNVs");
-    }
-
-    return cmd.toString();
+    return getStepCommandLine(proj, variables);
   }
 
   @Override
@@ -179,6 +164,20 @@ public class PCCorrectionStep extends Step {
     String outputBase = proj.PROJECT_DIRECTORY.getValue() + variables.get(outputBaseReq).getPath();
     String finalReport = outputBase + PCA.FILE_EXTs[0];
     return Files.exists(finalReport);
+  }
+
+  public static void main(String[] args) {
+    Project proj = Step.parseProject(args);
+    StepBuilder sb = new StepBuilder(proj);
+    Step samplesStep = sb.generateSamplesParsingStep(proj);
+    PCCorrectionStep step = sb.generatePCCorrectedProjectStep(proj, samplesStep);
+    Variables variables = step.parseArguments(args);
+    if (step.hasRequirements(ImmutableSet.of(step), ImmutableMap.of(step, variables))) {
+      step.setNecessaryPreRunProperties(variables);
+      step.run(variables);
+    } else {
+      proj.getLog().reportError("requirements not met for step " + step.getDescription());
+    }
   }
 
 }

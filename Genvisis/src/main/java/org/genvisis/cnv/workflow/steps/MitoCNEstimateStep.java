@@ -30,30 +30,41 @@ public class MitoCNEstimateStep extends Step {
     // should be linked to, or
     // these steps split or something...
     final Requirement<Step> transposeStepReq = new Requirement.StepRequirement(transposeStep);
-    final Requirement<File> medianMarkersReq = new Requirement.FileRequirement("MedianMarkers file must exist.",
+    final Requirement<File> medianMarkersReq = new Requirement.FileRequirement("medianMarkersFile",
+                                                                               "MedianMarkers file must exist.",
                                                                                new File(""));
-    final Requirement<Double> lrrSdThresholdReq = new Requirement.DoubleRequirement("LRR SD threshold to filter samples.",
+    final Requirement<Double> lrrSdThresholdReq = new Requirement.DoubleRequirement("lrrSDThreshold",
+                                                                                    "LRR SD threshold to filter samples.",
                                                                                     proj.LRRSD_CUTOFF.getValue(),
                                                                                     proj.LRRSD_CUTOFF.getMinValue(),
                                                                                     proj.LRRSD_CUTOFF.getMaxValue());
-    final Requirement<Double> callrateThresholdReq = new Requirement.DoubleRequirement("Call rate threshold to filter markers.",
+    final Requirement<Double> callrateThresholdReq = new Requirement.DoubleRequirement("callrateThreshold",
+                                                                                       "Call rate threshold to filter markers.",
                                                                                        MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER,
                                                                                        0.0, 1.0);
-    final Requirement<Boolean> qcPassingOnlyReq = new Requirement.OptionalBoolRequirement("Compute PCs with samples passing QC only",
+    final Requirement<Boolean> qcPassingOnlyReq = new Requirement.OptionalBoolRequirement("computePCsWithPassingSamps",
+                                                                                          "Compute PCs with samples passing QC only",
                                                                                           true);
-    final Requirement<Boolean> imputeNaNs = new Requirement.OptionalBoolRequirement("Impute mean value for NaN",
+    final Requirement<Boolean> imputeNaNs = new Requirement.OptionalBoolRequirement("imputeNaNMean",
+                                                                                    "Impute mean value for NaN",
                                                                                     true);
-    final Requirement<Boolean> recomputeLrrPCMarkersReq = new Requirement.OptionalBoolRequirement("Should recompute Log-R ratio for PC markers?",
+    final Requirement<Boolean> recomputeLrrPCMarkersReq = new Requirement.OptionalBoolRequirement("recomputePC",
+                                                                                                  "Should recompute Log-R ratio for PC markers?",
                                                                                                   true);
-    final Requirement<Boolean> recomputeLrrMedianMarkersReq = new Requirement.OptionalBoolRequirement("Should recompute Log-R ratio for median markers?",
+    final Requirement<Boolean> recomputeLrrMedianMarkersReq = new Requirement.OptionalBoolRequirement("recomputeMedian",
+                                                                                                      "Should recompute Log-R ratio for median markers?",
                                                                                                       true);
-    final Requirement<Boolean> homozygousOnlyReq = new Requirement.OptionalBoolRequirement("Homozygous only?",
+    final Requirement<Boolean> homozygousOnlyReq = new Requirement.OptionalBoolRequirement("homozygousOnly",
+                                                                                           "Homozygous only?",
                                                                                            true);
-    final Requirement<Integer> gcRegressionDistanceReq = new Requirement.PosIntRequirement("Regression distance for the GC adjustment",
+    final Requirement<Integer> gcRegressionDistanceReq = new Requirement.PosIntRequirement("regressionDistance",
+                                                                                           "Regression distance for the GC adjustment",
                                                                                            GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0]);
-    final Requirement<File> pcSelectionSamplesReq = new Requirement.OptionalFileRequirement("A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used.",
+    final Requirement<File> pcSelectionSamplesReq = new Requirement.OptionalFileRequirement("subsetFile",
+                                                                                            "A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used.",
                                                                                             new File(""));
-    final Requirement<File> externalBetaFileReq = new Requirement.OptionalFileRequirement("An external beta file to optimize PC selection.",
+    final Requirement<File> externalBetaFileReq = new Requirement.OptionalFileRequirement("betaFile",
+                                                                                          "An external beta file to optimize PC selection.",
                                                                                           new File(""));
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(transposeStepReq)
