@@ -13,6 +13,7 @@ import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.workflow.Requirement.ParsedRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.Files;
 import org.pankratzlab.common.gui.Task;
 
 import com.google.common.collect.ImmutableSet;
@@ -207,7 +208,7 @@ public abstract class Step {
         args.put(((ParsedRequirement<?>) r).getKey(), variables.getString(r));
       }
     }
-    return CLI.formCmdLine(this.getClass(), args);
+    return Files.getRunString() + " " + CLI.formCmdLine(this.getClass(), args);
   }
 
   public Variables parseArguments(String[] args) {
