@@ -26,8 +26,7 @@ public class AncestryStep extends Step {
 
   public static AncestryStep create(Project proj, Step gwasQCStep) {
     final Requirement<Step> gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
-    final Requirement.ResourceRequirement hapMapFoundersReq = new Requirement.ResourceRequirement("hapMapPlinkRoot",
-                                                                                                  "PLINK root of HapMap founders",
+    final Requirement.ResourceRequirement hapMapFoundersReq = new Requirement.ResourceRequirement("PLINK root of HapMap founders",
                                                                                                   Resources.hapMap(proj.getLog())
                                                                                                            .getUnambiguousHapMapFounders());
 
@@ -47,8 +46,7 @@ public class AncestryStep extends Step {
                                                        .add(putativeWhitesReq)
                                                        .add(hapMapFoundersReq)
                                                        .add(snpIDLookupFileReq);
-    final Requirement.ResourceRequirement hapMapAncestryReq = new Requirement.ResourceRequirement("hapMapAncestry",
-                                                                                                  "HapMap Samples Ancestry File",
+    final Requirement.ResourceRequirement hapMapAncestryReq = new Requirement.ResourceRequirement("HapMap Samples Ancestry File",
                                                                                                   Resources.hapMap(proj.getLog())
                                                                                                            .getHapMapAncestries());
     return new AncestryStep(proj, snpIDLookupFileReq, hapMapFoundersReq, hapMapAncestryReq, reqSet);

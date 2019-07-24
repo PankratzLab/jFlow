@@ -21,7 +21,7 @@ public abstract class Requirement<T> {
     private final Step requiredStep;
 
     public StepRequirement(Step requiredStep) {
-      super(stepReqMessage(requiredStep), Requirement.RequirementInputType.NONE);
+      super(stepReqMessage(requiredStep));
       this.requiredStep = requiredStep;
     }
 
@@ -53,20 +53,50 @@ public abstract class Requirement<T> {
   public abstract static class ParsedRequirement<T> extends Requirement<T> {
 
     public ParsedRequirement(String key, String description, RequirementInputType type) {
-      super(description, type);
+      super(description);
       this.key = key;
+      this.type = type;
     }
 
     public ParsedRequirement(String key, String description, Requirement.RequirementInputType type,
                              T defaultValue) {
-      super(description, type, defaultValue);
+      super(description, defaultValue);
       this.key = key;
+      this.type = type;
     }
 
     private final String key;
 
+    private final Requirement.RequirementInputType type;
+
+    public Requirement.RequirementInputType getType() {
+      return type;
+    }
+
     public String getKey() {
       return key;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = super.hashCode();
+      result = prime * result + ((key == null) ? 0 : key.hashCode());
+      result = prime * result + ((type == null) ? 0 : type.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!super.equals(obj)) return false;
+      if (!(obj instanceof ParsedRequirement)) return false;
+      ParsedRequirement other = (ParsedRequirement) obj;
+      if (key == null) {
+        if (other.key != null) return false;
+      } else if (!key.equals(other.key)) return false;
+      if (type != other.type) return false;
+      return true;
     }
 
   }
@@ -161,7 +191,7 @@ public abstract class Requirement<T> {
     }
   }
 
-  public static class ResourceRequirement extends ParsedRequirement<Resource> {
+  public static class ResourceRequirement extends Requirement<Resource> {
 
     private final Resource resource;
 
@@ -170,9 +200,8 @@ public abstract class Requirement<T> {
      *          as part of the full description describing the download/use of the resource
      * @param resource the {@link Resource} required
      */
-    public ResourceRequirement(String key, String resourceDescription, Resource resource) {
-      super(key, generateRequirementDescription(resourceDescription, resource),
-            Requirement.RequirementInputType.NONE);
+    public ResourceRequirement(String resourceDescription, Resource resource) {
+      super(generateRequirementDescription(resourceDescription, resource));
       this.resource = resource;
     }
 
@@ -397,7 +426,7 @@ public abstract class Requirement<T> {
   }
 
   public enum RequirementInputType {
-    NONE, FILE, DIR, STRING, NUMBER, BOOL, ENUM, LISTSELECTION
+    FILE, DIR, STRING, NUMBER, BOOL, ENUM, LISTSELECTION
   }
 
   public enum Flag {
@@ -405,26 +434,22 @@ public abstract class Requirement<T> {
   }
 
   private final String description;
-  private final Requirement.RequirementInputType type;
   private final T defaultValue;
 
   /**
    * @param description
-   * @param type
    */
-  public Requirement(String description, Requirement.RequirementInputType type) {
-    this(description, type, null);
+  public Requirement(String description) {
+    this(description, null);
   }
 
   /**
    * @param description
-   * @param type
    * @param defaultValue
    */
-  public Requirement(String description, Requirement.RequirementInputType type, T defaultValue) {
+  public Requirement(String description, T defaultValue) {
     super();
     this.description = description;
-    this.type = type;
     this.defaultValue = defaultValue != null ? defaultValue : null;
   }
 
@@ -452,10 +477,6 @@ public abstract class Requirement<T> {
     return description;
   }
 
-  public Requirement.RequirementInputType getType() {
-    return type;
-  }
-
   public T getDefaultValue() {
     return defaultValue;
   }
@@ -471,7 +492,6 @@ public abstract class Requirement<T> {
     int result = 1;
     result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
     result = prime * result + ((description == null) ? 0 : description.hashCode());
-    result = prime * result + ((type == null) ? 0 : type.hashCode());
     return result;
   }
 
@@ -487,7 +507,6 @@ public abstract class Requirement<T> {
     if (description == null) {
       if (other.description != null) return false;
     } else if (!description.equals(other.description)) return false;
-    if (type != other.type) return false;
     return true;
   }
 

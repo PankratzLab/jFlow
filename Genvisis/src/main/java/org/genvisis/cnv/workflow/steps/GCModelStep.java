@@ -23,10 +23,9 @@ public class GCModelStep extends Step {
   public static final String DESC = "";
 
   public static GCModelStep create(Project proj) {
-    final ResourceRequirement gcBaseResourceReq = new ResourceRequirement("gcBase", "GC Base file",
-                                                                          Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
-                                                                                           proj.getLog())
-                                                                                   .getModelBase());
+    final ResourceRequirement gcBaseResourceReq = new ResourceRequirement("GC Base file", Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+                     proj.getLog())
+             .getModelBase());
     final Requirement<File> gcModelOutputReq = new Requirement.OutputFileRequirement(CLI.ARG_OUTFILE,
                                                                                      "GCModel output file must be specified.",
                                                                                      new File(proj.GC_MODEL_FILENAME.getValue()));

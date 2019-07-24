@@ -58,6 +58,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.OutputFileRequirement;
+import org.genvisis.cnv.workflow.Requirement.ParsedRequirement;
 import org.genvisis.cnv.workflow.Requirement.RequirementInputType;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.AndRequirementSet;
@@ -491,105 +492,109 @@ public class GenvisisWorkflowGUI extends JDialog {
   private Map<Requirement<?>, JComponent> addToPanel(Step step, Requirement<?> req, JPanel panel,
                                                      int rowIndex) {
     Map<Requirement<?>, JComponent> reqInputFields = Maps.newLinkedHashMap();
-    if (req.getType() == Requirement.RequirementInputType.BOOL) {
-      JCheckBox checkBox = new JCheckBox();
-      checkBox.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
-      checkBox.setFont(checkBox.getFont().deriveFont(14));
-      Grafik.scaleCheckBoxIcon(checkBox);
-      checkBox.setVerticalAlignment(SwingConstants.TOP);
-      checkBox.setHorizontalAlignment(SwingConstants.RIGHT);
-      boolean sel = Boolean.parseBoolean(req.getDefaultValue().toString());
-      checkBox.setSelected(sel);
-      reqInputFields.put(req, checkBox);
-      panel.add(checkBox, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
-    } else if (req.getType() == Requirement.RequirementInputType.ENUM) {
-      Object o = req.getDefaultValue();
-      Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();
-      JComboBox<Enum<?>> combo = new JComboBox<>(vals);
-      combo.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
-      combo.setFont(combo.getFont().deriveFont(14));
-      combo.setSelectedItem(o);
-      reqInputFields.put(req, combo);
-      panel.add(combo, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
-    } else if (req instanceof Requirement.ListSelectionRequirement) {
-      Requirement.ListSelectionRequirement listSelectionReq = (Requirement.ListSelectionRequirement) req;
-      JList<String> jList = new JList<>(new Vector<>(listSelectionReq.getOptions()));
-      jList.setFont(jList.getFont().deriveFont(14));
-      for (String defaultOption : listSelectionReq.getDefaultValue()) {
-        jList.setSelectedValue(defaultOption, false);
-      }
-      reqInputFields.put(req, jList);
-      panel.add(new JScrollPane(jList),
-                "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
-    } else if (req.getType() != Requirement.RequirementInputType.NONE) {
-      JTextField textField = new JTextField();
-      textField.getDocument().addDocumentListener(new TextChangedListener() {
+    if (req instanceof ParsedRequirement) {
+      ParsedRequirement<?> parsedReq = (ParsedRequirement<?>) req;
 
-        @Override
-        public void changedUpdate(DocumentEvent e) {
-          refreshLabels(GenvisisWorkflowGUI.this, step.getSelfAndDependents());
+      if (parsedReq.getType() == Requirement.RequirementInputType.BOOL) {
+        JCheckBox checkBox = new JCheckBox();
+        checkBox.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
+        checkBox.setFont(checkBox.getFont().deriveFont(14));
+        Grafik.scaleCheckBoxIcon(checkBox);
+        checkBox.setVerticalAlignment(SwingConstants.TOP);
+        checkBox.setHorizontalAlignment(SwingConstants.RIGHT);
+        boolean sel = Boolean.parseBoolean(parsedReq.getDefaultValue().toString());
+        checkBox.setSelected(sel);
+        reqInputFields.put(req, checkBox);
+        panel.add(checkBox, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
+      } else if (parsedReq.getType() == Requirement.RequirementInputType.ENUM) {
+        Object o = parsedReq.getDefaultValue();
+        Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();
+        JComboBox<Enum<?>> combo = new JComboBox<>(vals);
+        combo.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
+        combo.setFont(combo.getFont().deriveFont(14));
+        combo.setSelectedItem(o);
+        reqInputFields.put(req, combo);
+        panel.add(combo, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
+      } else if (req instanceof Requirement.ListSelectionRequirement) {
+        Requirement.ListSelectionRequirement listSelectionReq = (Requirement.ListSelectionRequirement) req;
+        JList<String> jList = new JList<>(new Vector<>(listSelectionReq.getOptions()));
+        jList.setFont(jList.getFont().deriveFont(14));
+        for (String defaultOption : listSelectionReq.getDefaultValue()) {
+          jList.setSelectedValue(defaultOption, false);
         }
-      });
-      if (req.getDefaultValue() == null) {
-        System.err.println(step.getName());
-      }
-      textField.setText(req.getDefaultValue().toString());
-      reqInputFields.put(req, textField);
-      panel.add(textField,
-                "alignx right, aligny center, growx, gapleft 20, split 1, cell 1 " + rowIndex);
-      if (req.getType() == Requirement.RequirementInputType.FILE
-          || req.getType() == Requirement.RequirementInputType.DIR) {
-        JButton fileBtn = new JButton();
-        fileBtn.setAction(new AbstractAction() {
-
-          private static final long serialVersionUID = 1L;
+        reqInputFields.put(req, jList);
+        panel.add(new JScrollPane(jList),
+                  "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
+      } else {
+        JTextField textField = new JTextField();
+        textField.getDocument().addDocumentListener(new TextChangedListener() {
 
           @Override
-          public void actionPerformed(ActionEvent e) {
-            JTextField fileField = (JTextField) varFields.get(step).get(req);
-
-            String current = fileField.getText().trim();
-
-            String dir = "".equals(current) ? proj.PROJECT_DIRECTORY.getValue(false, false)
-                                            : ext.parseDirectoryOfFile(current);
-            JFileChooser chooser = new JFileChooser(dir);
-            chooser.setMultiSelectionEnabled(false);
-            Requirement.RequirementInputType type = req.getType();
-
-            if (type == Requirement.RequirementInputType.FILE) {
-              chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-              chooser.setDialogTitle("Select File");
-            } else if (type == Requirement.RequirementInputType.DIR) {
-              chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-              chooser.setDialogTitle("Select Directory");
-            }
-
-            int retValue = chooser.showDialog(GenvisisWorkflowGUI.this, "Select");
-
-            if (retValue == JFileChooser.CANCEL_OPTION) {
-              // refreshLabels(GenvisisWorkflowGUI.this, step.getRelatedSteps());
-              refreshLabels(GenvisisWorkflowGUI.this, step.getSelfAndDependents());
-              return;
-            } else {
-              File newFile = chooser.getSelectedFile();
-              String txt = ext.verifyDirFormat(newFile.getAbsolutePath());
-              if (type == Requirement.RequirementInputType.FILE) {
-                txt = txt.substring(0, txt.length() - 1);
-              }
-              fileField.setText(txt);
-            }
+          public void changedUpdate(DocumentEvent e) {
             refreshLabels(GenvisisWorkflowGUI.this, step.getSelfAndDependents());
           }
         });
-        fileBtn.setText("...");
-        fileBtn.setMargin(new Insets(1, 4, 0, 3));
-        panel.add(fileBtn, "cell 1 " + rowIndex);
-        ArrayList<JButton> list = fileBtns.get(step);
-        if (list == null) {
-          list = new ArrayList<>();
-          fileBtns.put(step, list);
+        if (parsedReq.getDefaultValue() == null) {
+          System.err.println(step.getName());
         }
-        list.add(fileBtn);
+        textField.setText(parsedReq.getDefaultValue().toString());
+        reqInputFields.put(req, textField);
+        panel.add(textField,
+                  "alignx right, aligny center, growx, gapleft 20, split 1, cell 1 " + rowIndex);
+        if (parsedReq.getType() == Requirement.RequirementInputType.FILE
+            || parsedReq.getType() == Requirement.RequirementInputType.DIR) {
+          JButton fileBtn = new JButton();
+          fileBtn.setAction(new AbstractAction() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              JTextField fileField = (JTextField) varFields.get(step).get(req);
+
+              String current = fileField.getText().trim();
+
+              String dir = "".equals(current) ? proj.PROJECT_DIRECTORY.getValue(false, false)
+                                              : ext.parseDirectoryOfFile(current);
+              JFileChooser chooser = new JFileChooser(dir);
+              chooser.setMultiSelectionEnabled(false);
+              Requirement.RequirementInputType type = parsedReq.getType();
+
+              if (type == Requirement.RequirementInputType.FILE) {
+                chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                chooser.setDialogTitle("Select File");
+              } else if (type == Requirement.RequirementInputType.DIR) {
+                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                chooser.setDialogTitle("Select Directory");
+              }
+
+              int retValue = chooser.showDialog(GenvisisWorkflowGUI.this, "Select");
+
+              if (retValue == JFileChooser.CANCEL_OPTION) {
+                // refreshLabels(GenvisisWorkflowGUI.this, step.getRelatedSteps());
+                refreshLabels(GenvisisWorkflowGUI.this, step.getSelfAndDependents());
+                return;
+              } else {
+                File newFile = chooser.getSelectedFile();
+                String txt = ext.verifyDirFormat(newFile.getAbsolutePath());
+                if (type == Requirement.RequirementInputType.FILE) {
+                  txt = txt.substring(0, txt.length() - 1);
+                }
+                fileField.setText(txt);
+              }
+              refreshLabels(GenvisisWorkflowGUI.this, step.getSelfAndDependents());
+            }
+          });
+          fileBtn.setText("...");
+          fileBtn.setMargin(new Insets(1, 4, 0, 3));
+          panel.add(fileBtn, "cell 1 " + rowIndex);
+          ArrayList<JButton> list = fileBtns.get(step);
+          if (list == null) {
+            list = new ArrayList<>();
+            fileBtns.put(step, list);
+          }
+          list.add(fileBtn);
+        }
       }
     }
     return reqInputFields;
@@ -835,8 +840,9 @@ public class GenvisisWorkflowGUI extends JDialog {
                     String arg = vars.parseFail(req) || o == null ? null : o.toString();
                     boolean met = req.checkRequirement(arg, selectedSteps, variables);
                     reqLbls.get(req).setForeground(met ? greenDark : Color.RED);
-                    if ((req.getType() == RequirementInputType.DIR
-                         || req.getType() == RequirementInputType.FILE)
+                    if (req instanceof ParsedRequirement
+                        && (((ParsedRequirement<?>) req).getType() == RequirementInputType.DIR
+                            || ((ParsedRequirement<?>) req).getType() == RequirementInputType.FILE)
                         && !(req instanceof OutputFileRequirement)) {
                       JTextField field = ((JTextField) gui.varFields.get(step).get(req));
                       String v = field.getText();

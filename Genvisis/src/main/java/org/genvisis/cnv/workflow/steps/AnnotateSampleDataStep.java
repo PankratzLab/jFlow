@@ -35,8 +35,7 @@ public class AnnotateSampleDataStep extends Step {
     final Requirement<Boolean> notGcCorrectedLrrSdReq = new Requirement.BoolRequirement("dontUseGCLRRSD",
                                                                                         "Do not use GC corrected LRR SD?",
                                                                                         false);
-    final Requirement<String> gcCorrectedLrrSdReq = new Requirement<String>("GC Corrected LRR SD must exist in Sample QC File",
-                                                                            Requirement.RequirementInputType.NONE) {
+    final Requirement<String> gcCorrectedLrrSdReq = new Requirement<String>("GC Corrected LRR SD must exist in Sample QC File") {
 
       @Override
       public boolean checkRequirement(String arg, Set<Step> stepSelections,
