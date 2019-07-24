@@ -21,8 +21,7 @@ public abstract class Requirement<T> {
     private final Step requiredStep;
 
     public StepRequirement(Step requiredStep) {
-      super(requiredStep.getClass().getSimpleName(), stepReqMessage(requiredStep),
-            Requirement.RequirementInputType.NONE);
+      super(stepReqMessage(requiredStep), Requirement.RequirementInputType.NONE);
       this.requiredStep = requiredStep;
     }
 
@@ -51,7 +50,28 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class FileRequirement extends Requirement<File> {
+  public abstract static class ParsedRequirement<T> extends Requirement<T> {
+
+    public ParsedRequirement(String key, String description, RequirementInputType type) {
+      super(description, type);
+      this.key = key;
+    }
+
+    public ParsedRequirement(String key, String description, Requirement.RequirementInputType type,
+                             T defaultValue) {
+      super(description, type, defaultValue);
+      this.key = key;
+    }
+
+    private final String key;
+
+    public String getKey() {
+      return key;
+    }
+
+  }
+
+  public static class FileRequirement extends ParsedRequirement<File> {
 
     public FileRequirement(String key, String description, File defaultValue) {
       super(key, description, Requirement.RequirementInputType.FILE, defaultValue);
@@ -74,7 +94,7 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class DirRequirement extends Requirement<File> {
+  public static class DirRequirement extends ParsedRequirement<File> {
 
     public DirRequirement(String key, String description, File defaultValue) {
       super(key, description, Requirement.RequirementInputType.DIR, defaultValue);
@@ -141,7 +161,7 @@ public abstract class Requirement<T> {
     }
   }
 
-  public static class ResourceRequirement extends Requirement<Resource> {
+  public static class ResourceRequirement extends ParsedRequirement<Resource> {
 
     private final Resource resource;
 
@@ -187,7 +207,7 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class BoolRequirement extends Requirement<Boolean> {
+  public static class BoolRequirement extends ParsedRequirement<Boolean> {
 
     public BoolRequirement(String key, String description, boolean defaultValue) {
       super(key, description, Requirement.RequirementInputType.BOOL, defaultValue);
@@ -219,7 +239,7 @@ public abstract class Requirement<T> {
     }
   }
 
-  public static class DoubleRequirement extends Requirement<Double> {
+  public static class DoubleRequirement extends ParsedRequirement<Double> {
 
     private final double min;
     private final double max;
@@ -250,7 +270,7 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class IntRequirement extends Requirement<Integer> {
+  public static class IntRequirement extends ParsedRequirement<Integer> {
 
     private final int min;
     private final int max;
@@ -288,7 +308,7 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class ListSelectionRequirement extends Requirement<Collection<String>> {
+  public static class ListSelectionRequirement extends ParsedRequirement<Collection<String>> {
 
     private static final char SELECTION_LIST_DELIM = ',';
     private static final Joiner SELECTION_LIST_JOINER = Joiner.on(SELECTION_LIST_DELIM);
@@ -330,7 +350,7 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class EnumRequirement<Y extends Enum<Y>> extends Requirement<Y> {
+  public static class EnumRequirement<Y extends Enum<Y>> extends ParsedRequirement<Y> {
 
     public EnumRequirement(String key, String description, Y defaultValue) {
       super(key, description, RequirementInputType.ENUM, defaultValue);
@@ -350,7 +370,7 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class ThresholdRequirement extends Requirement<String> {
+  public static class ThresholdRequirement extends ParsedRequirement<String> {
 
     public ThresholdRequirement(String key, String description, String defaultValue) {
       super(key, description, RequirementInputType.STRING, defaultValue);
@@ -384,7 +404,6 @@ public abstract class Requirement<T> {
     MEMORY, RUNTIME, MULTITHREADED
   }
 
-  private final String key;
   private final String description;
   private final Requirement.RequirementInputType type;
   private final T defaultValue;
@@ -393,8 +412,8 @@ public abstract class Requirement<T> {
    * @param description
    * @param type
    */
-  public Requirement(String key, String description, Requirement.RequirementInputType type) {
-    this(key, description, type, null);
+  public Requirement(String description, Requirement.RequirementInputType type) {
+    this(description, type, null);
   }
 
   /**
@@ -402,10 +421,8 @@ public abstract class Requirement<T> {
    * @param type
    * @param defaultValue
    */
-  public Requirement(String key, String description, Requirement.RequirementInputType type,
-                     T defaultValue) {
+  public Requirement(String description, Requirement.RequirementInputType type, T defaultValue) {
     super();
-    this.key = key;
     this.description = description;
     this.type = type;
     this.defaultValue = defaultValue != null ? defaultValue : null;
@@ -429,10 +446,6 @@ public abstract class Requirement<T> {
       // leave as -1.0
     }
     return valDou;
-  }
-
-  public String getKey() {
-    return key;
   }
 
   public String getDescription() {

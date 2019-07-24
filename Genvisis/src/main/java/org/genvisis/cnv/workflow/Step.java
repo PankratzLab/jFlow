@@ -10,7 +10,7 @@ import java.util.Set;
 import org.apache.commons.cli.ParseException;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
-import org.genvisis.cnv.workflow.Requirement.StepRequirement;
+import org.genvisis.cnv.workflow.Requirement.ParsedRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.gui.Task;
@@ -93,8 +93,9 @@ public abstract class Step {
     cli = new CLI(this.getClass());
     cli.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ, CLI.EXAMPLE_PROJ);
     for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
-      if (r instanceof StepRequirement) continue;
-      cli.addArg(r.getKey(), r.getDescription());
+      if (r instanceof ParsedRequirement) {
+        cli.addArg(((ParsedRequirement<?>) r).getKey(), r.getDescription());
+      }
     }
 
   }
@@ -202,9 +203,8 @@ public abstract class Step {
     Map<String, String> args = Maps.newHashMap();
     args.put(CLI.ARG_PROJ, proj.getPropertyFilename());
     for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
-      if (r instanceof StepRequirement) continue;
-      if (variables.hasValid(r)) {
-        args.put(r.getKey(), variables.getString(r));
+      if (r instanceof ParsedRequirement && variables.hasValid(r)) {
+        args.put(((ParsedRequirement<?>) r).getKey(), variables.getString(r));
       }
     }
     return CLI.formCmdLine(this.getClass(), args);
@@ -218,8 +218,9 @@ public abstract class Step {
     }
     Variables vars = new Variables();
     for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
-      if (r instanceof StepRequirement) continue;
-      vars.parseOrFail(r, cli.get(r.getKey()));
+      if (r instanceof ParsedRequirement) {
+        vars.parseOrFail(r, cli.get(((ParsedRequirement<?>) r).getKey()));
+      }
     }
     return vars;
   }
