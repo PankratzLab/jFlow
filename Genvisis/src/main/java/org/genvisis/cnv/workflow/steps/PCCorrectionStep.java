@@ -169,8 +169,8 @@ public class PCCorrectionStep extends Step {
   public static void main(String[] args) {
     Project proj = Step.parseProject(args);
     StepBuilder sb = new StepBuilder(proj);
-    Step samplesStep = sb.generateSamplesParsingStep(proj);
-    PCCorrectionStep step = sb.generatePCCorrectedProjectStep(proj, samplesStep);
+    Step samplesStep = sb.generateSamplesParsingStep();
+    PCCorrectionStep step = sb.generatePCCorrectedProjectStep(samplesStep);
     Variables variables = step.parseArguments(args);
     if (step.hasRequirements(ImmutableSet.of(step), ImmutableMap.of(step, variables))) {
       step.setNecessaryPreRunProperties(variables);
