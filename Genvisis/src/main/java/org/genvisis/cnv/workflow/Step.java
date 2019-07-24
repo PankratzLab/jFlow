@@ -2,21 +2,21 @@ package org.genvisis.cnv.workflow;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.cli.ParseException;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.workflow.Requirement.StepRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.common.Files;
 import org.pankratzlab.common.gui.Task;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public abstract class Step {
@@ -64,6 +64,7 @@ public abstract class Step {
   private final RequirementSet requirements;
   private final Set<Step> dependentSteps; // Not included in equality to prevent infinite recursion
   private final Set<Requirement.Flag> stepFlags;
+  private final CLI cli;
 
   /**
    * @param name displayed in the workflow
@@ -89,6 +90,13 @@ public abstract class Step {
         }
       }
     }
+    cli = new CLI(this.getClass());
+    cli.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ, CLI.EXAMPLE_PROJ);
+    for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
+      if (r instanceof StepRequirement) continue;
+      cli.addArg(r.getKey(), r.getDescription());
+    }
+
   }
 
   private void addDependent(Step step) {
@@ -191,32 +199,27 @@ public abstract class Step {
   public abstract String getCommandLine(Variables variables);
 
   public String getStepCommandLine(Project proj, Variables variables) {
-    StringBuilder builder = new StringBuilder(Files.getRunString());
-    builder.append(" ").append(this.getClass().getName());
-    builder.append(" ").append(CLI.ARG_PROJ).append("=").append(proj.getPropertyFilename());
+    Map<String, String> args = Maps.newHashMap();
+    args.put(CLI.ARG_PROJ, proj.getPropertyFilename());
     for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
       if (r instanceof StepRequirement) continue;
       if (variables.hasValid(r)) {
-        builder.append(" ").append(r.getKey()).append("=").append(variables.getString(r));
+        args.put(r.getKey(), variables.getString(r));
       }
     }
-    return builder.toString();
+    return CLI.formCmdLine(this.getClass(), args);
   }
 
   public Variables parseArguments(String[] args) {
+    try {
+      cli.parse(args);
+    } catch (ParseException e) {
+      throw new IllegalArgumentException(e);
+    }
     Variables vars = new Variables();
-    Map<String, Requirement<?>> reqMap = new HashMap<>();
     for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
       if (r instanceof StepRequirement) continue;
-      reqMap.put(r.getKey(), r);
-    }
-    for (String arg : args) {
-      String[] pts = arg.split("=");
-      if (pts[0].equals(CLI.ARG_PROJ)) continue;
-      if (!reqMap.containsKey(pts[0])) {
-        throw new IllegalArgumentException("Unrecognized argument: " + arg);
-      }
-      vars.parseOrFail(reqMap.get(pts[0]), pts[1]);
+      vars.parseOrFail(r, cli.get(r.getKey()));
     }
     return vars;
   }
