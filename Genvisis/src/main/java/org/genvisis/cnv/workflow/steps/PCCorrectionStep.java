@@ -41,8 +41,10 @@ public class PCCorrectionStep extends Step {
   final Requirement<Integer> numThreadsReq;
 
   public static PCCorrectionStep create(Project proj, Step parseSamplesStep,
+                                        SexChecksStep sexChecksStep,
                                         Requirement<Integer> numThreadsReq) {
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
+    final Requirement<Step> sexChecksStepReq = new Requirement.StepRequirement(sexChecksStep);
     final Requirement<Integer> numPCsReq = new Requirement.PosIntRequirement("numPCs",
                                                                              "Number of principal components for correction.",
                                                                              MitoPipeline.DEFAULT_NUM_COMPONENTS);
@@ -78,12 +80,14 @@ public class PCCorrectionStep extends Step {
                                                                                          "Create script with steps to process corrected data and call CNVs?",
                                                                                          false);
 
-    return new PCCorrectionStep(proj, parseSamplesStepReq, numPCsReq, outputBaseReq, callrateReq,
-                                recomputeLrrReq, tempDirReq, correctionStrategyReq,
-                                sexChromosomeStrategyReq, setupCNVCalling, numThreadsReq);
+    return new PCCorrectionStep(proj, parseSamplesStepReq, sexChecksStepReq, numPCsReq,
+                                outputBaseReq, callrateReq, recomputeLrrReq, tempDirReq,
+                                correctionStrategyReq, sexChromosomeStrategyReq, setupCNVCalling,
+                                numThreadsReq);
   }
 
   private static RequirementSet createReqSet(Requirement<Step> parseSamplesStepReq,
+                                             Requirement<Step> sexChecksStepReq,
                                              Requirement<Integer> numPCsReq,
                                              Requirement<File> outputBaseReq,
                                              Requirement<Double> callrateReq,
@@ -93,24 +97,25 @@ public class PCCorrectionStep extends Step {
                                              Requirement<CHROMOSOME_X_STRATEGY> sexChromosomeStrategyReq,
                                              Requirement<Boolean> setupCNVCalling,
                                              Requirement<Integer> numThreadsReq) {
-    return RequirementSetBuilder.and().add(parseSamplesStepReq).add(numPCsReq).add(outputBaseReq)
-                                .add(callrateReq).add(recomputeLrrReq).add(tempDirReq)
-                                .add(correctionStrategyReq).add(sexChromosomeStrategyReq)
-                                .add(numThreadsReq).add(setupCNVCalling);
+    return RequirementSetBuilder.and().add(parseSamplesStepReq).add(sexChecksStepReq).add(numPCsReq)
+                                .add(outputBaseReq).add(callrateReq).add(recomputeLrrReq)
+                                .add(tempDirReq).add(correctionStrategyReq)
+                                .add(sexChromosomeStrategyReq).add(numThreadsReq)
+                                .add(setupCNVCalling);
   }
 
   private PCCorrectionStep(Project proj, Requirement<Step> parseSamplesStepReq,
-                           Requirement<Integer> numPCsReq, Requirement<File> outputBaseReq,
-                           Requirement<Double> callrateReq, Requirement<Boolean> recomputeLrrReq,
-                           Requirement<File> tempDirReq,
+                           Requirement<Step> sexChecksStepReq, Requirement<Integer> numPCsReq,
+                           Requirement<File> outputBaseReq, Requirement<Double> callrateReq,
+                           Requirement<Boolean> recomputeLrrReq, Requirement<File> tempDirReq,
                            Requirement<CORRECTION_TYPE> correctionStrategyReq,
                            Requirement<CHROMOSOME_X_STRATEGY> sexChromosomeStrategyReq,
                            Requirement<Boolean> setupCNVCalling,
                            Requirement<Integer> numThreadsReq) {
     super(NAME, DESC,
-          createReqSet(parseSamplesStepReq, numPCsReq, outputBaseReq, callrateReq, recomputeLrrReq,
-                       tempDirReq, correctionStrategyReq, sexChromosomeStrategyReq, setupCNVCalling,
-                       numThreadsReq),
+          createReqSet(parseSamplesStepReq, sexChecksStepReq, numPCsReq, outputBaseReq, callrateReq,
+                       recomputeLrrReq, tempDirReq, correctionStrategyReq, sexChromosomeStrategyReq,
+                       setupCNVCalling, numThreadsReq),
           EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
                      Requirement.Flag.MULTITHREADED));
     this.proj = proj;
@@ -170,7 +175,11 @@ public class PCCorrectionStep extends Step {
     Project proj = Step.parseProject(args);
     StepBuilder sb = new StepBuilder(proj);
     Step samplesStep = sb.generateSamplesParsingStep();
-    PCCorrectionStep step = sb.generatePCCorrectedProjectStep(samplesStep);
+    SexChecksStep sexChecksStep = sb.generateSexChecksStep(sb.generateMarkerBlastStep(),
+                                                           sb.generateCreateSampleDataStep(samplesStep),
+                                                           sb.generateMarkersParsingStep(),
+                                                           sb.generateSampleQCStep(samplesStep));
+    PCCorrectionStep step = sb.generatePCCorrectedProjectStep(samplesStep, sexChecksStep);
     Variables variables = step.parseArguments(args);
     if (step.hasRequirements(ImmutableSet.of(step), ImmutableMap.of(step, variables))) {
       step.setNecessaryPreRunProperties(variables);

@@ -107,8 +107,9 @@ public class GenvisisWorkflow {
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(reverseTransposeStep);
     sb.generateMarkerQCStep(reverseTransposeStep);
-    sb.generateSexChecksStep(affyMarkerBlastStep, createSampleDataStep, reverseTransposeStep,
-                             sampleQCStep);
+    SexChecksStep sexChecksStep = sb.generateSexChecksStep(affyMarkerBlastStep,
+                                                           createSampleDataStep,
+                                                           reverseTransposeStep, sampleQCStep);
     sb.generateABLookupStep(reverseTransposeStep);
     PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(reverseTransposeStep);
     GwasQCStep gwasQCStep = sb.generateGwasQCStep(plinkExportStep);
@@ -121,7 +122,7 @@ public class GenvisisWorkflow {
     sb.generateSexCentroidsStep(pfbStep);
     sb.generateCNVStep(pfbStep, gcModelStep);
     if (!isPCCorrectedProject) {
-      sb.generatePCCorrectedProjectStep(reverseTransposeStep);
+      sb.generatePCCorrectedProjectStep(reverseTransposeStep, sexChecksStep);
     }
 
     return sb.getSortedSteps();
@@ -142,8 +143,9 @@ public class GenvisisWorkflow {
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(reverseTransposeStep);
     sb.generateMarkerQCStep(reverseTransposeStep);
-    sb.generateSexChecksStep(affyMarkerBlastStep, createSampleDataStep, reverseTransposeStep,
-                             sampleQCStep);
+    SexChecksStep sexChecksStep = sb.generateSexChecksStep(affyMarkerBlastStep,
+                                                           createSampleDataStep,
+                                                           reverseTransposeStep, sampleQCStep);
     sb.generateABLookupStep(reverseTransposeStep);
     PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(reverseTransposeStep);
     GwasQCStep gwasQCStep = sb.generateGwasQCStep(plinkExportStep);
@@ -156,7 +158,7 @@ public class GenvisisWorkflow {
     sb.generateSexCentroidsStep(pfbStep);
     sb.generateCNVStep(pfbStep, gcModelStep);
     if (!isPCCorrectedProject) {
-      sb.generatePCCorrectedProjectStep(reverseTransposeStep);
+      sb.generatePCCorrectedProjectStep(reverseTransposeStep, sexChecksStep);
     }
 
     return sb.getSortedSteps();
@@ -178,8 +180,9 @@ public class GenvisisWorkflow {
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(parseSamplesStep);
     sb.generateMarkerQCStep(parseSamplesStep);
-    sb.generateSexChecksStep(illumMarkerBlastStep, createSampleDataStep, transposeStep,
-                             sampleQCStep);
+    SexChecksStep sexChecksStep = sb.generateSexChecksStep(illumMarkerBlastStep,
+                                                           createSampleDataStep, transposeStep,
+                                                           sampleQCStep);
     sb.generateABLookupStep(parseSamplesStep);
     PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(parseSamplesStep);
     GwasQCStep gwasQCStep = sb.generateGwasQCStep(plinkExportStep);
@@ -191,7 +194,7 @@ public class GenvisisWorkflow {
     ComputePFBStep pfbStep = sb.generatePFBStep(parseSamplesStep);
     sb.generateSexCentroidsStep(pfbStep);
     sb.generateCNVStep(pfbStep, gcModelStep);
-    sb.generatePCCorrectedProjectStep(parseSamplesStep);
+    sb.generatePCCorrectedProjectStep(parseSamplesStep, sexChecksStep);
 
     return sb.getSortedSteps();
   }

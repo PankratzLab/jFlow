@@ -149,16 +149,10 @@ public class StepBuilder {
                                                                                                   numThreadsReq));
   }
 
-  SampleDataStep generateCreateSampleDataStep(ReverseTransposeTarget reverseTransposeTarget) {
+  public SampleDataStep generateCreateSampleDataStep(Step samplesParsingStep) {
     return stepInstanceMap.containsKey(SampleDataStep.class) ? stepInstanceMap.getInstance(SampleDataStep.class)
                                                              : register(SampleDataStep.create(proj,
-                                                                                              reverseTransposeTarget));
-  }
-
-  SampleDataStep generateCreateSampleDataStep(ParseSamplesStep parseSamplesStep) {
-    return stepInstanceMap.containsKey(SampleDataStep.class) ? stepInstanceMap.getInstance(SampleDataStep.class)
-                                                             : register(SampleDataStep.create(proj,
-                                                                                              parseSamplesStep));
+                                                                                              samplesParsingStep));
   }
 
   ReverseTransposeTarget generateReverseTransposeStep(Step parseAffyCELs) {
@@ -178,7 +172,7 @@ public class StepBuilder {
                                                           : register(GCModelStep.create(proj));
   }
 
-  SampleQCStep generateSampleQCStep(Step parseSamplesStep) {
+  public SampleQCStep generateSampleQCStep(Step parseSamplesStep) {
     return stepInstanceMap.containsKey(SampleQCStep.class) ? stepInstanceMap.getInstance(SampleQCStep.class)
                                                            : register(SampleQCStep.create(proj,
                                                                                           parseSamplesStep,
@@ -301,10 +295,12 @@ public class StepBuilder {
                                                                                           numThreadsReq));
   }
 
-  public PCCorrectionStep generatePCCorrectedProjectStep(Step parseSamplesStep) {
+  public PCCorrectionStep generatePCCorrectedProjectStep(Step parseSamplesStep,
+                                                         SexChecksStep sexChecksStep) {
     return stepInstanceMap.containsKey(PCCorrectionStep.class) ? stepInstanceMap.getInstance(PCCorrectionStep.class)
                                                                : register(PCCorrectionStep.create(proj,
                                                                                                   parseSamplesStep,
+                                                                                                  sexChecksStep,
                                                                                                   numThreadsReq));
   }
 
@@ -318,6 +314,25 @@ public class StepBuilder {
     return stepInstanceMap.containsKey(ABLookupStep.class) ? stepInstanceMap.getInstance(ABLookupStep.class)
                                                            : register(ABLookupStep.create(proj,
                                                                                           reverseTransposeStep));
+  }
+
+  public Step generateMarkersParsingStep() {
+    switch (proj.getArrayType()) {
+      case AFFY_AXIOM:
+        return generateAxiomCELProcessingStep();
+      case AFFY_GW6:
+      case AFFY_GW6_CN:
+        return generateAffyCELProcessingStep();
+      case ILLUMINA:
+        IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
+        ParseSamplesStep parseSamplesStep = generateParseSamplesStep(markerPositions);
+        return generateTransposeStep(parseSamplesStep);
+      case NGS:
+      default:
+        throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
+                                                + proj.getArrayType() + ".");
+    }
+
   }
 
   public Step generateSamplesParsingStep() {
