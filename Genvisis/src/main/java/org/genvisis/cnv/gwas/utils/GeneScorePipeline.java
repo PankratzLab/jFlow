@@ -2407,6 +2407,7 @@ public class GeneScorePipeline {
     commands = new ArrayList<>();
     commands.add("cd " + prefDir.getAbsolutePath());
     if (rLibsDir != null) {
+      commands.add("export R_LIBS=" + rLibsDir);
       commands.add("export R_LIBS_SITE=" + rLibsDir);
     } else {
       log.reportTime("No R library directory specified, MendelianRandomization library will be installed if not present in default R library directory.");
