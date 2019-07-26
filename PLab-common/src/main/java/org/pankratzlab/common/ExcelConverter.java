@@ -10,8 +10,8 @@ import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 /**
  * Mainly to consolidate files into a single excel workbook, likely more options to
@@ -52,10 +52,10 @@ public class ExcelConverter {
     if (!Files.exists(output) || overwrite) {
       new File(ext.parseDirectoryOfFile(output)).mkdirs();
       try {
-        XSSFWorkbook workbook = new XSSFWorkbook();
+        SXSSFWorkbook workbook = new SXSSFWorkbook(10000);
         for (ExcelConversionParams fileParams : files) {
           try {
-            XSSFSheet sheet = workbook.createSheet(fileParams.getSheetName());
+            SXSSFSheet sheet = workbook.createSheet(fileParams.getSheetName());
             try {
               BufferedReader reader = Files.getAppropriateReader(fileParams.getFile());
               int rownum = 0;
