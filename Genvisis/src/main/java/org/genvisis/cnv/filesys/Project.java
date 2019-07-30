@@ -397,8 +397,8 @@ public class Project implements PropertyChangeListener {
                                                                          "data/custom.cent", false);
   public final FileProperty FILTERED_MARKERS_FILENAME = new FileProperty(this,
                                                                          PropertyKeys.KEY_FILTERED_MARKERS_FILENAME,
-                                                                         "", GROUP.DATA_EXPORT,
-                                                                         true, COPY.NO_COPY,
+                                                                         "", GROUP.GLOBAL, true,
+                                                                         COPY.NO_COPY,
                                                                          "data/drops.dat", false);
   public final FileProperty PEDIGREE_FILENAME = new FileProperty(this,
                                                                  PropertyKeys.KEY_PEDIGREE_FILENAME,
