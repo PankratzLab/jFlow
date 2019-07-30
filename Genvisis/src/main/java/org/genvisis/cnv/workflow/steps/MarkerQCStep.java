@@ -89,6 +89,7 @@ public class MarkerQCStep extends Step {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     Set<String> batchHeaders = ImmutableSet.copyOf(variables.get(batchHeadersReq));
     MarkerMetrics.fullQC(proj, samplesToExclude, tgtFile, true, batchHeaders, numThreads);
+    MarkerMetrics.filterMetrics(proj);
   }
 
   @Override
