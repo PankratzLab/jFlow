@@ -26,7 +26,7 @@ public class MosaicArmsStep extends Step {
   }
 
   final Project proj;
-  public static final String NAME = "Create Mosaic Arms File";
+  public static final String NAME = "Identify Mosaic Chromosomal Arms";
   public static final String DESC = "";
 
   private MosaicArmsStep(Project proj, Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
