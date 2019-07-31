@@ -2384,7 +2384,7 @@ public class GeneScorePipeline {
   private String writeMRRScript(File prefDir, String pheno) {
 
     List<String> commands = new ArrayList<>();
-    commands.add("setwd(\"" + prefDir.getAbsolutePath() + "\")");
+    commands.add("setwd(\"" + ext.verifyDirFormat(prefDir.getAbsolutePath()) + "\")");
     commands.add("if (!require(MendelianRandomization)) {");
     commands.add("  install.packages(\"MendelianRandomization\")");
     commands.add("}");
