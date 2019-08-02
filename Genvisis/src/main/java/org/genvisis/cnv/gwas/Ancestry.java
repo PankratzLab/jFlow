@@ -143,9 +143,9 @@ public class Ancestry {
     new File(homoHapMapDir).mkdirs();
     String cleanPutativeWhitesFile = validatePutativeWhites(proj, projectPlinkRoot + PSF.Plink.FAM,
                                                             putativeWhitesFile, log);
-    CmdLine.runDefaults("plink2 --bfile " + projectPlinkRoot + " --keep " + cleanPutativeWhitesFile
+    CmdLine.runDefaults("plink --bfile " + projectPlinkRoot + " --keep " + cleanPutativeWhitesFile
                         + " --hardy", homoProjDir, log);
-    CmdLine.runDefaults("plink2 --bfile " + hapMapPlinkRoot + " --keep "
+    CmdLine.runDefaults("plink --bfile " + hapMapPlinkRoot + " --keep "
                         + ext.parseDirectoryOfFile(hapMapPlinkRoot) + "CEUFounders.txt --hardy",
                         homoHapMapDir, log);
 
@@ -202,7 +202,7 @@ public class Ancestry {
     String srcData = "plink";
     if (lookup != null) {
       log.report(ext.getTime() + "]\tRenaming snps using lookup file: " + snpIDLookupFile);
-      CmdLine.runDefaults("plink2 --bfile plink --update-name " + snpIDLookupFile
+      CmdLine.runDefaults("plink --bfile plink --update-name " + snpIDLookupFile
                           + " --make-bed --allow-no-sex --out plinkRenamed --noweb", dir, log);
       srcData = "plinkRenamed";
     }
@@ -216,7 +216,7 @@ public class Ancestry {
 
     if (!Files.exists(dir + "unambiguousHapMap.bed")) {
       log.report(ext.getTime() + "]\tExtracting unambiguous SNPs for HapMap founders");
-      CmdLine.runDefaults("plink2 --bfile " + hapMapPlinkRoot + " --extract "
+      CmdLine.runDefaults("plink --bfile " + hapMapPlinkRoot + " --extract "
                           + PLINK_BIM_UNAMBIGUOUS_TXT
                           + " --make-bed --allow-no-sex --out unambiguousHapMap --noweb", dir, log);
     }
@@ -234,7 +234,7 @@ public class Ancestry {
 
     if (!Files.exists(dir + "unambiguous.bed")) {
       log.report(ext.getTime() + "]\tExtracting overlapping SNPs for study samples");
-      CmdLine.runDefaults("plink2 --bfile " + srcData
+      CmdLine.runDefaults("plink --bfile " + srcData
                           + " --extract overlap.txt --make-bed --allow-no-sex --out unambiguous --noweb",
                           dir, log);
     }
@@ -251,7 +251,7 @@ public class Ancestry {
       }
       log.report(ext.getTime() + "]\tChecking for flipped alleles");
       new File(dir + "combo.missnp").renameTo(new File(dir + "combo.1.missnp"));
-      CmdLine.runDefaults("plink2 --bfile unambiguous --flip combo.1.missnp --make-bed --allow-no-sex --out unambiguousFlipped --noweb",
+      CmdLine.runDefaults("plink --bfile unambiguous --flip combo.1.missnp --make-bed --allow-no-sex --out unambiguousFlipped --noweb",
                           dir, log);
       CmdLine.runDefaults("plink --bfile unambiguousFlipped --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --allow-no-sex --out combo --noweb",
                           dir, log);
@@ -261,9 +261,9 @@ public class Ancestry {
         }
         log.report(ext.getTime() + "]\tDropping SNPs that cannot be resolved by flipping alleles");
         new File(dir + "combo.missnp").renameTo(new File(dir + "combo.2.missnp"));
-        CmdLine.runDefaults("plink2 --bfile unambiguousFlipped --exclude combo.2.missnp --make-bed --allow-no-sex --out unambiguousFlippedDropped --noweb",
+        CmdLine.runDefaults("plink --bfile unambiguousFlipped --exclude combo.2.missnp --make-bed --allow-no-sex --out unambiguousFlippedDropped --noweb",
                             dir, log);
-        CmdLine.runDefaults("plink2 --bfile unambiguousHapMap --exclude combo.2.missnp --make-bed --allow-no-sex --out unambiguousDroppedHapMap --noweb",
+        CmdLine.runDefaults("plink --bfile unambiguousHapMap --exclude combo.2.missnp --make-bed --allow-no-sex --out unambiguousDroppedHapMap --noweb",
                             dir, log);
         CmdLine.runDefaults("plink --bfile unambiguousFlippedDropped --bmerge unambiguousDroppedHapMap.bed unambiguousDroppedHapMap.bim unambiguousDroppedHapMap.fam --make-bed --allow-no-sex --out combo --noweb",
                             dir, log);
@@ -299,7 +299,7 @@ public class Ancestry {
     if (!Files.exists(unrelatedsDir + "plink.bed")) {
       log.report(ext.getTime() + "]\tGenerating PLINK files based on combined "
                  + RelationAncestryQc.UNRELATEDS_FILENAME);
-      CmdLine.runDefaults("plink2 --bfile ../combo --keep " + RelationAncestryQc.UNRELATEDS_FILENAME
+      CmdLine.runDefaults("plink --bfile ../combo --keep " + RelationAncestryQc.UNRELATEDS_FILENAME
                           + " --make-bed --allow-no-sex --noweb", unrelatedsDir, log);
     }
 
