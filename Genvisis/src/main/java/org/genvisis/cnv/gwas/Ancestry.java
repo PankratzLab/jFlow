@@ -241,7 +241,7 @@ public class Ancestry {
 
     if (!Files.exists(dir + "combo.missnp")) {
       log.report(ext.getTime() + "]\tMerging study data and HapMap data for overlapping SNPs");
-      CmdLine.runDefaults("plink --bfile unambiguous --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --out combo --noweb",
+      CmdLine.runDefaults("plink --bfile unambiguous --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --out combo --noweb",
                           dir, log);
     }
 
