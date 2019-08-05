@@ -86,8 +86,8 @@ public class AncestryStep extends Step {
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
     File f = variables.get(snpIDLookupReq);
     String snpIDFile = f == null || f.getPath().equals("") ? null : f.getAbsolutePath();
-    Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, snpIDFile, proj,
-                         new Logger(ancestryDir + "ancestry.log"));
+    new Ancestry(ancestryDir).runPipeline(putativeWhites, hapMapPlinkRoot, snpIDFile, proj,
+                                          new Logger(ancestryDir + "ancestry.log"));
   }
 
   @Override

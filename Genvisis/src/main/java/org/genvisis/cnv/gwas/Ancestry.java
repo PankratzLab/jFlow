@@ -58,8 +58,15 @@ public class Ancestry {
     CEU, YRI, CHB, JPT;
   }
 
-  private static Project createDummyProject(String dir, String dummyProjectPrefix,
-                                            String putativeWhitesFile, Logger log) {
+  private final String dir;
+
+  public Ancestry(String dir) {
+    super();
+    this.dir = new File(ext.verifyDirFormat(dir)).getAbsolutePath();
+  }
+
+  private Project createDummyProject(String dummyProjectPrefix, String putativeWhitesFile,
+                                     Logger log) {
     String projectName = dummyProjectPrefix + "_AncestryResults";
     Project dummyProject = Project.initializeProject(projectName, dir);
 
@@ -85,9 +92,8 @@ public class Ancestry {
     return dummyProject;
   }
 
-  private static void maybeAddHapMapToSampleData(Project proj,
-                                                 SampleData.ClassHeader hapMapClassHeader,
-                                                 Table<String, String, HapMapPopulation> hapmaps) {
+  private void maybeAddHapMapToSampleData(Project proj, SampleData.ClassHeader hapMapClassHeader,
+                                          Table<String, String, HapMapPopulation> hapmaps) {
     if (!proj.getSampleData(false).hasClass(HAPMAP_CLASS_NAME)) {
       String[] hapMapColumnHeaders = new String[] {"FID", "IID", "DNA",
                                                    hapMapClassHeader.toString()};
@@ -106,24 +112,24 @@ public class Ancestry {
     }
   }
 
-  public static void runPipeline(String dir, String putativeWhitesFile, String hapMapPlinkRoot,
-                                 String snpRSIDLookupFile, Project proj, Logger log) {
+  public void runPipeline(String putativeWhitesFile, String hapMapPlinkRoot,
+                          String snpRSIDLookupFile, Project proj, Logger log) {
     if (hapMapPlinkRoot == null) {
       hapMapPlinkRoot = DEFAULT_HAPMAP_PLINKROOT;
     }
     if (!Files.exists(dir + "homogeneity/" + MergeDatasets.CHI_SQUARE_DROPS_FILENAME)
         && Files.list(dir + "homogeneity/", ".Rout").length == 0) {
       log.report("Running homogeneity checks...");
-      checkHomogeneity(dir, putativeWhitesFile, dir + "plink", hapMapPlinkRoot, proj, log);
+      checkHomogeneity(putativeWhitesFile, dir + "plink", hapMapPlinkRoot, proj, log);
     }
-    String homogeneityDrops = parseHomogeneity(dir, log);
-    mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile, log);
-    runPCA(dir, DEFAULT_NUM_COMPONENTS_ANCESTRY, log);
-    imputeRaceFromPCA(dir, proj, log);
+    String homogeneityDrops = parseHomogeneity(log);
+    mergeHapMap(dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile, log);
+    runPCA(DEFAULT_NUM_COMPONENTS_ANCESTRY, log);
+    imputeRaceFromPCA(proj, log);
   }
 
-  private static void runPCA(String dir, int numComps, Logger log) {
-    setupAncestry(dir);
+  private void runPCA(int numComps, Logger log) {
+    setupAncestry();
     AncestryPCA ancestryPCA = AncestryPCA.generatePCs(new PlinkDataMatrixLoader(dir,
                                                                                 "unrelateds/plink",
                                                                                 log),
@@ -133,9 +139,8 @@ public class Ancestry {
                .dumpToText(dir + PCA_OUTPUT_NAME, "FID\tIID", log);
   }
 
-  private static void checkHomogeneity(String dir, String putativeWhitesFile,
-                                       String projectPlinkRoot, String hapMapPlinkRoot,
-                                       @Nullable Project proj, Logger log) {
+  private void checkHomogeneity(String putativeWhitesFile, String projectPlinkRoot,
+                                String hapMapPlinkRoot, @Nullable Project proj, Logger log) {
     String homoDir = dir + "homogeneity/";
     String homoProjDir = homoDir + ext.removeDirectoryInfo(projectPlinkRoot) + "/";
     String homoHapMapDir = homoDir + ext.removeDirectoryInfo(hapMapPlinkRoot) + "/";
@@ -152,8 +157,8 @@ public class Ancestry {
     MergeDatasets.checkForHomogeneity(homoDir, null, null, "UNAFF", log);
   }
 
-  private static String validatePutativeWhites(@Nullable Project proj, String projFamFile,
-                                               String putativeWhitesFile, Logger log) {
+  private String validatePutativeWhites(@Nullable Project proj, String projFamFile,
+                                        String putativeWhitesFile, Logger log) {
     if (proj == null) return putativeWhitesFile;
     PlinkData.ExportIDScheme projIDScheme = PlinkData.detectExportIDScheme(proj, projFamFile);
     if (projIDScheme == null) {
@@ -170,7 +175,7 @@ public class Ancestry {
     return cleanPutativeWhitesFile;
   }
 
-  private static String parseHomogeneity(String dir, Logger log) {
+  private String parseHomogeneity(Logger log) {
     int rOuts = Files.list(dir + "homogeneity/", ".Rout").length;
     if (rOuts == 0) {
       log.report("No Fisher's Exact results found, using Chi Square to choose homogeneous markers");
@@ -180,8 +185,8 @@ public class Ancestry {
     return dir + "homogeneity/" + MergeDatasets.FISHER_OR_CHI_SQUARE_DROPS_FILENAME;
   }
 
-  private static void mergeHapMap(String dir, String projectPlinkRoot, String hapMapPlinkRoot,
-                                  String dropMarkersFile, String snpIDLookupFile, Logger log) {
+  private void mergeHapMap(String projectPlinkRoot, String hapMapPlinkRoot, String dropMarkersFile,
+                           String snpIDLookupFile, Logger log) {
     if (!Files.exists(dir + RelationAncestryQc.UNRELATEDS_FILENAME)) {
       log.reportError("Error - need a file called " + RelationAncestryQc.UNRELATEDS_FILENAME
                       + " with FID and IID pairs before we can proceed");
@@ -277,10 +282,9 @@ public class Ancestry {
     }
   }
 
-  private static void setupAncestry(String dir) {
+  private void setupAncestry() {
     Logger log;
 
-    dir = ext.verifyDirFormat(dir);
     log = new Logger(dir + "ancestry.log");
 
     String unrelatedsDir = dir + "unrelateds/";
@@ -305,7 +309,7 @@ public class Ancestry {
 
   }
 
-  private static void imputeRaceFromPCA(String dir, @Nullable Project proj, Logger log) {
+  private void imputeRaceFromPCA(@Nullable Project proj, Logger log) {
     if (!Files.exists(dir + RACE_IMPUTATIONS_FILENAME)) {
       Table<String, String, HapMapPopulation> fidIidHapMapPopTable = parseHapMapAncestries(proj,
                                                                                            log);
@@ -386,8 +390,8 @@ public class Ancestry {
 
   }
 
-  private static Table<String, String, HapMapPopulation> parseHapMapAncestries(@Nullable Project proj,
-                                                                               Logger log) {
+  private Table<String, String, HapMapPopulation> parseHapMapAncestries(@Nullable Project proj,
+                                                                        Logger log) {
     String hapMapAncestries = Resources.hapMap(log).getHapMapAncestries().get();
     if (hapMapAncestries == null) {
       log.reportError("Cannot impute race without the HapMap ancestries resource");
@@ -533,22 +537,23 @@ public class Ancestry {
     } else {
       log = new Logger(logfile);
     }
+    Ancestry ancestry = new Ancestry(dir);
     if (proj == null && dummyProjectPrefix != null) {
-      proj = createDummyProject(ext.verifyDirFormat(new File(dir).getAbsolutePath()),
-                                dummyProjectPrefix, putativeWhites, log);
+      proj = ancestry.createDummyProject(dummyProjectPrefix, putativeWhites, log);
     }
     try {
       dir = new File(dir).getAbsolutePath() + File.separator;
       if (runPipeline && putativeWhites != null) {
-        runPipeline(dir, putativeWhites, hapMapPlinkRoot, snpRSIDLookupFile, proj, log);
+        ancestry.runPipeline(putativeWhites, hapMapPlinkRoot, snpRSIDLookupFile, proj, log);
       } else if (checkHomo && putativeWhites != null) {
-        checkHomogeneity(dir, putativeWhites, dir + "plink", hapMapPlinkRoot, proj, log);
+        ancestry.checkHomogeneity(putativeWhites, dir + "plink", hapMapPlinkRoot, proj, log);
       } else if (run) {
-        String homogeneityDrops = parseHomogeneity(dir, log);
-        mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile, log);
-        runPCA(dir, DEFAULT_NUM_COMPONENTS_ANCESTRY, log);
+        String homogeneityDrops = ancestry.parseHomogeneity(log);
+        ancestry.mergeHapMap(dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile,
+                             log);
+        ancestry.runPCA(DEFAULT_NUM_COMPONENTS_ANCESTRY, log);
       } else if (imputeRace) {
-        imputeRaceFromPCA(dir, proj, log);
+        ancestry.imputeRaceFromPCA(proj, log);
       } else {
         System.err.println(usage);
         System.exit(1);
