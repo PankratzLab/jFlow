@@ -425,6 +425,25 @@ public abstract class Requirement<T> {
 
   }
 
+  public static class ProgramRequirement extends ParsedRequirement<String> {
+
+    public ProgramRequirement(String key, String description, String defaultValue) {
+      super(key, description, Requirement.RequirementInputType.FILE, defaultValue);
+    }
+
+    @Override
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
+                                    Map<Step, Variables> variables) {
+      return Files.programExists(arg);
+    }
+
+    @Override
+    public String parseValue(String raw) {
+      return raw;
+    }
+
+  }
+
   public enum RequirementInputType {
     FILE, DIR, STRING, NUMBER, BOOL, ENUM, LISTSELECTION
   }

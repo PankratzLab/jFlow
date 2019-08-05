@@ -62,6 +62,7 @@ public class FurtherAnalysisQc extends Qc {
   /**
    * @param sourceDir @see Qc#Qc(String, String, Map, Logger)
    * @param plinkPrefix @see Qc#Qc(String, String, Map, Logger)
+   * @param plinkExe path to plink executable (or null for default)
    * @param markerQCThresholds @see Qc#Qc(String, String, Map, Logger)
    * @param unrelatedsFile filename of list of unrelated FID/IID pairs to use for marker QC,
    *          {@code null} to use all samples
@@ -69,10 +70,10 @@ public class FurtherAnalysisQc extends Qc {
    *          tests, {@code null} to use all unrelateds
    * @param log @see Qc#Qc(String, String, Map, Logger)
    */
-  public FurtherAnalysisQc(String sourceDir, String plinkPrefix,
+  public FurtherAnalysisQc(String sourceDir, String plinkPrefix, String plinkExe,
                            Map<QcMetric, String> markerQCThresholds, String unrelatedsFile,
                            String europeansFile, Logger log) {
-    super(sourceDir, plinkPrefix, markerQCThresholds, log);
+    super(sourceDir, plinkPrefix, plinkExe, markerQCThresholds, log);
     this.unrelatedsFile = unrelatedsFile;
     this.europeansFile = europeansFile;
   }
@@ -84,7 +85,7 @@ public class FurtherAnalysisQc extends Qc {
     final String markerDrops = qcDir + subDir + MARKER_QC_DROPS;
     final String plinkQCd = qcDir + subDir + plinkroot
                             + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
-    List<String> applyQCCommand = ImmutableList.of("plink2", "--noweb", "--bfile", sourcePlink,
+    List<String> applyQCCommand = ImmutableList.of(plinkExe, "--noweb", "--bfile", sourcePlink,
                                                    "--exclude", markerDrops, "--mind", "0.05",
                                                    "--make-bed", "--out", plinkQCd);
     Set<String> requiredInputs = PSF.Plink.getPlinkBedBimFamSet(sourcePlink);
@@ -128,6 +129,7 @@ public class FurtherAnalysisQc extends Qc {
     CLI c = new CLI(FurtherAnalysisQc.class);
     c.addArgWithDefault(CLI.ARG_INDIR, "directory with binary plink dataset", "./");
     c.addArgWithDefault(CLI.ARG_PLINKROOT, CLI.DESC_PLINKROOT, Qc.DEFAULT_PLINKROOT);
+    c.addArgWithDefault(CLI.ARG_PLINK_EXE, CLI.DESC_PLINK_EXE, CLI.DEF_PLINK_EXE);
     c.addArg(ARG_UNRELATEDS,
              "file of unrelated samples to use for marker QC, one FID/IID pair per line",
              "unrelateds.txt");
@@ -145,6 +147,7 @@ public class FurtherAnalysisQc extends Qc {
 
     String dir = c.get(CLI.ARG_INDIR);
     String inputPlinkroot = c.get(CLI.ARG_PLINKROOT);
+    String plinkExe = c.get(CLI.ARG_PLINK_EXE);
     String unrelatedsFile = c.get(ARG_UNRELATEDS);
     if (unrelatedsFile != null) {
       unrelatedsFile = new File(unrelatedsFile).getAbsolutePath();
@@ -160,8 +163,8 @@ public class FurtherAnalysisQc extends Qc {
     Logger log = new Logger(dir + c.get(CLI.ARG_LOG));
 
     try {
-      new FurtherAnalysisQc(dir, inputPlinkroot, markerQCThresholds, unrelatedsFile, europeansFile,
-                            log).runFurtherAnalysisQC();
+      new FurtherAnalysisQc(dir, inputPlinkroot, plinkExe, markerQCThresholds, unrelatedsFile,
+                            europeansFile, log).runFurtherAnalysisQC();
     } catch (Exception e) {
       e.printStackTrace();
     }

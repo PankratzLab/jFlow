@@ -488,7 +488,7 @@ public class GCTA {
     // the autosomal SNPs using the method we recently developed4,10, and
     // excluded one of each pair of individuals with an estimated genetic
     // relationship > 0.025.
-    RelationAncestryQc.fullGamut(outDir, "gcta", false, proj.getLog());
+    RelationAncestryQc.fullGamut(outDir, "gcta", null, false, proj.getLog());
     String plinkInput = outDir + Qc.QC_SUBDIR + RelationAncestryQc.LD_PRUNING_DIR + "gcta";
 
     // ArrayList<GRM> grms = splitRunGCTA(outDir +

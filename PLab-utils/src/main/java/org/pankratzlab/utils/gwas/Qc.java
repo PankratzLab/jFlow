@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
@@ -23,18 +24,20 @@ public abstract class Qc {
   protected final String sourceDir;
   protected final String qcDir;
   protected final String plinkroot;
+  protected final String plinkExe;
   protected final Logger log;
   protected final Map<QcMetric, String> markerQCThresholds;
 
   /**
    * @param sourceDir Directory with plink files to run from
    * @param plinkPrefix prefix of plink binaries
+   * @param plinkExe path to plink executable (or null for default)
    * @param markerQCThresholds thresholds to apply for each desired marker QC metric, {@code null}
    *          for defaults
    * @param log
    */
-  protected Qc(String sourceDir, String plinkPrefix, Map<QcMetric, String> markerQCThresholds,
-               Logger log) {
+  protected Qc(String sourceDir, String plinkPrefix, String plinkExe,
+               Map<QcMetric, String> markerQCThresholds, Logger log) {
     super();
     sourceDir = ext.verifyDirFormat(sourceDir);
     if (!sourceDir.startsWith("/") && !sourceDir.contains(":")) {
@@ -43,6 +46,7 @@ public abstract class Qc {
     this.sourceDir = sourceDir;
     this.qcDir = sourceDir + QC_SUBDIR;
     this.plinkroot = plinkPrefix == null ? DEFAULT_PLINKROOT : plinkPrefix;
+    this.plinkExe = plinkExe == null ? CLI.DEF_PLINK_EXE : plinkExe;
     this.markerQCThresholds = markerQCThresholds == null ? MarkerQC.DEFAULT_METRIC_THRESHOLDS
                                                          : markerQCThresholds;
     this.log = log;
@@ -52,7 +56,7 @@ public abstract class Qc {
     new File(qcDir + subDir).mkdirs();
     String inRoot = sourceDir + plinkroot;
     String outRoot = qcDir + subDir + plinkroot;
-    List<String> commands = Lists.newArrayList("plink2", "--noweb", "--bfile", inRoot, "--make-bed",
+    List<String> commands = Lists.newArrayList(plinkExe, "--noweb", "--bfile", inRoot, "--make-bed",
                                                "--out", outRoot);
     if (sampleSubsetFile != null) {
       commands.add("--keep");
@@ -64,7 +68,7 @@ public abstract class Qc {
   }
 
   private boolean runHWE(String subDir, String mind10, String hweSampleSubsetFile) {
-    List<String> commands = Lists.newArrayList("plink2", "--bfile", mind10, "--geno", "1", "--mind",
+    List<String> commands = Lists.newArrayList(plinkExe, "--bfile", mind10, "--geno", "1", "--mind",
                                                "1", "--hardy", "--out", "hardy", "--noweb");
     if (hweSampleSubsetFile != null) {
       commands.add("--keep");
@@ -90,40 +94,42 @@ public abstract class Qc {
     String geno20 = plinkroot + "_geno20";
     if (!Files.exists(qcDir + subDir + geno20 + ".bed")) {
       log.report(ext.getTime() + "]\tRunning --geno 0.2");
-      CmdLine.runDefaults("plink2 --bfile " + plinkroot + " --geno 0.2 --make-bed --noweb --out ./"
-                          + geno20, qcDir + subDir, log);
+      CmdLine.runDefaults(plinkExe + " --bfile " + plinkroot
+                          + " --geno 0.2 --make-bed --noweb --out ./" + geno20, qcDir + subDir,
+                          log);
     }
     PSF.checkInterrupted();
     String geno20mind10 = geno20 + "_mind10";
     if (!Files.exists(qcDir + subDir + geno20mind10 + ".bed")) {
       log.report(ext.getTime() + "]\tRunning --mind 0.1");
-      CmdLine.runDefaults("plink2 --bfile " + geno20 + " --mind 0.1 --make-bed --noweb --out ./"
-                          + geno20mind10, qcDir + subDir, log);
+      CmdLine.runDefaults(plinkExe + " --bfile " + geno20
+                          + " --mind 0.1 --make-bed --noweb --out ./" + geno20mind10,
+                          qcDir + subDir, log);
     }
     PSF.checkInterrupted();
     String mind10 = plinkroot + "_mind10";
     if (!Files.exists(qcDir + subDir + mind10 + ".bed")) {
       log.report(ext.getTime() + "]\tRemoving trimmed samples from --mind 0.1");
-      CmdLine.runDefaults("plink2 --bfile " + plinkroot + " --keep " + geno20mind10
+      CmdLine.runDefaults(plinkExe + " --bfile " + plinkroot + " --keep " + geno20mind10
                           + ".fam --make-bed --noweb --out ./" + mind10, qcDir + subDir, log);
     }
     PSF.checkInterrupted();
     if (!Files.exists(qcDir + subDir + "freq.frq")) {
       log.report(ext.getTime() + "]\tRunning --freq");
-      CmdLine.runDefaults("plink2 --bfile " + mind10
+      CmdLine.runDefaults(plinkExe + " --bfile " + mind10
                           + " --geno 1 --mind 1 --freq --out freq --noweb", qcDir + subDir, log);
     }
     PSF.checkInterrupted();
     if (!Files.exists(qcDir + subDir + "missing.imiss")) {
       log.report(ext.getTime() + "]\tRunning --missing");
-      CmdLine.runDefaults("plink2 --bfile " + mind10
+      CmdLine.runDefaults(plinkExe + " --bfile " + mind10
                           + " --geno 1 --mind 1 --missing --out missing --noweb", qcDir + subDir,
                           log);
     }
     PSF.checkInterrupted();
     if (!Files.exists(qcDir + subDir + "test.missing.missing")) {
       log.report(ext.getTime() + "]\tRunning --test-missing");
-      CmdLine.runDefaults("plink2 --bfile " + mind10
+      CmdLine.runDefaults(plinkExe + " --bfile " + mind10
                           + " --geno 1 --mind 1 --test-missing --out test.missing --noweb",
                           qcDir + subDir, log);
     }
@@ -132,20 +138,20 @@ public abstract class Qc {
     PSF.checkInterrupted();
     if (!Files.exists(qcDir + subDir + "mishap.missing.hap")) {
       log.report(ext.getTime() + "]\tRunning --test-mishap");
-      CmdLine.runDefaults("plink2 --bfile " + geno20mind10
+      CmdLine.runDefaults(plinkExe + " --bfile " + geno20mind10
                           + " --geno 1 --mind 1 --test-mishap --out mishap --noweb", qcDir + subDir,
                           log);
     }
     PSF.checkInterrupted();
     if (!Files.exists(qcDir + subDir + "gender.assoc")) {
       log.report(ext.getTime() + "]\tRunning --assoc gender");
-      CmdLine.runDefaults("plink2 --bfile " + mind10 + " --geno 1 --mind 1 --pheno " + mind10
+      CmdLine.runDefaults(plinkExe + " --bfile " + mind10 + " --geno 1 --mind 1 --pheno " + mind10
                           + ".fam --mpheno 3 --assoc --out gender --noweb", qcDir + subDir, log);
     }
     PSF.checkInterrupted();
     if (!Files.exists(qcDir + subDir + "gender.missing")) {
       log.report(ext.getTime() + "]\tRunning --test-missing gender");
-      CmdLine.runDefaults("plink2 --bfile " + mind10 + " --geno 1 --mind 1 --pheno " + mind10
+      CmdLine.runDefaults(plinkExe + " --bfile " + mind10 + " --geno 1 --mind 1 --pheno " + mind10
                           + ".fam --mpheno 3 --test-missing --out gender --noweb", qcDir + subDir,
                           log);
     }

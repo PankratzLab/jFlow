@@ -140,7 +140,7 @@ public class MitoGWAS {
       Files.copyFileUsingFileChannels(bed, fullOut + "plink.bed", proj.getLog());
     }
     if (qc) {
-      RelationAncestryQc.fullGamut(fullOut, "plink", true, proj.getLog());
+      RelationAncestryQc.fullGamut(fullOut, "plink", null, true, proj.getLog());
     }
 
     String[] out = new String[] {fam, bim, bed};

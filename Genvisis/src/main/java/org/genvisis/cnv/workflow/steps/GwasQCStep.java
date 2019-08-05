@@ -48,19 +48,25 @@ public class GwasQCStep extends Step {
     final Requirement<String> callrateReq = new Requirement.ThresholdRequirement(QcMetric.CALLRATE.name(),
                                                                                  QcMetric.CALLRATE.getUserDescription(),
                                                                                  defaultCallrate);
+    final Requirement<String> plinkExeReq = new Requirement.ProgramRequirement(CLI.ARG_PLINK_EXE,
+                                                                               CLI.DESC_PLINK_EXE,
+                                                                               CLI.DEF_PLINK_EXE);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
-                                                       .add(callrateReq);
+                                                       .add(plinkExeReq).add(callrateReq);
 
-    return new GwasQCStep(proj, callrateReq, reqSet);
+    return new GwasQCStep(proj, callrateReq, plinkExeReq, reqSet);
   }
 
   final Project proj;
   final Requirement<String> callrateReq;
+  final Requirement<String> plinkExeReq;
 
-  private GwasQCStep(Project proj, Requirement<String> callrateReq, RequirementSet reqSet) {
+  private GwasQCStep(Project proj, Requirement<String> callrateReq, Requirement<String> plinkExeReq,
+                     RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.proj = proj;
     this.callrateReq = callrateReq;
+    this.plinkExeReq = plinkExeReq;
   }
 
   @Override
@@ -73,8 +79,8 @@ public class GwasQCStep extends Step {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
     Map<QcMetric, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
     markerQCThresholds.put(QcMetric.CALLRATE, variables.get(callrateReq));
-    new RelationAncestryQc(dir, GenvisisWorkflow.PLINKROOT, markerQCThresholds,
-                           proj.getLog()).run(false);
+    new RelationAncestryQc(dir, GenvisisWorkflow.PLINKROOT, variables.get(plinkExeReq),
+                           markerQCThresholds, proj.getLog()).run(false);
     if (new File(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + GenvisisWorkflow.PLINKROOT
                  + ".genome").exists()) {
       proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR
@@ -95,6 +101,7 @@ public class GwasQCStep extends Step {
     commandChunks.add(RelationAncestryQc.class.getName());
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_INDIR, GenvisisWorkflow.getPlinkDir(proj)));
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_PLINKROOT, GenvisisWorkflow.PLINKROOT));
+    commandChunks.add(CLI.formCmdLineArg(CLI.ARG_PLINK_EXE, variables.get(plinkExeReq)));
     commandChunks.add(CLI.formCmdLineArg(RelationAncestryQc.ARGS_KEEPGENOME, "false"));
     commandChunks.add(CLI.formCmdLineArg(QcMetric.CALLRATE.getKey(), variables.get(callrateReq)));
     commandChunks.add("\n" + Files.getRunString());
