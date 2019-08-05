@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.genvisis.cnv.Resources;
@@ -59,14 +57,25 @@ public class Ancestry {
   }
 
   private final String dir;
+  private final Project proj;
+  private final Logger log;
 
-  public Ancestry(String dir) {
-    super();
-    this.dir = new File(ext.verifyDirFormat(dir)).getAbsolutePath();
+  public Ancestry(String dir, Project proj) {
+    this(dir, proj, proj.getLog());
   }
 
-  private Project createDummyProject(String dummyProjectPrefix, String putativeWhitesFile,
-                                     Logger log) {
+  public Ancestry(String dir, Project proj, Logger log) {
+    super();
+    this.dir = new File(ext.verifyDirFormat(dir)).getAbsolutePath();
+    this.proj = proj;
+    this.log = log;
+  }
+
+  public Ancestry(String dir, String dummyProjectPrefix, Logger log) {
+    this(dir, createDummyProject(dir, dummyProjectPrefix), log);
+  }
+
+  private static Project createDummyProject(String dir, String dummyProjectPrefix) {
     String projectName = dummyProjectPrefix + "_AncestryResults";
     Project dummyProject = Project.initializeProject(projectName, dir);
 
@@ -84,15 +93,15 @@ public class Ancestry {
     try {
       SampleData.createSampleData(dummyProject.PEDIGREE_FILENAME.getValue(), null, dummyProject);
     } catch (Elision e) {
-      log.reportError("Could not generate Sample Data for dummy project "
-                      + dummyProject.getPropertyFilename()
-                      + ", ancestry results cannot be visualized");
-      return null;
+      dummyProject.getLog()
+                  .reportError("Could not generate Sample Data for dummy project "
+                               + dummyProject.getPropertyFilename()
+                               + ", ancestry results cannot be visualized");
     }
     return dummyProject;
   }
 
-  private void maybeAddHapMapToSampleData(Project proj, SampleData.ClassHeader hapMapClassHeader,
+  private void maybeAddHapMapToSampleData(SampleData.ClassHeader hapMapClassHeader,
                                           Table<String, String, HapMapPopulation> hapmaps) {
     if (!proj.getSampleData(false).hasClass(HAPMAP_CLASS_NAME)) {
       String[] hapMapColumnHeaders = new String[] {"FID", "IID", "DNA",
@@ -113,22 +122,22 @@ public class Ancestry {
   }
 
   public void runPipeline(String putativeWhitesFile, String hapMapPlinkRoot,
-                          String snpRSIDLookupFile, Project proj, Logger log) {
+                          String snpRSIDLookupFile) {
     if (hapMapPlinkRoot == null) {
       hapMapPlinkRoot = DEFAULT_HAPMAP_PLINKROOT;
     }
     if (!Files.exists(dir + "homogeneity/" + MergeDatasets.CHI_SQUARE_DROPS_FILENAME)
         && Files.list(dir + "homogeneity/", ".Rout").length == 0) {
       log.report("Running homogeneity checks...");
-      checkHomogeneity(putativeWhitesFile, dir + "plink", hapMapPlinkRoot, proj, log);
+      checkHomogeneity(putativeWhitesFile, dir + "plink", hapMapPlinkRoot);
     }
-    String homogeneityDrops = parseHomogeneity(log);
-    mergeHapMap(dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile, log);
-    runPCA(DEFAULT_NUM_COMPONENTS_ANCESTRY, log);
-    imputeRaceFromPCA(proj, log);
+    String homogeneityDrops = parseHomogeneity();
+    mergeHapMap(dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile);
+    runPCA(DEFAULT_NUM_COMPONENTS_ANCESTRY);
+    imputeRaceFromPCA();
   }
 
-  private void runPCA(int numComps, Logger log) {
+  private void runPCA(int numComps) {
     setupAncestry();
     AncestryPCA ancestryPCA = AncestryPCA.generatePCs(new PlinkDataMatrixLoader(dir,
                                                                                 "unrelateds/plink",
@@ -140,14 +149,14 @@ public class Ancestry {
   }
 
   private void checkHomogeneity(String putativeWhitesFile, String projectPlinkRoot,
-                                String hapMapPlinkRoot, @Nullable Project proj, Logger log) {
+                                String hapMapPlinkRoot) {
     String homoDir = dir + "homogeneity/";
     String homoProjDir = homoDir + ext.removeDirectoryInfo(projectPlinkRoot) + "/";
     String homoHapMapDir = homoDir + ext.removeDirectoryInfo(hapMapPlinkRoot) + "/";
     new File(homoProjDir).mkdirs();
     new File(homoHapMapDir).mkdirs();
-    String cleanPutativeWhitesFile = validatePutativeWhites(proj, projectPlinkRoot + PSF.Plink.FAM,
-                                                            putativeWhitesFile, log);
+    String cleanPutativeWhitesFile = validatePutativeWhites(projectPlinkRoot + PSF.Plink.FAM,
+                                                            putativeWhitesFile);
     CmdLine.runDefaults("plink --bfile " + projectPlinkRoot + " --keep " + cleanPutativeWhitesFile
                         + " --hardy", homoProjDir, log);
     CmdLine.runDefaults("plink --bfile " + hapMapPlinkRoot + " --keep "
@@ -157,8 +166,7 @@ public class Ancestry {
     MergeDatasets.checkForHomogeneity(homoDir, null, null, "UNAFF", log);
   }
 
-  private String validatePutativeWhites(@Nullable Project proj, String projFamFile,
-                                        String putativeWhitesFile, Logger log) {
+  private String validatePutativeWhites(String projFamFile, String putativeWhitesFile) {
     if (proj == null) return putativeWhitesFile;
     PlinkData.ExportIDScheme projIDScheme = PlinkData.detectExportIDScheme(proj, projFamFile);
     if (projIDScheme == null) {
@@ -175,7 +183,7 @@ public class Ancestry {
     return cleanPutativeWhitesFile;
   }
 
-  private String parseHomogeneity(Logger log) {
+  private String parseHomogeneity() {
     int rOuts = Files.list(dir + "homogeneity/", ".Rout").length;
     if (rOuts == 0) {
       log.report("No Fisher's Exact results found, using Chi Square to choose homogeneous markers");
@@ -186,7 +194,7 @@ public class Ancestry {
   }
 
   private void mergeHapMap(String projectPlinkRoot, String hapMapPlinkRoot, String dropMarkersFile,
-                           String snpIDLookupFile, Logger log) {
+                           String snpIDLookupFile) {
     if (!Files.exists(dir + RelationAncestryQc.UNRELATEDS_FILENAME)) {
       log.reportError("Error - need a file called " + RelationAncestryQc.UNRELATEDS_FILENAME
                       + " with FID and IID pairs before we can proceed");
@@ -309,10 +317,9 @@ public class Ancestry {
 
   }
 
-  private void imputeRaceFromPCA(@Nullable Project proj, Logger log) {
+  private void imputeRaceFromPCA() {
     if (!Files.exists(dir + RACE_IMPUTATIONS_FILENAME)) {
-      Table<String, String, HapMapPopulation> fidIidHapMapPopTable = parseHapMapAncestries(proj,
-                                                                                           log);
+      Table<String, String, HapMapPopulation> fidIidHapMapPopTable = parseHapMapAncestries();
       if (fidIidHapMapPopTable == null) return;
 
       Set<PCImputeRace.Sample> samples = Sets.newHashSet();
@@ -390,8 +397,7 @@ public class Ancestry {
 
   }
 
-  private Table<String, String, HapMapPopulation> parseHapMapAncestries(@Nullable Project proj,
-                                                                        Logger log) {
+  private Table<String, String, HapMapPopulation> parseHapMapAncestries() {
     String hapMapAncestries = Resources.hapMap(log).getHapMapAncestries().get();
     if (hapMapAncestries == null) {
       log.reportError("Cannot impute race without the HapMap ancestries resource");
@@ -437,7 +443,7 @@ public class Ancestry {
       }
       Table<String, String, HapMapPopulation> fidIidHapMapPopTable = fidIidHapMapPopTableBuilder.build();
       if (proj != null) {
-        maybeAddHapMapToSampleData(proj, hapMapClassHeader, fidIidHapMapPopTable);
+        maybeAddHapMapToSampleData(hapMapClassHeader, fidIidHapMapPopTable);
       }
       return fidIidHapMapPopTable;
     } catch (FileNotFoundException e) {
@@ -537,23 +543,24 @@ public class Ancestry {
     } else {
       log = new Logger(logfile);
     }
-    Ancestry ancestry = new Ancestry(dir);
+    final Ancestry ancestry;
     if (proj == null && dummyProjectPrefix != null) {
-      proj = ancestry.createDummyProject(dummyProjectPrefix, putativeWhites, log);
+      ancestry = new Ancestry(dir, dummyProjectPrefix, log);
+    } else {
+      ancestry = new Ancestry(dir, proj, log);
     }
     try {
       dir = new File(dir).getAbsolutePath() + File.separator;
       if (runPipeline && putativeWhites != null) {
-        ancestry.runPipeline(putativeWhites, hapMapPlinkRoot, snpRSIDLookupFile, proj, log);
+        ancestry.runPipeline(putativeWhites, hapMapPlinkRoot, snpRSIDLookupFile);
       } else if (checkHomo && putativeWhites != null) {
-        ancestry.checkHomogeneity(putativeWhites, dir + "plink", hapMapPlinkRoot, proj, log);
+        ancestry.checkHomogeneity(putativeWhites, dir + "plink", hapMapPlinkRoot);
       } else if (run) {
-        String homogeneityDrops = ancestry.parseHomogeneity(log);
-        ancestry.mergeHapMap(dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile,
-                             log);
-        ancestry.runPCA(DEFAULT_NUM_COMPONENTS_ANCESTRY, log);
+        String homogeneityDrops = ancestry.parseHomogeneity();
+        ancestry.mergeHapMap(dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile);
+        ancestry.runPCA(DEFAULT_NUM_COMPONENTS_ANCESTRY);
       } else if (imputeRace) {
-        ancestry.imputeRaceFromPCA(proj, log);
+        ancestry.imputeRaceFromPCA();
       } else {
         System.err.println(usage);
         System.exit(1);

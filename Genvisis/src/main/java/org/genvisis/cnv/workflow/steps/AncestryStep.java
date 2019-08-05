@@ -17,7 +17,6 @@ import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.common.Logger;
 
 public class AncestryStep extends Step {
 
@@ -86,8 +85,7 @@ public class AncestryStep extends Step {
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
     File f = variables.get(snpIDLookupReq);
     String snpIDFile = f == null || f.getPath().equals("") ? null : f.getAbsolutePath();
-    new Ancestry(ancestryDir).runPipeline(putativeWhites, hapMapPlinkRoot, snpIDFile, proj,
-                                          new Logger(ancestryDir + "ancestry.log"));
+    new Ancestry(ancestryDir, proj).runPipeline(putativeWhites, hapMapPlinkRoot, snpIDFile);
   }
 
   @Override
