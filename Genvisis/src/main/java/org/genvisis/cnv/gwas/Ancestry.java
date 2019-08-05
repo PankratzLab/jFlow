@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.analysis.pca.PCImputeRace;
 import org.genvisis.cnv.filesys.Project;
@@ -77,7 +78,17 @@ public class Ancestry {
 
   private static Project createDummyProject(String dir, String dummyProjectPrefix) {
     String projectName = dummyProjectPrefix + "_AncestryResults";
-    Project dummyProject = Project.initializeProject(projectName, dir);
+
+    final Project dummyProject;
+
+    if (Files.exists(LaunchProperties.formProjectPropertiesFilename(projectName))) {
+      dummyProject = new Project(LaunchProperties.formProjectPropertiesFilename(projectName));
+      dummyProject.getLog()
+                  .reportTimeWarning("Project with name " + projectName
+                                     + " already exists, continuing with existing project");
+    } else {
+      dummyProject = Project.initializeProject(projectName, dir);
+    }
 
     String plinkFamFile = dir + "plink.fam";
     String[][] plinkFam = HashVec.loadFileToStringMatrix(plinkFamFile, false, null);
