@@ -23,6 +23,7 @@ import org.genvisis.cnv.gwas.pca.ancestry.PlinkDataMatrixLoader;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
@@ -59,21 +60,23 @@ public class Ancestry {
 
   private final String dir;
   private final Project proj;
+  private final String plinkExe;
   private final Logger log;
 
-  public Ancestry(String dir, Project proj) {
-    this(dir, proj, proj.getLog());
+  public Ancestry(String dir, Project proj, String plinkExe) {
+    this(dir, proj, plinkExe, proj.getLog());
   }
 
-  public Ancestry(String dir, Project proj, Logger log) {
+  public Ancestry(String dir, Project proj, String plinkExe, Logger log) {
     super();
     this.dir = new File(ext.verifyDirFormat(dir)).getAbsolutePath();
     this.proj = proj;
+    this.plinkExe = plinkExe;
     this.log = log;
   }
 
-  public Ancestry(String dir, String dummyProjectPrefix, Logger log) {
-    this(dir, createDummyProject(dir, dummyProjectPrefix), log);
+  public Ancestry(String dir, String dummyProjectPrefix, String plinkExe, Logger log) {
+    this(dir, createDummyProject(dir, dummyProjectPrefix), plinkExe, log);
   }
 
   private static Project createDummyProject(String dir, String dummyProjectPrefix) {
@@ -168,9 +171,9 @@ public class Ancestry {
     new File(homoHapMapDir).mkdirs();
     String cleanPutativeWhitesFile = validatePutativeWhites(projectPlinkRoot + PSF.Plink.FAM,
                                                             putativeWhitesFile);
-    CmdLine.runDefaults("plink --bfile " + projectPlinkRoot + " --keep " + cleanPutativeWhitesFile
-                        + " --hardy", homoProjDir, log);
-    CmdLine.runDefaults("plink --bfile " + hapMapPlinkRoot + " --keep "
+    CmdLine.runDefaults(plinkExe + " --bfile " + projectPlinkRoot + " --keep "
+                        + cleanPutativeWhitesFile + " --hardy", homoProjDir, log);
+    CmdLine.runDefaults(plinkExe + " --bfile " + hapMapPlinkRoot + " --keep "
                         + ext.parseDirectoryOfFile(hapMapPlinkRoot) + "CEUFounders.txt --hardy",
                         homoHapMapDir, log);
 
@@ -226,7 +229,7 @@ public class Ancestry {
     String srcData = "plink";
     if (lookup != null) {
       log.report(ext.getTime() + "]\tRenaming snps using lookup file: " + snpIDLookupFile);
-      CmdLine.runDefaults("plink --bfile plink --update-name " + snpIDLookupFile
+      CmdLine.runDefaults(plinkExe + " --bfile plink --update-name " + snpIDLookupFile
                           + " --make-bed --allow-no-sex --out plinkRenamed --noweb", dir, log);
       srcData = "plinkRenamed";
     }
@@ -240,7 +243,7 @@ public class Ancestry {
 
     if (!Files.exists(dir + "unambiguousHapMap.bed")) {
       log.report(ext.getTime() + "]\tExtracting unambiguous SNPs for HapMap founders");
-      CmdLine.runDefaults("plink --bfile " + hapMapPlinkRoot + " --extract "
+      CmdLine.runDefaults(plinkExe + " --bfile " + hapMapPlinkRoot + " --extract "
                           + PLINK_BIM_UNAMBIGUOUS_TXT
                           + " --make-bed --allow-no-sex --out unambiguousHapMap --noweb", dir, log);
     }
@@ -258,14 +261,15 @@ public class Ancestry {
 
     if (!Files.exists(dir + "unambiguous.bed")) {
       log.report(ext.getTime() + "]\tExtracting overlapping SNPs for study samples");
-      CmdLine.runDefaults("plink --bfile " + srcData
+      CmdLine.runDefaults(plinkExe + " --bfile " + srcData
                           + " --extract overlap.txt --make-bed --allow-no-sex --out unambiguous --noweb",
                           dir, log);
     }
 
     if (!Files.exists(dir + "combo.missnp")) {
       log.report(ext.getTime() + "]\tMerging study data and HapMap data for overlapping SNPs");
-      CmdLine.runDefaults("plink --bfile unambiguous --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --out combo --noweb",
+      CmdLine.runDefaults(plinkExe
+                          + " --bfile unambiguous --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --out combo --noweb",
                           dir, log);
     }
 
@@ -275,9 +279,11 @@ public class Ancestry {
       }
       log.report(ext.getTime() + "]\tChecking for flipped alleles");
       new File(dir + "combo.missnp").renameTo(new File(dir + "combo.1.missnp"));
-      CmdLine.runDefaults("plink --bfile unambiguous --flip combo.1.missnp --make-bed --allow-no-sex --out unambiguousFlipped --noweb",
+      CmdLine.runDefaults(plinkExe
+                          + " --bfile unambiguous --flip combo.1.missnp --make-bed --allow-no-sex --out unambiguousFlipped --noweb",
                           dir, log);
-      CmdLine.runDefaults("plink --bfile unambiguousFlipped --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --allow-no-sex --out combo --noweb",
+      CmdLine.runDefaults(plinkExe
+                          + " --bfile unambiguousFlipped --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --allow-no-sex --out combo --noweb",
                           dir, log);
       if (Files.exists(dir + "combo.missnp")) {
         if (Files.exists(dir + "combo.2.missnp")) {
@@ -285,11 +291,14 @@ public class Ancestry {
         }
         log.report(ext.getTime() + "]\tDropping SNPs that cannot be resolved by flipping alleles");
         new File(dir + "combo.missnp").renameTo(new File(dir + "combo.2.missnp"));
-        CmdLine.runDefaults("plink --bfile unambiguousFlipped --exclude combo.2.missnp --make-bed --allow-no-sex --out unambiguousFlippedDropped --noweb",
+        CmdLine.runDefaults(plinkExe
+                            + " --bfile unambiguousFlipped --exclude combo.2.missnp --make-bed --allow-no-sex --out unambiguousFlippedDropped --noweb",
                             dir, log);
-        CmdLine.runDefaults("plink --bfile unambiguousHapMap --exclude combo.2.missnp --make-bed --allow-no-sex --out unambiguousDroppedHapMap --noweb",
+        CmdLine.runDefaults(plinkExe
+                            + " --bfile unambiguousHapMap --exclude combo.2.missnp --make-bed --allow-no-sex --out unambiguousDroppedHapMap --noweb",
                             dir, log);
-        CmdLine.runDefaults("plink --bfile unambiguousFlippedDropped --bmerge unambiguousDroppedHapMap.bed unambiguousDroppedHapMap.bim unambiguousDroppedHapMap.fam --make-bed --allow-no-sex --out combo --noweb",
+        CmdLine.runDefaults(plinkExe
+                            + " --bfile unambiguousFlippedDropped --bmerge unambiguousDroppedHapMap.bed unambiguousDroppedHapMap.bim unambiguousDroppedHapMap.fam --make-bed --allow-no-sex --out combo --noweb",
                             dir, log);
       }
     }
@@ -322,7 +331,8 @@ public class Ancestry {
     if (!Files.exists(unrelatedsDir + "plink.bed")) {
       log.report(ext.getTime() + "]\tGenerating PLINK files based on combined "
                  + RelationAncestryQc.UNRELATEDS_FILENAME);
-      CmdLine.runDefaults("plink --bfile ../combo --keep " + RelationAncestryQc.UNRELATEDS_FILENAME
+      CmdLine.runDefaults(plinkExe + " --bfile ../combo --keep "
+                          + RelationAncestryQc.UNRELATEDS_FILENAME
                           + " --make-bed --allow-no-sex --noweb", unrelatedsDir, log);
     }
 
@@ -480,14 +490,16 @@ public class Ancestry {
     String dummyProjectPrefix = null;
     String snpRSIDLookupFile = null;
     String logfile = null;
+    String plinkExe = CLI.DEF_PLINK_EXE;
     Logger log;
 
     String usage = "\n" + "gwas.Ancestry requires 3+ arguments\n"
                    + "   (1) Run directory with plink.* files and "
                    + RelationAncestryQc.UNRELATEDS_FILENAME + " (i.e. dir=" + dir + " (default))\n"
                    + "   (2) PLINK root of Unambiguous HapMap Founders (i.e. hapMapPlinkRoot="
-                   + hapMapPlinkRoot + " (default))\n" + "   (3) Logfile (i.e. log="
-                   + "ancestry.log" + " (default))\n" + "  AND\n"
+                   + hapMapPlinkRoot + " (default))\n" + "   (3) " + CLI.DESC_PLINK_EXE + " (i.e. "
+                   + CLI.ARG_PLINK_EXE + "=" + plinkExe + " (default))"
+                   + "   (4) Logfile (i.e. log=" + "ancestry.log" + " (default))\n" + "  AND\n"
                    + "   (4) Run full pipeline (i.e. -runPipeline (not the default, requires arguments for each step))\n"
                    + "  OR\n"
                    + "   (5) Check Homogeneity using Chi-Square (Generates PBS script to run Fisher's exact, if desired) (i.e. -checkHomo (not the default))\n"
@@ -537,6 +549,9 @@ public class Ancestry {
       } else if (arg.startsWith("dummyProject")) {
         dummyProjectPrefix = ext.parseStringArg(arg, null);
         numArgs--;
+      } else if (arg.startsWith(CLI.ARG_PLINK_EXE)) {
+        plinkExe = ext.parseStringArg(arg);
+        numArgs--;
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -556,9 +571,9 @@ public class Ancestry {
     }
     final Ancestry ancestry;
     if (proj == null && dummyProjectPrefix != null) {
-      ancestry = new Ancestry(dir, dummyProjectPrefix, log);
+      ancestry = new Ancestry(dir, dummyProjectPrefix, plinkExe, log);
     } else {
-      ancestry = new Ancestry(dir, proj, log);
+      ancestry = new Ancestry(dir, proj, plinkExe, log);
     }
     try {
       dir = new File(dir).getAbsolutePath() + File.separator;
