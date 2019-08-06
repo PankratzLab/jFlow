@@ -34,7 +34,9 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.RelationAncestryQc;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
+import com.google.common.collect.MoreCollectors;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 
@@ -53,6 +55,9 @@ public class Ancestry {
   private static final String EIGENSTRAT_FID_LABEL = "FID";
   private static final String PCA_PC1_LABEL = "PC1";
   private static final String PCA_PC2_LABEL = "PC2";
+
+  private static final Set<String> POSSIBLE_MISSNP_EXTS = ImmutableSet.of(".missnp",
+                                                                          "-merge.missnp");
 
   private static enum HapMapPopulation {
     CEU, YRI, CHB, JPT;
@@ -253,10 +258,8 @@ public class Ancestry {
                                                 false),
                           dir + "overlap.txt");
     }
-
-    if (Files.exists(dir + "combo.missnp")) {
-      new File(dir + "combo.missnp").delete();
-    }
+    POSSIBLE_MISSNP_EXTS.stream().map(ext -> dir + "combo" + ext).filter(Files::exists)
+                        .map(File::new).forEach(File::delete);
 
     if (!Files.exists(dir + "unambiguous.bed")) {
       log.report(ext.getTime() + "]\tExtracting overlapping SNPs for study samples");
@@ -264,32 +267,35 @@ public class Ancestry {
                           + " --extract overlap.txt --make-bed --allow-no-sex --out unambiguous --noweb",
                           dir, log);
     }
+    log.report(ext.getTime() + "]\tMerging study data and HapMap data for overlapping SNPs");
+    CmdLine.runDefaults(plinkExe
+                        + " --bfile unambiguous --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --out combo --noweb",
+                        dir, log);
 
-    if (!Files.exists(dir + "combo.missnp")) {
-      log.report(ext.getTime() + "]\tMerging study data and HapMap data for overlapping SNPs");
-      CmdLine.runDefaults(plinkExe
-                          + " --bfile unambiguous --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --out combo --noweb",
-                          dir, log);
-    }
-
-    if (Files.exists(dir + "combo.missnp")) {
+    if (POSSIBLE_MISSNP_EXTS.stream().map(ext -> dir + "combo" + ext).anyMatch(Files::exists)) {
+      POSSIBLE_MISSNP_EXTS.stream().map(ext -> dir + "combo.1" + ext).filter(Files::exists)
+                          .map(File::new).forEach(File::delete);
       if (Files.exists(dir + "combo.1.missnp")) {
         new File(dir + "combo.1.missnp").delete();
       }
       log.report(ext.getTime() + "]\tChecking for flipped alleles");
-      new File(dir + "combo.missnp").renameTo(new File(dir + "combo.1.missnp"));
+      POSSIBLE_MISSNP_EXTS.stream().map(ext -> dir + "combo" + ext).filter(Files::exists)
+                          .map(File::new).collect(MoreCollectors.onlyElement())
+                          .renameTo(new File(dir + "combo.1.missnp"));
       CmdLine.runDefaults(plinkExe
                           + " --bfile unambiguous --flip combo.1.missnp --make-bed --allow-no-sex --out unambiguousFlipped --noweb",
                           dir, log);
       CmdLine.runDefaults(plinkExe
                           + " --bfile unambiguousFlipped --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --allow-no-sex --out combo --noweb",
                           dir, log);
-      if (Files.exists(dir + "combo.missnp")) {
+      if (POSSIBLE_MISSNP_EXTS.stream().map(ext -> dir + "combo" + ext).anyMatch(Files::exists)) {
         if (Files.exists(dir + "combo.2.missnp")) {
           new File(dir + "combo.2.missnp").delete();
         }
         log.report(ext.getTime() + "]\tDropping SNPs that cannot be resolved by flipping alleles");
-        new File(dir + "combo.missnp").renameTo(new File(dir + "combo.2.missnp"));
+        POSSIBLE_MISSNP_EXTS.stream().map(ext -> dir + "combo" + ext).filter(Files::exists)
+                            .map(File::new).collect(MoreCollectors.onlyElement())
+                            .renameTo(new File(dir + "combo.2.missnp"));
         CmdLine.runDefaults(plinkExe
                             + " --bfile unambiguousFlipped --exclude combo.2.missnp --make-bed --allow-no-sex --out unambiguousFlippedDropped --noweb",
                             dir, log);
