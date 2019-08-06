@@ -69,7 +69,7 @@ public class Ancestry {
 
   public Ancestry(String dir, Project proj, String plinkExe, Logger log) {
     super();
-    this.dir = new File(ext.verifyDirFormat(dir)).getAbsolutePath();
+    this.dir = new File(ext.verifyDirFormat(dir)).getAbsolutePath() + File.separator;
     this.proj = proj;
     this.plinkExe = plinkExe;
     this.log = log;
@@ -143,10 +143,10 @@ public class Ancestry {
     if (!Files.exists(dir + "homogeneity/" + MergeDatasets.CHI_SQUARE_DROPS_FILENAME)
         && Files.list(dir + "homogeneity/", ".Rout").length == 0) {
       log.report("Running homogeneity checks...");
-      checkHomogeneity(putativeWhitesFile, dir + "plink", hapMapPlinkRoot);
+      checkHomogeneity(putativeWhitesFile, "plink", hapMapPlinkRoot);
     }
     String homogeneityDrops = parseHomogeneity();
-    mergeHapMap(dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile);
+    mergeHapMap(hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile);
     runPCA(DEFAULT_NUM_COMPONENTS_ANCESTRY);
     imputeRaceFromPCA();
   }
@@ -169,9 +169,9 @@ public class Ancestry {
     String homoHapMapDir = homoDir + ext.removeDirectoryInfo(hapMapPlinkRoot) + "/";
     new File(homoProjDir).mkdirs();
     new File(homoHapMapDir).mkdirs();
-    String cleanPutativeWhitesFile = validatePutativeWhites(projectPlinkRoot + PSF.Plink.FAM,
+    String cleanPutativeWhitesFile = validatePutativeWhites(dir + projectPlinkRoot + PSF.Plink.FAM,
                                                             putativeWhitesFile);
-    CmdLine.runDefaults(plinkExe + " --bfile " + projectPlinkRoot + " --keep "
+    CmdLine.runDefaults(plinkExe + " --bfile " + dir + projectPlinkRoot + " --keep "
                         + cleanPutativeWhitesFile + " --hardy", homoProjDir, log);
     CmdLine.runDefaults(plinkExe + " --bfile " + hapMapPlinkRoot + " --keep "
                         + ext.parseDirectoryOfFile(hapMapPlinkRoot) + "CEUFounders.txt --hardy",
@@ -207,8 +207,7 @@ public class Ancestry {
     return dir + "homogeneity/" + MergeDatasets.FISHER_OR_CHI_SQUARE_DROPS_FILENAME;
   }
 
-  private void mergeHapMap(String projectPlinkRoot, String hapMapPlinkRoot, String dropMarkersFile,
-                           String snpIDLookupFile) {
+  private void mergeHapMap(String hapMapPlinkRoot, String dropMarkersFile, String snpIDLookupFile) {
     if (!Files.exists(dir + RelationAncestryQc.UNRELATEDS_FILENAME)) {
       log.reportError("Error - need a file called " + RelationAncestryQc.UNRELATEDS_FILENAME
                       + " with FID and IID pairs before we can proceed");
@@ -576,14 +575,13 @@ public class Ancestry {
       ancestry = new Ancestry(dir, proj, plinkExe, log);
     }
     try {
-      dir = new File(dir).getAbsolutePath() + File.separator;
       if (runPipeline && putativeWhites != null) {
         ancestry.runPipeline(putativeWhites, hapMapPlinkRoot, snpRSIDLookupFile);
       } else if (checkHomo && putativeWhites != null) {
-        ancestry.checkHomogeneity(putativeWhites, dir + "plink", hapMapPlinkRoot);
+        ancestry.checkHomogeneity(putativeWhites, "plink", hapMapPlinkRoot);
       } else if (run) {
         String homogeneityDrops = ancestry.parseHomogeneity();
-        ancestry.mergeHapMap(dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile);
+        ancestry.mergeHapMap(hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile);
         ancestry.runPCA(DEFAULT_NUM_COMPONENTS_ANCESTRY);
       } else if (imputeRace) {
         ancestry.imputeRaceFromPCA();
