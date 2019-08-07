@@ -25,6 +25,7 @@ import org.genvisis.cnv.workflow.steps.ParseSamplesStep;
 import org.genvisis.cnv.workflow.steps.PlinkExportStep;
 import org.genvisis.cnv.workflow.steps.ReverseTransposeTarget;
 import org.genvisis.cnv.workflow.steps.SampleDataStep;
+import org.genvisis.cnv.workflow.steps.SampleQCAnnotateStep;
 import org.genvisis.cnv.workflow.steps.SampleQCStep;
 import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
 import org.genvisis.cnv.workflow.steps.SexChecksStep;
@@ -106,6 +107,7 @@ public class GenvisisWorkflow {
     createSampleDataStep = sb.generateCreateSampleDataStep(reverseTransposeStep);
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(reverseTransposeStep);
+    sb.generateSampleQCAnnotationStep(sampleQCStep);
     sb.generateMarkerQCStep(reverseTransposeStep);
     SexChecksStep sexChecksStep = sb.generateSexChecksStep(affyMarkerBlastStep,
                                                            createSampleDataStep,
@@ -142,6 +144,7 @@ public class GenvisisWorkflow {
     createSampleDataStep = sb.generateCreateSampleDataStep(reverseTransposeStep);
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(reverseTransposeStep);
+    sb.generateSampleQCAnnotationStep(sampleQCStep);
     sb.generateMarkerQCStep(reverseTransposeStep);
     SexChecksStep sexChecksStep = sb.generateSexChecksStep(affyMarkerBlastStep,
                                                            createSampleDataStep,
@@ -179,6 +182,7 @@ public class GenvisisWorkflow {
     transposeStep = sb.generateTransposeStep(parseSamplesStep);
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(parseSamplesStep);
+    sb.generateSampleQCAnnotationStep(sampleQCStep);
     sb.generateMarkerQCStep(parseSamplesStep);
     SexChecksStep sexChecksStep = sb.generateSexChecksStep(illumMarkerBlastStep,
                                                            createSampleDataStep, transposeStep,
@@ -211,6 +215,7 @@ public class GenvisisWorkflow {
     createSampleDataStep = sb.generateCreateSampleDataStep(reverseTransposeStep);
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(reverseTransposeStep);
+    sb.generateSampleQCAnnotationStep(sampleQCStep);
     sb.generateMarkerQCStep(reverseTransposeStep);
     sb.generateSexChecksStep(illumMarkerBlastStep, createSampleDataStep, reverseTransposeStep,
                              sampleQCStep);
@@ -282,6 +287,7 @@ public class GenvisisWorkflow {
     SampleDataStep sampleData = sb.generateCreateSampleDataStep(reverseTranspose);
     AffyMarkerBlastStep blast = sb.generateAffyMarkerBlastAnnotationStep(reverseTranspose);
     SampleQCStep sampleQc = null;
+    SampleQCAnnotateStep sampleExcludes = null;
     MarkerQCStep markerQc = null;
     SexChecksStep sexChecks = null;
     PlinkExportStep exportPlink = null;
@@ -290,6 +296,7 @@ public class GenvisisWorkflow {
     FurtherAnalysisQCStep faqcStep = null;
     if (includeQC) {
       sampleQc = sb.generateSampleQCStep(reverseTranspose);
+      sampleExcludes = sb.generateSampleQCAnnotationStep(sampleQc);
       markerQc = sb.generateMarkerQCStep(reverseTranspose);
       sexChecks = sb.generateSexChecksStep(blast, sampleData, reverseTranspose, sampleQc);
       exportPlink = sb.generatePlinkExportStep(reverseTranspose);
@@ -325,6 +332,7 @@ public class GenvisisWorkflow {
 
     if (includeQC) {
       varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
+      varMap.put(sampleExcludes, sampleExcludes.getDefaultRequirementValues());
       varMap.put(markerQc, markerQc.getDefaultRequirementValues());
 
       stepReqs = sexChecks.getDefaultRequirementValues();
@@ -385,6 +393,8 @@ public class GenvisisWorkflow {
     addStepInfo(output, sampleData, sampleData.getCommandLine(varMap.get(sampleData)));
     if (includeQC) {
       addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
+      addStepInfo(output, sampleExcludes,
+                  sampleExcludes.getCommandLine(varMap.get(sampleExcludes)));
       addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
       addStepInfo(output, sexChecks, sexChecks.getCommandLine(varMap.get(sexChecks)));
       addStepInfo(output, exportPlink, exportPlink.getCommandLine(varMap.get(exportPlink)));
@@ -411,6 +421,7 @@ public class GenvisisWorkflow {
     SampleDataStep sampleData = sb.generateCreateSampleDataStep(parseSamples);
     IlluminaMarkerBlastStep blast = sb.generateIlluminaMarkerBlastAnnotationStep(parseSamples);
     SampleQCStep sampleQc = null;
+    SampleQCAnnotateStep sampleExcludes = null;
     MarkerQCStep markerQc = null;
     SexChecksStep sexChecks = null;
     PlinkExportStep exportPlink = null;
@@ -419,6 +430,7 @@ public class GenvisisWorkflow {
     FurtherAnalysisQCStep faqcStep = null;
     if (includeQC) {
       sampleQc = sb.generateSampleQCStep(parseSamples);
+      sampleExcludes = sb.generateSampleQCAnnotationStep(sampleQc);
       markerQc = sb.generateMarkerQCStep(parseSamples);
       sexChecks = sb.generateSexChecksStep(blast, sampleData, transpose, sampleQc);
       exportPlink = sb.generatePlinkExportStep(parseSamples);
@@ -463,6 +475,7 @@ public class GenvisisWorkflow {
 
     if (includeQC) {
       varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
+      varMap.put(sampleExcludes, sampleExcludes.getDefaultRequirementValues());
       varMap.put(markerQc, markerQc.getDefaultRequirementValues());
 
       stepReqs = sexChecks.getDefaultRequirementValues();
@@ -528,6 +541,8 @@ public class GenvisisWorkflow {
     }
     if (includeQC) {
       addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
+      addStepInfo(output, sampleExcludes,
+                  sampleExcludes.getCommandLine(varMap.get(sampleExcludes)));
       addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
       addStepInfo(output, sexChecks, sexChecks.getCommandLine(varMap.get(sexChecks)));
       addStepInfo(output, exportPlink, exportPlink.getCommandLine(varMap.get(exportPlink)));

@@ -1231,7 +1231,8 @@ public class Launch extends JFrame implements ActionListener {
 
           @Override
           public void run() {
-            SampleQC.parseAndAddToSampleData(proj, 10, -1, false, false, null, false);
+            SampleQC.parseAndAddToSampleDataWithoutExcludes(proj, 10, -1, false, false, null,
+                                                            false);
           }
         });
 

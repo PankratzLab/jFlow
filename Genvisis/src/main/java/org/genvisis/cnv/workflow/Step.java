@@ -16,6 +16,7 @@ import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.gui.Task;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -287,6 +288,15 @@ public abstract class Step {
       throw new IllegalArgumentException("Error - no project properties argument found.");
     }
     return proj;
+  }
+
+  public static void run(Project proj, Step step, Variables variables) {
+    if (step.hasRequirements(ImmutableSet.of(step), ImmutableMap.of(step, variables))) {
+      step.setNecessaryPreRunProperties(variables);
+      step.run(variables);
+    } else {
+      proj.getLog().reportError("requirements not met for step " + step.getDescription());
+    }
   }
 
 }

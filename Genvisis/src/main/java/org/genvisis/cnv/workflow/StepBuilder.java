@@ -28,6 +28,7 @@ import org.genvisis.cnv.workflow.steps.ParseSamplesStep;
 import org.genvisis.cnv.workflow.steps.PlinkExportStep;
 import org.genvisis.cnv.workflow.steps.ReverseTransposeTarget;
 import org.genvisis.cnv.workflow.steps.SampleDataStep;
+import org.genvisis.cnv.workflow.steps.SampleQCAnnotateStep;
 import org.genvisis.cnv.workflow.steps.SampleQCStep;
 import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
 import org.genvisis.cnv.workflow.steps.SexChecksStep;
@@ -177,6 +178,12 @@ public class StepBuilder {
                                                            : register(SampleQCStep.create(proj,
                                                                                           parseSamplesStep,
                                                                                           numThreadsReq));
+  }
+
+  public SampleQCAnnotateStep generateSampleQCAnnotationStep(Step sampleQCStep) {
+    return stepInstanceMap.containsKey(SampleQCAnnotateStep.class) ? stepInstanceMap.getInstance(SampleQCAnnotateStep.class)
+                                                                   : register(SampleQCAnnotateStep.create(proj,
+                                                                                                          sampleQCStep));
   }
 
   MarkerQCStep generateMarkerQCStep(Step parseSamplesStep) {

@@ -21,9 +21,6 @@ import org.genvisis.cnv.workflow.StepBuilder;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-
 public class PCCorrectionStep extends Step {
 
   public static final String NAME = "Create PC-Corrected Project";
@@ -181,12 +178,7 @@ public class PCCorrectionStep extends Step {
                                                            sb.generateSampleQCStep(samplesStep));
     PCCorrectionStep step = sb.generatePCCorrectedProjectStep(samplesStep, sexChecksStep);
     Variables variables = step.parseArguments(args);
-    if (step.hasRequirements(ImmutableSet.of(step), ImmutableMap.of(step, variables))) {
-      step.setNecessaryPreRunProperties(variables);
-      step.run(variables);
-    } else {
-      proj.getLog().reportError("requirements not met for step " + step.getDescription());
-    }
+    Step.run(proj, step, variables);
   }
 
 }
