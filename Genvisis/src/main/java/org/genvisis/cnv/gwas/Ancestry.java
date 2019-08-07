@@ -70,23 +70,25 @@ public class Ancestry {
 
   private final String dir;
   private final Project proj;
+  private final String plinkroot;
   private final String plinkExe;
   private final Logger log;
 
   public Ancestry(String dir, Project proj, String plinkExe) {
-    this(dir, proj, plinkExe, proj.getLog());
+    this(dir, "plink", proj, plinkExe, proj.getLog());
   }
 
-  public Ancestry(String dir, Project proj, String plinkExe, Logger log) {
+  public Ancestry(String dir, String plinkroot, Project proj, String plinkExe, Logger log) {
     super();
     this.dir = new File(ext.verifyDirFormat(dir)).getAbsolutePath() + File.separator;
     this.proj = proj;
+    this.plinkroot = plinkroot;
     this.plinkExe = plinkExe;
     this.log = log;
   }
 
   public Ancestry(String dir, String dummyProjectPrefix, String plinkExe, Logger log) {
-    this(dir, createDummyProject(dir, dummyProjectPrefix), plinkExe, log);
+    this(dir, "plink", createDummyProject(dir, dummyProjectPrefix), plinkExe, log);
   }
 
   private static Project createDummyProject(String dir, String dummyProjectPrefix) {
@@ -153,7 +155,7 @@ public class Ancestry {
     if (!Files.exists(dir + "homogeneity/" + MergeDatasets.CHI_SQUARE_DROPS_FILENAME)
         && Files.list(dir + "homogeneity/", ".Rout").length == 0) {
       log.report("Running homogeneity checks...");
-      checkHomogeneity(putativeWhitesFile, "plink", hapMapPlinkRoot);
+      checkHomogeneity(putativeWhitesFile, hapMapPlinkRoot);
     }
     String homogeneityDrops = parseHomogeneity();
     mergeHapMap(hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile);
@@ -172,16 +174,15 @@ public class Ancestry {
                .dumpToText(dir + PCA_OUTPUT_NAME, "FID\tIID", log);
   }
 
-  private void checkHomogeneity(String putativeWhitesFile, String projectPlinkRoot,
-                                String hapMapPlinkRoot) {
+  private void checkHomogeneity(String putativeWhitesFile, String hapMapPlinkRoot) {
     String homoDir = dir + "homogeneity/";
-    String homoProjDir = homoDir + ext.removeDirectoryInfo(projectPlinkRoot) + "/";
+    String homoProjDir = homoDir + ext.removeDirectoryInfo(plinkroot) + "/";
     String homoHapMapDir = homoDir + ext.removeDirectoryInfo(hapMapPlinkRoot) + "/";
     new File(homoProjDir).mkdirs();
     new File(homoHapMapDir).mkdirs();
-    String cleanPutativeWhitesFile = validatePutativeWhites(dir + projectPlinkRoot + PSF.Plink.FAM,
+    String cleanPutativeWhitesFile = validatePutativeWhites(dir + plinkroot + PSF.Plink.FAM,
                                                             putativeWhitesFile);
-    CmdLine.runDefaults(plinkExe + " --bfile " + dir + projectPlinkRoot + " --keep "
+    CmdLine.runDefaults(plinkExe + " --bfile " + dir + plinkroot + " --keep "
                         + cleanPutativeWhitesFile + " --hardy", homoProjDir, log);
     CmdLine.runDefaults(plinkExe + " --bfile " + hapMapPlinkRoot + " --keep "
                         + ext.parseDirectoryOfFile(hapMapPlinkRoot) + "CEUFounders.txt --hardy",
@@ -235,12 +236,12 @@ public class Ancestry {
       }
     }
 
-    String srcData = "plink";
+    String srcData = plinkroot;
     if (lookup != null) {
+      srcData = plinkroot + "_renamed";
       log.report(ext.getTime() + "]\tRenaming snps using lookup file: " + snpIDLookupFile);
-      CmdLine.runDefaults(plinkExe + " --bfile plink --update-name " + snpIDLookupFile
-                          + " --make-bed --allow-no-sex --out plinkRenamed --noweb", dir, log);
-      srcData = "plinkRenamed";
+      CmdLine.runDefaults(plinkExe + " --bfile " + plinkroot + " --update-name " + snpIDLookupFile
+                          + " --make-bed --allow-no-sex --out " + srcData + " --noweb", dir, log);
     }
 
     if (!Files.exists(dir + PLINK_BIM_UNAMBIGUOUS_TXT)) {
@@ -486,8 +487,6 @@ public class Ancestry {
   }
 
   private void freqsByRace(String resultFile, String outFile) {
-    String plinkroot = "plink";
-
     String overallFrqFile = ext.rootOf(resultFile, false) + "_all.frq";
     CmdLine.runDefaults(plinkExe + " --noweb --bfile " + plinkroot + " --freq" + " --out "
                         + ext.rootOf(overallFrqFile, false), dir);
@@ -675,13 +674,13 @@ public class Ancestry {
     if (proj == null && dummyProjectPrefix != null) {
       ancestry = new Ancestry(dir, dummyProjectPrefix, plinkExe, log);
     } else {
-      ancestry = new Ancestry(dir, proj, plinkExe, log);
+      ancestry = new Ancestry(dir, "plink", proj, plinkExe, log);
     }
     try {
       if (runPipeline && putativeWhites != null) {
         ancestry.runPipeline(putativeWhites, hapMapPlinkRoot, snpRSIDLookupFile);
       } else if (checkHomo && putativeWhites != null) {
-        ancestry.checkHomogeneity(putativeWhites, "plink", hapMapPlinkRoot);
+        ancestry.checkHomogeneity(putativeWhites, hapMapPlinkRoot);
       } else if (run) {
         String homogeneityDrops = ancestry.parseHomogeneity();
         ancestry.mergeHapMap(hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile);
