@@ -306,7 +306,7 @@ public class SampleQC {
                             : ext.indexOfStr("LRR_SD", getQctitles());
   }
 
-  private int addExcludes() {
+  public int addExcludes() {
     int numExcluded = 0;
     int callrateIndex = getCallrateIndex();
     int lrr_sdIndex = getLrr_sdIndex();
@@ -588,7 +588,6 @@ public class SampleQC {
           proj.getLog().reportError("Could not generate sample QC file " + lrrSdToLoad);
         }
       }
-      proj.getLog().reportTimeInfo("Loading qc data from " + lrrSdToLoad);
       try {
         BufferedReader reader = Files.getAppropriateReader(lrrSdToLoad);
         String[] header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -629,8 +628,11 @@ public class SampleQC {
           }
         }
         reader.close();
-        proj.getLog().reportTimeInfo("Finished loading qc data from " + lrrSdToLoad);
 
+        int numFiltered = sampleQC.removeEmptyMetrics();
+        if (numFiltered == -1) {
+          return null;
+        }
       } catch (FileNotFoundException fnfe) {
         proj.getLog().reportError("file \"" + lrrSdToLoad + "\" not found in current directory");
         return null;
@@ -687,15 +689,6 @@ public class SampleQC {
   public static void parseExcludes(Project proj) {
     SampleQC sampleQC = loadSampleQCWithoutSideEffects(proj, LrrSd.SAMPLE_COLUMN,
                                                        LrrSd.NUMERIC_COLUMNS, false, false);
-    String lrrSdToLoad = proj.SAMPLE_QC_FILENAME.getValue();
-    proj.getLog().reportTimeInfo("Filtering empty columns from " + lrrSdToLoad);
-    int numFiltered = sampleQC.removeEmptyMetrics();
-    if (numFiltered == -1) {
-      return;
-    }
-    proj.getLog().reportTimeInfo("Filtered " + numFiltered + " empty columns from " + lrrSdToLoad);
-
-    proj.getLog().reportTimeInfo("Finding samples to exclude");
     int numExcluded = sampleQC.addExcludes();
     proj.getLog().reportTimeInfo("Found " + numExcluded + " samples to exclude");
     sampleQC.addQCsToSampleData(0, 0, false);

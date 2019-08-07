@@ -1,18 +1,25 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.awt.Font;
 import java.util.EnumSet;
 
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
+import org.genvisis.cnv.workflow.StepAssist;
 import org.genvisis.cnv.workflow.StepBuilder;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 
-public class SampleQCAnnotateStep extends Step {
+public class SampleQCAnnotateStep extends Step implements StepAssist {
 
   public static final String NAME = "Identify Excluded Samples";
   public static final String DESC = "";
@@ -101,6 +108,38 @@ public class SampleQCAnnotateStep extends Step {
     SampleQCAnnotateStep step = SampleQCAnnotateStep.create(proj, samplesStep);
     Variables variables = step.parseArguments(args);
     Step.run(proj, step, variables);
+  }
+
+  private JLabel assistLabel;
+
+  @Override
+  public JComponent getStepAssistComponent() {
+    if (assistLabel == null) {
+      assistLabel = new JLabel();
+      assistLabel.setFont(assistLabel.getFont().deriveFont(Font.PLAIN, 12));
+      assistLabel.setHorizontalAlignment(SwingConstants.CENTER);
+      assistLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+    }
+    return assistLabel;
+  }
+
+  @Override
+  public void updateStepAssistComponent(Variables variables) {
+    double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
+    double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
+    setNecessaryPreRunProperties(variables);
+    SampleQC sampleQC = SampleQC.loadSampleQCWithoutSideEffects(proj, LrrSd.SAMPLE_COLUMN,
+                                                                LrrSd.NUMERIC_COLUMNS, false,
+                                                                false);
+    int numExcluded = sampleQC.addExcludes();
+    StringBuilder msg = new StringBuilder();
+    msg.append("<html>These options will result in <b>").append(numExcluded).append("</b> ")
+       .append(numExcluded > 1 ? "samples" : "sample").append(" being excluded.</html>");
+    // msg.append("These options will result in ").append(numExcluded).append(" ")
+    // .append(numExcluded > 1 ? "samples" : "sample").append(" being excluded.");
+    assistLabel.setText(msg.toString());
+    proj.LRRSD_CUTOFF.setValue(projLrrSdThreshold);
+    proj.SAMPLE_CALLRATE_THRESHOLD.setValue(projCallrateThreshold);
   }
 
 }

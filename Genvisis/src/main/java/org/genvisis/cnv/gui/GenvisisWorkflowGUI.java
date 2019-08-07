@@ -64,6 +64,7 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.AndRequirementSet;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Step.FINAL_CODE;
+import org.genvisis.cnv.workflow.StepAssist;
 import org.genvisis.cnv.workflow.StepTask;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.ArrayUtils;
@@ -98,6 +99,7 @@ public class GenvisisWorkflowGUI extends JDialog {
   public ConcurrentMap<Step, ArrayList<JButton>> fileBtns = Maps.newConcurrentMap();
   public ConcurrentMap<Step, JLabel> alreadyRunLbls = Maps.newConcurrentMap();
   public ConcurrentMap<Step, JButton> cancelStepBtns = Maps.newConcurrentMap();
+  public ConcurrentMap<Step, JSeparator> stepAssistSeps = Maps.newConcurrentMap();
 
   Project proj;
 
@@ -467,24 +469,37 @@ public class GenvisisWorkflowGUI extends JDialog {
     for (int i = 0; i < step.getRequirements().getFlatRequirementsList().size(); i++) {
       rows = rows + "[]";
     }
-    panel.contentPanel.setLayout(new MigLayout("", "[200px,grow]push[200px,grow]", rows));
+    panel.contentPanel.setLayout(new MigLayout("hidemode 3", "[200px,grow]push[200px,grow]", rows));
     panel.contentPanel.add(descLbl, "cell 0 0");
 
     RequirementSet reqs = step.getRequirements();
 
+    int rowIndex = 1;
     if (reqs.size() > 0) {
       JLabel reqLbl = new JLabel("Requires:");
-      panel.contentPanel.add(reqLbl, "cell 0 1");
+      panel.contentPanel.add(reqLbl, "cell 0 " + rowIndex);
+      rowIndex++;
 
       Map<Requirement<?>, JLabel> reqLbls = new java.util.HashMap<>();
       requirementsLabels.put(step, reqLbls);
-      int rowIndex = 2;
-      addLabels(step, reqs, panel.contentPanel, rowIndex, new ArrayList<Integer>());
+      int rowIndexStart = rowIndex;
+      addLabels(step, reqs, panel.contentPanel, rowIndexStart, new ArrayList<Integer>());
 
       Map<Requirement<?>, JComponent> reqInputFields = Maps.newLinkedHashMap();
       varFields.put(step, reqInputFields);
-      rowIndex = 2;
-      addReqFields(step, reqs, panel.contentPanel, rowIndex);
+      rowIndexStart = rowIndex;
+      rowIndex = addReqFields(step, reqs, panel.contentPanel, rowIndexStart);
+    }
+
+    if (step instanceof StepAssist) {
+      JComponent assistComponent = ((StepAssist) step).getStepAssistComponent();
+      rowIndex++;
+      JSeparator sep = new JSeparator(SwingConstants.HORIZONTAL);
+      sep.setVisible(false);
+      stepAssistSeps.put(step, sep);
+      panel.contentPanel.add(sep, "cell 0 " + rowIndex + " 2 1, grow");
+      rowIndex++;
+      panel.contentPanel.add(assistComponent, "cell 0 " + rowIndex + " 2 1, center, grow");
     }
 
     return panel;
@@ -836,8 +851,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 
                 @Override
                 public void run() {
+                  Variables vars = variables.get(step);
                   for (Requirement<?> req : step.getRequirements().getFlatRequirementsList()) {
-                    Variables vars = variables.get(step);
                     Object o = vars.get(req);
                     String arg = vars.parseFail(req) || o == null ? null : o.toString();
                     boolean met = req.checkRequirement(arg, selectedSteps, variables);
@@ -857,6 +872,13 @@ public class GenvisisWorkflowGUI extends JDialog {
                       }
                     }
                   }
+                  if (gui.checkBoxes.get(step).isSelected()) {
+                    if (step instanceof StepAssist) {
+                      gui.stepAssistSeps.get(step).setVisible(true);
+                      ((StepAssist) step).getStepAssistComponent().setVisible(true);
+                      ((StepAssist) step).updateStepAssistComponent(vars);
+                    }
+                  }
                   gui.progVal.setValue(update);
                 }
               });
@@ -874,6 +896,10 @@ public class GenvisisWorkflowGUI extends JDialog {
                   gui.checkBoxes.get(step).setForeground(dark);
                   for (Requirement<?> req : step.getRequirements().getFlatRequirementsList()) {
                     reqLbls.get(req).setForeground(dark);
+                  }
+                  if (step instanceof StepAssist) {
+                    gui.stepAssistSeps.get(step).setVisible(false);
+                    ((StepAssist) step).getStepAssistComponent().setVisible(false);
                   }
                   gui.progVal.setValue(update);
                 }
