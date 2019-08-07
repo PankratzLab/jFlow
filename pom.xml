@@ -108,7 +108,7 @@
 		<genv-exp.version>0.0.1-SNAPSHOT</genv-exp.version>
 		<genv-dep.version>0.0.1-SNAPSHOT</genv-dep.version>
 		<genv-flow.version>0.0.1-SNAPSHOT</genv-flow.version>
-		<assembly.version>0.1.15</assembly.version>
+		<assembly.version>0.1.15-SNAPSHOT</assembly.version>
 		<app.version>0.0.1-SNAPSHOT</app.version>
 		<image-annotator.version>0.0.1-SNAPSHOT</image-annotator.version>
 
