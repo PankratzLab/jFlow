@@ -380,7 +380,9 @@ public class GenvisisWorkflowGUI extends JDialog {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        doClose();
+        if (!running) {
+          doClose();
+        }
       }
     };
     inMap.put(escKey, "Action.escape");
@@ -879,7 +881,9 @@ public class GenvisisWorkflowGUI extends JDialog {
             } catch (InvocationTargetException e) {} catch (InterruptedException e) {}
           }
         }
-        try {
+        try
+
+        {
           SwingUtilities.invokeAndWait(new Runnable() {
 
             @Override
