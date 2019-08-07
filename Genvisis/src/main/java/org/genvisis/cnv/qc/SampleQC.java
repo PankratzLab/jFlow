@@ -113,10 +113,12 @@ public class SampleQC {
   }
 
   public void addQCsToSampleData(int numQ, int numPCs, boolean justQuantiles) {
-    Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, qcMatrix, qctitles, proj.getLog());
+    Quantiles[] quantiles = numQ > 0 ? Quantiles.qetQuantilesFor(numQ, qcMatrix, qctitles,
+                                                                 proj.getLog())
+                                     : null;
     Hashtable<String, String> hashtable = developHash(quantiles, justQuantiles);
     String[] header = developHeader(quantiles, numQ, justQuantiles);
-    appendToSampleData(proj, hashtable, header, numQ, justQuantiles);
+    appendToSampleData(proj, hashtable, header);
   }
 
   public void addPCsToSampleData(int numQ, int numPCs, boolean justQuantiles) {
@@ -137,7 +139,7 @@ public class SampleQC {
         hashtable.put(proj.getSamples()[i], qcInfo);
       }
       String[] header = developMetricsHeader(quantiles, pcTitles, numQ, justQuantiles);
-      appendToSampleData(proj, hashtable, header, numQ, justQuantiles);
+      appendToSampleData(proj, hashtable, header);
     } else {
       proj.getLog().reportError("PCs are not sorted by project, currently this is not supported");
     }
@@ -233,7 +235,9 @@ public class SampleQC {
       if (fidiids != null) {
         qcInfo += "\t" + mzTwinIds[i];
       }
-      qcInfo += "\t" + developMetricsLine(i, quantiles, qcMatrix, justQuantiles);
+      if (quantiles != null) {
+        qcInfo += "\t" + developMetricsLine(i, quantiles, qcMatrix, justQuantiles);
+      }
       hashtable.put(samples[i], qcInfo);
     }
     return hashtable;
@@ -253,8 +257,12 @@ public class SampleQC {
     if (fidiids != null) {
       header.add("mzTwinID");
     }
-    return ArrayUtils.combine(header.toArray(new String[] {}),
-                              developMetricsHeader(quantiles, qctitles, numQ, justQuantiles));
+    String[] headerArr = header.toArray(new String[header.size()]);
+    if (numQ > 0 && quantiles != null) {
+      headerArr = ArrayUtils.combine(headerArr, developMetricsHeader(quantiles, qctitles, numQ,
+                                                                     justQuantiles));
+    }
+    return headerArr;
   }
 
   private int removeEmptyMetrics() {
@@ -485,7 +493,7 @@ public class SampleQC {
   }
 
   private static void appendToSampleData(Project proj, Hashtable<String, String> hashtable,
-                                         String[] header, int numQ, boolean justQuantiles) {
+                                         String[] header) {
     SampleData sampledata = proj.getSampleData(false);
     proj.getLog()
         .reportTimeInfo("Adding " + header.length + " columns to sample data based on sample QC");
@@ -690,6 +698,7 @@ public class SampleQC {
     proj.getLog().reportTimeInfo("Finding samples to exclude");
     int numExcluded = sampleQC.addExcludes();
     proj.getLog().reportTimeInfo("Found " + numExcluded + " samples to exclude");
+    sampleQC.addQCsToSampleData(0, 0, false);
   }
 
   public static void parseAndAddToSampleDataWithoutExcludes(Project proj, int numQ, int numPCs,
