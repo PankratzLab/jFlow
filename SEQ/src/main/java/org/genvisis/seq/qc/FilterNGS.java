@@ -1409,7 +1409,7 @@ public class FilterNGS implements Serializable {
     };
   }
 
-  public enum SAM_FILTER_TYPE {
+  public static enum SAM_FILTER_TYPE {
     GENOTYPE, COPY_NUMBER;
   }
 
@@ -1467,7 +1467,24 @@ public class FilterNGS implements Serializable {
                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_EAS",
                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_SAS",
                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_Hispanics",
-                                                                   "TOPMed_freeze_5b.AF_EM_POP_DEF_Whites");
+                                                                   "TOPMed_freeze_5b.AF_EM_POP_DEF_Whites",
+                                                                   "gnomAD_genome_ALL",
+                                                                   "gnomAD_genome_AFR",
+                                                                   "gnomAD_genome_AMR",
+                                                                   "gnomAD_genome_ASJ",
+                                                                   "gnomAD_genome_EAS",
+                                                                   "gnomAD_genome_FIN",
+                                                                   "gnomAD_genome_NFE",
+                                                                   "gnomAD_genome_OTH",
+                                                                   "gnomAD_exome_ALL",
+                                                                   "gnomAD_exome_AFR",
+                                                                   "gnomAD_exome_AMR",
+                                                                   "gnomAD_exome_ASJ",
+                                                                   "gnomAD_exome_EAS",
+                                                                   "gnomAD_exome_FIN",
+                                                                   "gnomAD_exome_NFE",
+                                                                   "gnomAD_exome_OTH",
+                                                                   "gnomAD_exome_SAS");
   // ,
   // "TOPMed_freeze_5b.AF"
 
