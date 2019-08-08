@@ -1330,6 +1330,10 @@ public class TwoDPlot extends JPanel
     notRqrd.add(SCRN_TAG_COLOR_ID_COL);
     notRqrd.add(SCRN_TAG_COLOR_DATA_COL);
     notRqrd.add(SCRN_TAG_COLOR_FILE);
+    notRqrd.add("minX");
+    notRqrd.add("maxX");
+    notRqrd.add("minY");
+    notRqrd.add("maxY");
 
     HashMap<String, ArrayList<String>> tagValues = new HashMap<>();
     for (String tagKey : tagSet) {
@@ -1421,10 +1425,18 @@ public class TwoDPlot extends JPanel
                                            : Integer.parseInt(tagValues.get("colorIDColumn")
                                                                        .get(i));
 
-      window[0] = Float.parseFloat(tagValues.get("minX").get(i));
-      window[1] = Float.parseFloat(tagValues.get("maxX").get(i));
-      window[2] = Float.parseFloat(tagValues.get("minY").get(i));
-      window[3] = Float.parseFloat(tagValues.get("maxY").get(i));
+      window[0] = tagValues.get("minX").get(i) == null ? Float.NaN
+                                                       : Float.parseFloat(tagValues.get("minX")
+                                                                                   .get(i));
+      window[1] = tagValues.get("maxX").get(i) == null ? Float.NaN
+                                                       : Float.parseFloat(tagValues.get("maxX")
+                                                                                   .get(i));
+      window[2] = tagValues.get("minY").get(i) == null ? Float.NaN
+                                                       : Float.parseFloat(tagValues.get("minY")
+                                                                                   .get(i));
+      window[3] = tagValues.get("maxY").get(i) == null ? Float.NaN
+                                                       : Float.parseFloat(tagValues.get("maxY")
+                                                                                   .get(i));
 
       hideExcludes = Boolean.parseBoolean(tagValues.get("hideExcluded").get(i));
       isHistogram = Boolean.parseBoolean(tagValues.get("isHistogram").get(i));
@@ -1816,6 +1828,8 @@ public class TwoDPlot extends JPanel
       frame.pack();
       UITools.centerComponent(frame);
       frame.setVisible(show);
+    } else {
+      twoDPlot.getPanel().setSize(800, 600);
     }
     return twoDPlot;
   }
