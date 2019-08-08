@@ -11,11 +11,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,8 +28,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -52,6 +58,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -60,6 +67,8 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TreeSelectionEvent;
@@ -73,16 +82,19 @@ import javax.swing.tree.TreePath;
 import org.apache.commons.collections4.MultiSet;
 import org.apache.commons.collections4.multiset.HashMultiSet;
 import org.genvisis.one.ben.imagetag.AnnotatedImage.Annotation;
+import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Images;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Sets;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -111,6 +123,7 @@ public class ImageAnnotator {
   private HashMap<Annotation, JRadioButtonMenuItem> annTravMap = new HashMap<>();
   private HashMap<Annotation, JMenuItem> annDelMap = new HashMap<>();
   private HashMap<Annotation, JMenuItem> annSaveMap = new HashMap<>();
+  private SORT_TYPE sortOrder = SORT_TYPE.GENOMIC_POSITION;
 
   private static final String PROP_FILE = ".imageannotator.properties";
   private static final String KEY_LAST_DIR_IMG = "LAST_DIR_IMG";
@@ -143,11 +156,19 @@ public class ImageAnnotator {
     return value;
   }
 
-  /**
-   * Launch the application.
-   */
-  public static void main(String[] args) {
-    EventQueue.invokeLater(new Runnable() {
+  /** Launch the application. */
+  public static void launch() {
+
+    // set system-wide anti-aliasing
+    System.setProperty("awt.useSystemAAFontSettings", "on");
+    System.setProperty("swing.aatext", "true");
+
+    ToolTipManager.sharedInstance().setInitialDelay(0);
+    ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE - 1);
+    ToolTipManager.sharedInstance().setReshowDelay(0);
+    UIManager.put("ToolTip.background", Color.decode("#F5F5DC"));
+
+    Runnable r = new Runnable() {
 
       public void run() {
         try {
@@ -157,7 +178,13 @@ public class ImageAnnotator {
           e.printStackTrace();
         }
       }
-    });
+    };
+
+    EventQueue.invokeLater(r);
+  }
+
+  public static void main(String[] args) {
+    launch();
   }
 
   private boolean showDebug = PRELOAD_DEBUG;
@@ -169,9 +196,7 @@ public class ImageAnnotator {
   private static final int PRELOAD_INTERVAL = 1700;
   Timer cacheBalancingTimer = new Timer();
 
-  /**
-   * Create the application.
-   */
+  /** Create the application. */
   public ImageAnnotator() {
     loadProperties();
     initialize();
@@ -396,9 +421,7 @@ public class ImageAnnotator {
     return this.lastOpenedImageDir;
   }
 
-  /**
-   * Initialize the contents of the frame.
-   */
+  /** Initialize the contents of the frame. */
   private void initialize() {
     frmAnnotator = new JFrame();
     frmAnnotator.setTitle("ImageAnnotator");
@@ -459,7 +482,17 @@ public class ImageAnnotator {
 
     controlPanel = new JPanel();
     splitPane_1.setLeftComponent(controlPanel);
-    controlPanel.setLayout(new MigLayout("", "[110.00,grow]", "[][][grow][][]"));
+    controlPanel.setLayout(new MigLayout("hidemode 3", "[110.00,grow]", "[][][grow][][]"));
+
+    validationLabel = new JLabel("Validation Results:");
+    validationLabel.setFocusable(false);
+    validationLabel.setVisible(false);
+    controlPanel.add(validationLabel, "cell 0 0, split 2, growx");
+    validationCountLabel = new JLabel();
+    validationCountLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+    validationCountLabel.setFocusable(false);
+    validationCountLabel.setVisible(false);
+    controlPanel.add(validationCountLabel, "cell 0 0, growx, alignx right");
 
     sampleCombo = new JComboBox<>();
     sampleCombo.addActionListener(comboListener);
@@ -492,8 +525,8 @@ public class ImageAnnotator {
 
   public static final String CHR_POS_REGEX = "(.*)_?chr([12]?[0-9[XYM]]+)[:-_]([\\d,]+)[-_]([\\d,]+).*?";
 
-  private int[] parseSampleChrPosIfExists() {
-    Matcher m = Pattern.compile(CHR_POS_REGEX).matcher(lastSelectedFile);
+  private int[] parseSampleChrPosIfExists(String nameOrFile) {
+    Matcher m = Pattern.compile(CHR_POS_REGEX).matcher(nameOrFile);
     if (m.matches()) {
       byte chr = Positions.chromosomeNumber(m.group(2), false, new Logger());
       int stt = Integer.parseInt(m.group(3));
@@ -523,6 +556,39 @@ public class ImageAnnotator {
         }
         return comp;
       }
+    });
+    final JPopupMenu menu = new JPopupMenu();
+    tree.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        super.mousePressed(e);
+        if (SwingUtilities.isRightMouseButton(e)) {
+          int row = tree.getRowForLocation(e.getX(), e.getY());
+          TreePath path = tree.getPathForRow(row);
+          DefaultMutableTreeNode last = (DefaultMutableTreeNode) path.getLastPathComponent();
+          AnnotatedImage ai = (AnnotatedImage) last.getUserObject();
+          String file = ai.getImageFile();
+
+          menu.removeAll();
+
+          addContextItemsToMenu(menu, file);
+
+          menu.add(new JSeparator(SwingConstants.HORIZONTAL));
+
+          JMenuItem closeItem = new JMenuItem();
+          closeItem.setAction(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+              menu.setVisible(false);
+            }
+          });
+          closeItem.setText("Close");
+          menu.add(closeItem);
+
+          menu.show(e.getComponent(), e.getX(), e.getY());
+        }
+      }
+
     });
     tree.setModel(dtm);
     tree.setShowsRootHandles(false);
@@ -655,55 +721,15 @@ public class ImageAnnotator {
     mntmExport.setMnemonic('E');
     mnFile.add(mntmExport);
 
+    JMenuItem mntmValidate = new JMenuItem();
+    mntmValidate.setAction(validateAction);
+    mntmValidate.setText("Validate Against BED File");
+    mntmValidate.setMnemonic('V');
+    mnFile.add(mntmValidate);
+
     mnFile.add(new JSeparator(SwingConstants.HORIZONTAL));
 
-    JMenuItem mntmCopyUCSC = new JMenuItem();
-    mntmCopyUCSC.setAction(new AbstractAction() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists()));
-      }
-    });
-    mntmCopyUCSC.setText("Copy UCSC Location to Clipboard");
-    mntmCopyUCSC.setMnemonic('U');
-    mnFile.add(mntmCopyUCSC);
-
-    JMenuItem mntmCopyUCSCLink = new JMenuItem();
-    mntmCopyUCSCLink.setAction(new AbstractAction() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(Positions.getUCSClink(parseSampleChrPosIfExists()));
-      }
-    });
-    mntmCopyUCSCLink.setText("Copy UCSC Link to Clipboard");
-    mntmCopyUCSCLink.setMnemonic('L');
-    mnFile.add(mntmCopyUCSCLink);
-
-    JMenuItem mntmCopySample = new JMenuItem();
-    mntmCopySample.setAction(new AbstractAction() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(sampleCombo.getSelectedItem().toString());
-      }
-    });
-    mntmCopySample.setText("Copy Sample Name to Clipboard");
-    mntmCopySample.setMnemonic('N');
-    mnFile.add(mntmCopySample);
-
-    JMenuItem mntmCopySampleFile = new JMenuItem();
-    mntmCopySampleFile.setAction(new AbstractAction() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ext.setClipboard(lastSelectedFile);
-      }
-    });
-    mntmCopySampleFile.setText("Copy File Path to Clipboard");
-    mntmCopySampleFile.setMnemonic('N');
-    mnFile.add(mntmCopySampleFile);
+    addContextItemsToMenu(mnFile, lastSelectedFile);
 
     mnFile.add(new JSeparator(SwingConstants.HORIZONTAL));
 
@@ -752,6 +778,31 @@ public class ImageAnnotator {
 
     mnNav.add(new JSeparator(SwingConstants.HORIZONTAL));
 
+    JMenuItem mntmSortByLbl = new JMenuItem();
+    mntmSortByLbl.setEnabled(false);
+    mntmSortByLbl.setText("Sort By:");
+    mnNav.add(mntmSortByLbl);
+
+    ButtonGroup sortGroup = new ButtonGroup();
+    for (SORT_TYPE sort : SORT_TYPE.values()) {
+      JRadioButtonMenuItem mntmSort = new JRadioButtonMenuItem();
+      sortGroup.add(mntmSort);
+      mntmSort.setAction(new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          ImageAnnotator.this.sortOrder = sort;
+          updateAvail();
+        }
+      });
+      mntmSort.setText("Sort by " + sort.dispName);
+      if (sort == sortOrder) {
+        mntmSort.setSelected(true);
+      }
+      mnNav.add(mntmSort);
+    }
+
+    mnNav.add(new JSeparator(SwingConstants.HORIZONTAL));
+
     JMenuItem mntmNavOptLbl = new JMenuItem();
     mntmNavOptLbl.setEnabled(false);
     mntmNavOptLbl.setText("Other Options:");
@@ -791,6 +842,58 @@ public class ImageAnnotator {
     mnNav.add(mntmNavAdvAfterAnnot);
 
     return menuBar;
+  }
+
+  private void addContextItemsToMenu(JComponent mnFile, String file) {
+    JMenuItem mntmCopyUCSC = new JMenuItem();
+    mntmCopyUCSC.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists(file == null ? lastSelectedFile
+                                                                                        : file)));
+      }
+    });
+    mntmCopyUCSC.setText("Copy UCSC Location to Clipboard");
+    mntmCopyUCSC.setMnemonic('U');
+    mnFile.add(mntmCopyUCSC);
+
+    JMenuItem mntmCopyUCSCLink = new JMenuItem();
+    mntmCopyUCSCLink.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(Positions.getUCSClink(parseSampleChrPosIfExists(file == null ? lastSelectedFile
+                                                                                      : file)));
+      }
+    });
+    mntmCopyUCSCLink.setText("Copy UCSC Link to Clipboard");
+    mntmCopyUCSCLink.setMnemonic('L');
+    mnFile.add(mntmCopyUCSCLink);
+
+    JMenuItem mntmCopySample = new JMenuItem();
+    mntmCopySample.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(sampleCombo.getSelectedItem().toString());
+      }
+    });
+    mntmCopySample.setText("Copy Sample Name to Clipboard");
+    mntmCopySample.setMnemonic('N');
+    mnFile.add(mntmCopySample);
+
+    JMenuItem mntmCopySampleFile = new JMenuItem();
+    mntmCopySampleFile.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(file == null ? lastSelectedFile : file);
+      }
+    });
+    mntmCopySampleFile.setText("Copy File Path to Clipboard");
+    mntmCopySampleFile.setMnemonic('N');
+    mnFile.add(mntmCopySampleFile);
   }
 
   private void addAnnotationToTraversalMenu(Annotation annot) {
@@ -919,6 +1022,8 @@ public class ImageAnnotator {
       File f = jfc.getSelectedFile();
       String fS = ext.verifyDirFormat(f.getAbsolutePath());
       setLastUsedImageDir(fS);
+      validationFiles.clear();
+      annotator = new Annotator();
       annotator.loadImgDir(fS);
       setAnnotationsChanged();
       reloadControls();
@@ -946,19 +1051,19 @@ public class ImageAnnotator {
   }
 
   private void reloadControls() {
-    String[] fcsKeys = annotator.getRoots().toArray(new String[0]);
+    String[] keys = annotator.getRoots().toArray(new String[0]);
     // Comparator adapted from
     // https://stackoverflow.com/questions/41085394/java-comparator-alphanumeric-strings
-    Arrays.sort(fcsKeys, Comparator.comparingLong(s -> hasNumeric(
-                                                                  // if there are any digits in the
-                                                                  // string, delete all non-digit
-                                                                  // characters and compare the
-                                                                  // resulting values
-                                                                  s.toString()) ? Long.parseLong(s.toString().replaceAll("\\D", "")) : 0)
-                                   // then delete all digit characters and compare the resulting
-                                   // strings
-                                   .thenComparing(s -> s.toString().replaceAll("\\d", "")));
-    DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<>(fcsKeys);
+    Arrays.sort(keys, Comparator.comparingLong(s -> hasNumeric(
+                                                               // if there are any digits in the
+                                                               // string, delete all non-digit
+                                                               // characters and compare the
+                                                               // resulting values
+                                                               s.toString()) ? Long.parseLong(s.toString().replaceAll("\\D", "")) : 0)
+                                // then delete all digit characters and compare the resulting
+                                // strings
+                                .thenComparing(s -> s.toString().replaceAll("\\d", "")));
+    DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<>(keys);
     sampleCombo.setModel(dcbm);
     if (sampleCombo.getModel().getSize() > 0) {
       sampleCombo.setSelectedIndex(0);
@@ -1399,8 +1504,8 @@ public class ImageAnnotator {
     lastSelectedFile = node.getImageFile();
   }
 
-  private void sortAIs(List<AnnotatedImage> imgs) {
-    imgs.sort(new Comparator<AnnotatedImage>() {
+  private static enum SORT_TYPE {
+    GENOMIC_POSITION("Genomic Position", new Comparator<AnnotatedImage>() {
 
       @Override
       public int compare(AnnotatedImage o1, AnnotatedImage o2) {
@@ -1421,7 +1526,187 @@ public class ImageAnnotator {
                                                 + o2.getName().charAt(o2.getName().length() - 1)));
         return comp;
       }
+    }), SEGMENT_SIZE("Segment Size", new Comparator<AnnotatedImage>() {
+
+      @Override
+      public int compare(AnnotatedImage o1, AnnotatedImage o2) {
+        String n1 = o1.getName().substring(0, o1.getName().indexOf('~') - 1);
+        String n2 = o2.getName().substring(0, o2.getName().indexOf('~') - 1);
+        int[] chrPos1 = Positions.parseUCSClocation(n1);
+        int[] chrPos2 = Positions.parseUCSClocation(n2);
+        int size1 = chrPos1[2] - chrPos1[1];
+        int size2 = chrPos2[2] - chrPos2[1];
+        return Integer.compare(size1, size2);
+      }
     });
+
+    private SORT_TYPE(String displayName, Comparator<AnnotatedImage> aiComp) {
+      this.dispName = displayName;
+      this.comparator = aiComp;
+    }
+
+    final String dispName;
+    final Comparator<AnnotatedImage> comparator;
+  }
+
+  private void sortAIs(List<AnnotatedImage> imgs) {
+    imgs.sort(sortOrder.comparator);
+  }
+
+  class ValidationResult {
+    final int countBedSegs;
+    final int countFiles;
+    final int countOverlap;
+    final Set<Segment> extraSegsBed;
+    final Set<Segment> extraSegsFile;
+
+    public ValidationResult(int cntBedSegs, int cntFiles, int cntOverlap, Set<Segment> xtraSegsBed,
+                            Set<Segment> xtraSegsFile) {
+      this.countBedSegs = cntBedSegs;
+      this.countFiles = cntFiles;
+      this.countOverlap = cntOverlap;
+      this.extraSegsBed = xtraSegsBed;
+      this.extraSegsFile = xtraSegsFile;
+    }
+
+  }
+
+  private void runValidationGUI() {
+    JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
+    jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    jfc.setDialogTitle("Select BED File");
+    int opt = jfc.showOpenDialog(frmAnnotator);
+    if (opt == JFileChooser.APPROVE_OPTION) {
+      String bedFile = jfc.getSelectedFile().getAbsolutePath();
+      validationFiles.put(currSample, bedFile);
+      runValidation(bedFile);
+    }
+  }
+
+  private void runValidation(String bedFile) {
+    ValidationResult result = validateAgainstFile(bedFile);
+    String text = "";
+    int diff1 = result.countBedSegs - result.countOverlap;
+    int diff2 = result.countFiles - result.countOverlap;
+    boolean valid = diff1 == 0 && diff2 == 0;
+    if (diff1 > 0) {
+      text += "+" + diff1;
+    } else {
+      text += diff1;
+    }
+    text += "/";
+    if (diff2 > 0) {
+      text += "+" + diff2;
+    } else {
+      text += diff2;
+    }
+
+    String mouseoverText = "<html>";
+    mouseoverText += bedFile;
+    mouseoverText += "<hr />";
+    mouseoverText += "Found [" + result.extraSegsBed.size() + "] extra BED segments.<br />";
+    mouseoverText += "Found [" + result.extraSegsFile.size() + "] extra image files.<br />";
+    mouseoverText += "Found [" + result.countOverlap + "] overlapping segments/images.<br />";
+
+    mouseoverText += "</html>";
+
+    StringBuilder builder = new StringBuilder();
+    for (Segment seg : result.extraSegsBed) {
+      builder.append(seg.getChromosomeUCSC() + ":" + (seg.getStart() - 1) + "-" + seg.getStop())
+             .append("\n");
+    }
+    String extraBedSegStr = builder.toString();
+
+    builder = new StringBuilder();
+    for (Segment seg : result.extraSegsFile) {
+      builder.append(seg.getChromosomeUCSC() + ":" + (seg.getStart() - 1) + "-" + seg.getStop())
+             .append("\n");
+    }
+    String extraFileSegStr = builder.toString();
+
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(bedFile, false)
+                                                        + "_validation.out");
+        writer.println("#Extra BED Segments");
+        writer.print(extraBedSegStr);
+        writer.println("#Extra IMAGE Segments");
+        writer.print(extraFileSegStr);
+        writer.close();
+      }
+    }).start();
+
+    final JPopupMenu menu = new JPopupMenu();
+    JMenuItem copyExtraBedSegs = new JMenuItem();
+    copyExtraBedSegs.setAction(new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        ext.setClipboard(extraBedSegStr);
+      }
+    });
+    copyExtraBedSegs.setText("Copy Extra BED Segments to Clipboard");
+    menu.add(copyExtraBedSegs);
+    JMenuItem copyExtraImages = new JMenuItem();
+    copyExtraImages.setAction(new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        ext.setClipboard(extraFileSegStr);
+      }
+    });
+    copyExtraImages.setText("Copy Extra Image Files to Clipboard");
+    menu.add(copyExtraImages);
+
+    validationCountLabel.setText(text);
+    validationCountLabel.setForeground(valid ? Color.GREEN : Color.RED);
+    validationCountLabel.setToolTipText(mouseoverText);
+    validationCountLabel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        super.mousePressed(e);
+        if (SwingUtilities.isRightMouseButton(e)) {
+          menu.show(e.getComponent(), e.getX(), e.getY());
+        }
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        super.mouseReleased(e);
+        if (SwingUtilities.isRightMouseButton(e) && menu.isVisible()) {
+          menu.setVisible(false);
+        }
+      }
+    });
+    validationLabel.setVisible(true);
+    validationCountLabel.setVisible(true);
+    controlPanel.revalidate();
+  }
+
+  private ValidationResult validateAgainstFile(String bedFile) {
+    Set<Segment> bedSegs = new HashSet<>(BEDFileReader.loadToSegments(bedFile));
+
+    HashMap<String, HashMap<String, AnnotatedImage>> map = annotator.getAnnotationMap();
+    String sampleName = (String) sampleCombo.getSelectedItem();
+    HashMap<String, AnnotatedImage> ann = map.get(sampleName);
+    List<String> files = ann == null ? new ArrayList<>() : new ArrayList<>(ann.keySet());
+
+    Set<Segment> fileSegs = new HashSet<>();
+    for (String file : files) {
+      int[] v = parseSampleChrPosIfExists(file);
+      Segment seg = new Segment((byte) v[0], v[1] + 1, v[2]);
+      fileSegs.add(seg);
+    }
+
+    int bedSegCnt = bedSegs.size();
+    int filesCnt = fileSegs.size();
+
+    int overlapCnt = Sets.intersection(bedSegs, fileSegs).size();
+    Set<Segment> extraBedSegs = new HashSet<>();
+    Sets.difference(bedSegs, fileSegs).copyInto(extraBedSegs);
+    Set<Segment> extraFileSegs = new HashSet<>();
+    Sets.difference(fileSegs, bedSegs).copyInto(extraFileSegs);
+
+    return new ValidationResult(bedSegCnt, filesCnt, overlapCnt, extraBedSegs, extraFileSegs);
   }
 
   private void updateAvail() {
@@ -1551,6 +1836,8 @@ public class ImageAnnotator {
   private volatile String prevSample;
   private volatile String currSample;
 
+  private Map<String, String> validationFiles = new HashMap<>();
+
   ActionListener comboListener = new ActionListener() {
 
     @Override
@@ -1578,6 +1865,24 @@ public class ImageAnnotator {
         }
       }
       tree.setEnabled(true);
+      if (prevSample != null && !prevSample.equals(currSample)) {
+        validationLabel.setVisible(false);
+        validationCountLabel.setVisible(false);
+        validationCountLabel.setText("");
+        validationCountLabel.setToolTipText("");
+        for (MouseListener list : validationCountLabel.getMouseListeners()) {
+          validationCountLabel.removeMouseListener(list);
+        }
+      }
+      String file = validationFiles.get(currSample);
+      if (file == null
+          && Files.exists(lastOpenedImageDir + currSample + "/" + currSample + ".bed")) {
+        file = lastOpenedImageDir + currSample + "/" + currSample + ".bed";
+        validationFiles.put(currSample, file);
+      }
+      if (file != null && Files.exists(file)) {
+        runValidation(file);
+      }
       updateAvail();
       if (stt) {
         fireInteractionEvent();
@@ -1621,7 +1926,6 @@ public class ImageAnnotator {
         fireInteractionEvent();
       }
     }
-
   };
 
   class InteractionEvent {
@@ -1630,7 +1934,6 @@ public class ImageAnnotator {
     DIRECTION direction;
     public TRAVERSAL traversal;
     public Annotation traversalAnn;
-
   }
 
   private DIRECTION getRecentUserDirection(int win) {
@@ -1745,7 +2048,7 @@ public class ImageAnnotator {
     int really = set.getCount(SPEED.FAST);
 
     int comb = (int) ((slow * -1.5) + fast + really * .5); // weight slow heavier to decay more
-                                                           // quickly
+    // quickly
     if (mod > Math.abs(comb) || Math.abs(comb) < (win / 2)) {
       return SPEED.MODERATE;
     } else if (comb < 0) {
@@ -1825,6 +2128,14 @@ public class ImageAnnotator {
     }
   };
 
+  private final Action validateAction = new AbstractAction() {
+
+    @Override
+    public void actionPerformed(ActionEvent arg0) {
+      runValidationGUI();
+    }
+  };
+
   private final Action saveAsAction = new AbstractAction() {
 
     @Override
@@ -1840,5 +2151,6 @@ public class ImageAnnotator {
     }
   };
   private JMenu mnSaveAnn;
-
+  private JLabel validationLabel;
+  private JLabel validationCountLabel;
 }

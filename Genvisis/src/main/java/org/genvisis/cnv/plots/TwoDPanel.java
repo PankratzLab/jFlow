@@ -73,6 +73,44 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
   private boolean histogramOverride = false;
   private boolean overrideAxisLabels = false;
 
+  // public void generatePoints() {
+  // float[][] currentData;
+  // CountVector uniqueValueCounts;
+  // byte type;
+  // // String[] twoDPlot.get
+  //
+  // currentData= tdp.getDataSelected(true);
+  // uniqueValueCounts = new CountVector();
+  // // sampleData.getClass();
+  //
+  // points = new PlotPoint[currentData.length];
+  // for (int i = 0; i < points.length; i++) {
+  // if (Float.isNaN(currentData[i][0]) || Float.isNaN(currentData[i][1])) {
+  // type = PlotPoint.NOT_A_NUMBER;
+  // uniqueValueCounts.add("0");
+  // // } else if (alleleCounts[i]==-1) {
+  // // type = PlotPoint.MISSING;
+  // // uniqueValueCounts.add("0");
+  // } else {
+  // type = PlotPoint.FILLED_CIRCLE;
+  // uniqueValueCounts.add((byte)currentData[i][2] + "");
+  // }
+  //
+  // if (swapAxes) {
+  // points[i] = new PlotPoint(i+"", type, currentData[i][1], currentData[i][0], (byte)5,
+  // (byte)currentData[i][2], (byte)0);
+  // } else {
+  // points[i] = new PlotPoint(i+"", type, currentData[i][0], currentData[i][1], (byte)5,
+  // (byte)currentData[i][2], (byte)0);
+  // }
+  //
+  // }
+  //
+  // tdp.updateColorKey(uniqueValueCounts.convertToHash());
+  // }
+
+  float forcePlotXMinOverride = Float.NaN;
+
   public TwoDPanel(TwoDPlot twoDPlot) {
     super();
 
@@ -242,7 +280,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
       // tdp.setPointSize(tdp.getPointSize());
       rectangles = new GenericRectangle[0];
       forcePlotXmax = Float.NaN;
-      forcePlotXmin = Float.NaN;
+      forcePlotXmin = forcePlotXMinOverride;
     }
 
     points = new PlotPoint[currentData.size()];
@@ -279,10 +317,10 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
         }
       }
       if (swapAxes) {
-        points[i] = new PlotPoint(line[0], type, yAxisValue, xAxisValue, (byte) 5,
+        points[i] = new PlotPoint(line[0], type, yAxisValue, xAxisValue, (byte) tdp.getPointSize(),
                                   Byte.parseByte(line[3]), (byte) 0);
       } else {
-        points[i] = new PlotPoint(line[0], type, xAxisValue, yAxisValue, (byte) 5,
+        points[i] = new PlotPoint(line[0], type, xAxisValue, yAxisValue, (byte) tdp.getPointSize(),
                                   Byte.parseByte(line[3]), (byte) 0);
       }
 
@@ -778,6 +816,47 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
   public boolean getUpdateQcPanel() {
     return updateQcPanel;
+  }
+
+  // public void generatePoints() {
+  // float[][] currentData;
+  // CountVector uniqueValueCounts;
+  // byte type;
+  // // String[] twoDPlot.get
+  //
+  // currentData= tdp.getDataSelected(true);
+  // uniqueValueCounts = new CountVector();
+  // // sampleData.getClass();
+  //
+  // points = new PlotPoint[currentData.length];
+  // for (int i = 0; i < points.length; i++) {
+  // if (Float.isNaN(currentData[i][0]) || Float.isNaN(currentData[i][1])) {
+  // type = PlotPoint.NOT_A_NUMBER;
+  // uniqueValueCounts.add("0");
+  // // } else if (alleleCounts[i]==-1) {
+  // // type = PlotPoint.MISSING;
+  // // uniqueValueCounts.add("0");
+  // } else {
+  // type = PlotPoint.FILLED_CIRCLE;
+  // uniqueValueCounts.add((byte)currentData[i][2] + "");
+  // }
+  //
+  // if (swapAxes) {
+  // points[i] = new PlotPoint(i+"", type, currentData[i][1], currentData[i][0], (byte)5,
+  // (byte)currentData[i][2], (byte)0);
+  // } else {
+  // points[i] = new PlotPoint(i+"", type, currentData[i][0], currentData[i][1], (byte)5,
+  // (byte)currentData[i][2], (byte)0);
+  // }
+  //
+  // }
+  //
+  // tdp.updateColorKey(uniqueValueCounts.convertToHash());
+  // }
+
+  @Override
+  public void setForcePlotXmin(float forcePlotXmin) {
+    this.forcePlotXMinOverride = forcePlotXmin;
   }
 
   public boolean isHistogramOverride() {

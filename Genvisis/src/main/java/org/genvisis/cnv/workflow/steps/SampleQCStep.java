@@ -17,7 +17,7 @@ import org.pankratzlab.common.PSF;
 
 public class SampleQCStep extends Step {
 
-  public static final String NAME = "Run Sample QC Metrics";
+  public static final String NAME = "Compute Sample QC Metrics";
   public static final String DESC = "";
 
   private final Project proj;

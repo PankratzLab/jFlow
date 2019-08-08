@@ -24,11 +24,13 @@ public class SampleDataStep extends Step {
 
   public static SampleDataStep create(Project proj, Step parseSamplesStep) {
     Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-    Requirement<Boolean> createMinimalSampleDataReq = new Requirement.BoolRequirement(REQ_CREATE_MINIMAL,
+    Requirement<Boolean> createMinimalSampleDataReq = new Requirement.BoolRequirement("createMinimal",
+                                                                                      REQ_CREATE_MINIMAL,
                                                                                       true);
     String pedPreset = proj.PEDIGREE_FILENAME.getValue();
 
-    Requirement<File> pedigreeReq = new FileRequirement(REQ_PEDIGREE, new File(pedPreset));
+    Requirement<File> pedigreeReq = new FileRequirement("pedigree", REQ_PEDIGREE,
+                                                        new File(pedPreset));
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(RequirementSetBuilder.or()

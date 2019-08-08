@@ -17,6 +17,7 @@ import java.util.TreeMap;
 import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.plots.AbstractPanel.AXIS_SCALE;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.Files;
@@ -562,16 +563,18 @@ public class ForestPlot {
                                                                                     delim.endsWith("!"),
                                                                                     log)
                                                      : hdr.trim().split(delim);
-    for (int i = 0; i < dataFileHeaders.length; i++) {
+    hdrs: for (int i = 0; i < dataFileHeaders.length; i++) {
       for (int j = 0; j < BETA_META_HEADERS.length; j++) {
         if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADERS[j])) {
           if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_META_HEADERS[j])) {
             data.metaIndicies = new int[] {i, i + 1};
+            continue hdrs;
           }
         } else if (dataFileHeaders[i].contains("PanEthnic")
                    && dataFileHeaders[i].contains(BETA_INFIX)) {
           if (dataFileHeaders[i + 1].contains(SE_INFIX)) {
             data.metaIndicies = new int[] {i, i + 1};
+            continue hdrs;
           }
         }
       }
@@ -751,6 +754,7 @@ public class ForestPlot {
         getLog().report("Attempting marker #" + i);
       }
       setCurrentData(i);
+      updateGUI();
       screenCap(subdir, versionIfExists, size);
     }
 
@@ -931,6 +935,7 @@ public class ForestPlot {
 
   public void setOddsRatioDisplay(boolean selected) {
     forestPanel.oddsDisplay = selected;
+    forestPanel.setXAxis(selected ? AXIS_SCALE.LOG : AXIS_SCALE.LIN);
   }
 
   protected boolean isLoadingFile() {

@@ -9,10 +9,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Hashtable;
 
+import org.apache.commons.cli.ParseException;
 import org.genvisis.cnv.plots.ManhattanPlot;
 import org.genvisis.cnv.plots.QQPlot;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
@@ -22,8 +24,6 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
 
 public class ParseMXCResults {
-
-  private static String usage = "";
 
   private static String[] getKeys(String[][] matrix, String colname, Logger log) {
     String[] headers = matrix[0];
@@ -63,31 +63,6 @@ public class ParseMXCResults {
 
     matrix = Matrix.subset(matrix, rowsToKeep);
     return matrix;
-  }
-
-  private static void generateRScript(String outputFile) {
-    ArrayList<String> r = new ArrayList<>();
-    outputFile = new File(outputFile).getAbsolutePath();
-
-    String filename = ext.rootOf(outputFile, false);
-
-    r.add("library(\"qqman\", lib.loc=\"/panfs/roc/groups/5/pankrat2/cole0482/R/x86_64-pc-linux-gnu-library/3.2\")");
-    r.add("data=read.csv(\"" + filename + ".csv" + "\")");
-    r.add("png(\"" + filename + "_manhattan.png\")");
-    r.add("manhattan(data, chr=\"chr\", bp=\"start_pos\", p=\"pvalue\")");
-    r.add("dev.off()");
-
-    // write rscript to a file
-    Files.writeIterable(r, filename + "_manhattan.R");
-
-    r.clear();
-    r.add("library(\"qqman\", lib.loc=\"/panfs/roc/groups/5/pankrat2/cole0482/R/x86_64-pc-linux-gnu-library/3.2\")");
-    r.add("data=read.csv(\"" + filename + ".csv" + "\")");
-    r.add("png(\"" + filename + "_qq.png\")");
-    r.add("qq(data$pvalue)");
-    r.add("dev.off()");
-
-    Files.writeIterable(r, filename + "_qq.R");
   }
 
   private static void addMetalHits(String posfile, String mxcfile, String metalfile,
@@ -512,70 +487,60 @@ public class ParseMXCResults {
   }
 
   public static void main(String[] args) throws IOException {
-    if (args.length == 0) {
-      System.out.println(usage);
-      System.exit(1);
-    }
     Logger log = new Logger();
 
-    String data = null;
-    String posmap = null;
-    String out = "";
-    String db = "DGN-HapMap-2015/DGN-WB_0.5.db";
-    String covar = "covariance.DGN-WB_0.5.txt.gz";
-    String mxcFolder = "MetaXcan/software";
-    String freqFile = "freq.tbl";
-    String refFile = "1000G.xln";
-    String genesFile = "/home/pankrat2/public/bin/NCBI/genes37.xln";
-    String pattern = null;
-    String indexFile = "index.txt";
+    CLI cli = new CLI("MetaXcan");
 
-    int range = 250000;
+    cli.addArgWithDefault("data",
+                          "File or folder of summary data to be analyzed (data=Metal_results.tbl (default))",
+                          "Metal_results.tbl");
+    cli.addArgWithDefault("posmap", "Map file containing chr/pos for included SNPs",
+                          "/panfs/roc/groups/5/pankrat2/mstimson/parkinsons/data/1000G_PD.map");
+    cli.addArgWithDefault("db",
+                          "MetaXcan weights database (db=DGN-HapMap-2015/DGN-WB_0.5.db (default)",
+                          "DGN-HapMap-2015/DGN-WB_0.5.db");
+    cli.addArgWithDefault("covar", "path to MetaXcan covariate file",
+                          "/panfs/roc/groups/5/pankrat2/shared/bin/MetaXcan/mxc_presets/DGN-HapMap-2015/DGN-WB.txt.gz");
+    cli.addArgWithDefault("genes", "Path to build containing gene positions",
+                          "/home/pankrat2/public/bin/NCBI/genes37.xln");
+    cli.addArgWithDefault("mxc", "path to folder containing MetaXcan executable",
+                          "/panfs/roc/groups/5/pankrat2/shared/bin/MetaXcan/software/");
+    cli.addArgWithDefault("freq", "Allelic frequency file", "freq.tbl");
+    cli.addArgWithDefault("ref", "Reference file for allele verification (optional)", "1000G.xln");
+    cli.addArgWithDefault("indexFile",
+                          "File to be used with -index of the form Gene Label / Pos / Chr",
+                          "index.txt");
+    cli.addArgWithDefault("range", "Size of range to search around an index with -index", 250000);
+    cli.addArg("pattern", "File name pattern to be used with -combine");
+    cli.addFlag("overwrite", "Overwrite existing MetaXcan output");
+    cli.addFlag("verify", "Verify allele order and strand before running MetaXcan");
+    cli.addFlag("combine", "Combine multiple results files");
+    cli.addFlag("index", "Create an index file based on provided regions");
+    cli.addArg("out", "Path to output file");
 
-    boolean verify = false;
-    boolean overwrite = false;
-    boolean combine = false;
-    boolean index = false;
-
-    for (String arg : args) {
-      if (arg.equals("-h") || arg.equals("help")) {
-        System.out.println(usage);
-        System.exit(1);
-      } else if (arg.startsWith("genes="))
-        genesFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("data="))
-        data = ext.parseStringArg(arg);
-      else if (arg.startsWith("posmap="))
-        posmap = ext.parseStringArg(arg);
-      else if (arg.startsWith("out="))
-        out = ext.parseStringArg(arg);
-      else if (arg.startsWith("db="))
-        db = ext.parseStringArg(arg);
-      else if (arg.startsWith("covar="))
-        covar = ext.parseStringArg(arg);
-      else if (arg.startsWith("mxc="))
-        mxcFolder = ext.parseStringArg(arg);
-      else if (arg.startsWith("freq="))
-        freqFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("ref="))
-        refFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("pattern="))
-        pattern = ext.parseStringArg(arg);
-      else if (arg.startsWith("-verify"))
-        verify = true;
-      else if (arg.startsWith("-overwrite"))
-        overwrite = true;
-      else if (arg.startsWith("-combine"))
-        combine = true;
-      else if (arg.startsWith("-index"))
-        index = true;
-      else if (arg.startsWith("indexFile="))
-        indexFile = ext.parseStringArg(arg);
-      else if (arg.startsWith("range="))
-        range = ext.parseIntArg(arg);
-      else
-        log.report("Invalid argument: " + arg);
+    try {
+      cli.parse(args);
+    } catch (ParseException e) {
+      log.reportError("Problem parsing command line arguments");
+      e.printStackTrace();
     }
+
+    String data = cli.get("data");
+    String posmap = cli.get("posmap");
+    String out = cli.get("out");
+    String db = cli.get("db");
+    String covar = cli.get("covar");
+    String mxcFolder = cli.get("mxc");
+    String genesFile = cli.get("genes");
+    String freqFile = cli.get("freq");
+    String refFile = cli.get("ref");
+    String indexFile = cli.get("indexFile");
+    int range = cli.getI("range");
+    String pattern = cli.get("pattern");
+    boolean overwrite = cli.has("overwrite");
+    boolean verify = cli.has("verify");
+    boolean combine = cli.has("combine");
+    boolean index = cli.has("index");
 
     if (combine && pattern != null) {
       combine(pattern, new Logger(ext.parseDirectoryOfFile(pattern) + "combine.log"));

@@ -28,10 +28,15 @@ import org.genvisis.cnv.workflow.steps.ParseSamplesStep;
 import org.genvisis.cnv.workflow.steps.PlinkExportStep;
 import org.genvisis.cnv.workflow.steps.ReverseTransposeTarget;
 import org.genvisis.cnv.workflow.steps.SampleDataStep;
+import org.genvisis.cnv.workflow.steps.SampleQCAnnotateStep;
 import org.genvisis.cnv.workflow.steps.SampleQCStep;
 import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
 import org.genvisis.cnv.workflow.steps.SexChecksStep;
 import org.genvisis.cnv.workflow.steps.TransposeStep;
+import org.pankratzlab.common.CLI;
+
+import com.google.common.collect.ClassToInstanceMap;
+import com.google.common.collect.MutableClassToInstanceMap;
 
 /**
  * Helper class to minimize manual bookkeeping when instantiating steps. Each
@@ -44,7 +49,9 @@ import org.genvisis.cnv.workflow.steps.TransposeStep;
  */
 public class StepBuilder {
 
+  private Project proj;
   private Map<Step, Double> priorityMap;
+  private ClassToInstanceMap<Step> stepInstanceMap;
   private List<Step> buildSteps;
   private double p;
   private final Requirement<Integer> numThreadsReq;
@@ -52,11 +59,17 @@ public class StepBuilder {
   public static final String PUTATIVE_WHITE_FILE_DESCRIPTION = "File with FID/IID pairs of putative white samples";
 
   public StepBuilder(Project proj) {
-    numThreadsReq = new Requirement.PosIntRequirement(NUM_THREADS_DESC,
-                                                      proj.NUM_THREADS.getValue());
+    this.proj = proj;
+    numThreadsReq = createNumThreadsReq(proj);
     buildSteps = new ArrayList<>();
     priorityMap = new HashMap<>();
+    stepInstanceMap = MutableClassToInstanceMap.create();
     p = 0.0;
+  }
+
+  public static Requirement<Integer> createNumThreadsReq(Project proj) {
+    return new Requirement.PosIntRequirement(CLI.ARG_THREADS, NUM_THREADS_DESC,
+                                             proj.NUM_THREADS.getValue());
   }
 
   public Requirement<Integer> getNumThreadsReq() {
@@ -88,164 +101,286 @@ public class StepBuilder {
    * Register the given step in the list returned by {@link #getSortedSteps()}
    */
   <T extends Step> T register(T s) {
+    stepInstanceMap.put(s.getClass(), s);
     priorityMap.put(s, priority());
     buildSteps.add(s);
     return s;
   }
 
-  IlluminaMarkerPositionsStep generateIlluminaMarkerPositionsStep(Project proj) {
-    return register(IlluminaMarkerPositionsStep.create(proj));
+  IlluminaMarkerPositionsStep generateIlluminaMarkerPositionsStep() {
+    return stepInstanceMap.containsKey(IlluminaMarkerPositionsStep.class) ? stepInstanceMap.getInstance(IlluminaMarkerPositionsStep.class)
+                                                                          : register(IlluminaMarkerPositionsStep.create(proj));
   }
 
-  IlluminaMarkerBlastStep generateIlluminaMarkerBlastAnnotationStep(Project proj,
-                                                                    ParseSamplesStep parseSamplesStep) {
-    return register(IlluminaMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq));
+  IlluminaMarkerBlastStep generateIlluminaMarkerBlastAnnotationStep(Step parseSamplesStep) {
+    return stepInstanceMap.containsKey(IlluminaMarkerBlastStep.class) ? stepInstanceMap.getInstance(IlluminaMarkerBlastStep.class)
+                                                                      : register(IlluminaMarkerBlastStep.create(proj,
+                                                                                                                parseSamplesStep,
+                                                                                                                numThreadsReq));
   }
 
-  AxiomCELProcessingStep generateAxiomCELProcessingStep(Project proj) {
-    return register(AxiomCELProcessingStep.create(proj, numThreadsReq));
+  AxiomCELProcessingStep generateAxiomCELProcessingStep() {
+    return stepInstanceMap.containsKey(AxiomCELProcessingStep.class) ? stepInstanceMap.getInstance(AxiomCELProcessingStep.class)
+                                                                     : register(AxiomCELProcessingStep.create(proj,
+                                                                                                              numThreadsReq));
   }
 
-  AffyCELProcessingStep generateAffyCELProcessingStep(Project proj) {
-    return register(AffyCELProcessingStep.create(proj, numThreadsReq));
+  AffyCELProcessingStep generateAffyCELProcessingStep() {
+    return stepInstanceMap.containsKey(AffyCELProcessingStep.class) ? stepInstanceMap.getInstance(AffyCELProcessingStep.class)
+                                                                    : register(AffyCELProcessingStep.create(proj,
+                                                                                                            numThreadsReq));
   }
 
-  AffyMarkerBlastStep generateAffyMarkerBlastAnnotationStep(final Project proj,
-                                                            ReverseTransposeTarget parseSamplesStep) {
-    return register(AffyMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq));
+  AffyMarkerBlastStep generateAffyMarkerBlastAnnotationStep(ReverseTransposeTarget parseSamplesStep) {
+    return stepInstanceMap.containsKey(AffyMarkerBlastStep.class) ? stepInstanceMap.getInstance(AffyMarkerBlastStep.class)
+                                                                  : register(AffyMarkerBlastStep.create(proj,
+                                                                                                        parseSamplesStep,
+                                                                                                        numThreadsReq));
   }
 
-  ParseSamplesStep generateParseSamplesStep(Project proj) {
-    return generateParseSamplesStep(proj, null);
+  ParseSamplesStep generateParseSamplesStep() {
+    return stepInstanceMap.containsKey(ParseSamplesStep.class) ? stepInstanceMap.getInstance(ParseSamplesStep.class)
+                                                               : generateParseSamplesStep(null);
   }
 
-  ParseSamplesStep generateParseSamplesStep(Project proj,
-                                            IlluminaMarkerPositionsStep markerPositionsStep) {
-    return register(ParseSamplesStep.create(proj, markerPositionsStep, numThreadsReq));
+  ParseSamplesStep generateParseSamplesStep(IlluminaMarkerPositionsStep markerPositionsStep) {
+    return stepInstanceMap.containsKey(ParseSamplesStep.class) ? stepInstanceMap.getInstance(ParseSamplesStep.class)
+                                                               : register(ParseSamplesStep.create(proj,
+                                                                                                  markerPositionsStep,
+                                                                                                  numThreadsReq));
   }
 
-  SampleDataStep generateCreateSampleDataStep(Project proj,
-                                              ReverseTransposeTarget reverseTransposeTarget) {
-    return register(SampleDataStep.create(proj, reverseTransposeTarget));
+  public SampleDataStep generateCreateSampleDataStep(Step samplesParsingStep) {
+    return stepInstanceMap.containsKey(SampleDataStep.class) ? stepInstanceMap.getInstance(SampleDataStep.class)
+                                                             : register(SampleDataStep.create(proj,
+                                                                                              samplesParsingStep));
   }
 
-  SampleDataStep generateCreateSampleDataStep(Project proj, ParseSamplesStep parseSamplesStep) {
-    return register(SampleDataStep.create(proj, parseSamplesStep));
+  ReverseTransposeTarget generateReverseTransposeStep(Step parseAffyCELs) {
+    return stepInstanceMap.containsKey(ReverseTransposeTarget.class) ? stepInstanceMap.getInstance(ReverseTransposeTarget.class)
+                                                                     : register(ReverseTransposeTarget.create(proj,
+                                                                                                              parseAffyCELs));
   }
 
-  ReverseTransposeTarget generateReverseTransposeStep(Project proj, Step parseAffyCELs) {
-    return register(ReverseTransposeTarget.create(proj, parseAffyCELs));
+  TransposeStep generateTransposeStep(Step parseSamplesStep) {
+    return stepInstanceMap.containsKey(TransposeStep.class) ? stepInstanceMap.getInstance(TransposeStep.class)
+                                                            : register(TransposeStep.create(proj,
+                                                                                            parseSamplesStep));
   }
 
-  TransposeStep generateTransposeStep(Project proj, ParseSamplesStep parseSamplesStep) {
-    return register(TransposeStep.create(proj, parseSamplesStep));
+  GCModelStep generateGCModelStep() {
+    return stepInstanceMap.containsKey(GCModelStep.class) ? stepInstanceMap.getInstance(GCModelStep.class)
+                                                          : register(GCModelStep.create(proj));
   }
 
-  GCModelStep generateGCModelStep(Project proj) {
-    return register(GCModelStep.create(proj));
+  public SampleQCStep generateSampleQCStep(Step parseSamplesStep) {
+    return stepInstanceMap.containsKey(SampleQCStep.class) ? stepInstanceMap.getInstance(SampleQCStep.class)
+                                                           : register(SampleQCStep.create(proj,
+                                                                                          parseSamplesStep,
+                                                                                          numThreadsReq));
   }
 
-  SampleQCStep generateSampleQCStep(Project proj, Step parseSamplesStep) {
-    return register(SampleQCStep.create(proj, parseSamplesStep, numThreadsReq));
+  public SampleQCAnnotateStep generateSampleQCAnnotationStep(Step sampleQCStep) {
+    return stepInstanceMap.containsKey(SampleQCAnnotateStep.class) ? stepInstanceMap.getInstance(SampleQCAnnotateStep.class)
+                                                                   : register(SampleQCAnnotateStep.create(proj,
+                                                                                                          sampleQCStep));
   }
 
-  MarkerQCStep generateMarkerQCStep(Project proj, Step parseSamplesStep) {
-    return register(MarkerQCStep.create(proj, parseSamplesStep, numThreadsReq));
+  MarkerQCStep generateMarkerQCStep(Step parseSamplesStep) {
+    return stepInstanceMap.containsKey(MarkerQCStep.class) ? stepInstanceMap.getInstance(MarkerQCStep.class)
+                                                           : register(MarkerQCStep.create(proj,
+                                                                                          parseSamplesStep,
+                                                                                          numThreadsReq));
   }
 
-  SexChecksStep generateSexChecksStep(Project proj, ParseSamplesStep parseSamplesStep,
-                                      IlluminaMarkerBlastStep markerBlastStep,
-                                      SampleDataStep sampleDataStep, TransposeStep transposeStep,
-                                      SampleQCStep sampleQCStep) {
-    return register(SexChecksStep.create(proj, markerBlastStep, sampleDataStep, transposeStep,
-                                         sampleQCStep));
+  public SexChecksStep generateSexChecksStep(Step markerBlastStep, SampleDataStep sampleDataStep,
+                                             Step transposeStep, SampleQCStep sampleQCStep) {
+    return stepInstanceMap.containsKey(SexChecksStep.class) ? stepInstanceMap.getInstance(SexChecksStep.class)
+                                                            : register(SexChecksStep.create(proj,
+                                                                                            markerBlastStep,
+                                                                                            sampleDataStep,
+                                                                                            transposeStep,
+                                                                                            sampleQCStep));
   }
 
-  SexChecksStep generateSexChecksStep(Project proj, ReverseTransposeTarget reverseTransposeStep,
-                                      AffyMarkerBlastStep markerBlastStep,
-                                      SampleDataStep sampleDataStep, SampleQCStep sampleQCStep) {
-    return register(SexChecksStep.create(proj, markerBlastStep, sampleDataStep,
-                                         reverseTransposeStep, sampleQCStep));
+  PlinkExportStep generatePlinkExportStep(ParseSamplesStep parseSamplesStep) {
+    return stepInstanceMap.containsKey(PlinkExportStep.class) ? stepInstanceMap.getInstance(PlinkExportStep.class)
+                                                              : register(PlinkExportStep.create(proj,
+                                                                                                parseSamplesStep));
   }
 
-  PlinkExportStep generatePlinkExportStep(Project proj, ParseSamplesStep parseSamplesStep) {
-    return register(PlinkExportStep.create(proj, parseSamplesStep));
+  PlinkExportStep generatePlinkExportStep(ReverseTransposeTarget reverseTransposeStep) {
+    return stepInstanceMap.containsKey(PlinkExportStep.class) ? stepInstanceMap.getInstance(PlinkExportStep.class)
+                                                              : register(PlinkExportStep.create(proj,
+                                                                                                reverseTransposeStep));
   }
 
-  PlinkExportStep generatePlinkExportStep(Project proj,
-                                          ReverseTransposeTarget reverseTransposeStep) {
-    return register(PlinkExportStep.create(proj, reverseTransposeStep));
+  GwasQCStep generateGwasQCStep(PlinkExportStep plinkExportStep) {
+    return stepInstanceMap.containsKey(GwasQCStep.class) ? stepInstanceMap.getInstance(GwasQCStep.class)
+                                                         : register(GwasQCStep.create(proj,
+                                                                                      plinkExportStep));
   }
 
-  GwasQCStep generateGwasQCStep(Project proj, PlinkExportStep plinkExportStep) {
-    return register(GwasQCStep.create(proj, plinkExportStep));
+  AncestryStep generateAncestryStep(GwasQCStep gwasQCStep) {
+    return stepInstanceMap.containsKey(AncestryStep.class) ? stepInstanceMap.getInstance(AncestryStep.class)
+                                                           : register(AncestryStep.create(proj,
+                                                                                          gwasQCStep));
   }
 
-  AncestryStep generateAncestryStep(Project proj, GwasQCStep gwasQCStep) {
-    return register(AncestryStep.create(proj, gwasQCStep));
-  }
-
-  FurtherAnalysisQCStep generateFurtherAnalysisQCStep(Project proj, PlinkExportStep plinkExportStep,
+  FurtherAnalysisQCStep generateFurtherAnalysisQCStep(PlinkExportStep plinkExportStep,
                                                       GwasQCStep gwasQCStep,
                                                       AncestryStep ancestryStep) {
-    return register(FurtherAnalysisQCStep.create(proj, plinkExportStep, gwasQCStep, ancestryStep));
+    return stepInstanceMap.containsKey(FurtherAnalysisQCStep.class) ? stepInstanceMap.getInstance(FurtherAnalysisQCStep.class)
+                                                                    : register(FurtherAnalysisQCStep.create(proj,
+                                                                                                            plinkExportStep,
+                                                                                                            gwasQCStep,
+                                                                                                            ancestryStep));
   }
 
-  MosaicArmsStep generateMosaicArmsStep(Project proj, ParseSamplesStep parseSamplesStep) {
-    return register(MosaicArmsStep.create(proj, parseSamplesStep, numThreadsReq));
+  MosaicArmsStep generateMosaicArmsStep(ParseSamplesStep parseSamplesStep) {
+    return stepInstanceMap.containsKey(MosaicArmsStep.class) ? stepInstanceMap.getInstance(MosaicArmsStep.class)
+                                                             : register(MosaicArmsStep.create(proj,
+                                                                                              parseSamplesStep,
+                                                                                              numThreadsReq));
   }
 
-  MosaicArmsStep generateMosaicArmsStep(Project proj, ReverseTransposeTarget reverseTransposeStep) {
-    return register(MosaicArmsStep.create(proj, reverseTransposeStep, numThreadsReq));
+  MosaicArmsStep generateMosaicArmsStep(ReverseTransposeTarget reverseTransposeStep) {
+    return stepInstanceMap.containsKey(MosaicArmsStep.class) ? stepInstanceMap.getInstance(MosaicArmsStep.class)
+                                                             : register(MosaicArmsStep.create(proj,
+                                                                                              reverseTransposeStep,
+                                                                                              numThreadsReq));
   }
 
-  AnnotateSampleDataStep generateAnnotateSampleDataStep(Project proj, SampleQCStep sampleQCStep,
+  AnnotateSampleDataStep generateAnnotateSampleDataStep(SampleQCStep sampleQCStep,
                                                         SampleDataStep createSampleDataStep,
                                                         GwasQCStep gwasQCStep) {
-    return register(AnnotateSampleDataStep.create(proj, sampleQCStep, createSampleDataStep,
-                                                  gwasQCStep));
+    return stepInstanceMap.containsKey(AnnotateSampleDataStep.class) ? stepInstanceMap.getInstance(AnnotateSampleDataStep.class)
+                                                                     : register(AnnotateSampleDataStep.create(proj,
+                                                                                                              sampleQCStep,
+                                                                                                              createSampleDataStep,
+                                                                                                              gwasQCStep));
   }
 
-  MitoCNEstimateStep generateMitoCNEstimateStep(Project proj, TransposeStep transposeStep) {
-    return register(MitoCNEstimateStep.create(proj, transposeStep, numThreadsReq));
+  MitoCNEstimateStep generateMitoCNEstimateStep(TransposeStep transposeStep) {
+    return stepInstanceMap.containsKey(MitoCNEstimateStep.class) ? stepInstanceMap.getInstance(MitoCNEstimateStep.class)
+                                                                 : register(MitoCNEstimateStep.create(proj,
+                                                                                                      transposeStep,
+                                                                                                      numThreadsReq));
   }
 
-  MitoCNEstimateStep generateMitoCNEstimateStep(Project proj,
-                                                ReverseTransposeTarget reverseTransposeStep) {
-    return register(MitoCNEstimateStep.create(proj, reverseTransposeStep, numThreadsReq));
+  MitoCNEstimateStep generateMitoCNEstimateStep(ReverseTransposeTarget reverseTransposeStep) {
+    return stepInstanceMap.containsKey(MitoCNEstimateStep.class) ? stepInstanceMap.getInstance(MitoCNEstimateStep.class)
+                                                                 : register(MitoCNEstimateStep.create(proj,
+                                                                                                      reverseTransposeStep,
+                                                                                                      numThreadsReq));
   }
 
-  ComputePFBStep generatePFBStep(Project proj, ParseSamplesStep parseSamplesStep) {
-    return register(ComputePFBStep.create(proj, parseSamplesStep));
+  ComputePFBStep generatePFBStep(ParseSamplesStep parseSamplesStep) {
+    return stepInstanceMap.containsKey(ComputePFBStep.class) ? stepInstanceMap.getInstance(ComputePFBStep.class)
+                                                             : register(ComputePFBStep.create(proj,
+                                                                                              parseSamplesStep));
   }
 
-  ComputePFBStep generatePFBStep(Project proj, ReverseTransposeTarget reverseTransposeStep) {
-    return register(ComputePFBStep.create(proj, reverseTransposeStep));
+  ComputePFBStep generatePFBStep(ReverseTransposeTarget reverseTransposeStep) {
+    return stepInstanceMap.containsKey(ComputePFBStep.class) ? stepInstanceMap.getInstance(ComputePFBStep.class)
+                                                             : register(ComputePFBStep.create(proj,
+                                                                                              reverseTransposeStep));
   }
 
-  SexCentroidsStep generateSexCentroidsStep(Project proj, ComputePFBStep pfbStep) {
-    return register(SexCentroidsStep.create(proj, pfbStep, numThreadsReq));
+  SexCentroidsStep generateSexCentroidsStep(ComputePFBStep pfbStep) {
+    return stepInstanceMap.containsKey(SexCentroidsStep.class) ? stepInstanceMap.getInstance(SexCentroidsStep.class)
+                                                               : register(SexCentroidsStep.create(proj,
+                                                                                                  pfbStep,
+                                                                                                  numThreadsReq));
   }
 
-  CallCNVsStep generateCNVStep(Project proj, Step pfbStep, GCModelStep gcModelStep) {
-    return register(CallCNVsStep.create(proj, pfbStep, gcModelStep, numThreadsReq));
+  CallCNVsStep generateCNVStep(Step pfbStep, GCModelStep gcModelStep) {
+    return stepInstanceMap.containsKey(CallCNVsStep.class) ? stepInstanceMap.getInstance(CallCNVsStep.class)
+                                                           : register(CallCNVsStep.create(proj,
+                                                                                          pfbStep,
+                                                                                          gcModelStep,
+                                                                                          numThreadsReq));
   }
 
-  PCCorrectionStep generatePCCorrectedProjectStep(Project proj, ParseSamplesStep parseSamplesStep) {
-    return register(PCCorrectionStep.create(proj, parseSamplesStep, numThreadsReq));
+  public PCCorrectionStep generatePCCorrectedProjectStep(Step parseSamplesStep,
+                                                         SexChecksStep sexChecksStep) {
+    return stepInstanceMap.containsKey(PCCorrectionStep.class) ? stepInstanceMap.getInstance(PCCorrectionStep.class)
+                                                               : register(PCCorrectionStep.create(proj,
+                                                                                                  parseSamplesStep,
+                                                                                                  sexChecksStep,
+                                                                                                  numThreadsReq));
   }
 
-  PCCorrectionStep generatePCCorrectedProjectStep(Project proj,
-                                                  ReverseTransposeTarget reverseTransposeStep) {
-    return register(PCCorrectionStep.create(proj, reverseTransposeStep, numThreadsReq));
+  ABLookupStep generateABLookupStep(ParseSamplesStep parseSamplesStep) {
+    return stepInstanceMap.containsKey(ABLookupStep.class) ? stepInstanceMap.getInstance(ABLookupStep.class)
+                                                           : register(ABLookupStep.create(proj,
+                                                                                          parseSamplesStep));
   }
 
-  ABLookupStep generateABLookupStep(Project proj, ParseSamplesStep parseSamplesStep) {
-    return register(ABLookupStep.create(proj, parseSamplesStep));
+  ABLookupStep generateABLookupStep(ReverseTransposeTarget reverseTransposeStep) {
+    return stepInstanceMap.containsKey(ABLookupStep.class) ? stepInstanceMap.getInstance(ABLookupStep.class)
+                                                           : register(ABLookupStep.create(proj,
+                                                                                          reverseTransposeStep));
   }
 
-  ABLookupStep generateABLookupStep(Project proj, ReverseTransposeTarget reverseTransposeStep) {
-    return register(ABLookupStep.create(proj, reverseTransposeStep));
+  public Step generateMarkersParsingStep() {
+    switch (proj.getArrayType()) {
+      case AFFY_AXIOM:
+        return generateAxiomCELProcessingStep();
+      case AFFY_GW6:
+      case AFFY_GW6_CN:
+        return generateAffyCELProcessingStep();
+      case ILLUMINA:
+        IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
+        ParseSamplesStep parseSamplesStep = generateParseSamplesStep(markerPositions);
+        return generateTransposeStep(parseSamplesStep);
+      case NGS:
+      default:
+        throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
+                                                + proj.getArrayType() + ".");
+    }
+
+  }
+
+  public Step generateSamplesParsingStep() {
+    switch (proj.getArrayType()) {
+      case AFFY_AXIOM:
+        AxiomCELProcessingStep parseAxiomCELs = generateAxiomCELProcessingStep();
+        return generateReverseTransposeStep(parseAxiomCELs);
+      case AFFY_GW6:
+      case AFFY_GW6_CN:
+        Step parseAffyCELs = generateAffyCELProcessingStep();
+        return generateReverseTransposeStep(parseAffyCELs);
+      case ILLUMINA:
+        IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
+        return generateParseSamplesStep(markerPositions);
+      case NGS:
+      default:
+        throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
+                                                + proj.getArrayType() + ".");
+    }
+  }
+
+  public Step generateMarkerBlastStep() {
+    switch (proj.getArrayType()) {
+      case AFFY_AXIOM:
+        AxiomCELProcessingStep parseAxiomCELs = generateAxiomCELProcessingStep();
+        ReverseTransposeTarget reverseTranspose = generateReverseTransposeStep(parseAxiomCELs);
+        return generateAffyMarkerBlastAnnotationStep(reverseTranspose);
+      case AFFY_GW6:
+      case AFFY_GW6_CN:
+        Step parseAffyCELs = generateAffyCELProcessingStep();
+        ReverseTransposeTarget reverseTranspose1 = generateReverseTransposeStep(parseAffyCELs);
+        return generateAffyMarkerBlastAnnotationStep(reverseTranspose1);
+      case ILLUMINA:
+        IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
+        ParseSamplesStep parseSamplesStep = generateParseSamplesStep(markerPositions);
+        return generateIlluminaMarkerBlastAnnotationStep(parseSamplesStep);
+      case NGS:
+      default:
+        throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
+                                                + proj.getArrayType() + ".");
+    }
   }
 
   public static int resolveThreads(Project proj, int numThreads) {

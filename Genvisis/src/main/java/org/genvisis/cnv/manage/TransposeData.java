@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
@@ -17,16 +16,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import javax.swing.JOptionPane;
 
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -34,7 +29,6 @@ import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
@@ -559,6 +553,7 @@ public class TransposeData {
 
   public static void reverseTransposeStreaming(Project proj, String label) {
     long fingerprintForMarkers;
+    long fingerprintForSamples;
 
     Hashtable<String, Float>[] sampRafFileOutliers;
     Hashtable<String, Float> allOutliers;
@@ -579,7 +574,8 @@ public class TransposeData {
     final String[] listOfAllSamplesInProj = samples;
     final String[] listOfAllMarkersInProj = proj.getMarkerNames();
 
-    fingerprintForMarkers = proj.getMarkerSet().getFingerprint();
+    fingerprintForMarkers = MarkerSet.fingerprintForMarkers(proj);
+    fingerprintForSamples = MarkerSet.fingerprintForSamples(proj);
 
     // compute null status (see GenvisisTechDoc.docx for explanation)
     final byte nullStatus = getNullstatusFromRandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue()
@@ -674,7 +670,7 @@ public class TransposeData {
                   sampOutlrs = Compression.objToBytes(sampRafFileOutliers[sampInds[s]]);
                 }
                 fos.write(getParameterSectionForSampRaf(listOfAllMarkersInProj.length, nullStatus,
-                                                        sampOutlrs.length, fingerprintForMarkers));
+                                                        sampOutlrs.length, fingerprintForSamples));
                 fos.flush();
                 fos.close();
                 sampOutlrs = null;
@@ -889,192 +885,6 @@ public class TransposeData {
     log.reportTimeWarning("Waited for " + minsSlept + " minutes, couldn't find " + sampFile);
 
     return null;
-  }
-
-  public static void reverseTranspose(Project proj) {
-    boolean done;
-    byte nullStatus = 0;
-    byte numBytesPerSampleMarker;
-    int numBytes_PerSamp;
-    int numSamples_WriteBuffer;
-    int indexFirstMarkerCurrentIteration;
-    long fingerprintForMarkers, fingerprintForSamples;
-    long timerOverAll, timerLoadFiles, timerTransposeMemory, timerWrite, timerTmp;
-    byte[] markFileParameterSection;
-    byte[][] readBuffer;
-    byte[] markFileOutliersBytes = null;
-    byte[][] writeBuffer = null;
-    String logTemp;
-    String[] listOfAllSamplesInProj;
-    String[] listOfAllMarkersInProj;
-    Hashtable<String, Float>[] sampRafFileOutliers;
-    Hashtable<String, Float> allOutliers;
-    String[] markerDataRafFilenames;
-    SimpleDateFormat timeFormat;
-    String markerFile;
-    String filename;
-    Logger log;
-    Set<String> successes;
-    int[][] batchIndices;
-    int[] batch;
-    boolean range;
-
-    log = proj.getLog();
-    log.report("Reverse transposing data for the project in " + proj.PROJECT_DIRECTORY.getValue());
-
-    timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-    timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-    listOfAllSamplesInProj = proj.getSamples();
-    listOfAllMarkersInProj = proj.getMarkerNames();
-    fingerprintForSamples = MarkerSet.fingerprintForSamples(proj);
-    fingerprintForMarkers = MarkerSet.fingerprintForMarkers(proj);
-    nullStatus = getNullstatusFromRandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue(false, true)
-                                                   + proj.getMarkerLookup()
-                                                         .getFirstMarkerDataRafFilename(),
-                                                   false);
-    numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
-    if (!checkFreeSpaceOrLog(proj, listOfAllSamplesInProj.length, listOfAllMarkersInProj.length,
-                             numBytesPerSampleMarker)) {
-      return;
-    }
-    numBytes_PerSamp = listOfAllMarkersInProj.length * numBytesPerSampleMarker;
-
-    done = false;
-    timerOverAll = new Date().getTime();
-    numSamples_WriteBuffer = Math.min(getOptimalNumSamplesBasedOnHeapSpace(-1, numBytes_PerSamp),
-                                      listOfAllSamplesInProj.length);
-
-    String successFile = proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SUCCESS_FILE;
-    successes = Files.exists(successFile) ? HashVec.loadFileToHashSet(successFile, false)
-                                          : new HashSet<>();
-    PrintWriter writer = Files.getAppropriateWriter(successFile, true);
-
-    while (!done) { // used to recover from OutOfMemory ONLY
-      try {
-        batchIndices = ArrayUtils.splitUpIntoBinsOfIndices(listOfAllSamplesInProj, successes,
-                                                           numSamples_WriteBuffer, log);
-
-        writeStatMsg(log, listOfAllSamplesInProj.length, listOfAllMarkersInProj.length,
-                     numSamples_WriteBuffer, numBytes_PerSamp);
-
-        writeBuffer = new byte[numSamples_WriteBuffer][numBytes_PerSamp];
-
-        timerTmp = new Date().getTime();
-        allOutliers = loadMarkerDataOutliers(proj);
-        sampRafFileOutliers = getOutlierHashForEachSampleRafFile(allOutliers,
-                                                                 listOfAllSamplesInProj);
-
-        markerDataRafFilenames = proj.getMarkerLookup().getMarkerDataRafFilenames();
-        log.reportTime("--");
-        log.reportTime("i (<" + batchIndices.length + ")\tLoad\tTranspose\tWrite");
-        for (int i = 0; i < batchIndices.length; i++) {
-          logTemp = "";
-          batch = batchIndices[i];
-          int batchRange = batch[batch.length - 1] - batch[0] + 1;
-          range = batchRange == numSamples_WriteBuffer || batchRange == batch.length;
-
-          // --- Step 1 --- Load mdRaf files into buffer, and transpose the buffer
-          timerLoadFiles = 0;
-          timerTransposeMemory = 0;
-          timerWrite = 0;
-          indexFirstMarkerCurrentIteration = 0;
-          for (String markerDataRafFilename : markerDataRafFilenames) {
-            timerTmp = new Date().getTime();
-            markerFile = proj.MARKER_DATA_DIRECTORY.getValue(true, true) + markerDataRafFilename;
-            if (range) {
-              readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompressRange(markerFile,
-                                                                                        null, null,
-                                                                                        batch[0],
-                                                                                        batch.length,
-                                                                                        fingerprintForSamples,
-                                                                                        log);
-            } else {
-              readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompressIndices(markerFile,
-                                                                                          null,
-                                                                                          batch,
-                                                                                          fingerprintForSamples,
-                                                                                          log);
-            }
-            timerLoadFiles += (new Date().getTime() - timerTmp);
-
-            timerTmp = new Date().getTime();
-            reverseTransposeBuffer(readBuffer, writeBuffer, numBytesPerSampleMarker,
-                                   indexFirstMarkerCurrentIteration);
-            timerTransposeMemory += (new Date().getTime() - timerTmp);
-            indexFirstMarkerCurrentIteration += readBuffer.length;
-          }
-          logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t"
-                      + timeFormat.format(timerTransposeMemory));
-
-          // --- Step 2 --- Dump write buffer to marker files
-          for (int j = 0; j < batch.length; j++) {
-            timerTmp = new Date().getTime();
-            if (sampRafFileOutliers == null || sampRafFileOutliers[batch[j]].size() == 0) {
-              markFileOutliersBytes = new byte[0];
-            } else {
-              markFileOutliersBytes = Compression.objToBytes(sampRafFileOutliers[batch[j]]);
-            }
-            markFileParameterSection = getParameterSectionForSampRaf(listOfAllMarkersInProj.length,
-                                                                     nullStatus,
-                                                                     markFileOutliersBytes.length,
-                                                                     fingerprintForMarkers);
-
-            filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + listOfAllSamplesInProj[batch[j]]
-                       + Sample.SAMPLE_FILE_EXTENSION;
-            boolean write = true;
-            if (Files.exists(filename)) {
-              long lenByt = Files.getSize(filename);
-              if (lenByt == numBytes_PerSamp + Sample.PARAMETER_SECTION_BYTES) {
-                write = false;
-              }
-            }
-            if (write) {
-              writeBufferToRAF(writeBuffer, null, j, j, filename, markFileParameterSection,
-                               markFileOutliersBytes, false);
-              writer.println(filename);
-              timerWrite += (new Date().getTime() - timerTmp);
-            }
-          }
-          logTemp += "\t" + timeFormat.format(timerWrite);
-
-          log.reportTime(logTemp);
-        }
-
-        if (allOutliers != null && allOutliers.size() != 0) {
-          SerializedFiles.writeSerial(allOutliers,
-                                      proj.SAMPLE_DIRECTORY.getValue(false, true) + "outliers.ser");
-        }
-
-        done = true;
-        writer.close();
-
-      } catch (FileNotFoundException e) {
-        System.err.println(ext.getTime() + "\tFileNotFoundException");
-        e.printStackTrace();
-        proj.message("Major error - file not found:\n" + e.getMessage()
-                     + "\nPlease check log for more info.", "Error - File Missing!",
-                     JOptionPane.ERROR_MESSAGE);
-        System.exit(1);
-      } catch (IOException e) {
-        System.err.println(ext.getTime() + "\tIOException");
-        e.printStackTrace();
-        proj.message("Major error:\n" + e.getMessage() + "\nPlease check log for more info.",
-                     "Error!", JOptionPane.ERROR_MESSAGE);
-        System.exit(1);
-      } catch (OutOfMemoryError oome) {
-        log.reportTimeWarning("Ran out of memory!  Trying again...");
-      } catch (Exception e) {
-        e.printStackTrace();
-        proj.message("Major error:\n" + e.getMessage() + "\nPlease check log for more info.",
-                     "Error!", JOptionPane.ERROR_MESSAGE);
-        System.exit(1);
-      }
-
-    }
-    timerOverAll = (new Date().getTime() - timerOverAll);
-    log.report("--\nFinished reversely transposing data. Total Time used: "
-               + timeFormat.format(timerOverAll));
-    new File(successFile).delete();
   }
 
   @SuppressWarnings("unchecked")
@@ -1357,7 +1167,7 @@ public class TransposeData {
 
   public static byte[] getParameterSectionForSampRaf(int numMarkersInProj, byte nullStatus,
                                                      int numBytesOfOutlierHashtableInCurrentFile,
-                                                     long fingerprintForMarkers) {
+                                                     long fingerprintForSamples) {
     byte[] markerFileHead;
 
     markerFileHead = new byte[Sample.PARAMETER_SECTION_BYTES];
@@ -1368,7 +1178,7 @@ public class TransposeData {
     System.arraycopy(Compression.intToBytes(numBytesOfOutlierHashtableInCurrentFile), 0,
                      markerFileHead, Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOCATION,
                      Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LENGTH);
-    System.arraycopy(Compression.longToBytes(fingerprintForMarkers), 0, markerFileHead,
+    System.arraycopy(Compression.longToBytes(fingerprintForSamples), 0, markerFileHead,
                      Sample.PARAMETER_SECTION_FINGPRNT_LOCATION,
                      Sample.PARAMETER_SECTION_FINGPRNT_LENGTH);
 
@@ -1685,9 +1495,7 @@ public class TransposeData {
     try {
       if (transpose) {
         transposeData(proj, maxFileSize, keepFilesOpen);
-      } else if (reversetranspose) {
-        reverseTranspose(proj);
-      } else if (reverseTransposeStream) {
+      } else if (reversetranspose || reverseTransposeStream) {
         if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SAMPLES_FILE)) {
           String[] samples = proj.getSamples();
           if (samples == null

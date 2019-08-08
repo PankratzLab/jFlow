@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.StringJoiner;
 
+import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -26,6 +28,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -82,10 +85,11 @@ public class ImputationGUI extends JDialog {
   private JAccordionPanel fileTypePanel;
   private JTextField txtFldRefFile;
   private JTextField txtFldOutDir;
-  private static final String refFileDesc = "<html><p>A Reference Panel / Site List file, containing at minimum the following columns: mkr, chr, pos, ref, and alt.</p><p>These may be available at http://www.well.ox.ac.uk/~wrayner/tools/</html>";
+  private static final String refFileDesc = "<html><p>An Imputation Reference Panel / Site List file, containing at minimum the following columns: mkr, chr, pos, ref, and alt.</p><p>These may be available at http://www.well.ox.ac.uk/~wrayner/tools/</html>";
   private JList<Integer> chrList;
   Project proj;
   Logger log = new Logger();
+  private JCheckBox chkBxNoRef;
 
   /**
    * Create the dialog.
@@ -312,9 +316,12 @@ public class ImputationGUI extends JDialog {
       otherReqsPanel.topPanel.add(lblOtherRequirements, "cell 0 0");
       otherReqsPanel.contentPanel.setLayout(new MigLayout("", "[grow]", "[][][][][]"));
 
-      JLabel lblReferenceFile = new JLabel("Reference File:   (required)");
+      JLabel lblReferenceFile = new JLabel("Reference File: ");
       lblReferenceFile.setFont(COMPONENT_FONT);
       otherReqsPanel.contentPanel.add(lblReferenceFile, "flowx,cell 0 0");
+
+      JLabel lblRefHelp = Grafik.getToolTipIconLabel(refFileDesc);
+      otherReqsPanel.contentPanel.add(lblRefHelp, "cell 0 0");
 
       txtFldRefFile = new JTextField();
       otherReqsPanel.contentPanel.add(txtFldRefFile, "flowx,cell 0 1,growx");
@@ -342,6 +349,20 @@ public class ImputationGUI extends JDialog {
       });
       otherReqsPanel.contentPanel.add(btnRefFile, "pad 2 0 -3 0,cell 0 1");
 
+      chkBxNoRef = new JCheckBox();
+      chkBxNoRef.setFont(COMPONENT_FONT);
+      chkBxNoRef.setHorizontalAlignment(SwingConstants.RIGHT);
+      chkBxNoRef.setHorizontalTextPosition(SwingConstants.LEFT);
+      chkBxNoRef.setAction(new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          txtFldRefFile.setEnabled(!chkBxNoRef.isSelected());
+          btnRefFile.setEnabled(!chkBxNoRef.isSelected());
+        }
+      });
+      chkBxNoRef.setText("Export All SNPs");
+      otherReqsPanel.contentPanel.add(chkBxNoRef, "growx, alignx right, cell 0 0");
+
       JLabel lblOutputDirectoryfiles = new JLabel("Output Directory:   (files may be large)");
       lblOutputDirectoryfiles.setFont(COMPONENT_FONT);
       otherReqsPanel.contentPanel.add(lblOutputDirectoryfiles, "cell 0 2");
@@ -361,9 +382,6 @@ public class ImputationGUI extends JDialog {
         }
       });
       otherReqsPanel.contentPanel.add(btnOutDir, "pad 2 0 -3 0,cell 0 3");
-
-      JLabel lblRefHelp = Grafik.getToolTipIconLabel(refFileDesc);
-      otherReqsPanel.contentPanel.add(lblRefHelp, "cell 0 0");
 
       chrsPanel.shrink();
     }
@@ -462,7 +480,7 @@ public class ImputationGUI extends JDialog {
   }
 
   public String getReferenceFile() {
-    return txtFldRefFile.getText();
+    return chkBxNoRef.isSelected() ? null : txtFldRefFile.getText();
   }
 
   public boolean getUseGRC() {
@@ -526,7 +544,9 @@ public class ImputationGUI extends JDialog {
     if (chrs.length > 0) {
       imputeStr.add(ImputationPipeline.CHRS_ARG + ArrayUtils.toStr(chrs, ","));
     }
-    imputeStr.add(ImputationPipeline.REF_ARG + ref);
+    if (ref != null) {
+      imputeStr.add(ImputationPipeline.REF_ARG + ref);
+    }
     for (String keepDropArg : generateKeepDropsArgs()) {
       imputeStr.add(keepDropArg);
     }
@@ -568,19 +588,21 @@ public class ImputationGUI extends JDialog {
   }
 
   private boolean checkRequirementsOrMessage() {
-    String refFile = getReferenceFile();
-    if (!Files.exists(refFile)) {
-      proj.message("Error - a Reference / Site List file is required!");
-      return false;
-    }
-    try {
-      ImputationPrep.validateRefFile(refFile, log);
-    } catch (IllegalArgumentException e) {
-      proj.message("Error - malformed Reference / Site List file: " + e.getMessage());
-      return false;
-    } catch (IOException e) {
-      proj.message("Error - problem reading Reference / Site List file: " + e.getMessage());
-      return false;
+    if (!chkBxNoRef.isSelected()) {
+      String refFile = getReferenceFile();
+      if (!Files.exists(refFile)) {
+        proj.message("Error - a Reference / Site List file is required!");
+        return false;
+      }
+      try {
+        ImputationPrep.validateRefFile(refFile, log);
+      } catch (IllegalArgumentException e) {
+        proj.message("Error - malformed Reference / Site List file: " + e.getMessage());
+        return false;
+      } catch (IOException e) {
+        proj.message("Error - problem reading Reference / Site List file: " + e.getMessage());
+        return false;
+      }
     }
     String outDir = getOutputDirectory();
     if ("".equals(outDir)) {

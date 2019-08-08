@@ -29,7 +29,8 @@ public class MarkerQCStep extends Step {
   public static MarkerQCStep create(Project proj, Step parseSamplesStep,
                                     Requirement<Integer> numThreadsReq) {
     String[] tgtMkrFiles = proj.TARGET_MARKERS_FILENAMES.getValue();
-    final Requirement<File> targetMarkersReq = new Requirement.FileRequirement("A targetMarkers files listing the markers to QC.",
+    final Requirement<File> targetMarkersReq = new Requirement.FileRequirement("targetMarkers",
+                                                                               "A targetMarkers files listing the markers to QC.",
                                                                                tgtMkrFiles != null && tgtMkrFiles.length >= 1 ? new File(tgtMkrFiles[0])
                                                                                                                               : new File(""));
     final Set<String> sampleDataHeaders;
@@ -40,11 +41,13 @@ public class MarkerQCStep extends Step {
     }
     final Set<String> defaultBatchHeaders = Sets.intersection(sampleDataHeaders,
                                                               MarkerMetrics.DEFAULT_SAMPLE_DATA_BATCH_HEADERS);
-    final ListSelectionRequirement batchHeadersReq = new ListSelectionRequirement("SampleData column headers to use as batches for batch effects calculations",
+    final ListSelectionRequirement batchHeadersReq = new ListSelectionRequirement("sampleDataColumns",
+                                                                                  "SampleData column headers to use as batches for batch effects calculations",
                                                                                   sampleDataHeaders,
                                                                                   defaultBatchHeaders,
                                                                                   true);
-    final Requirement<Boolean> exportAllReq = new Requirement.OptionalBoolRequirement("Export all markers in project.",
+    final Requirement<Boolean> exportAllReq = new Requirement.OptionalBoolRequirement("exportAll",
+                                                                                      "Export all markers in project.",
                                                                                       true);
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
@@ -86,6 +89,7 @@ public class MarkerQCStep extends Step {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     Set<String> batchHeaders = ImmutableSet.copyOf(variables.get(batchHeadersReq));
     MarkerMetrics.fullQC(proj, samplesToExclude, tgtFile, true, batchHeaders, numThreads);
+    MarkerMetrics.filterMetrics(proj);
   }
 
   @Override

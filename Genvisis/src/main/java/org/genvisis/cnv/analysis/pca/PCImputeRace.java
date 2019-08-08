@@ -4,7 +4,6 @@ import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,7 +13,6 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
@@ -426,7 +424,7 @@ public class PCImputeRace {
     return raceWriters;
   }
 
-  private static Map<RACE, String> raceListFilenames(String resultFile) {
+  public static Map<RACE, String> raceListFilenames(String resultFile) {
     Map<RACE, String> raceFilenames = Maps.newEnumMap(RACE.class);
     for (RACE race : RACE.values()) {
       String filename = formRaceListFilename(race, resultFile);
@@ -440,7 +438,7 @@ public class PCImputeRace {
     return ext.rootOf(resultFile, false) + "_" + raceString + "s.dat";
   }
 
-  private static int countFounders(String plinkroot, String keepFile) {
+  public static int countFounders(String plinkroot, String keepFile) {
     int founders = 0;
     Hashtable<String, String> plinkFam = HashVec.loadFileToHashString(plinkroot + ".fam",
                                                                       new int[] {0, 1},
@@ -455,98 +453,6 @@ public class PCImputeRace {
       }
     }
     return founders;
-  }
-
-  public static void freqsByRace(String resultFile, String plinkroot, String outFile, Logger log) {
-    String dir = ext.parseDirectoryOfFile(plinkroot, true);
-    plinkroot = ext.rootOf(plinkroot);
-
-    String overallFrqFile = ext.rootOf(resultFile, false) + "_all.frq";
-    CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot + " --freq" + " --out "
-                        + ext.rootOf(overallFrqFile, false), dir);
-    String[] header = Files.getHeaderOfFile(overallFrqFile, log);
-    int key = ext.indexOfStr("SNP", header);
-    int[] targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
-                               ext.indexOfStr("MAF", header)};
-    Hashtable<String, String> overallFreq = HashVec.loadFileToHashString(overallFrqFile, key,
-                                                                         targets, "\t", true);
-
-    Map<RACE, String> raceListFiles = raceListFilenames(resultFile);
-    @SuppressWarnings("unchecked")
-    Map<RACE, Map<String, String>> raceFreqs = Maps.newHashMap();
-
-    PrintWriter writer = Files.getAppropriateWriter(outFile);
-    writer.print("SNP\tA1\tA2\tOverall A1F (n=" + countFounders(dir + plinkroot, null) + ")");
-
-    for (RACE race : RACE.values()) {
-      String raceListFile = raceListFiles.get(race);
-      String raceFrqFile = ext.rootOf(raceListFile, false) + ".frq";
-      CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot + " --keep " + raceListFile
-                          + " --freq" + " --out " + ext.rootOf(raceFrqFile, false), dir);
-      if (Files.exists(raceFrqFile)) {
-        header = Files.getHeaderOfFile(raceFrqFile, log);
-        key = ext.indexOfStr("SNP", header);
-        targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
-                             ext.indexOfStr("MAF", header)};
-        raceFreqs.put(race, HashVec.loadFileToHashString(raceFrqFile, key, targets, "\t", true));
-
-        writer.print("\t" + race + " A1F (n=" + countFounders(dir + plinkroot, raceListFile) + ")");
-      } else {
-        log.reportTimeWarning("Could not calculate frequencies for " + race.getDescription()
-                              + ", this occurs when no project samples were found for this race.");
-        raceFreqs.put(race, new HashMap<String, String>());
-      }
-    }
-    writer.println();
-
-    for (Entry<String, String> overallEntry : overallFreq.entrySet()) {
-      String marker = overallEntry.getKey();
-      String[] data = overallEntry.getValue().split("\t");
-      String A1 = data[0];
-      String A2 = data[1];
-      ;
-      String overallMAF;
-      try {
-        overallMAF = Double.toString(ext.roundToSignificantFigures(Double.parseDouble(data[2]), 4));
-      } catch (NumberFormatException nfe) {
-        log.reportError("Invalid MAF (" + data[2] + ") for SNP '" + marker + "'");
-        overallMAF = ".";
-      }
-
-      writer.print(marker + "\t" + A1 + "\t" + A2 + "\t" + overallMAF);
-
-      for (RACE race : RACE.values()) {
-        Map<String, String> raceFreq = raceFreqs.get(race);
-        String a1f;
-        if (marker == null || !raceFreq.containsKey(marker)) {
-          a1f = ".";
-        } else {
-          String[] raceData = raceFreq.get(marker).split("\t");
-          String raceA1 = raceData[0];
-          String raceA2 = raceData[1];
-          try {
-            double raceMaf = Double.parseDouble(raceData[2]);
-            if (A1.equals(raceA1) && A2.equals(raceA2)) {
-              a1f = Double.toString(ext.roundToSignificantFigures(raceMaf, 4));
-            } else if (A1.equals(raceA2) && A2.equals(raceA1)) {
-              a1f = Double.toString(ext.roundToSignificantFigures(1.0 - raceMaf, 4));
-            } else {
-              log.reportError("Alleles for SNP '" + marker + "' and " + raceListFiles.get(race)
-                              + " (" + raceA1 + ", " + raceA2 + ") do not match overall alleles ("
-                              + A1 + ", " + A2 + " )");
-              a1f = ".";
-            }
-          } catch (NumberFormatException nfe) {
-            log.reportError("Invalid MAF (" + raceData[2] + ") for SNP '" + marker + "' and "
-                            + raceListFiles.get(race));
-            a1f = ".";
-          }
-        }
-        writer.print("\t" + a1f);
-      }
-      writer.println();
-    }
-    writer.close();
   }
 
   public static void main(String[] args) {

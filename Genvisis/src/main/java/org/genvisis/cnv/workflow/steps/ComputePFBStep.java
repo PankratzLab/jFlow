@@ -22,7 +22,8 @@ public class ComputePFBStep extends Step {
 
   public static ComputePFBStep create(Project proj, final Step parseSamplesStep) {
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-    final Requirement<File> sampleSubsetReq = new Requirement.FileRequirement("A Sample subset file must exist.",
+    final Requirement<File> sampleSubsetReq = new Requirement.FileRequirement("sampleSubsetFile",
+                                                                              "A Sample subset file must exist.",
                                                                               new File(proj.SAMPLE_SUBSET_FILENAME.getValue()));
     String defaultOutputFile;
     if (Files.exists(proj.SAMPLE_SUBSET_FILENAME.getValue())) {
@@ -30,7 +31,8 @@ public class ComputePFBStep extends Step {
     } else {
       defaultOutputFile = proj.CUSTOM_PFB_FILENAME.getValue();
     }
-    final Requirement<File> outputFileReq = new Requirement.OutputFileRequirement("PFB (population BAF) output file must be specified.",
+    final Requirement<File> outputFileReq = new Requirement.OutputFileRequirement("out",
+                                                                                  "PFB (population BAF) output file must be specified.",
                                                                                   new File(defaultOutputFile));
 
     final RequirementSet reqSet = RequirementSetBuilder.and()

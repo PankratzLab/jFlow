@@ -98,7 +98,7 @@ public class PhenoPrep {
       outFile = dir + outFile;
     }
 
-    if (Files.isRelativePath(extras)) {
+    if (extras != null && Files.isRelativePath(extras)) {
       extras = dir + extras;
     }
 
@@ -591,10 +591,11 @@ public class PhenoPrep {
     delimiter = ext.determineDelimiter(temp);
     commaDelimitedFile = delimiter.equals(",");
     header = Files.getHeaderOfFile(extras, log);
-    idIndex = ext.indexOfStr(idColName, header);
+    idIndex = ext.indexOfStr(idColName, header, false, true);
     if (idIndex == -1) {
       log.reportError("Error - extras file '" + extras + "' does not contain the same id linker ("
-                      + idColName + ") as the main file; aborting all");
+                      + idColName + ") as the main file (header found: ["
+                      + ArrayUtils.toStr(header, delimiter) + "]); aborting all");
       System.exit(1);
     }
     indices = ext.indexFactors(ArrayUtils.removeFromArray(header, idIndex), header, true, log,
@@ -928,9 +929,15 @@ public class PhenoPrep {
     }
   }
 
+  public static void checkExistsOrThrowException(String filename, String fileDesc) {
+    if (!Files.exists(filename)) {
+      throw new IllegalArgumentException(fileDesc + " " + filename + " doesn't exist.");
+    }
+  }
+
   public static void summarizeAll(String dir, String idColName, String phenosCommaDelimited,
                                   String covarsCommaDelimited, int normalization, String idFile,
-                                  boolean histogram, String phenoFile) {
+                                  String extrasFile, boolean histogram, String phenoFile) {
     PrintWriter writer;
     String[] phenos, transforms;
     Logger log;
@@ -940,6 +947,10 @@ public class PhenoPrep {
     double[] data;
     double mean, stdev, skewness, kurtosis;
     boolean normalize, normSigned;
+
+    checkExistsOrThrowException(idFile, "ID File");
+    // checkExistsOrThrowException(extrasFile, "Extras File"); // extras file can be null
+    checkExistsOrThrowException(phenoFile, "Base Pheno File");
 
     log = new Logger(dir + "summarizeAll.log");
     log.report("id col name is " + idColName);
@@ -1013,8 +1024,8 @@ public class PhenoPrep {
                   PhenoPrep.parse(dir, phenoFile, idColName, pheno, transform, 3.0, winsorize,
                                   remove, makeResids, afterResids, inverseNormalize,
                                   covarsCommaDelimited, idFile, false, false, false, false, true,
-                                  true, null, outFile, true, false, false, normalize, normSigned,
-                                  null, histogram, log);
+                                  true, extrasFile, outFile, true, false, false, normalize,
+                                  normSigned, null, histogram, log);
                 }
                 if (Files.exists(dir + outFile)) {
                   rawData = HashVec.loadFileToStringArray(dir + outFile, true, new int[] {1}, false,
@@ -1318,8 +1329,8 @@ public class PhenoPrep {
 
     try {
       if (summarizeAll) {
-        summarizeAll(dir, idColName, phenos, covarsCommaDelimited, normalization, idFile, histogram,
-                     filename);
+        summarizeAll(dir, idColName, phenos, covarsCommaDelimited, normalization, idFile, extras,
+                     histogram, filename);
       } else if (phenos.contains(",")) {
         parse(dir, filename, idColName, phenos.split(","), transform, sdThreshold, winsorize,
               remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile,

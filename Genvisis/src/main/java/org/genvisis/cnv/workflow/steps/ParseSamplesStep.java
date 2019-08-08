@@ -23,7 +23,8 @@ public class ParseSamplesStep extends Step {
 
   public static ParseSamplesStep create(Project proj, final Step markerPositionsStep,
                                         Requirement<Integer> numThreadsReq) {
-    final Requirement<File> markerPositionsReq = new Requirement.FileRequirement("Marker Positions file must already exist.",
+    final Requirement<File> markerPositionsReq = new Requirement.FileRequirement("markerPositionsFile",
+                                                                                 "Marker Positions file must already exist.",
                                                                                  new File(proj.MARKER_POSITION_FILENAME.getValue(false,
                                                                                                                                  false)));
     final RequirementSet reqSet = RequirementSetBuilder.and();

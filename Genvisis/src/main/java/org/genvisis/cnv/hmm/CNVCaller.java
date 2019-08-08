@@ -9,12 +9,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -30,13 +33,16 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.gui.Task;
 
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
@@ -297,7 +303,7 @@ public class CNVCaller {
                                                                   MAX_LRR_MEDIAN_ADJUST));
 
       for (DATA_ADJUSTMENTS type : dataAdjustments) {
-        proj.getLog().reportTimeInfo("Current LRR sd " + lrrSd);
+        proj.getLog().reportTimeInfo("Current LRR sd " + lrrSd, 2);
         switch (type) {
 
           case ROUND_TO_PENNCNV_SIG_FIGS:// May not be necessary
@@ -323,11 +329,8 @@ public class CNVCaller {
               throw new IllegalArgumentException();
             } else {
               double[] dataToCorrect = analysisLrrs;
-              if (analysisProjectIndices.length != markerSet.getMarkerNames().length) {// only
-                                                                                       // current
-                                                                                       // indicies
-                                                                                       // will be
-                                                                                       // used
+              if (analysisProjectIndices.length != markerSet.getMarkerNames().length) {
+                // only current indicies will be used
                 dataToCorrect = new double[markerSet.getMarkerNames().length];
                 for (int j = 0; j < analysisProjectIndices.length; j++) {
                   dataToCorrect[analysisProjectIndices[j]] = analysisLrrs[j];
@@ -459,13 +462,24 @@ public class CNVCaller {
         if (snpDists[curChr].length > MIN_MARKERS_PER_CHROMOSOME && chrIndices.containsKey(chr)) {
           int[] currentChrIndices = Ints.toArray(chrIndices.get(chr));
           int[] currentChrPositions = ArrayUtils.subArray(analysisPositions, currentChrIndices);
-          double[] currentChrLrr = ArrayUtils.subArray(analysisLrrs, currentChrIndices);
-          double[] currentChrBaf = ArrayUtils.subArray(analysisBafs, currentChrIndices);
-          double[] currentChrPfbs = ArrayUtils.subArray(analysisPfbs, currentChrIndices);
-          boolean[] currentChrCnDef = ArrayUtils.subArray(copyNumberDef, currentChrIndices);
-          String[] currentNames = ArrayUtils.subArray(ArrayUtils.subArray(markerSet.getMarkerNames(),
-                                                                          analysisProjectIndices),
-                                                      currentChrIndices);
+          int[] sortedIndices = Sort.getSortedIndices(currentChrPositions);
+          currentChrPositions = Sort.getOrdered(currentChrPositions, sortedIndices);
+          double[] currentChrLrr = Sort.getOrdered(ArrayUtils.subArray(analysisLrrs,
+                                                                       currentChrIndices),
+                                                   sortedIndices);
+          double[] currentChrBaf = Sort.getOrdered(ArrayUtils.subArray(analysisBafs,
+                                                                       currentChrIndices),
+                                                   sortedIndices);
+          double[] currentChrPfbs = Sort.getOrdered(ArrayUtils.subArray(analysisPfbs,
+                                                                        currentChrIndices),
+                                                    sortedIndices);
+          boolean[] currentChrCnDef = Sort.getOrdered(ArrayUtils.subArray(copyNumberDef,
+                                                                          currentChrIndices),
+                                                      sortedIndices);
+          String[] currentNames = Sort.getOrdered(ArrayUtils.subArray(ArrayUtils.subArray(markerSet.getMarkerNames(),
+                                                                                          analysisProjectIndices),
+                                                                      currentChrIndices),
+                                                  sortedIndices);
           CNVCallerWorker worker = new CNVCallerWorker(proj, dna, (byte) curChr,
                                                        currentChrPositions, currentNames, pennHmm,
                                                        currentChrLrr, currentChrBaf, currentChrPfbs,
@@ -680,22 +694,14 @@ public class CNVCaller {
    */
   private static int[][] getSNPDist(Project proj, PreparedMarkerSet markerSet, boolean reverse,
                                     boolean[] projectIndicesToUse) {
-    int[][] chrPos = markerSet.getPositionsByChr();
-    int[][] tmp = new int[chrPos.length][];
-    int projectIndex = 0;
-    for (int i = 0; i < chrPos.length; i++) {
-      ArrayList<Integer> updated = new ArrayList<>();
-      for (int j = 0; j < chrPos[i].length; j++) {
-        if (projectIndicesToUse[projectIndex]) {
-          updated.add(chrPos[i][j]);
-        }
-        projectIndex++;
-      }
-      tmp[i] = Ints.toArray(updated);
-    }
+    int[][] tmp = new int[MarkerSet.CHR_INDICES][];
+    Set<Marker> markersToUse = markerSet.includeProjectOrderMask(projectIndicesToUse);
+    markerSet.getChrMap()
+             .forEach((chr, markers) -> tmp[chr] = Sets.intersection(markers, markersToUse).stream()
+                                                       .mapToInt(Marker::getPosition).toArray());
     int[][] snpDists = new int[tmp.length][];
     for (int i = 0; i < tmp.length; i++) {
-      int[] distsTmp = new int[tmp[i].length];
+      int[] distsTmp = tmp[i] == null ? new int[0] : new int[tmp[i].length];
       int[] posTmp = reverse ? ArrayUtils.reverse(tmp[i]) : tmp[i];
       if (distsTmp.length > 0) {
         distsTmp[posTmp.length - 1] = 0;
@@ -916,6 +922,7 @@ public class CNVCaller {
     private final int minNumMarkers;
     private final double minConf;
     private final PFB_MANAGEMENT_TYPE pManagementType;
+    private final Task<?, ?> guiTask;
 
     /**
      * @param proj
@@ -932,7 +939,8 @@ public class CNVCaller {
                         PFB pfb, String[] samples, int[] chrsToCall, boolean[] markersToUse,
                         Centroids centroids, int minNumMarkers, double minConf,
                         int numSampleThreads, boolean callReverse,
-                        PFB_MANAGEMENT_TYPE pManagementType, boolean debugMode) {
+                        PFB_MANAGEMENT_TYPE pManagementType, boolean debugMode,
+                        Task<?, ?> guiTask) {
       super();
       this.proj = proj;
       this.markerSet = markerSet;
@@ -950,6 +958,7 @@ public class CNVCaller {
       this.minNumMarkers = minNumMarkers;
       this.minConf = minConf;
       this.pManagementType = pManagementType;
+      this.guiTask = guiTask;
     }
 
     @Override
@@ -984,6 +993,9 @@ public class CNVCaller {
                                            minNumMarkers, minConf, pManagementType,
                                            numSampleThreads, debugMode);
           System.gc();
+          if (guiTask != null) {
+            guiTask.doStep();
+          }
           return cnvs;
         }
 
@@ -1034,7 +1046,7 @@ public class CNVCaller {
   public static void callGenomeCnvs(Project proj, String outputFileBase, Centroids[] centroids,
                                     boolean[] markersToUse, int minNumMarkers, double minConf,
                                     PFB_MANAGEMENT_TYPE pManagementType, int numSampleThreads,
-                                    int numChrThreads) {
+                                    int numChrThreads, Task<?, ?> guiTask) {
 
     String output;
     CNVCallerIterator callerIterator;
@@ -1047,19 +1059,19 @@ public class CNVCaller {
     new File(ext.parseDirectoryOfFile(output)).mkdirs();
     callerIterator = getGenomeCallerIterator(proj, samplesBySex[0], 23, true, chrs[0], centroids[0],
                                              minNumMarkers, minConf, pManagementType,
-                                             numSampleThreads, numChrThreads);
+                                             numSampleThreads, numChrThreads, guiTask);
     writeOutput(callerIterator, output, proj.getLog());
 
     output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_23F.cnv";
     callerIterator = getGenomeCallerIterator(proj, samplesBySex[1], 23, false, chrs[0],
                                              centroids[1], minNumMarkers, minConf, pManagementType,
-                                             numSampleThreads, numChrThreads);
+                                             numSampleThreads, numChrThreads, guiTask);
     writeOutput(callerIterator, output, proj.getLog());
 
     output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_24M.cnv";
     callerIterator = getGenomeCallerIterator(proj, samplesBySex[0], 24, true, chrs[1], centroids[0],
                                              minNumMarkers, minConf, pManagementType,
-                                             numSampleThreads, numChrThreads);
+                                             numSampleThreads, numChrThreads, guiTask);
     writeOutput(callerIterator, output, proj.getLog());
 
   }
@@ -1069,11 +1081,13 @@ public class CNVCaller {
     boolean[] chr23 = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
     int[][] indicesByChr = markerSet.getIndicesByChr();
     for (int i = 0; i < indicesByChr[23].length; i++) {
-      chr23[indicesByChr[23][i]] = true && markersToUse[indicesByChr[23][i]];
+      chr23[indicesByChr[23][i]] = true
+                                   && (markersToUse == null || markersToUse[indicesByChr[23][i]]);
     }
     boolean[] chr24 = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
     for (int i = 0; i < indicesByChr[24].length; i++) {
-      chr24[indicesByChr[24][i]] = true && markersToUse[indicesByChr[23][i]];
+      chr24[indicesByChr[24][i]] = true
+                                   && (markersToUse == null || markersToUse[indicesByChr[23][i]]);
     }
     return new boolean[][] {chr23, chr24};
   }
@@ -1116,7 +1130,8 @@ public class CNVCaller {
                                                           Centroids centroids, int minNumMarkers,
                                                           double minConf,
                                                           PFB_MANAGEMENT_TYPE pManagementType,
-                                                          int numSampleThreads, int numChrThreads) {
+                                                          int numSampleThreads, int numChrThreads,
+                                                          Task<?, ?> guiTask) {
 
     PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
     PennHmm pennHmmOriginal = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), new Logger());
@@ -1157,7 +1172,7 @@ public class CNVCaller {
     CNVProducer producer = new CNVProducer(proj, markerSet, pennHmmOriginal, gcModel, pfb, samples,
                                            new int[] {chrToCall}, markersToUse, centroids,
                                            minNumMarkers, minConf, numChrThreads, false,
-                                           pManagementType, true);
+                                           pManagementType, true, guiTask);
     WorkerTrain<CNVCallResult> train = new WorkerTrain<>(producer, numSampleThreads, 2,
                                                          proj.getLog());
     return new CNVCallerIterator(train);
@@ -1178,7 +1193,8 @@ public class CNVCaller {
                                                     boolean[] markersToUse, Centroids centroids,
                                                     int minNumMarkers, double minConf,
                                                     PFB_MANAGEMENT_TYPE pManagementType,
-                                                    int numSampleThreads, int numChrThreads) {
+                                                    int numSampleThreads, int numChrThreads,
+                                                    Task<?, ?> guiTask) {
 
     PennHmm pennHmmOriginal = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), new Logger());
     if (!Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
@@ -1207,7 +1223,8 @@ public class CNVCaller {
     }
     CNVProducer producer = new CNVProducer(proj, markerSet, pennHmmOriginal, gcModel, pfb, samples,
                                            chrsToCall, markersToUse, centroids, minNumMarkers,
-                                           minConf, numChrThreads, false, pManagementType, true);
+                                           minConf, numChrThreads, false, pManagementType, true,
+                                           guiTask);
     WorkerTrain<CNVCallResult> train = new WorkerTrain<>(producer, numSampleThreads, 2,
                                                          proj.getLog());
     return new CNVCallerIterator(train);
@@ -1222,7 +1239,7 @@ public class CNVCaller {
                                        int[] chrsToCall, boolean[] markersToUse,
                                        Centroids centroids, int minNumMarkers, double minConf,
                                        PFB_MANAGEMENT_TYPE pManagementType, int numSampleThreads,
-                                       int numChrThreads) {
+                                       int numChrThreads, Task<?, ?> guiTask) {
     PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
     output = proj.PROJECT_DIRECTORY.getValue() + output;
     proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
@@ -1230,7 +1247,7 @@ public class CNVCaller {
     CNVCallerIterator callerIterator = getCallerIterator(proj, markerSet, samples, chrsToCall,
                                                          markersToUse, centroids, minNumMarkers,
                                                          minConf, pManagementType, numSampleThreads,
-                                                         numChrThreads);
+                                                         numChrThreads, guiTask);
     writeOutput(callerIterator, output, proj.getLog());
   }
 
@@ -1380,10 +1397,10 @@ public class CNVCaller {
           }
         }
         callGenomeCnvs(proj, output, sexCents, markersToUse, minNumMarkers, minConf,
-                       PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
+                       PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1, null);
       } else {
         callAutosomalCNVs(proj, output, samples, null, markersToUse, null, minNumMarkers, minConf,
-                          PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
+                          PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1, null);
       }
     } catch (Exception e) {
       e.printStackTrace();

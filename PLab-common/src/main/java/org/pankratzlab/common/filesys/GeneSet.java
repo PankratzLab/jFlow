@@ -208,11 +208,6 @@ public class GeneSet implements Serializable {
         Segment.mergeOverlapsAndSort(exons);
 
         exonBoundaries = Segment.convertListToSortedBoundaries(exons);
-        if (geneNames[i].equals("MIR4444-2")) { // an example of a multi-chr gene
-          for (int j2 = 0; j2 < overlapping.size(); j2++) {
-            System.out.println(i + "\t" + overlapping.get(j2).getUCSClocation() + "\t" + count);
-          }
-        }
         finalList.add(new GeneData(geneNames[i], ArrayUtils.toStringArray(assessionNumbers),
                                    overlapping.elementAt(0).getChr(), true, strand,
                                    exonBoundaries[0][0], exonBoundaries[exons.size() - 1][1],

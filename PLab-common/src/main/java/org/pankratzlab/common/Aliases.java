@@ -41,7 +41,8 @@ public class Aliases {
 
   public static final String[] IMPUTATION_EFFICIENCY = {"imp_info", "rsq", "Qual"};
 
-  public static final String[] REFERENCE_FOLDERS = {"C:/bin/NCBI/", "N:/statgen/NCBI/",
+  public static final String[] REFERENCE_FOLDERS = {"C:/bin/NCBI/", "G:/My Drive/statgen/NCBI/",
+                                                    "N:/statgen/NCBI/",
                                                     "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/",
                                                     "/home/npankrat/NCBI/",
                                                     "/panfs/roc/groups/5/pankrat2/public/bin/"};

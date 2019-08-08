@@ -26,7 +26,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.annotation.Nullable;
@@ -867,8 +866,11 @@ public class DosageData implements Serializable {
     dosageValues = new float[genotypeProbabilities.length][genotypeProbabilities[0].length];
     for (int i = 0; i < dosageValues.length; i++) {
       for (int j = 0; j < ids.length; j++) {
-        dosageValues[i][j] = genotypeProbabilities[i][j][0] * 2
-                             + genotypeProbabilities[i][j][1] * 1;
+        float value = genotypeProbabilities[i][j].length > 2 ? genotypeProbabilities[i][j][2]
+                                                             : (1
+                                                                - (genotypeProbabilities[i][j][0]
+                                                                   + genotypeProbabilities[i][j][1]));
+        dosageValues[i][j] = value * 2 + genotypeProbabilities[i][j][1] * 1;
       }
     }
   }
@@ -2553,6 +2555,7 @@ public class DosageData implements Serializable {
     if (markersToKeep != null) {
       for (String s : markersToKeep) {
         markerSet.add(s);
+        // TODO parse marker names if in location format
       }
     }
 
@@ -2630,9 +2633,14 @@ public class DosageData implements Serializable {
                      + " remaining variants.");
       try (VCFFileReader reader = new VCFFileReader(new File(vcfFile),
                                                     Files.exists(vcfFile + ".tbi"))) {
-        keepList.addAll(reader.iterator().stream().filter(vc -> {
-          return markerSet.contains(vc.getID());
-        }).collect(Collectors.toList()));
+        HashSet<String> remaining = new HashSet<>(markerSet);
+        for (VariantContext vc : reader) {
+          if (remaining.contains(vc.getID())) {
+            keepList.add(vc);
+            remaining.remove(vc.getID());
+          }
+          if (remaining.size() == 0) break; // done
+        }
       }
     }
 

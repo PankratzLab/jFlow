@@ -66,6 +66,9 @@ public class CLI {
   public static final String DESC_OUTFILE = "output filename";
   public static final String ARG_PLINKROOT = "plinkroot";
   public static final String DESC_PLINKROOT = "root of plink binary fileset (i.e. .bed, .bim, .fam)";
+  public static final String ARG_PLINK_EXE = "plink";
+  public static final String DESC_PLINK_EXE = "path to plink executable";
+  public static final String DEF_PLINK_EXE = "plink";
   public static final String ARG_THREADS = "threads";
   public static final String DESC_THREADS = "number of threads";
   public static final int EXAMPLE_THREADS = 24;

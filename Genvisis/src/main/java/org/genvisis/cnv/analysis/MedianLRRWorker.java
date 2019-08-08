@@ -1,5 +1,6 @@
 package org.genvisis.cnv.analysis;
 
+import java.awt.GraphicsEnvironment;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -491,7 +492,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       // doInBackground returns. This handling should be moved to whatever is relying on output from
       // this worker.
       get();
-      JOptionPane.showMessageDialog(null, "Log R Ratio Summarization Complete");
+      proj.getLog().reportTime("Log R Ratio Summarization Complete");
+      if (!GraphicsEnvironment.isHeadless()) {
+        JOptionPane.showMessageDialog(null, "Log R Ratio Summarization Complete");
+      }
 
     } catch (ExecutionException e) {
       computelog.reportError("Error - Could not Compute Median Log R Ratio Values");
@@ -1005,7 +1009,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   }
 
   protected void warnAndCancel(String message) {
-    JOptionPane.showMessageDialog(null, message);
+    proj.getLog().reportTimeWarning(message);
+    if (!GraphicsEnvironment.isHeadless()) {
+      JOptionPane.showMessageDialog(null, message);
+    }
     cancel(true);
   }
 
@@ -1158,9 +1165,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       log = proj.getLog();
 
       System.setProperty("java.awt.headless", headless);
-      MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj,
-                                                            readToArray(proj.PROJECT_DIRECTORY.getValue()
-                                                                        + regionFileName, log),
+      if (Files.isRelativePath(regionFileName)) {
+        regionFileName = proj.PROJECT_DIRECTORY.getValue() + regionFileName;
+      }
+      MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(regionFileName, log),
                                                             transformationType, scope, outputBase,
                                                             null, false, false, correctXY, false,
                                                             strategy, log);

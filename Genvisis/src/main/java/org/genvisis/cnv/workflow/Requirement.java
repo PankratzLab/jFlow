@@ -21,7 +21,7 @@ public abstract class Requirement<T> {
     private final Step requiredStep;
 
     public StepRequirement(Step requiredStep) {
-      super(stepReqMessage(requiredStep), Requirement.RequirementInputType.NONE);
+      super(stepReqMessage(requiredStep));
       this.requiredStep = requiredStep;
     }
 
@@ -50,10 +50,61 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class FileRequirement extends Requirement<File> {
+  public abstract static class ParsedRequirement<T> extends Requirement<T> {
 
-    public FileRequirement(String description, File defaultValue) {
-      super(description, Requirement.RequirementInputType.FILE, defaultValue);
+    public ParsedRequirement(String key, String description, RequirementInputType type) {
+      super(description);
+      this.key = key;
+      this.type = type;
+    }
+
+    public ParsedRequirement(String key, String description, Requirement.RequirementInputType type,
+                             T defaultValue) {
+      super(description, defaultValue);
+      this.key = key;
+      this.type = type;
+    }
+
+    private final String key;
+
+    private final Requirement.RequirementInputType type;
+
+    public Requirement.RequirementInputType getType() {
+      return type;
+    }
+
+    public String getKey() {
+      return key;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = super.hashCode();
+      result = prime * result + ((key == null) ? 0 : key.hashCode());
+      result = prime * result + ((type == null) ? 0 : type.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!super.equals(obj)) return false;
+      if (!(obj instanceof ParsedRequirement)) return false;
+      ParsedRequirement other = (ParsedRequirement) obj;
+      if (key == null) {
+        if (other.key != null) return false;
+      } else if (!key.equals(other.key)) return false;
+      if (type != other.type) return false;
+      return true;
+    }
+
+  }
+
+  public static class FileRequirement extends ParsedRequirement<File> {
+
+    public FileRequirement(String key, String description, File defaultValue) {
+      super(key, description, Requirement.RequirementInputType.FILE, defaultValue);
     }
 
     @Override
@@ -73,10 +124,10 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class DirRequirement extends Requirement<File> {
+  public static class DirRequirement extends ParsedRequirement<File> {
 
-    public DirRequirement(String description, File defaultValue) {
-      super(description, Requirement.RequirementInputType.DIR, defaultValue);
+    public DirRequirement(String key, String description, File defaultValue) {
+      super(key, description, Requirement.RequirementInputType.DIR, defaultValue);
     }
 
     @Override
@@ -102,8 +153,8 @@ public abstract class Requirement<T> {
      * @param description
      * @param defaultValue
      */
-    public OptionalDirRequirement(String description, File defaultValue) {
-      super(description, defaultValue);
+    public OptionalDirRequirement(String key, String description, File defaultValue) {
+      super(key, description, defaultValue);
     }
 
     @Override
@@ -116,8 +167,8 @@ public abstract class Requirement<T> {
 
   public static class OutputFileRequirement extends FileRequirement {
 
-    public OutputFileRequirement(String description, File defaultValue) {
-      super(description, defaultValue);
+    public OutputFileRequirement(String key, String description, File defaultValue) {
+      super(key, description, defaultValue);
     }
 
     @Override
@@ -129,8 +180,8 @@ public abstract class Requirement<T> {
 
   public static class OptionalFileRequirement extends FileRequirement {
 
-    public OptionalFileRequirement(String description, File defaultValue) {
-      super(description, defaultValue);
+    public OptionalFileRequirement(String key, String description, File defaultValue) {
+      super(key, description, defaultValue);
     }
 
     @Override
@@ -150,8 +201,7 @@ public abstract class Requirement<T> {
      * @param resource the {@link Resource} required
      */
     public ResourceRequirement(String resourceDescription, Resource resource) {
-      super(generateRequirementDescription(resourceDescription, resource),
-            Requirement.RequirementInputType.NONE);
+      super(generateRequirementDescription(resourceDescription, resource));
       this.resource = resource;
     }
 
@@ -186,10 +236,10 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class BoolRequirement extends Requirement<Boolean> {
+  public static class BoolRequirement extends ParsedRequirement<Boolean> {
 
-    public BoolRequirement(String description, boolean defaultValue) {
-      super(description, Requirement.RequirementInputType.BOOL, defaultValue);
+    public BoolRequirement(String key, String description, boolean defaultValue) {
+      super(key, description, Requirement.RequirementInputType.BOOL, defaultValue);
     }
 
     @Override
@@ -207,8 +257,8 @@ public abstract class Requirement<T> {
 
   public static class OptionalBoolRequirement extends BoolRequirement {
 
-    public OptionalBoolRequirement(String description, boolean defaultValue) {
-      super(description, defaultValue);
+    public OptionalBoolRequirement(String key, String description, boolean defaultValue) {
+      super(key, description, defaultValue);
     }
 
     @Override
@@ -218,13 +268,14 @@ public abstract class Requirement<T> {
     }
   }
 
-  public static class DoubleRequirement extends Requirement<Double> {
+  public static class DoubleRequirement extends ParsedRequirement<Double> {
 
     private final double min;
     private final double max;
 
-    public DoubleRequirement(String description, double defaultValue, double min, double max) {
-      super(description, Requirement.RequirementInputType.NUMBER, defaultValue);
+    public DoubleRequirement(String key, String description, double defaultValue, double min,
+                             double max) {
+      super(key, description, Requirement.RequirementInputType.NUMBER, defaultValue);
       this.min = min;
       this.max = max;
     }
@@ -248,13 +299,13 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class IntRequirement extends Requirement<Integer> {
+  public static class IntRequirement extends ParsedRequirement<Integer> {
 
     private final int min;
     private final int max;
 
-    public IntRequirement(String description, int defaultValue, int min, int max) {
-      super(description, Requirement.RequirementInputType.NUMBER, defaultValue);
+    public IntRequirement(String key, String description, int defaultValue, int min, int max) {
+      super(key, description, Requirement.RequirementInputType.NUMBER, defaultValue);
       this.min = min;
       this.max = max;
     }
@@ -280,13 +331,13 @@ public abstract class Requirement<T> {
 
   public static class PosIntRequirement extends IntRequirement {
 
-    public PosIntRequirement(String description, int defaultValue) {
-      super(description, defaultValue, 1, Integer.MAX_VALUE);
+    public PosIntRequirement(String key, String description, int defaultValue) {
+      super(key, description, defaultValue, 1, Integer.MAX_VALUE);
     }
 
   }
 
-  public static class ListSelectionRequirement extends Requirement<Collection<String>> {
+  public static class ListSelectionRequirement extends ParsedRequirement<Collection<String>> {
 
     private static final char SELECTION_LIST_DELIM = ',';
     private static final Joiner SELECTION_LIST_JOINER = Joiner.on(SELECTION_LIST_DELIM);
@@ -295,9 +346,9 @@ public abstract class Requirement<T> {
     private final Collection<String> options;
     private final boolean allowNone;
 
-    public ListSelectionRequirement(String description, Collection<String> options,
+    public ListSelectionRequirement(String key, String description, Collection<String> options,
                                     Collection<String> defaultOptions, boolean allowNone) {
-      super(description, Requirement.RequirementInputType.LISTSELECTION, defaultOptions);
+      super(key, description, Requirement.RequirementInputType.LISTSELECTION, defaultOptions);
       if (!options.containsAll(defaultOptions)) throw new IllegalArgumentException("All defaultOptions are not in options");
       this.options = options;
       this.allowNone = allowNone;
@@ -328,10 +379,10 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class EnumRequirement<Y extends Enum<Y>> extends Requirement<Y> {
+  public static class EnumRequirement<Y extends Enum<Y>> extends ParsedRequirement<Y> {
 
-    public EnumRequirement(String description, Y defaultValue) {
-      super(description, RequirementInputType.ENUM, defaultValue);
+    public EnumRequirement(String key, String description, Y defaultValue) {
+      super(key, description, RequirementInputType.ENUM, defaultValue);
     }
 
     @Override
@@ -348,10 +399,10 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class ThresholdRequirement extends Requirement<String> {
+  public static class ThresholdRequirement extends ParsedRequirement<String> {
 
-    public ThresholdRequirement(String description, String defaultValue) {
-      super(description, RequirementInputType.STRING, defaultValue);
+    public ThresholdRequirement(String key, String description, String defaultValue) {
+      super(key, description, RequirementInputType.STRING, defaultValue);
     }
 
     @Override
@@ -374,8 +425,27 @@ public abstract class Requirement<T> {
 
   }
 
+  public static class ProgramRequirement extends ParsedRequirement<String> {
+
+    public ProgramRequirement(String key, String description, String defaultValue) {
+      super(key, description, Requirement.RequirementInputType.FILE, defaultValue);
+    }
+
+    @Override
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
+                                    Map<Step, Variables> variables) {
+      return Files.programExists(arg);
+    }
+
+    @Override
+    public String parseValue(String raw) {
+      return raw;
+    }
+
+  }
+
   public enum RequirementInputType {
-    NONE, FILE, DIR, STRING, NUMBER, BOOL, ENUM, LISTSELECTION
+    FILE, DIR, STRING, NUMBER, BOOL, ENUM, LISTSELECTION
   }
 
   public enum Flag {
@@ -383,26 +453,22 @@ public abstract class Requirement<T> {
   }
 
   private final String description;
-  private final Requirement.RequirementInputType type;
   private final T defaultValue;
 
   /**
    * @param description
-   * @param type
    */
-  public Requirement(String description, Requirement.RequirementInputType type) {
-    this(description, type, null);
+  public Requirement(String description) {
+    this(description, null);
   }
 
   /**
    * @param description
-   * @param type
    * @param defaultValue
    */
-  public Requirement(String description, Requirement.RequirementInputType type, T defaultValue) {
+  public Requirement(String description, T defaultValue) {
     super();
     this.description = description;
-    this.type = type;
     this.defaultValue = defaultValue != null ? defaultValue : null;
   }
 
@@ -430,10 +496,6 @@ public abstract class Requirement<T> {
     return description;
   }
 
-  public Requirement.RequirementInputType getType() {
-    return type;
-  }
-
   public T getDefaultValue() {
     return defaultValue;
   }
@@ -449,7 +511,6 @@ public abstract class Requirement<T> {
     int result = 1;
     result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
     result = prime * result + ((description == null) ? 0 : description.hashCode());
-    result = prime * result + ((type == null) ? 0 : type.hashCode());
     return result;
   }
 
@@ -465,7 +526,6 @@ public abstract class Requirement<T> {
     if (description == null) {
       if (other.description != null) return false;
     } else if (!description.equals(other.description)) return false;
-    if (type != other.type) return false;
     return true;
   }
 

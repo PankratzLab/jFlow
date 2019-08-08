@@ -39,44 +39,53 @@ public class FurtherAnalysisQCStep extends Step {
     final Requirement<Step> plinkExportStepReq = new Requirement.StepRequirement(plinkExportStep);
     final Requirement<Step> gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
     final Requirement<Step> ancestryStepReq = new Requirement.StepRequirement(ancestryStep);
-    final Requirement<File> unrelatedsFileReq = new Requirement.FileRequirement("File with list of unrelated FID/IID pairs to use for marker QC",
+    final Requirement<File> unrelatedsFileReq = new Requirement.FileRequirement("unrelatedsFile",
+                                                                                "File with list of unrelated FID/IID pairs to use for marker QC",
                                                                                 new File(""));
-    final Requirement<File> europeansFilesReq = new Requirement.FileRequirement("File with list of European samples to use for Hardy-Weinberg equilibrium tests",
+    final Requirement<File> europeansFilesReq = new Requirement.FileRequirement("europeansFile",
+                                                                                "File with list of European samples to use for Hardy-Weinberg equilibrium tests",
                                                                                 new File(""));
+    final Requirement<String> plinkExeReq = new Requirement.ProgramRequirement(CLI.ARG_PLINK_EXE,
+                                                                               CLI.DESC_PLINK_EXE,
+                                                                               CLI.DEF_PLINK_EXE);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(RequirementSetBuilder.or()
                                                                                  .add(gwasQCStepReq)
                                                                                  .add(unrelatedsFileReq))
                                                        .add(RequirementSetBuilder.or()
                                                                                  .add(ancestryStepReq)
-                                                                                 .add(europeansFilesReq));
+                                                                                 .add(europeansFilesReq))
+                                                       .add(plinkExeReq);
 
     Map<QcMetric, Requirement<String>> metricRequirements = Maps.newEnumMap(QcMetric.class);
     for (QcMetric metric : QcMetric.values()) {
       Map<QcMetric, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
       String defaultVal = defaultThresholds.get(metric);
-      final Requirement<String> metricReq = new Requirement.ThresholdRequirement(metric.getUserDescription(),
+      final Requirement<String> metricReq = new Requirement.ThresholdRequirement(metric.name(),
+                                                                                 metric.getUserDescription(),
                                                                                  defaultVal);
       reqSet.add(metricReq);
       metricRequirements.put(metric, metricReq);
     }
 
     return new FurtherAnalysisQCStep(proj, metricRequirements, unrelatedsFileReq, europeansFilesReq,
-                                     reqSet);
+                                     plinkExeReq, reqSet);
   }
 
   final Project proj;
   final Requirement<File> unrelatedsFileReq;
   final Requirement<File> europeansFilesReq;
+  final Requirement<String> plinkExeReq;
 
   private FurtherAnalysisQCStep(Project proj, Map<QcMetric, Requirement<String>> metricReqs,
                                 Requirement<File> unrelReq, Requirement<File> euroReq,
-                                RequirementSet reqSet) {
+                                Requirement<String> plinkExeReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.proj = proj;
     this.unrelatedsFileReq = unrelReq;
     this.europeansFilesReq = euroReq;
     this.metricRequirements = metricReqs;
+    this.plinkExeReq = plinkExeReq;
   }
 
   @Override
@@ -91,12 +100,14 @@ public class FurtherAnalysisQCStep extends Step {
 
     String europeansFile = resolveEuropeansFile(variables);
 
+    String plinkExe = variables.get(plinkExeReq);
+
     Map<QcMetric, String> markerQCThresholds = Maps.newEnumMap(QcMetric.class);
     for (QcMetric metric : QcMetric.values()) {
       Requirement<String> req = metricRequirements.get(metric);
       markerQCThresholds.put(metric, variables.get(req));
     }
-    new FurtherAnalysisQc(GenvisisWorkflow.getPlinkDir(proj), GenvisisWorkflow.PLINKROOT,
+    new FurtherAnalysisQc(GenvisisWorkflow.getPlinkDir(proj), GenvisisWorkflow.PLINKROOT, plinkExe,
                           markerQCThresholds, unrelatedsFile, europeansFile, proj.getLog())
                                                                                            .runFurtherAnalysisQC();
   }
@@ -107,6 +118,8 @@ public class FurtherAnalysisQCStep extends Step {
 
     String europeansFile = resolveEuropeansFile(variables);
 
+    String plinkExe = variables.get(plinkExeReq);
+
     List<String> commandChunks = Lists.newArrayList();
     commandChunks.add(Files.getRunString());
     commandChunks.add(FurtherAnalysisQc.class.getName());
@@ -114,6 +127,7 @@ public class FurtherAnalysisQCStep extends Step {
     commandChunks.add(CLI.formCmdLineArg(FurtherAnalysisQc.ARG_EUROPEANS, europeansFile));
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_INDIR, GenvisisWorkflow.getPlinkDir(proj)));
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_PLINKROOT, GenvisisWorkflow.PLINKROOT));
+    commandChunks.add(CLI.formCmdLineArg(CLI.ARG_PLINK_EXE, plinkExe));
     for (QcMetric metric : QcMetric.values()) {
       Requirement<String> req = metricRequirements.get(metric);
       commandChunks.add(CLI.formCmdLineArg(metric.getKey(), variables.get(req)));

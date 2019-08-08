@@ -8,6 +8,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.gwas.Ancestry;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
+import org.genvisis.cnv.workflow.ProgramRequirement;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
 import org.genvisis.cnv.workflow.Requirement.OptionalFileRequirement;
@@ -16,8 +17,8 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.common.Logger;
 
 public class AncestryStep extends Step {
 
@@ -39,34 +40,42 @@ public class AncestryStep extends Step {
       defaultSnpFile = "";
     }
 
-    final Requirement.OptionalFileRequirement snpIDLookupFileReq = new OptionalFileRequirement("A SNP name replacement file with two columns, the first being the original SNP name and the second containing the replacement name.",
+    final Requirement.OptionalFileRequirement snpIDLookupFileReq = new OptionalFileRequirement("snpNameLookupFile",
+                                                                                               "A SNP name replacement file with two columns, the first being the original SNP name and the second containing the replacement name.",
                                                                                                new File(defaultSnpFile));
+    final ProgramRequirement plinkExeReq = new ProgramRequirement(CLI.ARG_PLINK_EXE,
+                                                                  CLI.DESC_PLINK_EXE,
+                                                                  CLI.DEF_PLINK_EXE);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(gwasQCStepReq)
                                                        .add(putativeWhitesReq)
-                                                       .add(hapMapFoundersReq)
+                                                       .add(hapMapFoundersReq).add(plinkExeReq)
                                                        .add(snpIDLookupFileReq);
     final Requirement.ResourceRequirement hapMapAncestryReq = new Requirement.ResourceRequirement("HapMap Samples Ancestry File",
                                                                                                   Resources.hapMap(proj.getLog())
                                                                                                            .getHapMapAncestries());
-    return new AncestryStep(proj, snpIDLookupFileReq, hapMapFoundersReq, hapMapAncestryReq, reqSet);
+    return new AncestryStep(proj, snpIDLookupFileReq, hapMapFoundersReq, hapMapAncestryReq, reqSet,
+                            plinkExeReq);
   }
 
-  private final static Requirement<File> putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
+  private final static Requirement<File> putativeWhitesReq = new FileRequirement("putativeWhitesFile",
+                                                                                 "File with FID/IID pairs of putative white samples",
                                                                                  new File(""));
 
   final Project proj;
   final OptionalFileRequirement snpIDLookupReq;
   final ResourceRequirement hapMapFoundersReq;
   final ResourceRequirement hapMapAncestryReq;
+  final ProgramRequirement plinkExeReq;
 
   private AncestryStep(Project proj, OptionalFileRequirement snpIDLookupReq,
                        ResourceRequirement hapFound, ResourceRequirement hapAnc,
-                       RequirementSet reqSet) {
+                       RequirementSet reqSet, ProgramRequirement plinkExeReq) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.proj = proj;
     this.snpIDLookupReq = snpIDLookupReq;
     this.hapMapFoundersReq = hapFound;
     this.hapMapAncestryReq = hapAnc;
+    this.plinkExeReq = plinkExeReq;
   }
 
   @Override
@@ -84,8 +93,9 @@ public class AncestryStep extends Step {
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
     File f = variables.get(snpIDLookupReq);
     String snpIDFile = f == null || f.getPath().equals("") ? null : f.getAbsolutePath();
-    Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, snpIDFile, proj,
-                         new Logger(ancestryDir + "ancestry.log"));
+    new Ancestry(ancestryDir, proj, variables.get(plinkExeReq)).runPipeline(putativeWhites,
+                                                                            hapMapPlinkRoot,
+                                                                            snpIDFile);
   }
 
   @Override
@@ -103,6 +113,7 @@ public class AncestryStep extends Step {
     command += " putativeWhites=" + putativeWhites;
     command += " proj=" + proj.getPropertyFilename();
     command += " hapMapPlinkRoot=" + hapMapPlinkRoot;
+    command += " " + CLI.formCmdLineArg(CLI.ARG_PLINK_EXE, variables.get(plinkExeReq));
     if (snpIDFile != null) {
       if (Files.exists(snpIDFile)) {
         command += " snpLookup=" + snpIDFile;

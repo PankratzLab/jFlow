@@ -1,13 +1,14 @@
 package org.genvisis.cnv.filesys;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.function.Supplier;
 
+import org.pankratzlab.common.Caching;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SciStringComparator;
@@ -22,7 +23,7 @@ public class SampleList implements Serializable {
 
   private final long fingerprint;
   private final String[] samples;
-  private transient Reference<ImmutableMap<String, Integer>> sampleIndicesRef = null;
+  private transient Supplier<ImmutableMap<String, Integer>> sampleIndicesSupplier = Caching.memoizeWithSoftRef(this::loadSampleIndices);
 
   public SampleList(String[] samples) {
     this.samples = samples;
@@ -38,17 +39,15 @@ public class SampleList implements Serializable {
   }
 
   public ImmutableMap<String, Integer> getSampleIndices() {
-    ImmutableMap<String, Integer> sampleIndices = sampleIndicesRef == null ? null
-                                                                           : sampleIndicesRef.get();
-    if (sampleIndices == null) {
-      ImmutableMap.Builder<String, Integer> sampleIndicesBuilder = ImmutableMap.builder();
-      for (int i = 0; i < samples.length; i++) {
-        sampleIndicesBuilder.put(samples[i], i);
-      }
-      sampleIndices = sampleIndicesBuilder.build();
-      sampleIndicesRef = new SoftReference<>(sampleIndices);
+    return sampleIndicesSupplier.get();
+  }
+
+  private ImmutableMap<String, Integer> loadSampleIndices() {
+    ImmutableMap.Builder<String, Integer> sampleIndicesBuilder = ImmutableMap.builder();
+    for (int i = 0; i < samples.length; i++) {
+      sampleIndicesBuilder.put(samples[i], i);
     }
-    return sampleIndices;
+    return sampleIndicesBuilder.build();
   }
 
   public void writeToTextFile(String filename) {
@@ -72,6 +71,12 @@ public class SampleList implements Serializable {
 
   public static SampleList load(String filename) {
     return (SampleList) SerializedFiles.readSerial(filename, true);
+  }
+
+  private void readObject(ObjectInputStream inputStream) throws IOException,
+                                                         ClassNotFoundException {
+    inputStream.defaultReadObject();
+    sampleIndicesSupplier = Caching.memoizeWithSoftRef(this::loadSampleIndices);
   }
 
   public static SampleList generateSampleList(Project proj) {

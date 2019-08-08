@@ -160,6 +160,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   public static final String MASK_MISSING = "Mask missing values";
   public static final String UNMASK_MISSING = "Unmask missing values";
   public static final String MENDELIAN_ERROR = "Mendelian Errors";
+  public static final String ALLOW_HIGHTLIGHTING = "Allow Highlighting";
   public static final Color BACKGROUND_COLOR = Color.WHITE;
   public static final String DEFAULT_MESSAGE = "enter new annotation here";
   public static final String[] GENOTYPE_OPTIONS = new String[] {"-", "A/A", "A/B", "B/B"};
@@ -245,6 +246,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   private String[] samples, sampleFIDIIDs;
   private volatile PLOT_TYPE[] plotTypes;
   private volatile int[] classes;
+  private boolean allowHighlighting;
   private byte size;
   private float gcThreshold;
   private long sampleListFingerprint;
@@ -509,6 +511,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     maskMissing = new boolean[4];
     symmetry = new boolean[] {true, true, true, true};
     excludeSamples = new boolean[] {true, true, true, true};
+    allowHighlighting = true;
     correction = new boolean[4];
     displayMendelianErrors = new boolean[4];
     plotTypes = new PLOT_TYPE[] {PLOT_TYPE.X_Y, PLOT_TYPE.X_Y, PLOT_TYPE.X_Y, PLOT_TYPE.X_Y};
@@ -584,6 +587,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       scatterPanel.setPointsGeneratable(true);
       scatterPanel.setUpdateQCPanel(true);
       scatterPanel.setExtraLayersVisible(new byte[] {99});
+      inputMapAndActionMap(scatterPanel);
     }
     displayIndex(navigationField);
     // clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+"
@@ -825,6 +829,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       updateGUI();
     } else if (command.equals(MENDELIAN_ERROR)) {
       displayMendelianErrors[selectedPanelIndex] = mendelianErrorBox.isSelected();
+      updateGUI();
+    } else if (command.equals(ALLOW_HIGHTLIGHTING)) {
+      allowHighlighting = !allowHighlighting;
       updateGUI();
     } else if (command.equals(NEW_LIST_COMMAND)) {
       ListEditor le = ListEditor.createMarkerListCreator(proj);
@@ -1706,6 +1713,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
   public boolean hideExcludedSamples(int index) {
     return excludeSamples[index];
+  }
+
+  public boolean allowHighlighting() {
+    return allowHighlighting;
   }
 
   public void last() {
@@ -3183,6 +3194,13 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       mendelianErrorBox.setEnabled(false);
     }
 
+    JCheckBox allowHighlightingBox = new JCheckBox("Allow Highlighting");
+    allowHighlightingBox.setFont(checkBoxFont);
+    allowHighlightingBox.setBackground(BACKGROUND_COLOR);
+    allowHighlightingBox.setActionCommand(ALLOW_HIGHTLIGHTING);
+    allowHighlightingBox.addActionListener(this);
+    allowHighlightingBox.setSelected(allowHighlighting);
+
     // JPanel boxPanel = new JPanel();
     // boxPanel.setLayout(new GridLayout(3, 2));
     // boxPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
@@ -3206,6 +3224,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     boxPanel.add(excludeSampleBox);// , gbc);
     boxPanel.add(maskMissingBox);// , gbc);
     boxPanel.add(mendelianErrorBox);
+    boxPanel.add(allowHighlightingBox);
     plotPanel.add(boxPanel, BorderLayout.WEST);
     controlPanel.add(plotPanel);
 
@@ -3902,34 +3921,33 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   }
 
   private void inputMapAndActionMap(JComponent comp) {
-    InputMap inputMap;
-    ActionMap actionMap;
-
-    inputMap = comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    actionMap = comp.getActionMap();
-
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, InputEvent.CTRL_MASK), FIRST);
-    // inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK), PREVIOUS);
-    // inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK), NEXT);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), PREVIOUS);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), NEXT);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, InputEvent.CTRL_MASK), LAST);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK), SYMMETRY);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_MASK), CORRECTION);
-
     String SEL_1 = "SEL1";
     String SEL_2 = "SEL2";
     String SEL_3 = "SEL3";
     String SEL_4 = "SEL4";
+    ActionMap actionMap;
 
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_1, 0/* InputEvent.CTRL_DOWN_MASK */), SEL_1);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0/* InputEvent.CTRL_DOWN_MASK */), SEL_2);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_3, 0/* InputEvent.CTRL_DOWN_MASK */), SEL_3);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_4, 0/* InputEvent.CTRL_DOWN_MASK */), SEL_4);
+    InputMap[] maps = {comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW),
+                       comp.getInputMap(JComponent.WHEN_FOCUSED)};
+    actionMap = comp.getActionMap();
+    for (InputMap inputMap : maps) {
+
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, InputEvent.CTRL_MASK), FIRST);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), PREVIOUS);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), NEXT);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, InputEvent.CTRL_MASK), LAST);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK), SYMMETRY);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_MASK), CORRECTION);
+
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_1, 0), SEL_1);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0), SEL_2);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_3, 0), SEL_3);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_4, 0), SEL_4);
+    }
 
     AbstractAction panelSelectionAction = new AbstractAction() {
 
@@ -3958,21 +3976,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     actionMap.put(SEL_2, panelSelectionAction);
     actionMap.put(SEL_3, panelSelectionAction);
     actionMap.put(SEL_4, panelSelectionAction);
-    //
-    // inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.CTRL_MASK), "SWITCH");
-    //
-    // actionMap.put("SWITCH", new AbstractAction() {
-    // @Override
-    // public void actionPerformed(ActionEvent e) {
-    // System.out.println("SWAP");
-    // swapView();
-    // }
-    // });
 
     actionMap.put(ALT_UP, new CycleRadio(typeRadioButtons, -1));
     actionMap.put(ALT_DOWN, new CycleRadio(typeRadioButtons, 1));
-    // actionMap.put(ALT_LEFT, new CycleRadio(colorKeyPanel.getClassRadioButtons(), -1));
-    // actionMap.put(ALT_RIGHT, new CycleRadio(colorKeyPanel.getClassRadioButtons(), 1));
     actionMap.put(FIRST, new AbstractAction() {
 
       public static final long serialVersionUID = 4L;
@@ -4441,11 +4447,12 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     viewPanel.remove(indivPanels[selectedPanelIndex]);
     scatterOverview.removeAll();
     for (int i = 0; i < indivPanels.length; i++) {
-      scatterPanels[i].axisXHeight = 0;
-      scatterPanels[i].axisYWidth = 0;
+      scatterPanels[i].setAxisXHeight(40);
+      scatterPanels[i].setAxisYWidth(40);
+      scatterPanels[i].xAxisLabelPad = 7;
       scatterPanels[i].shrunk = true;
-      scatterPanels[i].displayXAxis = false;
-      scatterPanels[i].displayYAxis = false;
+      scatterPanels[i].displayXAxis = true;
+      scatterPanels[i].displayYAxis = true;
       scatterOverview.add(indivPanels[i]);
       indivPanels[i].invalidate();
       scatterPanels[i].invalidate();
@@ -4508,8 +4515,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     scatterOverview.removeAll();
     scatterOverview.invalidate();
     for (int i = 0; i < indivPanels.length; i++) {
-      scatterPanels[i].axisXHeight = AbstractPanel.HEIGHT_X_AXIS;
-      scatterPanels[i].axisYWidth = AbstractPanel.WIDTH_Y_AXIS;
+      scatterPanels[i].setAxisXHeight(AbstractPanel.HEIGHT_X_AXIS);
+      scatterPanels[i].setAxisYWidth(AbstractPanel.WIDTH_Y_AXIS);
+      scatterPanels[i].xAxisLabelPad = AbstractPanel.DEFAULT_X_AXIS_LABEL_PAD;
       scatterPanels[i].shrunk = false;
       scatterPanels[i].displayXAxis = true;
       scatterPanels[i].displayYAxis = true;
@@ -4691,14 +4699,4 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     }).start();
   }
 
-  public static void main(String[] args) {
-    javax.swing.SwingUtilities.invokeLater(new Runnable() {
-
-      @Override
-      public void run() {
-        createAndShowGUI(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true)),
-                         null, null, true);
-      }
-    });
-  }
 }

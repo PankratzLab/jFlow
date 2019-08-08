@@ -73,6 +73,11 @@ public class APTAffy6Pipeline {
   }
 
   private void validatePreReq() {
+    if (!Resources.affy(log).getAnnotationFile().isAvailable()) {
+      log.reportError(Resources.affy(log).getAnnotationFile().getName()
+                      + " is not available, and is necessary for parsing genotypes.");
+      throw new IllegalArgumentException();
+    }
 
     for (int i = 0; i < AFFY_LIB_FILES.values().length; i++) {
       if (!Files.exists(aptLibDir + AFFY_LIB_FILES.values()[i].getLibFile(full))) {
@@ -592,6 +597,7 @@ public class APTAffy6Pipeline {
 
     AffyParsingPipeline parser = new AffyParsingPipeline();
     parser.setProject(proj);
+    parser.setAnnotationFile(Resources.affy(log).getAnnotationFile().get());
     parser.setGenotypeCallFile(genotypeResult.getCallFile());
     parser.setConfidencesFile(genotypeResult.getConfFile());
     parser.setNormIntensitiesFile(normalizationResult.getQuantNormFile());

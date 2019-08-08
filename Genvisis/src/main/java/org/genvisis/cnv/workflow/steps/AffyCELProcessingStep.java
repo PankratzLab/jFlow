@@ -16,7 +16,6 @@ import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 
@@ -40,10 +39,10 @@ public class AffyCELProcessingStep extends Step {
 
   public static AffyCELProcessingStep create(Project proj, Requirement<Integer> numThreadsReq) {
 
-    OptionalBoolRequirement fullReq = new OptionalBoolRequirement(DESC_FULL, false);
-    DirRequirement aptExtReq = new DirRequirement(DESC_APT_EXT, new File(""));
-    DirRequirement aptLibReq = new DirRequirement(DESC_APT_LIB, new File(""));
-    FileRequirement sketchReq = new FileRequirement(DESC_SKETCH, new File(""));
+    OptionalBoolRequirement fullReq = new OptionalBoolRequirement("full", DESC_FULL, false);
+    DirRequirement aptExtReq = new DirRequirement("aptExe", DESC_APT_EXT, new File(""));
+    DirRequirement aptLibReq = new DirRequirement("aptLib", DESC_APT_LIB, new File(""));
+    FileRequirement sketchReq = new FileRequirement("sketch", DESC_SKETCH, new File(""));
 
     return new AffyCELProcessingStep(proj, aptExtReq, aptLibReq, sketchReq, fullReq, numThreadsReq);
   }
@@ -92,9 +91,10 @@ public class AffyCELProcessingStep extends Step {
 
   @Override
   public String getCommandLine(Variables variables) {
-    Resources.affy(proj.getLog()).genome(GenomeBuild.HG19).getMarkerPositions().get(); // download
-                                                                                       // if
-                                                                                       // necessary
+    // download resources if necessary
+    Resources.affy(proj.getLog()).genome(proj.GENOME_BUILD_VERSION.getValue()).getMarkerPositions()
+             .get();
+    Resources.affy(proj.getLog()).getAnnotationFile().get();
 
     StringBuilder cmd = new StringBuilder();
     cmd.append(Files.getRunString());

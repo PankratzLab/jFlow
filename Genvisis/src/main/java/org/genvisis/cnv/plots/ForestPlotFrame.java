@@ -339,8 +339,6 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
         } catch (NumberFormatException nfe) {
           System.out.println("Please enter a valid integer which is in range");
         }
-        // displayIndex((JTextField) e.getSource());
-        forestPlot.getForestPanel().setPointsGeneratable(true);
         updateForestPlot();
       }
     });

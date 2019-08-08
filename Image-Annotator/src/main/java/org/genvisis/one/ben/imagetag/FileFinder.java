@@ -39,9 +39,7 @@ public class FileFinder extends JDialog {
     return ff.list.getSelectedValuesList();
   }
 
-  /**
-   * Create the dialog.
-   */
+  /** Create the dialog. */
   private FileFinder(String[] options, boolean multiSelect) {
     this.fullOptions = options;
     setTitle("File Finder");
@@ -185,5 +183,4 @@ public class FileFinder extends JDialog {
       return prime.longValue();
     }
   }
-
 }

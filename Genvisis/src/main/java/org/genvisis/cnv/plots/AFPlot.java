@@ -169,7 +169,10 @@ public class AFPlot {
                                                        afSas)
                                                 .filter(new AbstractColumnFilter(snpCol, chrCol,
                                                                                  posCol, refCol,
-                                                                                 altCol) {
+                                                                                 altCol, afAll,
+                                                                                 afEas, afEur,
+                                                                                 afAfr, afAmr,
+                                                                                 afSas) {
 
                                                   @Override
                                                   public boolean filter(DataLine values) {
@@ -790,7 +793,7 @@ public class AFPlot {
                      + (proj == null ? "" : " - " + proj.PROJECT_NAME.getValue()));
       createMenuBar();
 
-      alleleInfoPanel = new JPanel(new MigLayout("debug", "[center, grow]", "[center, grow]"));
+      alleleInfoPanel = new JPanel(new MigLayout("", "[center, grow]", "[center, grow]"));
       alleleInfoPanel.setBackground(Color.WHITE);
       alleleInfoPanel.setVisible(DEFAULT_SHOW_ALLELE_INFO);
       frame.add(alleleInfoPanel, "west, center");

@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -12,10 +14,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project;
@@ -23,22 +27,28 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.qc.AffyAnnotationFile;
+import org.genvisis.cnv.qc.AffyAnnotationFile.IMPORT_SCHEME;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public class AffyParsingPipeline {
 
   private Project proj;
+  private String annotFile;
   private String callFile;
   private String confFile;
   private String intFile;
+  private boolean skipGenos = false;
 
   private String delim = "\t";
 
@@ -48,6 +58,7 @@ public class AffyParsingPipeline {
 
   private String[] samples;
   int numSamples;
+  Map<String, Marker> markerNameMap;
   Map<Marker, String> markerFileMap;
   Map<String, String[]> markersInFileMap;
   Map<Marker, Integer> markerIndexInFileMap;
@@ -74,6 +85,14 @@ public class AffyParsingPipeline {
     }
   }
 
+  public void setSkipGenotypes() {
+    this.skipGenos = true;
+  }
+
+  public void setAnnotationFile(String annotFile) {
+    this.annotFile = annotFile;
+  }
+
   public void setGenotypeCallFile(String callFile) {
     this.callFile = callFile;
   }
@@ -91,7 +110,7 @@ public class AffyParsingPipeline {
   }
 
   private void loadAndSortMarkers() throws IOException {
-    Set<String> allMarkers = new HashSet<>();
+    Set<String> markersInCELs = new HashSet<>();
     BufferedReader reader = Files.getAppropriateReader(proj.PROJECT_DIRECTORY.getValue()
                                                        + proj.PROJECT_NAME.getValue()
                                                        + ".probesetIdsAll.txt");
@@ -109,12 +128,50 @@ public class AffyParsingPipeline {
       if (snp.endsWith("-A") || snp.endsWith("-B")) {
         snp = snp.substring(0, snp.length() - 2);
       }
-      allMarkers.add(snp);
+      markersInCELs.add(snp);
     }
     reader.close();
 
+    List<Marker> mkrsInCELs = new ArrayList<>();
+
+    if (!skipGenos && Files.exists(annotFile)) {
+      // load marker annotations to get alleles
+      AffyAnnotationFile aaf = new AffyAnnotationFile(annotFile, IMPORT_SCHEME.PROBESET_ID,
+                                                      proj.getLog());
+
+      try {
+        markerNameMap = new HashMap<>();
+        for (Marker m : aaf.load()) {
+          if (markersInCELs.contains(m.getName())) {
+            mkrsInCELs.add(m);
+          }
+        }
+        // only import overlap:
+
+        markersInCELs = mkrsInCELs.stream().map(Marker::getName)
+                                  .collect(ImmutableSet.toImmutableSet());
+        mkrsInCELs.stream().forEach(m -> markerNameMap.put(m.getName(), m)); // setup marker map
+      } catch (IOException e4) {
+        proj.getLog()
+            .reportError("Couldn't load marker allele info from Affymetric annotation file: "
+                         + annotFile
+                         + ". This file is required to import genotypes; use the -skipGenotypes to bypass this.");
+        return;
+      }
+    }
+
     // create naive MarkerSet file
-    Markers.orderMarkers(allMarkers.toArray(new String[allMarkers.size()]), proj);
+    String[] mkrs = markersInCELs.toArray(new String[markersInCELs.size()]);
+    int[] order = Markers.orderMarkers(mkrs, proj);
+
+    // create MDS in proper order
+    if (!skipGenos && Files.exists(annotFile)) {
+      Marker[] mkrMkrs = Sort.getOrdered(Stream.of(mkrs).map(markerNameMap::get)
+                                               .toArray(Marker[]::new),
+                                         order);
+      MarkerDetailSet mds = new MarkerDetailSet(ArrayUtils.toList(mkrMkrs)); // create MDS
+      mds.serialize(proj.MARKER_DETAILS_FILENAME.getValue());
+    }
   }
 
   private void binMarkers(long numMkrsPerFile) {
@@ -270,6 +327,7 @@ public class AffyParsingPipeline {
             .reportTimeWarning("Exception occurred when closing input files.  This may not be a problem.");
       }
 
+      proj.getLog().reportTime("Finished processing files, now writing outliers...");
       // use a set so we only process each file once
       HashSet<String> files = new HashSet<>(markerFileMap.values());
       for (String mkrFile : files) {
@@ -417,7 +475,7 @@ public class AffyParsingPipeline {
     }
     MarkerData md = new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas,
                                    rs, bafs, lrrs, abGenos, forwardGenos);
-    CentroidCompute centroid = md.getCentroid(null, null, true, 0, 0, null, true, proj.getLog());
+    CentroidCompute centroid = md.getCentroid(null, null, true, 1, 0, null, true, proj.getLog());
     md = null;
     return new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas, rs,
                           bafs, centroid.getRecomputedLRR(), abGenos, forwardGenos);
@@ -443,18 +501,44 @@ public class AffyParsingPipeline {
     float[] bafs = null;
     float[] lrrs = null;
     byte[] abGenos = new byte[numSamples];
-    byte[] forwardGenos = null;
+    boolean genos = !skipGenos && markerNameMap.containsKey(mkr);
+    byte[] forwardGenos = genos ? new byte[numSamples] : null;
 
     double scale = proj.XY_SCALE_FACTOR.getValue();
     for (int i = 0; i < numSamples; i++) {
       abGenos[i] = (byte) Integer.parseInt(calls[i + 1]);
-      gcs[i] = Float.parseFloat(confs[i + 1]);
+      if (genos) {
+        Marker m = markerNameMap.get(mkr);
+        String fg = "";
+        switch (abGenos[i]) {
+          default:
+          case -1:
+            fg = "--";
+            break;
+          case 0:
+            fg = m.getA() + "" + m.getA();
+            break;
+          case 1:
+            fg = m.getA() + "" + m.getB();
+            break;
+          case 2:
+            fg = m.getB() + "" + m.getB();
+            break;
+        }
+        forwardGenos[i] = (byte) ext.indexOfStr(fg, Sample.ALLELE_PAIRS);
+        if (forwardGenos[i] == -1) {
+          proj.getLog().reportTimeWarning("Couldn't find allele pair: " + fg);
+          forwardGenos[i] = 0;
+        }
+      }
+      gcs[i] = 1 - Float.parseFloat(confs[i + 1]);
       xs[i] = (float) (intensityTransform.apply(Double.parseDouble(sigsA[i + 1])) / scale);
       ys[i] = (float) (intensityTransform.apply(Double.parseDouble(sigsB[i + 1])) / scale);
     }
     MarkerData md = new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas,
                                    rs, bafs, lrrs, abGenos, forwardGenos);
-    CentroidCompute centroid = md.getCentroid(null, null, false, 0, 0, null, true, proj.getLog());
+    CentroidCompute centroid = md.getCentroid(null, null, false, 1, 0, null, true, proj.getLog());
+
     md = null;
     return new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas, rs,
                           centroid.getRecomputedBAF(), centroid.getRecomputedLRR(), abGenos,
@@ -484,10 +568,12 @@ public class AffyParsingPipeline {
   private static final String ARG_CONF_FILE = "conf";
   private static final String ARG_NORM_INT_FILE = "norm";
   private static final String ARG_MDRAF_MAX_SIZE_MB = "size";
+  private static final String ARG_AFFY_ANNOT_FILE = "annot";
   private static final String DESC_CALL_FILE = "A file containing genotype calls created by AffyPowerTools";
   private static final String DESC_CONF_FILE = "A file containing confidence values created by AffyPowerTools";
   private static final String DESC_NORM_INT_FILE = "A file containing normalized intensities, created by AffyPowerTools";
   private static final String DESC_MDRAF_MAX_SIZE_MB = "Maximum size of marker data files in megabytes (default 2048, i.e. 2Gb)";
+  private static final String DESC_AFFY_ANNOT_FILE = "An Affymetrix SNP Annotation file (e.g. \"Axiom_tx_v1.na35.annot.csv\").";
 
   private static final int DEFAULT_MDRAF_SIZE = 2048;
 
@@ -498,12 +584,20 @@ public class AffyParsingPipeline {
     cli.addArg(ARG_CALL_FILE, DESC_CALL_FILE);
     cli.addArg(ARG_CONF_FILE, DESC_CONF_FILE);
     cli.addArg(ARG_NORM_INT_FILE, DESC_NORM_INT_FILE);
+    cli.addArg(ARG_AFFY_ANNOT_FILE, DESC_AFFY_ANNOT_FILE);
+    cli.addFlag("skipGenotypes", "Do not import genotypes.");
+    cli.addGroup(ARG_AFFY_ANNOT_FILE, "skipGenotypes");
     cli.addArg(ARG_MDRAF_MAX_SIZE_MB, DESC_MDRAF_MAX_SIZE_MB, false);
 
     cli.parseWithExit(args);
 
     AffyParsingPipeline app = new AffyParsingPipeline();
     app.setProject(new Project(cli.get(CLI.ARG_PROJ)));
+    if (cli.has(ARG_AFFY_ANNOT_FILE)) {
+      app.setAnnotationFile(cli.get(ARG_AFFY_ANNOT_FILE));
+    } else if (cli.has("skipGenotypes")) {
+      app.setSkipGenotypes();
+    }
     app.setConfidencesFile(cli.get(ARG_CONF_FILE));
     app.setGenotypeCallFile(cli.get(ARG_CALL_FILE));
     app.setNormIntensitiesFile(cli.get(ARG_NORM_INT_FILE));

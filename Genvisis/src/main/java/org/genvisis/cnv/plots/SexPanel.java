@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -214,6 +215,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
   @Override
   public void mouseMoved(MouseEvent event) {
     Graphics g = getGraphics();
+    Set<Integer> nearby;
     IntVector iv;
     String pos;
     int x, y;
@@ -227,22 +229,22 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
         repaint();
       }
 
-      iv = lookupNearbyPoints(x, y, pos);
+      nearby = lookupNearbyPoints(x, y, pos);
       prox = new IntVector();
       g.setColor(Color.RED);
-      for (int i = 0; iv != null && i < iv.size(); i++) {
+      for (Integer i : nearby) {
+        int near = i.intValue();
         if (Distance.euclidean(new int[] {x, y},
-                               new int[] {getXPixel(data[iv.elementAt(i)][0]),
-                                          getYPixel(data[iv.elementAt(i)][1])}) < HIGHLIGHT_DISTANCE) {
+                               new int[] {getXPixel(data[near][0]),
+                                          getYPixel(data[near][1])}) < HIGHLIGHT_DISTANCE) {
           g.setColor(Color.RED);
-          prox.add(iv.elementAt(i));
-          if (excluded[iv.elementAt(i)]) {
-            g.fillOval(getXPixel(data[iv.elementAt(i)][0]) - SIZE_FAILED / 2,
-                       getYPixel(data[iv.elementAt(i)][1]) - SIZE_FAILED / 2, SIZE_FAILED,
-                       SIZE_FAILED);
+          prox.add(near);
+          if (excluded[near]) {
+            g.fillOval(getXPixel(data[near][0]) - SIZE_FAILED / 2,
+                       getYPixel(data[near][1]) - SIZE_FAILED / 2, SIZE_FAILED, SIZE_FAILED);
           } else {
-            g.fillOval(getXPixel(data[iv.elementAt(i)][0]) - SIZE / 2,
-                       getYPixel(data[iv.elementAt(i)][1]) - SIZE / 2, SIZE, SIZE);
+            g.fillOval(getXPixel(data[near][0]) - SIZE / 2, getYPixel(data[near][1]) - SIZE / 2,
+                       SIZE, SIZE);
           }
         }
       }

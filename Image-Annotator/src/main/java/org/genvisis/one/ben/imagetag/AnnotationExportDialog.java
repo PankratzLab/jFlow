@@ -56,9 +56,7 @@ public class AnnotationExportDialog extends JDialog {
   private JButton okButton;
   private IAnnotator annotator;
 
-  /**
-   * Launch the application.
-   */
+  /** Launch the application. */
   public static void main(String[] args) {
     try {
       AnnotationExportDialog dialog = new AnnotationExportDialog(new Annotator());

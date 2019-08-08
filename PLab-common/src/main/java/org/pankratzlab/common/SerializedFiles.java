@@ -68,7 +68,7 @@ public class SerializedFiles {
         }
         o = readSerialFixClassname(filename, log, kill, gzipped);
       } catch (Exception e2) {
-        log.reportError("Error - failed to load " + filename);
+        log.reportError("Error - failed to load " + filename + "; " + e2.getLocalizedMessage());
         if (kill) {
           log.reportException(e2);
           System.exit(1);
@@ -84,6 +84,7 @@ public class SerializedFiles {
   private static final Map<String, String> PACKAGE_UPDATES = new HashMap<>();
   static {
     PACKAGE_UPDATES.put("org.genvisis.filesys", "org.pankratzlab.utils.filesys");
+    PACKAGE_UPDATES.put("org.genvisis.filesys", "org.pankratzlab.common.filesys");
   }
 
   private static synchronized Object readSerialFixClassname(final String filename, final Logger log,
@@ -127,7 +128,7 @@ public class SerializedFiles {
             return convertedClass;
           } catch (ClassNotFoundException e) {
             for (Entry<String, String> upd : PACKAGE_UPDATES.entrySet()) {
-              if (name.startsWith(upd.getKey())) {
+              if (name.startsWith(upd.getKey(), startInsert)) {
                 try {
                   convertedClassDesc = name.replace(upd.getKey(), upd.getValue());
                   Class<?> convertedClass = Class.forName(convertedClassDesc, false,

@@ -1095,7 +1095,13 @@ public class Sample implements Serializable {
                                                             readBuffer[index + 1],
                                                             readBuffer[index + 2]});
             if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT) {
-              lrrs[j] = outOfRangeValues.get(j + "\tlrr");
+              Float oor = outOfRangeValues.get(j + "\tlrr");
+              if (oor == null) {
+                System.err.println("Error - LRR value for sample " + sampleName + " and marker " + j
+                                   + " was out of range, but couldn't be found.");
+              } else {
+                lrrs[j] = oor.floatValue();
+              }
             }
             index += bytesPerSampleMarker;
           }
@@ -1113,6 +1119,8 @@ public class Sample implements Serializable {
           index += bytesPerSampleMarker;
         }
       }
+      readBuffer = null;
+      temp = null;
       result = new Sample(sampleName, fingerPrint, gcs, xs, ys, bafs, lrrs, fwdGenotypes,
                           abGenotypes, isNegativeXOrYAllowed(nullStatus));
     } catch (IOException e) {

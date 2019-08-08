@@ -1,18 +1,51 @@
 package org.genvisis.cnv.workflow;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.cli.ParseException;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
+import org.genvisis.cnv.workflow.Requirement.ParsedRequirement;
+import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
+import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.Files;
 import org.pankratzlab.common.gui.Task;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public abstract class Step {
+
+  public static final Step EMPTY_STEP = new Step("", "", RequirementSetBuilder.and(),
+                                                 new ArrayList<>()) {
+
+    @Override
+    public void setNecessaryPreRunProperties(Variables variables) {
+      // noop
+    }
+
+    @Override
+    public void run(Variables variables) {
+      // noop
+    }
+
+    @Override
+    public String getCommandLine(Variables variables) {
+      return "";
+    }
+
+    @Override
+    public boolean checkIfOutputExists(Variables variables) {
+      return true;
+    }
+  };
 
   public static enum FINAL_CODE {
     COMPLETE("Complete"), FAILED("Failed"), CANCELLED("Cancelled");
@@ -31,8 +64,9 @@ public abstract class Step {
   private final String name;
   private final String desc;
   private final RequirementSet requirements;
-  private final Set<Step> relatedSteps; // Not included in equality to prevent infinite recursion
+  private final Set<Step> dependentSteps; // Not included in equality to prevent infinite recursion
   private final Set<Requirement.Flag> stepFlags;
+  private final CLI cli;
 
   /**
    * @param name displayed in the workflow
@@ -49,18 +83,36 @@ public abstract class Step {
     this.desc = desc;
     this.requirements = requirements;
     this.stepFlags = Sets.immutableEnumSet(flags);
-    ImmutableSet.Builder<Step> relatedStepsBuilder = ImmutableSet.builder();
-    relatedStepsBuilder.add(this);
+    this.dependentSteps = new HashSet<>();
     for (Requirement<?> req : requirements.getFlatRequirementsList()) {
       if (req instanceof Requirement.StepRequirement && req != null) {
         Step requiredStep = ((Requirement.StepRequirement) req).getRequiredStep();
         if (requiredStep != null) {
-          relatedStepsBuilder.add(requiredStep);
-          relatedStepsBuilder.addAll(requiredStep.getRelatedSteps());
+          requiredStep.addDependent(this);
         }
       }
     }
-    this.relatedSteps = relatedStepsBuilder.build();
+    cli = new CLI(this.getClass());
+    cli.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ, CLI.EXAMPLE_PROJ);
+    for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
+      if (r instanceof ParsedRequirement) {
+        cli.addArg(((ParsedRequirement<?>) r).getKey(), r.getDescription());
+      }
+    }
+
+  }
+
+  private void addDependent(Step step) {
+    this.dependentSteps.add(step);
+  }
+
+  public Set<Step> getSelfAndDependents() {
+    ImmutableSet.Builder<Step> dependentStepsBuilder = ImmutableSet.builder();
+    dependentStepsBuilder.add(this);
+    for (Step step : dependentSteps) {
+      dependentStepsBuilder.addAll(step.getSelfAndDependents());
+    }
+    return dependentStepsBuilder.build();
   }
 
   public String getName() {
@@ -149,6 +201,32 @@ public abstract class Step {
    */
   public abstract String getCommandLine(Variables variables);
 
+  public String getStepCommandLine(Project proj, Variables variables) {
+    Map<String, String> args = Maps.newHashMap();
+    args.put(CLI.ARG_PROJ, proj.getPropertyFilename());
+    for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
+      if (r instanceof ParsedRequirement && variables.hasValid(r)) {
+        args.put(((ParsedRequirement<?>) r).getKey(), variables.getString(r));
+      }
+    }
+    return Files.getRunString() + " " + CLI.formCmdLine(this.getClass(), args);
+  }
+
+  public Variables parseArguments(String[] args) {
+    try {
+      cli.parse(args);
+    } catch (ParseException e) {
+      throw new IllegalArgumentException(e);
+    }
+    Variables vars = new Variables();
+    for (Requirement<?> r : this.getRequirements().getFlatRequirementsList()) {
+      if (r instanceof ParsedRequirement) {
+        vars.parseOrFail(r, cli.get(((ParsedRequirement<?>) r).getKey()));
+      }
+    }
+    return vars;
+  }
+
   @SuppressWarnings("unchecked")
   public Variables getDefaultRequirementValues() {
     Variables varMap = new Variables();
@@ -157,14 +235,6 @@ public abstract class Step {
       varMap.put(r, r.getDefaultValue());
     }
     return varMap;
-  }
-
-  /**
-   * @return A {@link Collection} of the complete network of {@link Step)s related to this {@code
-   *         Step) - including this {@code Step), direct and transitive dependencies.
-   */
-  public Collection<Step> getRelatedSteps() {
-    return relatedSteps;
   }
 
   public Collection<Requirement.Flag> getFlags() {
@@ -205,6 +275,28 @@ public abstract class Step {
                                      List<Step> selectedSteps) {
     StepTask st = new StepTask(gui, this, selectedSteps, variables);
     return st;
+  }
+
+  public static Project parseProject(String[] args) {
+    Project proj = null;
+    for (String a : args) {
+      if (a.startsWith(CLI.ARG_PROJ)) {
+        proj = new Project(a.split("=")[1]);
+      }
+    }
+    if (proj == null) {
+      throw new IllegalArgumentException("Error - no project properties argument found.");
+    }
+    return proj;
+  }
+
+  public static void run(Project proj, Step step, Variables variables) {
+    if (step.hasRequirements(ImmutableSet.of(step), ImmutableMap.of(step, variables))) {
+      step.setNecessaryPreRunProperties(variables);
+      step.run(variables);
+    } else {
+      proj.getLog().reportError("requirements not met for step " + step.getDescription());
+    }
   }
 
 }

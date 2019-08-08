@@ -618,7 +618,7 @@ public final class Resources {
     private final GenomeBuild build;
 
     public AxiomTxGenomes(GenomeBuild build, Logger log) {
-      super(AffyAxiomTxV1.DIR, log, AffyGenomes.class);
+      super(AffyAxiomTxV1.DIR, log, AxiomTxGenomes.class);
       this.build = build;
     }
 
@@ -627,6 +627,20 @@ public final class Resources {
      */
     public Resource getMarkerPositions() {
       return getResource("Axiom_tx_v1." + build.getBuild() + ".markerPositions.txt");
+    }
+
+    /**
+     * @return
+     */
+    public Resource getIntensityPCMarkers_ProbeSets() {
+      return getResource("Axiom_tx_v1." + build.getBuild() + ".intensity.probeSet.txt");
+    }
+
+    /**
+     * @return
+     */
+    public Resource getIntensityPCMarkers_RSIds() {
+      return getResource("Axiom_tx_v1." + build.getBuild() + ".intensity.rsID.txt");
     }
 
     /**
@@ -681,6 +695,13 @@ public final class Resources {
 
     public AffySnp6(Logger log) {
       super(DIR, log, AffySnp6.class);
+    }
+
+    /**
+     * @return .annot.csv file
+     */
+    public Resource getAnnotationFile() {
+      return getResource("GenomeWideSNP_6.na35.annot.csv");
     }
 
     /**
@@ -1291,8 +1312,8 @@ public final class Resources {
       } catch (IOException e) {
         // If remote MD5 isn't available, that can be OK.
       } catch (HttpDownloadException e) {
-        log.reportTimeWarning("MD5 check of " + getName() + " failed with error: "
-                              + e.getLocalizedMessage());
+        log.reportTimeWarning("MD5 check of " + getName() + " failed with error: ["
+                              + e.getLocalizedMessage() + "]");
       }
       return md5;
     }

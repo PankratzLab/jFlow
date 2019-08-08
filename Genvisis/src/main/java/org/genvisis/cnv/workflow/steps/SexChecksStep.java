@@ -26,13 +26,16 @@ public class SexChecksStep extends Step {
     final Requirement<Step> sampleDataStepReq = new Requirement.StepRequirement(sampleDataStep);
     final Requirement<Step> transposeStepReq = new Requirement.StepRequirement(transposeStep);
     final Requirement<Step> sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
-    final Requirement<Boolean> addToSampleDataReq = new Requirement.OptionalBoolRequirement(ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT,
+    final Requirement<Boolean> addToSampleDataReq = new Requirement.OptionalBoolRequirement("addEstSexToSampData",
+                                                                                            ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT,
                                                                                             true);
 
-    final Requirement<File> oneHittersReq = new Requirement.FileRequirement("List of markers that do not cross hybridize",
+    final Requirement<File> oneHittersReq = new Requirement.FileRequirement("noCrossHybeMarkers",
+                                                                            "List of markers that do not cross hybridize",
                                                                             new File(MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue())));
     final Requirement<Step> markerBlastStepReq = new Requirement.StepRequirement(markerBlastStep);
-    final Requirement<Boolean> noCrossHybeReq = new Requirement.BoolRequirement(NO_CROSS_HYBE_REQUIREMENT,
+    final Requirement<Boolean> noCrossHybeReq = new Requirement.BoolRequirement("useXYMarkersOnly",
+                                                                                NO_CROSS_HYBE_REQUIREMENT,
                                                                                 false);
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(sampleDataStepReq)

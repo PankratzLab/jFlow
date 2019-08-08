@@ -38,7 +38,6 @@ public class AnnotatedImage {
       } else if (!annotation.equals(other.annotation)) return false;
       return true;
     }
-
   }
 
   private String name;
@@ -96,5 +95,4 @@ public class AnnotatedImage {
   public ArrayList<AnnotatedImage.Annotation> getAnnotations() {
     return this.annots;
   }
-
 }

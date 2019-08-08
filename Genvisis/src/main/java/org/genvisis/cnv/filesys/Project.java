@@ -10,8 +10,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,8 +25,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Vector;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 
@@ -55,6 +55,8 @@ import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.Caching;
+import org.pankratzlab.common.Caching.SoftRefMemoizingSupplier;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.HashVec;
@@ -160,7 +162,7 @@ public class Project implements PropertyChangeListener {
 
   public final IntegerProperty LOG_LEVEL = new IntegerProperty(this, PropertyKeys.KEY_LOG_LEVEL, "",
                                                                GROUP.GLOBAL, true, COPY.VALUE, -1,
-                                                               12, 1);
+                                                               20, 1);
   public final StringProperty PROJECT_NAME = new StringProperty(this, PropertyKeys.KEY_PROJECT_NAME,
                                                                 "Project Name",
                                                                 GROUP.PROJECT_NAME_LOCS, true,
@@ -352,7 +354,7 @@ public class Project implements PropertyChangeListener {
   public final FileProperty MARKERLOOKUP_FILENAME = new FileProperty(this,
                                                                      PropertyKeys.KEY_MARKERLOOKUP_FILENAME,
                                                                      "", GROUP.SPECIAL_HIDDEN, true,
-                                                                     COPY.VALUE,
+                                                                     COPY.NO_COPY,
                                                                      "data/markerLookup.ser",
                                                                      false);
   public final FileProperty SAMPLELIST_FILENAME = new FileProperty(this,
@@ -395,8 +397,8 @@ public class Project implements PropertyChangeListener {
                                                                          "data/custom.cent", false);
   public final FileProperty FILTERED_MARKERS_FILENAME = new FileProperty(this,
                                                                          PropertyKeys.KEY_FILTERED_MARKERS_FILENAME,
-                                                                         "", GROUP.DATA_EXPORT,
-                                                                         true, COPY.NO_COPY,
+                                                                         "", GROUP.GLOBAL, true,
+                                                                         COPY.NO_COPY,
                                                                          "data/drops.dat", false);
   public final FileProperty PEDIGREE_FILENAME = new FileProperty(this,
                                                                  PropertyKeys.KEY_PEDIGREE_FILENAME,
@@ -706,12 +708,13 @@ public class Project implements PropertyChangeListener {
                                                               false);
 
   private String projectPropertiesFilename;
-  private Reference<SampleList> sampleListRef = new SoftReference<>(null);
-  private Reference<SampleData> sampleDataRef = new SoftReference<>(null);
-  private HashSet<String> cnvFilesLoadedInSampleData;
+  private final SoftRefMemoizingSupplier<SampleList> sampleListSupplier = Caching.memoizeWithSoftRef(this::loadSampleList);
+  private final SoftRefMemoizingSupplier<SampleData> sampleDataSupplier = Caching.memoizeWithSoftRef(this::loadSampleData);
+  @Nullable
+  private String[] cnvFilesToLoadInSampleData = null;
   private ImmutableMap<String, SourceFileHeaderData> sourceFileHeaders;
-  private Reference<MarkerLookup> markerLookupRef = new SoftReference<>(null);
-  private Reference<MarkerDetailSet> markerSetRef = new SoftReference<>(null);
+  private final Supplier<MarkerLookup> markerLookupSupplier = Caching.memoizeWithSoftRef(this::loadMarkerLookup);
+  private final Supplier<MarkerDetailSet> markerSetSupplier = Caching.memoizeWithSoftRef(this::loadMarkerSet);
   private Logger log;
   private boolean gui;
   private ProgressMonitor progressMonitor;
@@ -725,7 +728,6 @@ public class Project implements PropertyChangeListener {
   public static final String IMPORT_FILE = "import.ser";
 
   public Project() {
-    cnvFilesLoadedInSampleData = new HashSet<>();
     log = new Logger();
     gui = false;
     projectPropertiesFilename = "example.properties";
@@ -740,18 +742,19 @@ public class Project implements PropertyChangeListener {
   }
 
   public Project(String filename, String logfile) {
-    this(filename, logfile, true);
+    this(filename, logfile, true, true);
   }
 
   // Set LOG_LEVEL to a negative value, if you do not want a log file to be generated in addition to
   // standard out/err
-  public Project(String filename, String logfile, boolean createHeaders) {
+  public Project(String filename, String logfile, boolean createHeaders, boolean writeImportFile) {
     this();
 
     if (filename == null) {
       filename = org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true);
     }
 
+    this.loadingProperties = !writeImportFile;
     projectPropertiesFilename = filename;
     screenProperties();
     loadProperties(filename);
@@ -810,7 +813,9 @@ public class Project implements PropertyChangeListener {
     log.report("\nCurrent project: " + getProperty(PROJECT_NAME) + "\n");
     log.report("Log level (verbosity) is set to " + getProperty(LOG_LEVEL) + "\n");
 
+    this.loadingProperties = !writeImportFile;
     updateProject(this);
+    this.loadingProperties = false;
   }
 
   private static void updateProject(Project proj) {
@@ -819,8 +824,18 @@ public class Project implements PropertyChangeListener {
     updateProperty(proj.MARKERSET_FILENAME, ".bim", "marker set");
     proj.saveProperties(new Property[] {proj.SAMPLELIST_FILENAME, proj.MARKERLOOKUP_FILENAME,
                                         proj.MARKERSET_FILENAME});
+    if (!proj.loadingProperties) {
+      proj.updateImportMetaFile();
+    }
+  }
 
-    proj.updateImportMetaFile();
+  public void setLoadingProperties() {
+    this.loadingProperties = true;
+  }
+
+  public void doneLoadingProperties() {
+    this.loadingProperties = false;
+    updateImportMetaFile();
   }
 
   private static void updateProperty(FileProperty prop, String prevExt, String fileDescriptor) {
@@ -975,16 +990,9 @@ public class Project implements PropertyChangeListener {
     this.projectPropertiesFilename = projectPropertiesFilename;
   }
 
-  public synchronized MarkerDetailSet getMarkerSet() {
-    MarkerDetailSet markerSet = markerSetRef.get();
-    if (markerSet == null) {
-      markerSet = loadMarkerSet();
-      markerSetRef = new SoftReference<>(markerSet);
-    } else {
-      // Previously this method would have loaded the Marker Set fresh from the serialized file.
-      // Prevent proliferation of possibly modified array references here
-      markerSet.clearArrayRefs();
-    }
+  public MarkerDetailSet getMarkerSet() {
+    MarkerDetailSet markerSet = markerSetSupplier.get();
+    markerSet.clearArrayRefs();
     return markerSet;
   }
 
@@ -1062,46 +1070,45 @@ public class Project implements PropertyChangeListener {
     return getMarkerSet().getMarkerNames();
   }
 
-  public synchronized MarkerLookup getMarkerLookup() {
-    MarkerLookup markerLookup = markerLookupRef.get();
-    if (markerLookup == null) {
+  public MarkerLookup getMarkerLookup() {
+    return markerLookupSupplier.get();
+  }
+
+  private MarkerLookup loadMarkerLookup() {
+    final MarkerLookup markerLookup;
+    if (Files.exists(MARKERLOOKUP_FILENAME.getValue())) {
+      markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue());
+    } else {
+      System.out.println("Failed to find MarkerLookup; generating one...");
+      TransposeData.recreateMarkerLookup(this);
       if (Files.exists(MARKERLOOKUP_FILENAME.getValue())) {
         markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue());
       } else {
-        System.out.println("Failed to find MarkerLookup; generating one...");
-        TransposeData.recreateMarkerLookup(this);
-        if (Files.exists(MARKERLOOKUP_FILENAME.getValue())) {
-          markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue());
-        } else {
-          log.reportError("Also failed to create MarkerLookup; failing");
-        }
+        log.reportError("Also failed to create MarkerLookup; failing");
+        markerLookup = null;
       }
-      markerLookupRef = new SoftReference<>(markerLookup);
     }
     return markerLookup;
   }
 
-  public synchronized void clearSampleList() {
-    sampleListRef.clear();
+  public void clearSampleList() {
+    sampleListSupplier.clear();
   }
 
-  public synchronized SampleList getSampleList() {
-    SampleList sampleList = sampleListRef.get();
-    if (sampleList == null) {
-      if (Files.exists(SAMPLELIST_FILENAME.getValue(false, false))) {
-        sampleList = SampleList.load(SAMPLELIST_FILENAME.getValue());
-      }
-      if (sampleList == null) {
-        log.report("Failed to find SampleList; generating one...");
-        sampleList = SampleList.generateSampleList(this);
-      }
-      if (sampleList != null && sampleList.getSamples().length == 0) {
-        log.report("SampleList is of length zero; generating a new one...");
-        sampleList = SampleList.generateSampleList(this);
-      }
-      sampleListRef = new SoftReference<>(sampleList);
-    }
+  public SampleList getSampleList() {
+    return sampleListSupplier.get();
+  }
 
+  private SampleList loadSampleList() {
+    SampleList sampleList = SampleList.load(SAMPLELIST_FILENAME.getValue());
+    if (sampleList == null) {
+      log.report("Failed to find SampleList; generating one...");
+      sampleList = SampleList.generateSampleList(this);
+    }
+    if (sampleList != null && sampleList.getSamples().length == 0) {
+      log.report("SampleList is of length zero; generating a new one...");
+      sampleList = SampleList.generateSampleList(this);
+    }
     return sampleList;
   }
 
@@ -1254,8 +1261,8 @@ public class Project implements PropertyChangeListener {
     }
   }
 
-  public synchronized void resetSampleData() {
-    sampleDataRef.clear();
+  public void resetSampleData() {
+    sampleDataSupplier.clear();
   }
 
   public SampleData getSampleData(boolean loadCNVs) {
@@ -1263,23 +1270,18 @@ public class Project implements PropertyChangeListener {
   }
 
   public synchronized SampleData getSampleData(String[] cnvFilenames) {
-    if (cnvFilenames != null) {
-      for (int i = 0; i < cnvFilenames.length; i++) {
-        if (!cnvFilesLoadedInSampleData.contains(cnvFilenames[i])) {
-          resetSampleData();
-          break;
-        }
-      }
+    cnvFilesToLoadInSampleData = cnvFilenames;
+    SampleData cachedSampleData = sampleDataSupplier.get();
+    if (cnvFilenames == null
+        || Stream.of(cnvFilenames).allMatch(cachedSampleData.getLoadedCNVFiles()::contains)) {
+      return cachedSampleData;
     }
-    SampleData sampleData = sampleDataRef.get();
-    if (sampleData == null) {
-      sampleData = new SampleData(this, SampleData.BASIC_CLASSES.length, cnvFilenames);
-      // System.err.println("SampleData loaded with "+(cnvFilenames == null?"no cnv
-      // files":Array.toStr(cnvFilenames, "/")));
-      cnvFilesLoadedInSampleData = HashVec.loadToHashSet(cnvFilenames);
-    }
-    sampleDataRef = new SoftReference<>(sampleData);
-    return sampleData;
+    resetSampleData();
+    return sampleDataSupplier.get();
+  }
+
+  private SampleData loadSampleData() {
+    return new SampleData(this, SampleData.BASIC_CLASSES.length, cnvFilesToLoadInSampleData);
   }
 
   public Hashtable<String, String> getFilteredHash() {
@@ -2155,8 +2157,15 @@ public class Project implements PropertyChangeListener {
             String newFile = this.PROJECT_DIRECTORY.getValue()
                              + p.getValueString().replace(proj.PROJECT_DIRECTORY.getValueString(),
                                                           "");
-            Files.copyFileUsingFileChannels(p.getValueString(), newFile, log);
-            this.getProperty(p.getName()).parseValue(newFile);
+            if (Files.exists(p.getValueString())) {
+              Files.copyFileUsingFileChannels(p.getValueString(), newFile, log);
+              this.getProperty(p.getName()).parseValue(newFile);
+            } else {
+              String message = "Couldn't copy " + p.getName() + " file from " + p.getValueString()
+                               + " to " + newFile + "; File doesn't exist.";
+              getLog().reportTimeWarning(message);
+              proj.getLog().reportTimeWarning(message);
+            }
           } else {
             this.getProperty(p.getName()).parseValue(p.getValueString());
           }
@@ -2242,22 +2251,22 @@ public class Project implements PropertyChangeListener {
     /**
      * Your friendly Illumina arrays
      */
-    ILLUMINA(new String[] {"cnvi"}, 50, false/* , 650000 */),
+    ILLUMINA(new String[] {"cnvi"}, 50, false, 1),
     /**
      * Supports CHP format
      */
-    AFFY_GW6(new String[] {"CN_"}, 25, false/* , 650000 */),
+    AFFY_GW6(new String[] {"CN_"}, 25, false, 100),
     /**
      * Supports CHP and CNCHP formated input
      */
-    AFFY_GW6_CN(new String[] {"CN_"}, 25, false/* , 909622 */),
+    AFFY_GW6_CN(new String[] {"CN_"}, 25, false, 100),
 
     /**
      * For bamFiles
      */
-    NGS(new String[] {"*"}, 100, false/* , 0 */),
+    NGS(new String[] {"*"}, 100, false/* , 0 */, 2000),
 
-    AFFY_AXIOM(new String[] {}, 25, true)
+    AFFY_AXIOM(new String[] {}, 25, true, 2000)
 
     // DBGAP(new String[] {}, 0, 909622)
     ;
@@ -2265,20 +2274,26 @@ public class Project implements PropertyChangeListener {
     /**
      * Used for copy number only probe-set identification
      */
-    private String[] cnFlags;
+    private final String[] cnFlags;
     /**
      * Length of the probe sequences on the array
      */
-    private int probeLength;
+    private final int probeLength;
     /**
      * Can the X/Y values of this array be negative?
      */
-    private boolean canXYBeNegative;
+    private final boolean canXYBeNegative;
+    /**
+     * Default suggested scale factor for this array type
+     */
+    private final int defaultScale;
 
-    private ARRAY(String[] cnFlags, int probeLength, boolean canXYBeNegative) {
+    private ARRAY(String[] cnFlags, int probeLength, boolean canXYBeNegative,
+                  int defaultScaleFactor) {
       this.cnFlags = cnFlags;
       this.probeLength = probeLength;
       this.canXYBeNegative = canXYBeNegative;
+      this.defaultScale = defaultScaleFactor;
     }
 
     public String[] getCnFlags() {
@@ -2286,16 +2301,8 @@ public class Project implements PropertyChangeListener {
       return cnFlags;
     }
 
-    public void setCnFlags(String[] cnFlags) {
-      this.cnFlags = cnFlags;
-    }
-
     public int getProbeLength() {
       return probeLength;
-    }
-
-    public void setProbeLength(int probeLength) {
-      this.probeLength = probeLength;
     }
 
     public boolean getCanXYBeNegative() {
@@ -2318,6 +2325,10 @@ public class Project implements PropertyChangeListener {
         }
         return false;
       }
+    }
+
+    public int getDefaultScaleFactor() {
+      return defaultScale;
     }
 
   }
@@ -2345,6 +2356,15 @@ public class Project implements PropertyChangeListener {
    * @throws IllegalArgumentException if a {@link Project} with name already exists
    */
   public static Project initializeProject(String name, String projectDir) {
+    return initializeProject(name, projectDir, true);
+  }
+
+  /**
+   * @param name project name
+   * @return Initialized {@link Project}
+   * @throws IllegalArgumentException if a {@link Project} with name already exists
+   */
+  public static Project initializeProject(String name, String projectDir, boolean writeImportFile) {
     String filename = LaunchProperties.formProjectPropertiesFilename(name);
     if (Files.exists(filename, true)) {
       throw new IllegalArgumentException(filename + " already exists, cannot initialize project");
@@ -2352,7 +2372,7 @@ public class Project implements PropertyChangeListener {
       Files.writeLines(filename, PropertyKeys.KEY_PROJECT_NAME + "=" + name,
                        PropertyKeys.KEY_PROJECT_DIRECTORY + "=" + ext.verifyDirFormat(projectDir));
     }
-    return new Project(filename, null, false);
+    return new Project(filename, null, false, writeImportFile);
   }
 
   /**

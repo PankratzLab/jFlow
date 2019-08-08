@@ -167,7 +167,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
   public static final String DEFAULT_SAMPLE = null;
   public static final boolean SHOW_MIDLINE = true;
-
+  public static final Color HIGHLIGHT_COLOR = new Color(0.25f, 0.75f, 1f, .3f);
   public static final double MOUSE_WHEEL_MULTIPLIER = 0.5;
   public static final int WIDTH_BUFFER = 25;
   public static final int HEIGHT_BUFFER = 10;
@@ -220,7 +220,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   private SortedSet<Marker> curMarkers;
   // private float lrrMin, lrrMax;
   private boolean inDrag;
+  private boolean highlighting;
   private int startX;
+  private int currX;
   private String[] cnvLabels;
   private CNVariant[][] cnvs;
   // Variables for whether or not to prompt the user to save regions after given modifications are
@@ -1263,7 +1265,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
         for (GeneData gene : genes) {
           begin = getX(gene.getStart());
           width = g.getFontMetrics(g.getFont()).stringWidth(gene.getGeneName());
-          if (!Segment.overlapsAny(new Segment(begin - width - 5, begin - 1), segs)) {
+          if (!Segment.overlapsAny(new Segment(Math.max(0, begin - width - 5),
+                                               Math.max(0, begin - 1)),
+                                   segs)) {
             g.drawString(gene.getGeneName(), begin - width - 3, 0 * 15 + 10);
           }
         }
@@ -1322,6 +1326,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     return (int) ((double) (pos - start) / (double) (stop - start)
                   * (getWidth() - 2 * WIDTH_BUFFER))
            + WIDTH_BUFFER;
+  }
+
+  private int getPos(int x) {
+    return (int) (start + ((stop - start)
+                           * ((x - WIDTH_BUFFER) / ((double) (getWidth() - 2 * WIDTH_BUFFER)))));
   }
 
   private void saveRegionFile() {
@@ -1562,6 +1571,14 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
               }
             }
           }
+
+          if (inDrag && highlighting) {
+            Color c = g.getColor();
+            g.setColor(HIGHLIGHT_COLOR);
+            int width = currX - startX;
+            g.fillRect(startX, 0, width, getHeight());
+            g.setColor(c);
+          }
         }
       }
     };
@@ -1667,6 +1684,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
                          SIZE, SIZE);
             }
 
+          }
+
+          if (inDrag && highlighting) {
+            Color c = g.getColor();
+            g.setColor(HIGHLIGHT_COLOR);
+            g.fillRect(startX, 0, currX - startX, getHeight());
+            g.setColor(c);
           }
         }
       }
@@ -2957,7 +2981,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   @Override
   public void mouseClicked(MouseEvent e) {
     Trailer.this.requestFocusInWindow();
-    if (e.getButton() == MouseEvent.BUTTON1) {
+    if (isLeftMouseButtonOnly(e)) {
       if (leftClick != null && leftClick.isAlive()) {
         leftClick.cancel();
         leftClick = null;
@@ -2967,7 +2991,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
                                                DOUBLE_CLICK_INTERVAL)).start();
       }
 
-    } else if (e.getButton() == MouseEvent.BUTTON3) {
+    } else if (isRightMouseButtonOnly(e)) {
       if (rightClick != null && rightClick.isAlive()) {
         rightClick.cancel();
         rightClick = null;
@@ -2999,11 +3023,40 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   public void mousePressed(MouseEvent e) {
     startX = e.getPoint().x;
     inDrag = true;
+    if (isRightMouseButtonOnly(e)) {
+      highlighting = true;
+    } else {
+      highlighting = false;
+      repaint();
+    }
+  }
+
+  private boolean isLeftMouseButtonOnly(MouseEvent e) {
+    return e.getButton() == MouseEvent.BUTTON1;
+  }
+
+  private boolean isRightMouseButtonOnly(MouseEvent e) {
+    return e.getButton() == MouseEvent.BUTTON3;
   }
 
   @Override
   public void mouseReleased(MouseEvent e) {
     inDrag = false;
+    if ((isRightMouseButtonOnly(e)) && highlighting) {
+      highlighting = false;
+
+      int curX = e.getPoint().x; // curX is the current location of the mouse cursor
+
+      int startPos = getPos(startX);
+      int endPos = getPos(curX);
+
+      start = Math.min(startPos, endPos);
+      stop = Math.max(startPos, endPos);
+      if (start == stop) stop++;
+      updateGUI();
+    } else {
+      highlighting = false;
+    }
   }
 
   // this method laterally shifts the display area for trailer plot
@@ -3011,19 +3064,24 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   public void mouseDragged(MouseEvent e) {
     // calculate drag distance in pixels
     int curX = e.getPoint().x; // curX is the current location of the mouse cursor
-    double scrollDistanceInPixels = startX - curX; // startX is the location of the mouse cursor
-                                                   // when the mouse button was clicked
+    if (!highlighting) {
+      double scrollDistanceInPixels = startX - curX; // startX is the location of the mouse cursor
+                                                     // when the mouse button was clicked
 
-    // calculate drag distance in number of base pairs
-    double currentDisplayRangeInBasePairs = stop - start;
-    double currentDisplayRangeInPixels = getWidth() - 2 * WIDTH_BUFFER;
-    double basePairsPerPixel = currentDisplayRangeInBasePairs / currentDisplayRangeInPixels;
-    int scrollDistanceInBasePairs = (int) (scrollDistanceInPixels * basePairsPerPixel);
+      // calculate drag distance in number of base pairs
+      double currentDisplayRangeInBasePairs = stop - start;
+      double currentDisplayRangeInPixels = getWidth() - 2 * WIDTH_BUFFER;
+      double basePairsPerPixel = currentDisplayRangeInBasePairs / currentDisplayRangeInPixels;
+      int scrollDistanceInBasePairs = (int) (scrollDistanceInPixels * basePairsPerPixel);
 
-    scrollTrailerPlotLaterally(scrollDistanceInBasePairs);
+      scrollTrailerPlotLaterally(scrollDistanceInBasePairs);
+      // update mouse cursor position
+      startX = curX;
+    } else {
+      currX = curX;
+      repaint();
+    }
 
-    // update mouse cursor position
-    startX = curX;
   }
 
   private void scrollTrailerPlotLaterally(int scrollDistanceInBasePairs) {

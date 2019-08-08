@@ -74,7 +74,7 @@ public class VCFOps {
       log.reportTimeInfo("MODE=" + mode);
       if (mode == PLINK_SET_MODE.GWAS_QC) {
 
-        RelationAncestryQc.fullGamut(dir, rootOut, false,
+        RelationAncestryQc.fullGamut(dir, rootOut, null, false,
                                      new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
         String mdsFile = dir + RelationAncestryQc.GENOME_DIR + "mds20.mds";
         if (Files.exists(mdsFile)) {

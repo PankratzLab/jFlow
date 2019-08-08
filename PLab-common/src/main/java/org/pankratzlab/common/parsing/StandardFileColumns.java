@@ -46,7 +46,13 @@ public final class StandardFileColumns {
 
       @Override
       public void initialize(FileParser parser) {
-        excludes.forEach(e -> e.initialize(parser));
+        excludes.forEach(e -> {
+          try {
+            e.initialize(parser);
+          } catch (IllegalStateException e1) {
+            // ignore problems, we don't want these columns anyway
+          }
+        });
         Map<String, Integer> headerMap = parser.getHeaderMap();
         Set<Integer> excludedIndices = excludes.stream().map(IndexedFileColumn::getIndex)
                                                .collect(Collectors.toSet());

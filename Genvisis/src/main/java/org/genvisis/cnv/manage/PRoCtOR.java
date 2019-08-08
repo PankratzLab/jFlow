@@ -108,13 +108,30 @@ public class PRoCtOR {
     }
     String projectDirectory = PennCNVPrep.getCorrectedProjectDirectory(proj, numComponents,
                                                                        correctionType, strategy);
+    String sampleDirectory = projectDirectory + proj.SAMPLE_DIRECTORY.getDefaultValue();
     String markerDirectory = projectDirectory + proj.MARKER_DATA_DIRECTORY.getDefaultValue();
 
-    PennCNVPrep.prepExport(proj, markerDirectory, numComponents, null, numThreads, numMarkerThreads,
+    String shadowProjFile = PennCNVPrep.getCorrectedProjectProperties(proj, numComponents,
+                                                                      correctionType, strategy);
+    proj.getLog().report("Saving shadow project properties to: " + shadowProjFile);
+    if (!Files.exists(new File(shadowProjFile))) {
+      Files.copyFile(proj.getPropertyFilename(), shadowProjFile);
+    }
+    proj.saveProperties(shadowProjFile);
+    Project shadowProj = new Project(shadowProjFile);
+
+    shadowProj.PROJECT_NAME.setValue(proj.PROJECT_NAME.getValue() + " - PC Corrected: "
+                                     + numComponents + "PCs, " + correctionType.name() + "; "
+                                     + strategy.name());
+    shadowProj.PROJECT_DIRECTORY.setValue(projectDirectory);
+    shadowProj.SAMPLE_DIRECTORY.setValue(sampleDirectory);
+    shadowProj.MARKER_DATA_DIRECTORY.setValue(markerDirectory);
+    shadowProj.IS_PC_CORRECTED_PROJECT.setValue(Boolean.TRUE);
+    shadowProj.importProperties(proj);
+    shadowProj.saveProperties();
+
+    PennCNVPrep.prepExport(proj, shadowProj, numComponents, null, numThreads, numMarkerThreads,
                            LS_TYPE.REGULAR, false, correctionType, strategy);
-    PennCNVPrep.exportSpecialPennCNV(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
-                                     numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false,
-                                     false, correctionType, strategy);
     if (setupCNVCallingIfSuccessfull) {
       GenvisisWorkflow.setupCNVCalling(projectDirectory);
     }
@@ -138,8 +155,6 @@ public class PRoCtOR {
     Map<String, Byte> statMap = new ConcurrentHashMap<>();
     Map<String, Hashtable<String, Float>> oorTables = new ConcurrentHashMap<>();
 
-    HashMap<Integer, Map<String, String>> chrFileMap = new HashMap<>();
-
     // proj is old proj
     public void setupMarkerFiles(Project proj) {
       samples = proj.getSamples();
@@ -156,18 +171,13 @@ public class PRoCtOR {
           String mkrFile = getMDRAFName(b, total, total + cnt);
           String[] mkrNmArr = new String[cnt];
           for (int i = total; i < total + cnt; i++) {
-            markerLookup.put(mkrs.get(i).getName(), mkrFile);
-            markerIndexLocal.put(mkrs.get(i).getName(), i - total);
-            mkrNmArr[i - total] = mkrs.get(i).getName();
+            String mkrName = mkrs.get(i).getName();
+            markerLookup.put(mkrName, mkrFile);
+            markerIndexLocal.put(mkrName, i - total);
+            mkrNmArr[i - total] = mkrName;
           }
           mkrNames.put(mkrFile, mkrNmArr);
           oorTables.put(mkrFile, new Hashtable<>());
-          Map<String, String> files = chrFileMap.get((int) b);
-          if (files == null) {
-            files = new HashMap<>();
-            chrFileMap.put((int) b, files);
-          }
-          files.put(total + "\t" + (total + cnt), mkrFile);
           total = total + cnt;
         }
       }
@@ -274,7 +284,7 @@ public class PRoCtOR {
    * @param numCorrectionThreads number of threads within a marker (max of 6 can be utilized)
    * @param numMarkerThreads number of markers corrected at once
    */
-  public static void correctProject(Project proj, String newTransposedDir,
+  public static void correctProject(Project proj, Project shadowProject,
                                     PrincipalComponentsResiduals principalComponentsResiduals,
                                     boolean preserveBafs, int[] sampleSex,
                                     boolean[] samplesToUseCluster, String[] markers,
@@ -282,14 +292,9 @@ public class PRoCtOR {
                                     CHROMOSOME_X_STRATEGY sexStrategy, int numComponents,
                                     int numCorrectionThreads, int numMarkerThreads) {
 
-    Project shadowProject = new Project();
-    // TODO update shadow project for new location of files,
-    // transposed/samples dirs, etc
     ShadowMarkerDataWriter smdw = new ShadowMarkerDataWriter();
-    smdw.setOutputDirectory(newTransposedDir);
+    smdw.setOutputDirectory(shadowProject.MARKER_DATA_DIRECTORY.getValue());
     smdw.setupMarkerFiles(proj);
-    Files.copyFile(proj.SAMPLELIST_FILENAME.getValue(),
-                   shadowProject.SAMPLELIST_FILENAME.getValue());
 
     PcCorrectionProducer producer = new PcCorrectionProducer(principalComponentsResiduals,
                                                              numComponents, sampleSex,
@@ -305,6 +310,9 @@ public class PRoCtOR {
       while (train.hasNext()) {
         PrincipalComponentsIntensity principalComponentsIntensity = train.next();
         MarkerData markerData = principalComponentsIntensity.getCentroidCompute().getMarkerData();
+        if (!markerData.getMarkerName().equals(markers[index])) {
+          throw new IllegalStateException();
+        }
 
         try {
           if (principalComponentsIntensity.isFail()) {
@@ -356,8 +364,7 @@ public class PRoCtOR {
       }
     }
 
-    TransposeData.reverseTranspose(shadowProject);
-
+    // TransposeData.reverseTranspose(shadowProject);
   }
 
   public static void main(String[] args) {
@@ -377,7 +384,7 @@ public class PRoCtOR {
                    + "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
                    + "   (2) Number of principal components for correction (i.e. numComponents="
                    + numComponents + " (default))\n"
-                   + "   (3) Output file full path and baseName for principal components correction files (i.e. outputBase="
+                   + "   (3) Output file name-prefix for principal components correction files ( (i.e. outputBase="
                    + outputBase + " (default))\n"
                    + "   (4) Call-rate filter for determining high-quality markers (i.e. callrate="
                    + callrate + " (default))\n"

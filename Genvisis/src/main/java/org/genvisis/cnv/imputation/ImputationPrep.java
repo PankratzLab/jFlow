@@ -187,6 +187,10 @@ public class ImputationPrep {
   private Set<Marker> filterMarkers() {
     MarkerDetailSet markerSet = proj.getMarkerSet();
     List<Marker> markers = markerSet.markersAsList();
+    if (referenceFile == null) {
+      this.log.reportTimeWarning("no imputation reference file was provided; all SNPs will be exported without strand checks.");
+      return ImmutableSet.copyOf(markers);
+    }
     Map<Byte, Map<Integer, Set<ReferencePosition>>> referencePositions = readRefFile();
     ImmutableSet.Builder<Marker> matchingMarkersBuilder = ImmutableSet.builder();
     int mismatchPos = 0;

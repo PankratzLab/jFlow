@@ -32,6 +32,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 
 public class CRAMSnpReader {
 
+  private static final int MAX_CRAMS_PROCESSING = 3;// number of crams to read at a time
   public static final String CRAM_READS_EXT = ".reads.bed";
   public static final String HEADER = "#CHR\tSTART\tSTOP\tUCSC\tNAME\tREF\tALT\tNREF\tNALT\tNOTH\tGQ";
 
@@ -74,7 +75,7 @@ public class CRAMSnpReader {
       System.setProperty("reference_fasta",
                          Resources.genome(GenomeBuild.HG38, new Logger()).getFASTA().get());
       new CRAMSnpReader("G:\\bamTesting\\snpSelection\\selected_topmed.vcf",
-                        "G:\\bamTesting\\00cram\\", "G:\\bamTesting\\00cram\\", GenomeBuild.HG38,
+                        "G:\\bamTesting\\01cram\\", "G:\\bamTesting\\01cram\\", GenomeBuild.HG38,
                         true).run();
     } else {
       cli.parseWithExit(args);
@@ -121,7 +122,7 @@ public class CRAMSnpReader {
 
   private void processCRAMs() {
     Segment[] pileSegs = segList.toArray(new Segment[segList.size()]);
-    int execNum = 4;
+    int execNum = Math.min(cramFiles.length, MAX_CRAMS_PROCESSING);
     int numThreads = Runtime.getRuntime().availableProcessors() / execNum;
     ExecutorService exec = Executors.newFixedThreadPool(execNum);
 

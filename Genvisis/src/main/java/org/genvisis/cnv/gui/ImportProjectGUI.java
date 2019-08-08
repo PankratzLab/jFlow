@@ -66,6 +66,7 @@ public class ImportProjectGUI extends JDialog {
   private static final String PROJECT = "PROJECT";
   private static final String SAMPLEDATA = "SAMPLEDATA";
   private static final String DEFAULT_PROJ_NAME = "New Project";
+  private static final int PROJECT_NAME_MAX_LENGTH = 50;
 
   volatile boolean cancelled = false;
 
@@ -361,10 +362,11 @@ public class ImportProjectGUI extends JDialog {
 
   private boolean checkProjectName() {
     String name = txtFldProjName.getText().trim();
-    if (name.isEmpty() || DEFAULT_PROJ_NAME.equals(name) || name.length() > 23
+    if (name.isEmpty() || DEFAULT_PROJ_NAME.equals(name) || name.length() > PROJECT_NAME_MAX_LENGTH
         || LaunchProperties.projectExists(name)) {
       JOptionPane.showMessageDialog(null,
-                                    "Project name must be 1-23 characters in length, must not be \""
+                                    "Project name must be 1-" + PROJECT_NAME_MAX_LENGTH
+                                          + " characters in length, must not be \""
                                           + DEFAULT_PROJ_NAME
                                           + "\", and must not clash with an existing project.",
                                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -441,7 +443,8 @@ public class ImportProjectGUI extends JDialog {
       return false;
     }
     String projDir = txtFldProjDir.getText().trim();
-    Project actualProj = Project.initializeProject(name, projDir);
+    Project actualProj = Project.initializeProject(name, projDir, false);
+    actualProj.setLoadingProperties();
 
     Map<String, String> importProps = actualProj.loadImportMetaFile();
     if (importProps != null && !importProps.isEmpty()) {
@@ -452,6 +455,7 @@ public class ImportProjectGUI extends JDialog {
         }
       }
     }
+    actualProj.doneLoadingProperties();
 
     boolean foundOldSampleList = Files.exists(projDir + DEFAULT_SAMPLELIST)
                                  && !Files.exists(projDir + DEFAULT_SAMPLELIST_ALT);

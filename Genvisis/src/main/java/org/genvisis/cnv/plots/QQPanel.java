@@ -66,7 +66,7 @@ public class QQPanel extends AbstractPanel {
       int descrY = 0;
 
       for (int i = 0; i < descriptions.length; i++) {
-        int descrX = PAD + axisYWidth;
+        int descrX = PAD + getAxisYWidth();
         descrY += calcSingleDescrHeight(fontHeight);
 
         g.setColor(descriptions.length == 1 ? colorScheme[0] : colorScheme[i + 2]);

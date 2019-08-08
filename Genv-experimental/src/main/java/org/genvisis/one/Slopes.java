@@ -135,7 +135,7 @@ public class Slopes {
     try {
       reader = new BufferedReader(new FileReader(dir + filename));
       writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_slopes.xln");
-      writer.println("MRN\tSlope\tN");
+      writer.println("MRN\tSlope\tY-intercept\tN");
       line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
       if (!line[0].equals("MRN") && !line[0].equals("id")) {
         System.err.println("Error - expecting header with MRN or id");
@@ -149,21 +149,41 @@ public class Slopes {
       for (String id : ids) {
         writer.print(id);
         pairs = hash.get(id);
-        if (pairs.size() >= 2) {
+        if (pairs.size() > 2) {
           dates = new double[pairs.size()];
           values = new double[pairs.size()];
           for (int j = 0; j < pairs.size(); j++) {
             line = pairs.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
-            dates[j] = parseDate(line[0]);
+            // dates[j] = parseDate(line[0]);
+            dates[j] = Double.parseDouble(line[0]);
             values[j] = Double.parseDouble(line[1]);
           }
           linear = new LeastSquares(values, dates);
           if (linear.analysisFailed()) {
             System.err.println("Error - problem with generating slope data for " + id);
+            // do a normal linreg and/or see if value is constant and set beta=0, y=value
+            if (ArrayUtils.min(values) == ArrayUtils.max(values)) {
+              writer.print("\t" + 0 + "\t" + values[0] + "\t" + pairs.size());
+            }
+          } else {
+            writer.print("\t" + linear.getBetas()[1] + "\t" + linear.getBetas()[0] + "\t"
+                         + pairs.size());
           }
-          writer.print("\t" + linear.getBetas()[1] + "\t" + pairs.size());
+        } else if (pairs.size() == 2) {
+          dates = new double[pairs.size()];
+          values = new double[pairs.size()];
+          for (int j = 0; j < pairs.size(); j++) {
+            line = pairs.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
+            // dates[j] = parseDate(line[0]);
+            dates[j] = Double.parseDouble(line[0]);
+            values[j] = Double.parseDouble(line[1]);
+          }
+          double m = (values[0] - values[1]) / (dates[0] - dates[1]);
+          double b = values[0] + m * dates[0];
+          writer.print("\t" + m + "\t" + b + "\t" + pairs.size());
         } else {
-          writer.print("\t.\t" + pairs.size());
+          writer.print("\t" + 0 + "\t" + pairs.elementAt(0).split(PSF.Regex.GREEDY_WHITESPACE)[1]
+                       + "\t" + pairs.size());
         }
         writer.println();
       }
@@ -435,7 +455,7 @@ public class Slopes {
     // String dir = "C:\\Documents and Settings\\npankrat\\My
     // Documents\\ALS\\NEALS_db\\Topiramate\\";
     // String refFile = "SeriousPulmonaryEvent.dat";
-    String dir = "C:/Users/npankrat/Desktop/Ezgi/research/ALS_Research/FRS_slopes/";
+    String dir = "/Users/Ranial/Desktop/Work/BOSS/";
     // String filename = "alsfrs.dat";
     // String dateIndices = "1";
     // String valueIndices = "5";

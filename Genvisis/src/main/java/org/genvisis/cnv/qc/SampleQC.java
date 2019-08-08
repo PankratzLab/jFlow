@@ -113,10 +113,12 @@ public class SampleQC {
   }
 
   public void addQCsToSampleData(int numQ, int numPCs, boolean justQuantiles) {
-    Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, qcMatrix, qctitles, proj.getLog());
+    Quantiles[] quantiles = numQ > 0 ? Quantiles.qetQuantilesFor(numQ, qcMatrix, qctitles,
+                                                                 proj.getLog())
+                                     : null;
     Hashtable<String, String> hashtable = developHash(quantiles, justQuantiles);
     String[] header = developHeader(quantiles, numQ, justQuantiles);
-    appendToSampleData(proj, hashtable, header, numQ, justQuantiles);
+    appendToSampleData(proj, hashtable, header);
   }
 
   public void addPCsToSampleData(int numQ, int numPCs, boolean justQuantiles) {
@@ -137,7 +139,7 @@ public class SampleQC {
         hashtable.put(proj.getSamples()[i], qcInfo);
       }
       String[] header = developMetricsHeader(quantiles, pcTitles, numQ, justQuantiles);
-      appendToSampleData(proj, hashtable, header, numQ, justQuantiles);
+      appendToSampleData(proj, hashtable, header);
     } else {
       proj.getLog().reportError("PCs are not sorted by project, currently this is not supported");
     }
@@ -233,7 +235,9 @@ public class SampleQC {
       if (fidiids != null) {
         qcInfo += "\t" + mzTwinIds[i];
       }
-      qcInfo += "\t" + developMetricsLine(i, quantiles, qcMatrix, justQuantiles);
+      if (quantiles != null) {
+        qcInfo += "\t" + developMetricsLine(i, quantiles, qcMatrix, justQuantiles);
+      }
       hashtable.put(samples[i], qcInfo);
     }
     return hashtable;
@@ -253,8 +257,12 @@ public class SampleQC {
     if (fidiids != null) {
       header.add("mzTwinID");
     }
-    return ArrayUtils.combine(header.toArray(new String[] {}),
-                              developMetricsHeader(quantiles, qctitles, numQ, justQuantiles));
+    String[] headerArr = header.toArray(new String[header.size()]);
+    if (numQ > 0 && quantiles != null) {
+      headerArr = ArrayUtils.combine(headerArr, developMetricsHeader(quantiles, qctitles, numQ,
+                                                                     justQuantiles));
+    }
+    return headerArr;
   }
 
   private int removeEmptyMetrics() {
@@ -298,7 +306,7 @@ public class SampleQC {
                             : ext.indexOfStr("LRR_SD", getQctitles());
   }
 
-  private int addExcludes() {
+  public int addExcludes() {
     int numExcluded = 0;
     int callrateIndex = getCallrateIndex();
     int lrr_sdIndex = getLrr_sdIndex();
@@ -485,7 +493,7 @@ public class SampleQC {
   }
 
   private static void appendToSampleData(Project proj, Hashtable<String, String> hashtable,
-                                         String[] header, int numQ, boolean justQuantiles) {
+                                         String[] header) {
     SampleData sampledata = proj.getSampleData(false);
     proj.getLog()
         .reportTimeInfo("Adding " + header.length + " columns to sample data based on sample QC");
@@ -551,13 +559,7 @@ public class SampleQC {
   }
 
   public static SampleQC loadSampleQC(Project proj) {
-    return loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, false, false, null);
-  }
-
-  public static SampleQC loadSampleQC(Project proj, boolean generate, boolean gcCorrectedLrrSd,
-                                      String duplicatesSetFile) {
-    return loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, generate,
-                        gcCorrectedLrrSd, duplicatesSetFile);
+    return loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, false, false, null, true);
   }
 
   /**
@@ -569,9 +571,10 @@ public class SampleQC {
    *          check duplicates
    * @return
    */
-  public static SampleQC loadSampleQC(Project proj, String sampleColumnName,
-                                      String[] qcTitlesToLoad, boolean generateSampleQC,
-                                      boolean gcCorrectedLrrSd, String duplicatesSetFile) {
+  public static SampleQC loadSampleQCWithoutSideEffects(Project proj, String sampleColumnName,
+                                                        String[] qcTitlesToLoad,
+                                                        boolean generateSampleQC,
+                                                        boolean gcCorrectedLrrSd) {
     // String lrrSdToLoad = proj.getFilename(proj.SAMPLE_QC_FILENAME);
     String lrrSdToLoad = proj.SAMPLE_QC_FILENAME.getValue();
     SampleQC sampleQC = null;
@@ -585,7 +588,6 @@ public class SampleQC {
           proj.getLog().reportError("Could not generate sample QC file " + lrrSdToLoad);
         }
       }
-      proj.getLog().reportTimeInfo("Loading qc data from " + lrrSdToLoad);
       try {
         BufferedReader reader = Files.getAppropriateReader(lrrSdToLoad);
         String[] header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -626,8 +628,11 @@ public class SampleQC {
           }
         }
         reader.close();
-        proj.getLog().reportTimeInfo("Finished loading qc data from " + lrrSdToLoad);
 
+        int numFiltered = sampleQC.removeEmptyMetrics();
+        if (numFiltered == -1) {
+          return null;
+        }
       } catch (FileNotFoundException fnfe) {
         proj.getLog().reportError("file \"" + lrrSdToLoad + "\" not found in current directory");
         return null;
@@ -636,6 +641,27 @@ public class SampleQC {
         return null;
       }
 
+    }
+    return sampleQC;
+  }
+
+  /**
+   * @param proj
+   * @param sampleColumnName header of the column containing sample names
+   * @param qcTitlesToLoad qc titles to load from the sample QC file
+   * @param generateSampleQC generate sampleQC if missing
+   * @param duplicatesSetFile filename for file with 3 columns: FID IID DuplicateID, null to not
+   *          check duplicates
+   * @return
+   */
+  public static SampleQC loadSampleQC(Project proj, String sampleColumnName,
+                                      String[] qcTitlesToLoad, boolean generateSampleQC,
+                                      boolean gcCorrectedLrrSd, String duplicatesSetFile,
+                                      boolean parseExcludes) {
+    SampleQC sampleQC = loadSampleQCWithoutSideEffects(proj, sampleColumnName, qcTitlesToLoad,
+                                                       generateSampleQC, gcCorrectedLrrSd);
+    if (sampleQC != null) {
+      String lrrSdToLoad = proj.SAMPLE_QC_FILENAME.getValue();
       proj.getLog().reportTimeInfo("Filtering empty columns from " + lrrSdToLoad);
       int numFiltered = sampleQC.removeEmptyMetrics();
       if (numFiltered == -1) {
@@ -644,9 +670,11 @@ public class SampleQC {
       proj.getLog()
           .reportTimeInfo("Filtered " + numFiltered + " empty columns from " + lrrSdToLoad);
 
-      proj.getLog().reportTimeInfo("Finding samples to exclude");
-      int numExcluded = sampleQC.addExcludes();
-      proj.getLog().reportTimeInfo("Found " + numExcluded + " samples to exclude");
+      if (parseExcludes) {
+        proj.getLog().reportTimeInfo("Finding samples to exclude");
+        int numExcluded = sampleQC.addExcludes();
+        proj.getLog().reportTimeInfo("Found " + numExcluded + " samples to exclude");
+      }
 
       if (sampleQC.addPedigreeData()) {
         if (duplicatesSetFile != null) {
@@ -658,11 +686,22 @@ public class SampleQC {
     return sampleQC;
   }
 
-  public static void parseAndAddToSampleData(Project proj, int numQ, int numPCs,
-                                             boolean justQuantiles, boolean gcCorrectedLrrSd,
-                                             String duplicatesSetFile, boolean correctFidIids) {
+  public static void parseExcludes(Project proj) {
+    SampleQC sampleQC = loadSampleQCWithoutSideEffects(proj, LrrSd.SAMPLE_COLUMN,
+                                                       LrrSd.NUMERIC_COLUMNS, false, false);
+    int numExcluded = sampleQC.addExcludes();
+    proj.getLog().reportTimeInfo("Found " + numExcluded + " samples to exclude");
+    sampleQC.addQCsToSampleData(0, 0, false);
+  }
+
+  public static void parseAndAddToSampleDataWithoutExcludes(Project proj, int numQ, int numPCs,
+                                                            boolean justQuantiles,
+                                                            boolean gcCorrectedLrrSd,
+                                                            String duplicatesSetFile,
+                                                            boolean correctFidIids) {
     // TODO Make gcCorrectedLrrSd functional, put FID/IID in appropriate columns (2&3?)
-    SampleQC sampleQC = loadSampleQC(proj, false, gcCorrectedLrrSd, duplicatesSetFile);
+    SampleQC sampleQC = loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, false,
+                                     gcCorrectedLrrSd, duplicatesSetFile, false);
     sampleQC.addQCsToSampleData(numQ, numPCs, justQuantiles);
     if (numPCs > 0) {
       sampleQC.addPCsToSampleData(numQ, numPCs, justQuantiles);
@@ -675,6 +714,7 @@ public class SampleQC {
   public static void main(String[] args) {
     int numArgs = args.length;
     String filename = null;
+    boolean excludesOnly = false;
     int numQ = 5;
     int numPCs = 0;
     boolean justQuantiles = true;
@@ -706,6 +746,9 @@ public class SampleQC {
       } else if (arg.startsWith("proj=")) {
         filename = arg.split("=")[1];
         numArgs--;
+      } else if (arg.startsWith("-excludesOnly")) {
+        excludesOnly = true;
+        numArgs--;
       } else if (arg.startsWith("numQ=")) {
         numQ = ext.parseIntArg(arg);
         numArgs--;
@@ -734,8 +777,12 @@ public class SampleQC {
     }
     try {
       Project proj = new Project(filename);
-      parseAndAddToSampleData(proj, numQ, numPCs, justQuantiles, gcCorrectedLrrSd,
-                              duplicatesSetFile, correctFidIids);
+      if (excludesOnly) {
+        parseExcludes(proj);
+      } else {
+        parseAndAddToSampleDataWithoutExcludes(proj, numQ, numPCs, justQuantiles, gcCorrectedLrrSd,
+                                               duplicatesSetFile, correctFidIids);
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }

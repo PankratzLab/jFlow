@@ -11,8 +11,8 @@ public class Conversion {
     this.fcs = f;
   }
 
-  final File dir;
-  final File out;
-  final String link;
-  final String fcs;
+  public final File dir;
+  public final File out;
+  public final String link;
+  public final String fcs;
 }

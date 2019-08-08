@@ -65,11 +65,12 @@ public class RelationAncestryQc extends Qc {
   public static final Set<QcMetric> CUSTOMIZABLE_QC_METRICS = Collections.unmodifiableSet(EnumSet.of(QcMetric.CALLRATE));
 
   /**
-   * @see Qc#Qc(String, String, Map, Logger)
+   * @param plinkExe path to plink executable (or null for default)
+   * @see Qc#Qc(String, String, String, Map, Logger)
    */
-  public RelationAncestryQc(String soureDir, String plinkPrefix,
+  public RelationAncestryQc(String soureDir, String plinkPrefix, String plinkExe,
                             Map<QcMetric, String> markerQCThresholds, Logger log) {
-    super(soureDir, plinkPrefix, markerQCThresholds, log);
+    super(soureDir, plinkPrefix, plinkExe, markerQCThresholds, log);
   }
 
   public void run(boolean keepGenomeInfoForRelatedsOnly) {
@@ -82,7 +83,7 @@ public class RelationAncestryQc extends Qc {
     new File(qcDir + RelationAncestryQc.SAMPLE_QC_DIR).mkdirs();
     if (!Files.exists(qcDir + RelationAncestryQc.SAMPLE_QC_DIR + plinkroot + ".bed")) {
       log.report(ext.getTime() + "]\tRunning --exclude " + MARKER_QC_DROPS);
-      CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.MARKER_QC_DIR + plinkroot
+      CmdLine.runDefaults(plinkExe + " --bfile ../" + RelationAncestryQc.MARKER_QC_DIR + plinkroot
                           + " --exclude ../" + RelationAncestryQc.MARKER_QC_DIR + MARKER_QC_DROPS
                           + " --make-bed --noweb --out " + plinkroot,
                           qcDir + RelationAncestryQc.SAMPLE_QC_DIR, log);
@@ -90,7 +91,7 @@ public class RelationAncestryQc extends Qc {
     PSF.checkInterrupted();
     if (!Files.exists(qcDir + RelationAncestryQc.SAMPLE_QC_DIR + "missing.imiss")) {
       log.report(ext.getTime() + "]\tRunning --missing");
-      CmdLine.runDefaults("plink2 --bfile " + plinkroot
+      CmdLine.runDefaults(plinkExe + " --bfile " + plinkroot
                           + " --geno 1 --mind 1 --missing --out missing --noweb",
                           qcDir + RelationAncestryQc.SAMPLE_QC_DIR, log);
     }
@@ -100,14 +101,14 @@ public class RelationAncestryQc extends Qc {
     if (!Files.exists(qcDir + RelationAncestryQc.LD_PRUNING_DIR + plinkroot + ".bed")) {
       log.report(ext.getTime()
                  + "]\tRunning --mind 0.05 (removes samples with callrate <95% for the markers that did pass QC)");
-      CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.SAMPLE_QC_DIR + plinkroot
+      CmdLine.runDefaults(plinkExe + " --bfile ../" + RelationAncestryQc.SAMPLE_QC_DIR + plinkroot
                           + " --mind 0.05 --make-bed --noweb --out " + plinkroot,
                           qcDir + RelationAncestryQc.LD_PRUNING_DIR, log);
     }
     PSF.checkInterrupted();
     if (!Files.exists(qcDir + RelationAncestryQc.LD_PRUNING_DIR + plinkroot + ".prune.in")) {
       log.report(ext.getTime() + "]\tRunning --indep-pairwise 50 5 0.3");
-      CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot
+      CmdLine.runDefaults(plinkExe + " --noweb --bfile " + plinkroot
                           + " --indep-pairwise 50 5 0.3 --out " + plinkroot,
                           qcDir + RelationAncestryQc.LD_PRUNING_DIR, log);
     }
@@ -116,7 +117,7 @@ public class RelationAncestryQc extends Qc {
     new File(qcDir + RelationAncestryQc.GENOME_DIR).mkdirs();
     if (!Files.exists(qcDir + RelationAncestryQc.GENOME_DIR + plinkroot + ".bed")) {
       log.report(ext.getTime() + "]\tRunning --extract " + plinkroot + ".prune.in");
-      CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.LD_PRUNING_DIR + plinkroot
+      CmdLine.runDefaults(plinkExe + " --bfile ../" + RelationAncestryQc.LD_PRUNING_DIR + plinkroot
                           + " --extract ../" + RelationAncestryQc.LD_PRUNING_DIR + plinkroot
                           + ".prune.in --make-bed --noweb --out " + plinkroot,
                           qcDir + RelationAncestryQc.GENOME_DIR, log);
@@ -125,7 +126,7 @@ public class RelationAncestryQc extends Qc {
     if (!Files.exists(qcDir + RelationAncestryQc.GENOME_DIR + plinkroot + ".genome")) {
       log.report(ext.getTime() + "]\tRunning --genome"
                  + (keepGenomeInfoForRelatedsOnly ? " --min 0.1" : ""));
-      CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot + " --genome"
+      CmdLine.runDefaults(plinkExe + " --noweb --bfile " + plinkroot + " --genome"
                           + (keepGenomeInfoForRelatedsOnly ? " --min 0.1" : "") + " --out "
                           + plinkroot, qcDir + RelationAncestryQc.GENOME_DIR, log);
     }
@@ -133,7 +134,7 @@ public class RelationAncestryQc extends Qc {
     if (!keepGenomeInfoForRelatedsOnly
         && !Files.exists(qcDir + RelationAncestryQc.GENOME_DIR + "mds20.mds")) {
       log.report(ext.getTime() + "]\tRunning --mds-plot 20");
-      CmdLine.runDefaults("plink2 --bfile " + plinkroot + " --read-genome " + plinkroot
+      CmdLine.runDefaults(plinkExe + " --bfile " + plinkroot + " --read-genome " + plinkroot
                           + ".genome --cluster --mds-plot 20 --out mds20 --noweb",
                           qcDir + RelationAncestryQc.GENOME_DIR, log);
     }
@@ -162,7 +163,7 @@ public class RelationAncestryQc extends Qc {
     if (!Files.exists(qcDir + RelationAncestryQc.ANCESTRY_DIR + plinkroot + ".bed")) {
       log.report(ext.getTime() + "]\tRunning --extract " + plinkroot
                  + ".prune.in (again, this time to " + RelationAncestryQc.ANCESTRY_DIR + ")");
-      CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.GENOME_DIR + plinkroot
+      CmdLine.runDefaults(plinkExe + " --bfile ../" + RelationAncestryQc.GENOME_DIR + plinkroot
                           + " --make-bed --noweb --out " + plinkroot,
                           qcDir + RelationAncestryQc.ANCESTRY_DIR, log);
     }
@@ -172,25 +173,28 @@ public class RelationAncestryQc extends Qc {
   }
 
   /**
+   * @param plinkExe TODO
    * @param keepGenomeInfoForRelatedsOnly true to save disk usage if unrelated genome info is not
    *          required
    * @return full path to plinkroot of QC'd plink dataset
    */
-  public static void fullGamut(String dir, String plinkPrefix,
+  public static void fullGamut(String dir, String plinkPrefix, String plinkExe,
                                boolean keepGenomeInfoForRelatedsOnly, Logger log) {
-    fullGamut(dir, plinkPrefix, keepGenomeInfoForRelatedsOnly, log, DEFAULT_QC_METRIC_THRESHOLDS);
+    fullGamut(dir, plinkPrefix, plinkExe, keepGenomeInfoForRelatedsOnly, log,
+              DEFAULT_QC_METRIC_THRESHOLDS);
   }
 
   /**
+   * @param plinkExe TODO
    * @param keepGenomeInfoForRelatedsOnly true to save disk usage if unrelated genome info is not
    *          required
    * @param markerQCThresholds TODO
    * @return full path to plinkroot of QC'd plink dataset
    */
-  public static void fullGamut(String dir, String plinkPrefix,
+  public static void fullGamut(String dir, String plinkPrefix, String plinkExe,
                                boolean keepGenomeInfoForRelatedsOnly, Logger log,
                                Map<QcMetric, String> markerQCThresholds) {
-    new RelationAncestryQc(dir, plinkPrefix, markerQCThresholds,
+    new RelationAncestryQc(dir, plinkPrefix, plinkExe, markerQCThresholds,
                            log).run(keepGenomeInfoForRelatedsOnly);
   }
 
@@ -225,7 +229,7 @@ public class RelationAncestryQc extends Qc {
       log.reportTimeInfo("MODE=" + mode);
       if (mode == PLINK_SET_MODE.GWAS_QC) {
 
-        RelationAncestryQc.fullGamut(dir, rootOut, false,
+        RelationAncestryQc.fullGamut(dir, rootOut, null, false,
                                      new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
         String mdsFile = dir + RelationAncestryQc.GENOME_DIR + "mds20.mds";
         if (Files.exists(mdsFile)) {
@@ -373,6 +377,7 @@ public class RelationAncestryQc extends Qc {
     CLI c = new CLI(RelationAncestryQc.class);
     c.addArgWithDefault(CLI.ARG_INDIR, "directory with binary plink dataset", "./");
     c.addArgWithDefault(CLI.ARG_PLINKROOT, CLI.DESC_PLINKROOT, Qc.DEFAULT_PLINKROOT);
+    c.addArgWithDefault(CLI.ARG_PLINK_EXE, CLI.DESC_PLINK_EXE, CLI.DEF_PLINK_EXE);
     c.addArgWithDefault(RelationAncestryQc.ARGS_KEEPGENOME, "if no MDS will be run, smaller file",
                         String.valueOf(true));
     Map<QcMetric, String> markerQCThresholds = Maps.newEnumMap(DEFAULT_QC_METRIC_THRESHOLDS);
@@ -386,6 +391,7 @@ public class RelationAncestryQc extends Qc {
 
     String dir = c.get(CLI.ARG_INDIR);
     String inputPlinkroot = c.get(CLI.ARG_PLINKROOT);
+    String plinkExe = c.get(CLI.ARG_PLINK_EXE);
     boolean keepGenomeInfoForRelatedsOnly = Boolean.parseBoolean(c.get(RelationAncestryQc.ARGS_KEEPGENOME));
     for (QcMetric metric : CUSTOMIZABLE_QC_METRICS) {
       markerQCThresholds.put(metric, c.get(metric.getKey()));
@@ -393,8 +399,8 @@ public class RelationAncestryQc extends Qc {
     Logger log = new Logger(dir + c.get(CLI.ARG_LOG));
 
     try {
-      RelationAncestryQc.fullGamut(dir, inputPlinkroot, keepGenomeInfoForRelatedsOnly, log,
-                                   markerQCThresholds);
+      RelationAncestryQc.fullGamut(dir, inputPlinkroot, plinkExe, keepGenomeInfoForRelatedsOnly,
+                                   log, markerQCThresholds);
     } catch (Exception e) {
       e.printStackTrace();
     }

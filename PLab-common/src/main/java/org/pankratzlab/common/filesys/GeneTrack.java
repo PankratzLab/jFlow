@@ -38,8 +38,8 @@ public class GeneTrack implements Serializable {
       v.add(element);
     }
 
-    starts = new int[26][0];
-    genes = new GeneData[26][0];
+    starts = new int[27][0];
+    genes = new GeneData[27][0];
     chrs = HashVec.getKeys(hash);
     for (String chr2 : chrs) {
       v = hash.get(chr2);

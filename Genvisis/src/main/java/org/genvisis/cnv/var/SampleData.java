@@ -52,6 +52,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -466,6 +467,7 @@ public class SampleData {
   private final boolean containsDNA;
   private final boolean containsFID;
   private final boolean containsIID;
+  private final Set<String> loadedCNVFiles;
   private volatile boolean loadedCNVs = false;
 
   public boolean getCNVsLoaded() {
@@ -503,6 +505,7 @@ public class SampleData {
     } else {
       cnvFilenames = cnvFilenamesVar;
     }
+    loadedCNVFiles = ImmutableSet.copyOf(cnvFilenames);
 
     // linkKeyIndex = new Hashtable<String, Integer>();
     // colorKeyIndex = new Hashtable<String, ArrayList<Integer>>();
@@ -2387,5 +2390,12 @@ public class SampleData {
         // ignore, as log output has already been written if an error is thrown
       }
     }
+  }
+
+  /**
+   * @return the loadedCNVFiles
+   */
+  public Set<String> getLoadedCNVFiles() {
+    return loadedCNVFiles;
   }
 }

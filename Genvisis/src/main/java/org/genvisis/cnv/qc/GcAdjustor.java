@@ -638,8 +638,8 @@ public class GcAdjustor {
         regressionGcs = null;
         proj.getLog()
             .reportError("Error - could not find any autosomal markers to train the regression model");
-        proj.getLog().reportError("Regression distance =" + regressionDistance);
-        proj.getLog().reportError("Method =" + correctionMethod);
+        proj.getLog().reportError("Regression distance = " + regressionDistance);
+        proj.getLog().reportError("Method = " + correctionMethod);
 
       } else {
         regressionIntensity = regressIntensityBuilder.build();

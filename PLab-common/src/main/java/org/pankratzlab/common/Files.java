@@ -29,9 +29,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -40,6 +42,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
+import javax.annotation.Nonnull;
 
 import org.pankratzlab.common.filesys.SerialHash;
 import org.pankratzlab.common.parse.GenParser;
@@ -386,7 +390,12 @@ public class Files {
     return copy;
   }
 
-  // causes trouble with Serialized data
+  /**
+   * FIXME: causes trouble with Serialized data
+   * @param from
+   * @param to
+   * @return
+   */
   public static boolean copyFile(String from, String to) {
     FileReader in;
     FileWriter out;
@@ -1130,7 +1139,7 @@ public class Files {
               for (int j = 0; j < data[i][keys.length].length; j++) {
                 String f = ext.removeDirectoryInfo(fileNames.get(i));
                 if (altHeaderMap.containsKey(f)
-                    && altHeaderMap.get(f).contains(data[i][keys.length][j])) {
+                    && altHeaderMap.get(f).containsKey(data[i][keys.length][j])) {
                   tmp[j] = altHeaderMap.get(f).get(data[i][keys.length][j]);
                 } else {
                   tmp[j] = data[i][keys.length][j];
@@ -1162,6 +1171,175 @@ public class Files {
     } catch (Exception e) {
       log.reportError("Error writing to " + outputFilename);
       log.reportException(e);
+    }
+  }
+
+  /**
+   * This combine method works by keeping a pointer to the next line of each file. While iterating
+   * through the keys, each line is checked if their line matches the current key. If not, the
+   * pointer does not advance. If so, the line is used and the pointer advances. This makes memory
+   * usage scale with the number of files being used, rather than the size of those files.
+   *
+   * @param keys Lines in the output - sorted keys for desired lines of each file, and ordering in
+   *          output
+   * @param filesToCombine List of files to join together. Each file name is concatenated with the
+   *          indices of the key column, and then output columns. Files are assumed to be sorted in
+   *          the same order as keys. Files are assumed not to have headers (instead using the
+   *          headers array)
+   * @param headers Headers for each file
+   * @param indexColumn The column we'll use to report our keys
+   * @param missingValue
+   * @param outputFilename Where to write joined file
+   * @param log
+   * @param ignoreCase
+   * @param printHeader
+   * @param hideIndexColumn
+   * @param altHeaderMap Map containing keys as filename_headerInFile and values of header in output
+   * @throws IOException
+   */
+  public static void combineStreaming(@Nonnull String[] keys, @Nonnull String[] filesToCombine,
+                                      @Nonnull String[][] headers, @Nonnull String indexColumn,
+                                      String missingValue, @Nonnull String outputFilename,
+                                      Logger log, boolean ignoreCase, boolean printHeader,
+                                      boolean hideIndexColumn) throws IOException {
+    Set<String> validKeys = new HashSet<>();
+    PrintWriter writer = null;
+    int[][] columnsOfInterestByFile;
+    String[] fileNames;
+
+    String delimiter = Files.suggestDelimiter(outputFilename, log);
+
+    // Use a set to track the valid keys so we can skip invalid keys later
+    for (String key : keys) {
+      validKeys.add(key);
+    }
+
+    if (log.getLevel() > 8) {
+      log.report(ext.addCommas(Runtime.getRuntime().maxMemory()) + " memory available");
+    }
+
+    BufferedReader[] readers = new BufferedReader[filesToCombine.length];
+    fileNames = new String[filesToCombine.length];
+
+    try {
+      // This will contain the key column + indices of interest for each file
+      columnsOfInterestByFile = new int[filesToCombine.length][];
+      writer = openAppropriateWriter(outputFilename);
+      for (int fileIndex = 0; fileIndex < filesToCombine.length; fileIndex++) {
+        String[] fileNamesWithCols = filesToCombine[fileIndex].trim()
+                                                              .split(PSF.Regex.GREEDY_WHITESPACE);
+        fileNames[fileIndex] = fileNamesWithCols[0];
+        columnsOfInterestByFile[fileIndex] = new int[fileNamesWithCols.length - 1];
+        for (int columnIndex = 0; columnIndex < columnsOfInterestByFile[fileIndex].length; columnIndex++) {
+          columnsOfInterestByFile[fileIndex][columnIndex] = Integer.parseInt(fileNamesWithCols[columnIndex
+                                                                                               + 1]);
+        }
+
+        if (!Files.exists(fileNames[fileIndex])) {
+          log.reportError("File " + fileNames[fileIndex] + " not found");
+          return;
+        }
+
+        if (log.getLevel() > 8) {
+          log.report("Loading data from '" + fileNames[fileIndex] + "'");
+        }
+
+        // Open the reader for this file
+        readers[fileIndex] = new BufferedReader(new FileReader(fileNames[fileIndex]));
+
+        // Write the section of the header for this file
+        if (printHeader) {
+          if (fileIndex == 0) {
+            if (!hideIndexColumn && fileIndex == 0) {
+              writer.print(indexColumn + delimiter);
+            }
+          } else {
+            writer.print(delimiter);
+          }
+          writer.print(ArrayUtils.toStr(headers[fileIndex], delimiter));
+        }
+      }
+      // finalize the header
+      writer.println();
+
+      String[][] currentLinesByFile = new String[filesToCombine.length][];
+      for (int i = 0; i < readers.length; i++) {
+        // Setup - for each reader, read the first line and cache the line
+        BufferedReader r = readers[i];
+        if (r.ready()) {
+          while (r.ready()) {
+            currentLinesByFile[i] = r.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
+            // Read until we find a valid key
+            if (validKeys.contains(currentLinesByFile[i][columnsOfInterestByFile[i][0]])) {
+              break;
+            }
+            // Reached the end of the file
+            Arrays.fill(currentLinesByFile[i], missingValue);
+          }
+        } else {
+          currentLinesByFile[i] = new String[] {""};
+        }
+      }
+
+      // Iterate over the keys in order.
+      for (int lineIndex = 0; lineIndex < keys.length; lineIndex++) {
+        String keyForLine = keys[lineIndex];
+        if (!hideIndexColumn) {
+          writer.print(keyForLine + delimiter);
+        }
+
+        // For each reader, if their current line contains the current key, print the values of
+        // interest and then advance the reader one position. If it doesn't contain the key, fill
+        // with missing values but don't move the file pointer.
+        for (int fileIndex = 0; fileIndex < readers.length; fileIndex++) {
+          if (fileIndex != 0) {
+            writer.print(delimiter);
+          }
+
+          String[] line = currentLinesByFile[fileIndex];
+          int[] columnsOfInterest = columnsOfInterestByFile[fileIndex];
+          String keyForReader = line[columnsOfInterest[0]];
+          String[] data = ArrayUtils.stringArray(columnsOfInterestByFile[fileIndex].length - 1,
+                                                 missingValue);
+
+          if (keyForReader.equals(keyForLine)) {
+            // Populate the data
+            for (int columnIndex = 0; columnIndex < data.length; columnIndex++) {
+              data[columnIndex] = line[columnsOfInterest[columnIndex + 1]];
+            }
+            // Update the line for this reader
+            BufferedReader r = readers[fileIndex];
+            if (r.ready()) {
+              while (r.ready()) {
+                currentLinesByFile[fileIndex] = r.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
+                // Read until we find a valid key or run out
+                if (validKeys.contains(currentLinesByFile[fileIndex][columnsOfInterest[0]])) {
+                  break;
+                }
+                // Reached the end of the file
+                Arrays.fill(currentLinesByFile[fileIndex], missingValue);
+              }
+            } else {
+              currentLinesByFile[fileIndex] = ArrayUtils.stringArray(line.length, missingValue);
+            }
+          }
+
+          writer.print(ArrayUtils.toStr(data, delimiter));
+        }
+
+        writer.println();
+      }
+    } catch (Exception e) {
+      log.reportException(e);
+    } finally {
+      if (writer != null) {
+        writer.close();
+      }
+      for (int i = 0; i < readers.length; i++) {
+        if (readers[i] != null) {
+          readers[i].close();
+        }
+      }
     }
   }
 
@@ -3084,10 +3262,14 @@ public class Files {
   }
 
   public static void write(String str, String filename) {
+    write(str, filename, false);
+  }
+
+  public static void write(String str, String filename, boolean append) {
     PrintWriter writer;
 
     try {
-      writer = openAppropriateWriter(filename);
+      writer = openAppropriateWriter(filename, append);
       writer.println(str);
       writer.flush();
       writer.close();
@@ -3102,10 +3284,14 @@ public class Files {
   }
 
   public static void writeArray(String[] entries, String filename) {
+    writeArray(entries, filename, false);
+  }
+
+  public static void writeArray(String[] entries, String filename, boolean append) {
     PrintWriter writer;
 
     try {
-      writer = openAppropriateWriter(filename);
+      writer = openAppropriateWriter(filename, append);
       for (String element : entries) {
         writer.println(element);
       }

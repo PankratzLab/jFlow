@@ -20,7 +20,8 @@ public class IlluminaMarkerPositionsStep extends Step {
   public static final String DESC = "";
 
   public static IlluminaMarkerPositionsStep create(Project proj) {
-    final Requirement<File> manifestReq = new Requirement.FileRequirement("An Illumina Manifest file.",
+    final Requirement<File> manifestReq = new Requirement.FileRequirement("manifestFile",
+                                                                          "An Illumina Manifest file.",
                                                                           new File(""));
 
     return new IlluminaMarkerPositionsStep(proj, manifestReq);

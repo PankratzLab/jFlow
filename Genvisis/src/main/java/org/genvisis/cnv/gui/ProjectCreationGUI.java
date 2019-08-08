@@ -10,8 +10,10 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -34,6 +36,7 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
 import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
@@ -59,8 +62,50 @@ public class ProjectCreationGUI extends JDialog {
   private static final String PROJECT_DIR_TOOLTIP = "<html>Directory in which to create, store, and manage all project files.</html>";
   private static final String SOURCE_DIR_TOOLTIP = "<html>Directory of source (e.g. FinalReport.txt.gz) files; this can be different than the Project Directory.</html>";
   private static final String SOURCE_EXT_TOOLTIP = "<html>Extension of source files (e.g. for \"FinalReport.txt.gz\", the extension would be \".txt.gz\".</html>";
-  private static final String XY_TOOLTIP = "<html>The raw probe intensity / bin counts are divided by this number to get a transformed<br />value between -32 and +32). Suggested values for scale factor based on array:<br />Illumina: use the default of 1.<br />Affy6: use 100.<br />Axiom: use 2000.<br />DBGAP: use 2000.</html>";
+  private static final String XY_TOOLTIP = new StringBuilder("<html>The raw probe intensity / bin counts are divided by this number to get a transformed<br />value between -32 and +32). ").append("Suggested values for scale factor based on array:<br />")
+                                                                                                                                                                                            .append(Arrays.stream(ARRAY.values())
+                                                                                                                                                                                                          .map(a -> {
+                                                                                                                                                                                                            return new StringBuilder(Arrays.stream(a.name()
+                                                                                                                                                                                                                                                    .toLowerCase()
+                                                                                                                                                                                                                                                    .split("_"))
+                                                                                                                                                                                                                                           .map(ext::capitalizeFirst)
+                                                                                                                                                                                                                                           .collect(Collectors.joining(" "))).append(": use the default of ")
+                                                                                                                                                                                                                                                                             .append(a.getDefaultScaleFactor())
+                                                                                                                                                                                                                                                                             .toString();
+                                                                                                                                                                                                          })
+                                                                                                                                                                                                          .collect(Collectors.joining("<br />")))
+                                                                                                                                                                                            .append("</html>")
+                                                                                                                                                                                            .toString();
   private static final String MKR_SUBSET_TOOLTIP = "<html>If you only want to import a subset of markers, then provide a text file with one marker name per line.</html>";
+  private static final String CREATE = "Create";
+  private static final String CREATE_TOOL = "<html>Create new project.<br />  No source file validation is available for this type of project.</html>";
+  private static final String CREATE_SKIPVAL = "Create [Skip Validation]";
+  private static final String CREATE_SKIPTOOL = "<html>Create new project, skipping source file validation.<br />  ONLY select if all source files are guaranteed <br />to be correct, valid, and uniform in structure.</html>";
+  private final AbstractAction CREATE_NOVALIDACT = new AbstractAction() {
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (checkValues()) {
+        startCreate();
+      }
+    }
+  };
+  private final AbstractAction CREATE_SKIPVALACT = new AbstractAction() {
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (checkValues()) {
+        int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
+                                                 "<html>You are waiving the opportunity to review your project structure.<br />Are you sure that all source files are valid, correct, and uniform in structure?<br /><br />[If not, select 'Validate and Create' to interactively review project structure]</html>",
+                                                 "Confirm File Validity",
+                                                 JOptionPane.YES_NO_OPTION);
+        if (resp == JOptionPane.YES_OPTION) {
+          startCreate();
+        }
+      }
+    }
+  };
+
   private final JPanel contentPane;
   private final JTextField txtFldProjName;
   private final JTextField txtFldProjDir;
@@ -173,7 +218,7 @@ public class ProjectCreationGUI extends JDialog {
     contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     setContentPane(contentPane);
-    contentPane.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow][grow]",
+    contentPane.setLayout(new MigLayout("hidemode 3", "[grow][10px:10px:10px][grow][grow]",
                                         "[grow][][grow][][][grow][][][][][grow][][][][grow][]"));
 
     JLabel lblGenvisisProjectCreation = new JLabel("Genvisis Project Creation");
@@ -229,8 +274,25 @@ public class ProjectCreationGUI extends JDialog {
     contentPane.add(lblArrayType, "cell 0 8,alignx trailing");
 
     comboBoxArrayType = new JComboBox<Project.ARRAY>(Project.ARRAY.values());
-    // comboBoxArrayType = new JComboBox<String>();
     comboBoxArrayType.setFont(comboBoxArrayType.getFont().deriveFont(Font.PLAIN));
+    comboBoxArrayType.addActionListener(new ActionListener() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (comboBoxArrayType.getSelectedItem() == Project.ARRAY.ILLUMINA) {
+          btnCreate.setAction(CREATE_SKIPVALACT);
+          btnCreate.setText(CREATE_SKIPVAL);
+          btnCreate.setToolTipText(CREATE_SKIPTOOL);
+          btnCreateAndValidate.setVisible(true);
+        } else {
+          btnCreate.setAction(CREATE_NOVALIDACT);
+          btnCreate.setText(CREATE);
+          btnCreate.setToolTipText(CREATE_TOOL);
+          btnCreateAndValidate.setVisible(false);
+        }
+        contentPane.revalidate();
+      }
+    });
     contentPane.add(comboBoxArrayType, "cell 2 8,growx");
 
     JLabel lblGenomeBuild = new JLabel("Genome Build:");
@@ -292,48 +354,19 @@ public class ProjectCreationGUI extends JDialog {
 
     JPanel panel = new JPanel();
     contentPane.add(panel, "south");
-    panel.setLayout(new MigLayout("", "[grow][]", "[]"));
+    panel.setLayout(new MigLayout("hidemode 3", "[grow][]", "[]"));
 
-    btnCreate = new JButton("Create [Skip Validation]");
-    btnCreate.setToolTipText("<html>Create new project, skipping source file validation.<br />  ONLY select if all source files are guaranteed <br />to be correct, valid, and uniform in structure.</html>");
-    btnCreate.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (checkValues()) {
-          int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
-                                                   "<html>You are waiving the opportunity to review your project structure.<br />Are you sure that all source files are valid, correct, and uniform in structure?<br /><br />[If not, select 'Validate and Create' to interactively review project structure]</html>",
-                                                   "Confirm File Validity",
-                                                   JOptionPane.YES_NO_OPTION);
-          if (resp == JOptionPane.YES_OPTION) {
-            createThread = new Thread(new Runnable() {
-
-              public void run() {
-                lock();
-                if (!createProject(false)) {
-                  JOptionPane.showMessageDialog(ProjectCreationGUI.this,
-                                                "Could not create project - please check your inputs and try again.",
-                                                "Project Creation Failed",
-                                                JOptionPane.ERROR_MESSAGE);
-                  unlock();
-                } else {
-                  // Don't care if createProject doesn't work nicely
-                  doClose(false);
-                }
-              }
-            });
-            createThread.start();
-          }
-        }
-      }
-    });
+    btnCreate = new JButton();
+    btnCreate.setAction(CREATE_SKIPVALACT);
+    btnCreate.setText(CREATE_SKIPVAL);
+    btnCreate.setToolTipText(CREATE_SKIPTOOL);
 
     progressBar = new JProgressBar();
     progressBar.setVisible(false);
     panel.add(progressBar, "hidemode 2, cell 0 0");
 
     btnCreate.setMnemonic(KeyEvent.VK_F);
-    panel.add(btnCreate, "flowx,cell 1 0");
+    panel.add(btnCreate, "flowx,cell 1 0, alignx right");
 
     btnCreateAndValidate = new JButton("Validate and Create");
     btnCreateAndValidate.setToolTipText("<html>During validation, Genvisis will scan the header of each source file to ensure <br /> that the column names are the same and in the same order in each file.<br />If there are a lot of files and/or you are confident that they all have the same<br />header (e.g. you know these are from the same source and have not been<br />edited,  or Genvisis has validated them before) then you can skip validation.</html>");
@@ -358,7 +391,7 @@ public class ProjectCreationGUI extends JDialog {
       }
     });
     btnCreateAndValidate.setMnemonic(KeyEvent.VK_V);
-    panel.add(btnCreateAndValidate, "cell 1 0");
+    panel.add(btnCreateAndValidate, "cell 1 0, alignx right");
 
     btnCancel = new JButton("Cancel");
     btnCancel.addActionListener(new ActionListener() {
@@ -369,7 +402,7 @@ public class ProjectCreationGUI extends JDialog {
       }
     });
     btnCancel.setMnemonic(KeyEvent.VK_C);
-    panel.add(btnCancel, "cell 1 0");
+    panel.add(btnCancel, "cell 1 0, alignx right");
 
     updateSourceFileNotice();
     pack();
@@ -443,8 +476,39 @@ public class ProjectCreationGUI extends JDialog {
       JOptionPane.showMessageDialog(null, errorMsg.toString(), "Error", JOptionPane.ERROR_MESSAGE);
       return false;
     }
-    return true;
 
+    double xy = ((Double) spinnerXY.getValue()).doubleValue();
+    int defaultScale = ((ARRAY) comboBoxArrayType.getSelectedItem()).getDefaultScaleFactor();
+    if (xy != defaultScale) {
+      int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
+                                               "<html>Chosen scale factor (" + xy
+                                                                        + ") is different from the default ("
+                                                                        + defaultScale
+                                                                        + "). Continue?</html>",
+                                               "Confirm Scale Factor", JOptionPane.YES_NO_OPTION);
+      return resp == JOptionPane.YES_OPTION;
+    }
+
+    return true;
+  }
+
+  private void startCreate() {
+    createThread = new Thread(new Runnable() {
+
+      public void run() {
+        lock();
+        if (!createProject(false)) {
+          JOptionPane.showMessageDialog(ProjectCreationGUI.this,
+                                        "Could not create project - please check your inputs and try again.",
+                                        "Project Creation Failed", JOptionPane.ERROR_MESSAGE);
+          unlock();
+        } else {
+          // Don't care if createProject doesn't work nicely
+          doClose(false);
+        }
+      }
+    });
+    createThread.start();
   }
 
   private void updateSourceFileNotice() {
@@ -663,15 +727,26 @@ public class ProjectCreationGUI extends JDialog {
     actualProj.XY_SCALE_FACTOR.setValue(xy);
     actualProj.TARGET_MARKERS_FILENAMES.setValue(new String[] {ext.removeDirectoryInfo(tgtMkrs)});
     actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());
-    // if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
-    // proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
-    // }
-    if (comboBoxArrayType.getSelectedItem() == ARRAY.ILLUMINA) {
-      actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
-                                                                                : cols[sampCol]);
-      actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
-      actualProj.setSourceFileHeaders(headers);
+
+    switch ((ARRAY) comboBoxArrayType.getSelectedItem()) {
+      case AFFY_AXIOM:
+      case AFFY_GW6:
+      case AFFY_GW6_CN:
+        actualProj.HMM_FILENAME.setValue(Resources.affy(dummy.getLog()).getHMM().get());
+        break;
+      case ILLUMINA:
+        actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
+                                                                                  : cols[sampCol]);
+        actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
+        actualProj.setSourceFileHeaders(headers);
+        break;
+      case NGS:
+        break;
+      default:
+        break;
+
     }
+
     actualProj.saveProperties();
     proj = actualProj;
     return true;
