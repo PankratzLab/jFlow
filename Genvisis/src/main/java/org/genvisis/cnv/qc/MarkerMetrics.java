@@ -62,6 +62,9 @@ import com.google.common.primitives.Floats;
 
 public class MarkerMetrics {
 
+  private static final String MARKERS_TO_REVIEW_COMBINED_FILENAME = "markersToReviewCombined.out";
+  public static final String MARKERS_TO_REVIEW_FILENAME = "markersToReview.out";
+  public static final String MARKERS_TO_EXCLUDE_FILENAME = "markersToExclude.out";
   public static final String[] FULL_QC_BASE_HEADER = {"MarkerName", "Chr", "CallRate",
                                                       "meanTheta_AA", "meanTheta_AB",
                                                       "meanTheta_BB", "diffTheta_AB-AA",
@@ -958,11 +961,13 @@ public class MarkerMetrics {
     }
 
     FilterDB.filter(markerMetricsFilename, reviewCriteriaFilename,
-                    proj.RESULTS_DIRECTORY.getValue(false, true) + "markersToReview.out", log);
+                    proj.RESULTS_DIRECTORY.getValue(false, true) + MARKERS_TO_REVIEW_FILENAME, log);
     FilterDB.filter(markerMetricsFilename, exclusionCriteriaFilename,
-                    proj.RESULTS_DIRECTORY.getValue(false, true) + "markersToExclude.out", log);
+                    proj.RESULTS_DIRECTORY.getValue(false, true) + MARKERS_TO_EXCLUDE_FILENAME,
+                    log);
     FilterDB.filter(markerMetricsFilename, combinedCriteriaFilename,
-                    proj.RESULTS_DIRECTORY.getValue(false, true) + "markersToReviewCombined.out",
+                    proj.RESULTS_DIRECTORY.getValue(false,
+                                                    true) + MARKERS_TO_REVIEW_COMBINED_FILENAME,
                     log);
   }
 
