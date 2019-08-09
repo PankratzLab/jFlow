@@ -313,7 +313,7 @@ public class BAFContamination {
 
     SampleQC sampleQC = SampleQC.loadSampleQC(proj, LrrSd.SAMPLE_COLUMN,
                                               new String[] {"LRR_SD", "BAF1585_SD", "AB_callrate",},
-                                              true, true, null, true);
+                                              true, true, null);
 
     try {
       ExtProjectDataParser parserPfb = getParser(proj, pfb, "Name", new String[] {"PFB"});
