@@ -19,6 +19,7 @@ import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.utils.gwas.Qc;
 import org.pankratzlab.utils.gwas.QcMetric;
 import org.pankratzlab.utils.gwas.RelationAncestryQc;
@@ -46,7 +47,7 @@ public class FurtherAnalysisQCStep extends Step {
                                                                                 "File with list of European samples to use for Hardy-Weinberg equilibrium tests",
                                                                                 new File(""));
     final Requirement<String> plinkExeReq = new Requirement.ProgramRequirement(CLI.ARG_PLINK_EXE,
-                                                                               CLI.DESC_PLINK_EXE,
+                                                                               ext.capitalizeFirst(CLI.DESC_PLINK_EXE),
                                                                                CLI.DEF_PLINK_EXE);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(RequirementSetBuilder.or()

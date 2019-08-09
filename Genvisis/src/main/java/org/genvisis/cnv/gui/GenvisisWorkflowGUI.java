@@ -56,6 +56,7 @@ import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
+import org.genvisis.cnv.workflow.OptionalRequirement;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.OutputFileRequirement;
 import org.genvisis.cnv.workflow.Requirement.ParsedRequirement;
@@ -664,7 +665,10 @@ public class GenvisisWorkflowGUI extends JDialog {
       JLabel indLbl = new JLabel(prefStr + (levelReqs.size() > 1 ? ("." + (i + 1)) : "") + ": ");
       indLbl.setFont(indLbl.getFont().deriveFont(Font.PLAIN, 9));
       panel.add(indLbl, "gapleft 25, aligny top, split 1, cell 0 " + rowIndex);
-      JLabel requirementLbl = new JLabel("<html><p>" + sanitize(levelReqs.get(i).getDescription())
+      JLabel requirementLbl = new JLabel("<html><p>"
+                                         + (levelReqs.get(i) instanceof OptionalRequirement ? "(optional) "
+                                                                                            : "")
+                                         + sanitize(levelReqs.get(i).getDescription())
                                          + "</p></html>");
       requirementLbl.setFont(requirementLbl.getFont().deriveFont(Font.PLAIN, 9));
       panel.add(requirementLbl, "aligny top, cell 0 " + rowIndex);
@@ -907,9 +911,7 @@ public class GenvisisWorkflowGUI extends JDialog {
             } catch (InvocationTargetException e) {} catch (InterruptedException e) {}
           }
         }
-        try
-
-        {
+        try {
           SwingUtilities.invokeAndWait(new Runnable() {
 
             @Override

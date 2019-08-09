@@ -46,9 +46,9 @@ public class MarkerQCStep extends Step {
                                                                                   sampleDataHeaders,
                                                                                   defaultBatchHeaders,
                                                                                   true);
-    final Requirement<Boolean> exportAllReq = new Requirement.OptionalBoolRequirement("exportAll",
-                                                                                      "Export all markers in project.",
-                                                                                      true);
+    final Requirement<Boolean> exportAllReq = new Requirement.BoolRequirement("exportAll",
+                                                                              "Export all markers in project.",
+                                                                              true);
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(RequirementSetBuilder.or()

@@ -147,7 +147,7 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class OptionalDirRequirement extends DirRequirement {
+  public static class OptionalDirRequirement extends DirRequirement implements OptionalRequirement {
 
     /**
      * @param description
@@ -178,7 +178,8 @@ public abstract class Requirement<T> {
     }
   }
 
-  public static class OptionalFileRequirement extends FileRequirement {
+  public static class OptionalFileRequirement extends FileRequirement
+                                              implements OptionalRequirement {
 
     public OptionalFileRequirement(String key, String description, File defaultValue) {
       super(key, description, defaultValue);
@@ -255,7 +256,8 @@ public abstract class Requirement<T> {
 
   }
 
-  public static class OptionalBoolRequirement extends BoolRequirement {
+  public static class OptionalBoolRequirement extends BoolRequirement
+                                              implements OptionalRequirement {
 
     public OptionalBoolRequirement(String key, String description, boolean defaultValue) {
       super(key, description, defaultValue);
