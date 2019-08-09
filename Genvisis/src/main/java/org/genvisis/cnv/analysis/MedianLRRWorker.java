@@ -312,9 +312,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   private final String outputBase;
   private final int transformationType;
   private final int scope;
-  private final Logger computelog; // considered using the project's default log or using the
-                                  // proj.setLog() command, but nice to have the region specific
-                                  // log named the same
+  //  considered using the project's default log or using the proj.setLog() command, but nice to have the region specific log named the same
+  private final Logger computelog;
+
   private final String[] samples, markerNames;
   private final byte[] chrs;
 
