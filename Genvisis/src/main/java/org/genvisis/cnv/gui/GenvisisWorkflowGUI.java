@@ -868,7 +868,9 @@ public class GenvisisWorkflowGUI extends JDialog {
                       JTextField field = ((JTextField) gui.varFields.get(step).get(req));
                       String v = field.getText();
                       if (!"".equals(v)) {
-                        if (Files.exists(v)) {
+                        if (Files.exists(v) && met) {
+                          field.setForeground(greenDark);
+                        } else if (!Files.exists(v) && met) {
                           field.setForeground(Color.BLACK);
                         } else {
                           field.setForeground(Color.RED);
