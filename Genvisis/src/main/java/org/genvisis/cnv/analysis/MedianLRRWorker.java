@@ -17,9 +17,11 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
+
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
@@ -312,7 +314,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   private final String outputBase;
   private final int transformationType;
   private final int scope;
-  //  considered using the project's default log or using the proj.setLog() command, but nice to have the region specific log named the same
+  // considered using the project's default log or using the proj.setLog() command, but nice to have
+  // the region specific log named the same
   private final Logger computelog;
 
   private final String[] samples, markerNames;
