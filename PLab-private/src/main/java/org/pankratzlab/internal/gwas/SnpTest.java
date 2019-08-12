@@ -1,7 +1,9 @@
 package org.pankratzlab.internal.gwas;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +26,8 @@ import org.pankratzlab.common.parsing.FixedValueColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.common.qsub.Qsub;
 
+import htsjdk.variant.vcf.VCFFileReader;
+
 public class SnpTest {
 
   class SnpTestCommand {
@@ -37,10 +41,11 @@ public class SnpTest {
     private String[] covars = null;
     private String outputFile;
     private String excludeFile;
+    private String includeFile;
 
     public SnpTestCommand(String snpTestLocation, String dataFile, String sampleFile,
                           boolean isVCFData, String vcfDataField, String phenoName, String[] covars,
-                          int chr, String outputFile, String excludeFile) {
+                          int chr, String outputFile, String excludeFile, String includeFile) {
       this.snpTestLocation = snpTestLocation;
       this.dataFile = dataFile;
       this.sampleFile = sampleFile;
@@ -50,6 +55,7 @@ public class SnpTest {
       this.covars = covars;
       this.outputFile = outputFile;
       this.excludeFile = excludeFile;
+      this.includeFile = includeFile;
     }
 
     private String getCommand() {
@@ -76,6 +82,9 @@ public class SnpTest {
       snpTestString.append(" -o ").append(outputFile);
       if (excludeFile != null) {
         snpTestString.append(" -exclude_samples ").append(excludeFile);
+      }
+      if (includeFile != null) {
+        snpTestString.append("-include_samples ").append(includeFile);
       }
       snpTestString.append(" -chunk 200 ");
 
@@ -160,6 +169,7 @@ public class SnpTest {
   String repl = "#";
   String sampleFile;
   String excludesFile;
+  String includesFile;
   String pheno;
   String[] covars = null;
   boolean isVCFOverride = false;
@@ -195,6 +205,10 @@ public class SnpTest {
 
   public void setExcludes(String excludesFile) {
     this.excludesFile = excludesFile;
+  }
+
+  public void setIncludes(String includesFile) {
+    this.includesFile = includesFile;
   }
 
   private void checkNeeds() throws IllegalStateException {
@@ -275,6 +289,114 @@ public class SnpTest {
     return returnFiles;
   }
 
+  public static void generateSampleSheet(String vcfPath, int numCovs, String covFile,
+                                         String sexFile, String phenoFile) {
+    VCFFileReader vcfFileReader = new VCFFileReader(new File(vcfPath), false);
+    ArrayList<String> samples = vcfFileReader.getFileHeader().getSampleNamesInOrder();
+
+    String outFile = "./snptest_sample_sheet";
+    String covHeader = "";
+    String covHeaderTwo = "";
+    int sampleSex = 0;
+    String samplePheno;
+    HashMap<String, ArrayList<Double>> covLookup = null;
+    HashMap<String, Integer> sexLookup = null;
+    HashMap<String, String> phenoLookup = null;
+    try {
+      covLookup = buildCovMap(covFile);
+      sexLookup = buildSexMap(sexFile);
+      phenoLookup = buildPhenoMap(phenoFile);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    for (int i = 0; i < numCovs; i++) {
+      covHeader += "cov" + i + "\t";
+      covHeaderTwo += "C" + "\t";
+    }
+
+    String header = "ID_1" + "\t" + "ID_2" + "\t" + "missing" + "\t" + "sex" + "\t" + covHeader
+                    + "phenotype" + "\t" + "race" + "\t";
+    String headerTwo = "0" + "\t" + "0" + "\t" + "0" + "\t" + "D" + covHeaderTwo + "B" + "\t" + "D";
+
+    PrintWriter writer = Files.getAppropriateWriter(outFile);
+    writer.write(header + "\n" + headerTwo + "\n");
+    if (covLookup != null && sexLookup != null && phenoLookup != null) {
+      for (String sample : samples) {
+        sampleSex = sexLookup.get(sample);
+        samplePheno = phenoLookup.get(sample);
+        writer.write(sample + "\t" + sample + "NA" + sampleSex + "\t");
+        for (int i = 0; i < numCovs; i++) {
+          writer.write(covLookup.get(sample).get(i) + "\t");
+        }
+        writer.write(samplePheno);
+      }
+    } else
+      throw new IllegalStateException();
+  }
+
+  private static HashMap<String, ArrayList<Double>> buildCovMap(String covFile) throws IOException {
+    HashMap<String, ArrayList<Double>> sampleCovMap = new HashMap<String, ArrayList<Double>>();
+
+    try (BufferedReader covReader = Files.getAppropriateReader(covFile)) {
+      covReader.readLine();
+      String[] line;
+      while ((line = covReader.readLine().trim().split("\t")) != null) {
+        ArrayList<Double> pcs = new ArrayList<Double>();
+        for (int i = 2; i < line.length; i++) {
+          try {
+            pcs.add(Double.parseDouble(line[i]));
+          } catch (NumberFormatException nfe) {
+            // improper file pc format
+            nfe.printStackTrace();
+          }
+
+        }
+        sampleCovMap.put(line[0], pcs);
+      }
+    }
+
+    return sampleCovMap;
+  }
+
+  private static HashMap<String, Integer> buildSexMap(String sexChecksFile) throws IOException {
+    HashMap<String, Integer> sampleSexMap = new HashMap<String, Integer>();
+
+    try (BufferedReader sexReader = Files.getAppropriateReader(sexChecksFile)) {
+      sexReader.readLine();
+      String[] line;
+      String fid = null;
+      int sex = 0;
+      while ((line = sexReader.readLine().trim().split("\t")) != null) {
+        try {
+          sex = Integer.parseInt(line[3]);
+        } catch (NumberFormatException nfe) {
+          nfe.printStackTrace();
+        }
+        fid = line[1];
+        sampleSexMap.put(fid, sex);
+      }
+    }
+    return sampleSexMap;
+  }
+
+  private static HashMap<String, String> buildPhenoMap(String phenoFile) throws IOException {
+    // phenoFile input : Fid\tIid\tpheno (binary e.g. case or control)
+    HashMap<String, String> samplePhenoMap = new HashMap<String, String>();
+
+    try (BufferedReader phenoReader = Files.getAppropriateReader(phenoFile)) {
+      phenoReader.readLine();
+      String[] line;
+      String fid = null;
+      String pheno = null;
+      while ((line = phenoReader.readLine().trim().split("\t")) != null) {
+        pheno = line[2];
+        fid = line[0];
+        samplePhenoMap.put(fid, pheno);
+      }
+    }
+    return samplePhenoMap;
+  }
+
   public void run() {
     checkNeeds();
     Map<Integer, String> dataFiles = loadFiles();
@@ -283,9 +405,12 @@ public class SnpTest {
     for (Entry<Integer, String> file : dataFiles.entrySet()) {
       String outFile = "./output_chr" + file.getKey() + ".out";
       String excludes = this.excludesFile;
+      String includes = this.includesFile;
       cmds.add(new SnpTestCommand(snpTestExec, file.getValue(), sampleFile,
-                                  file.getValue().contains(".vcf") || isVCFOverride, vcfField,
-                                  pheno, covars, file.getKey(), outFile, excludes).getCommand());
+                                  file.getValue().contains(".vcf")
+                                                                            || isVCFOverride,
+                                  vcfField, pheno, covars, file.getKey(), outFile, excludes,
+                                  includes).getCommand());
 
       cmdOuts.add(outFile);
     }
@@ -317,6 +442,12 @@ public class SnpTest {
   private static final String ARG_VCFOVERRIDE = "vcfOverride";
   private static final String ARG_VCFFIELD = "vcfField";
   private static final String ARG_EXCLUDES = "exclude";
+  private static final String ARG_INCLUDES = "include";
+  private static final String ARG_COVS = "covs";
+  private static final String ARG_SEX = "sex";
+  private static final String ARG_PHENO_LIST = "phenoList";
+  private static final String ARG_NUM_COV = "numCovs";
+  private static final String ARG_VCF_PATH = "vcfPath";
 
   private static final String DESC_SNPTEST = "SnpTest executable (full path included unless on path)";
   private static final String DESC_DATADIR = "Data file directory";
@@ -330,6 +461,12 @@ public class SnpTest {
   private static final String DESC_VCFOVERRIDE = "Override to specify if the data files are or are not VCF files";
   private static final String DESC_VCFFIELD = "Genotype field to use in VCF files (defaults to 'GP' / genotype probabilities)";
   private static final String DESC_EXCLUDES = "File with a list of samples that should be excluded from analysis. These should match samples from the sample file.";
+  private static final String DESC_INCLUDES = "File with a list of samples that should be included. Samples not in this file will be excluded.";
+  private static final String DESC_COVS = "A covariates file to be used in generating the snptest sample sheet.";
+  private static final String DESC_SEX = "A sex checks file to be used in generating the snptest sample sheet.";
+  private static final String DESC_PHENO_LIST = "A file with a fid iid and phenotype to be used in generating the snptest sample sheet.";
+  private static final String DESC_NUM_COV = "The number of covariates to be included in the snptest sample sheet";
+  private static final String DESC_VCF_PATH = "The path to the vcf files. Used in -generate.";
 
   public static void main(String[] args) throws IOException {
     CLI cli = new CLI(SnpTest.class);
@@ -337,6 +474,12 @@ public class SnpTest {
     boolean parse = false;
     String parseDir = null;
     String infoDirAndTemp = null;
+    boolean generate = false;
+    String sexFile = null;
+    String phenoFile = null;
+    String covFile = null;
+    String vcfPath = null;
+    int numCov = 0;
     for (String arg : args) {
       if (arg.startsWith("-parse")) {
         parse = true;
@@ -347,12 +490,32 @@ public class SnpTest {
       if (arg.startsWith("info=")) {
         infoDirAndTemp = arg.split("=")[1];
       }
+      if (arg.startsWith("-generate")) {
+        generate = true;
+      }
+      if (arg.startsWith("sex=")) {
+        sexFile = arg.split("=")[1];
+      }
+      if (arg.startsWith("phenoList=")) {
+        phenoFile = arg.split("=")[1];
+      }
+      if (arg.startsWith("covFile=")) {
+        covFile = arg.split("=")[1];
+      }
+      if (arg.startsWith("vcfPath=")) {
+        vcfPath = arg.split("=")[1];
+      }
+      if (arg.startsWith("numCovs=")) {
+        numCov = Integer.parseInt(arg.split("=")[1]);
+      }
     }
     boolean invalidParse = false;
     if (parse) {
       if (parseDir == null || infoDirAndTemp == null) {
         invalidParse = true;
       }
+    } else if (generate) {
+
     } else {
       if (parseDir != null || infoDirAndTemp != null) {
         invalidParse = true;
@@ -363,6 +526,10 @@ public class SnpTest {
     } else if (parse && parseDir != null && infoDirAndTemp != null) {
       processResults(parseDir, infoDirAndTemp);
       return;
+    }
+
+    if (generate) {
+      generateSampleSheet(vcfPath, numCov, covFile, sexFile, phenoFile);
     }
 
     cli.addArg(ARG_SNPTEST, DESC_SNPTEST);
@@ -378,6 +545,12 @@ public class SnpTest {
     cli.addArg(ARG_VCFOVERRIDE, DESC_VCFOVERRIDE, false);
     cli.addArg(ARG_VCFFIELD, DESC_VCFFIELD, false);
     cli.addArg(ARG_EXCLUDES, DESC_EXCLUDES, false);
+    cli.addArg(ARG_INCLUDES, DESC_INCLUDES, false);
+    cli.addArg(ARG_COVS, DESC_COVS, false);
+    cli.addArg(ARG_SEX, DESC_SEX, false);
+    cli.addArg(ARG_PHENO_LIST, DESC_PHENO_LIST, false);
+    cli.addArg(ARG_VCF_PATH, DESC_VCF_PATH, false);
+    cli.addArg(ARG_NUM_COV, DESC_NUM_COV, false);
 
     cli.addGroup(ARG_DATA, ARG_DATAEXT);
 
@@ -416,8 +589,12 @@ public class SnpTest {
     if (cli.has(ARG_EXCLUDES)) {
       run.setExcludes(cli.get(ARG_EXCLUDES));
     }
+    if (cli.has(ARG_INCLUDES)) {
+      run.setIncludes(cli.get(ARG_INCLUDES));
+    }
 
     run.run();
+
   }
 
 }
