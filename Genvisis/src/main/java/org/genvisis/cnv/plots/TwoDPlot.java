@@ -132,7 +132,7 @@ public class TwoDPlot extends JPanel
 
   private Project proj;
   private byte size;
-  private SampleData sampleData;
+  SampleData sampleData;
   private JButton flipButton, invXButton, invYButton;
   private volatile boolean flipStatus, xInvStatus, yInvStatus, hideExcludes;
   private volatile boolean isHistPlot;
@@ -201,7 +201,7 @@ public class TwoDPlot extends JPanel
     size = DEFAULT_SIZE;
 
     if (proj != null && Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
-      sampleData = proj.getSampleData(false);
+      sampleData = proj.getSampleData(true);
     } else {
       sampleData = null;
     }
@@ -710,9 +710,8 @@ public class TwoDPlot extends JPanel
       // Integer>(sampleData.getLinkKeyIndex());
       proj.resetSampleData();
       if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
-        sampleData = proj.getSampleData(false);
+        sampleData = proj.getSampleData(true);
       }
-      sampleData = proj.getSampleData(false);
       // sampleData.setLinkKeyIndex(linkKeyIndexCopy);
       colorKeyPanel.updateSampleData(sampleData);
     }
@@ -1490,11 +1489,8 @@ public class TwoDPlot extends JPanel
       twoDPanel.setForcePlotYmin(screencap.minY);
       twoDPanel.setForcePlotYmax(screencap.maxY);
 
-      boolean colorLoaded = false;
       if (screencap.colorFile != null && Files.exists(baseDir + screencap.colorFile)) {
         loadColor(baseDir, screencap);
-        colorLoaded = true; // vulnerable to issues actually loading color file, but good enough for
-                            // now? TODO need some way to specify HeatMap/Genotype coloration
       }
 
       if (screencap.dataXFile != null) {
@@ -1513,9 +1509,13 @@ public class TwoDPlot extends JPanel
       }
 
       twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
-      colorKeyPanel.getClassRadioButtons()[colorLoaded ? (colorKeyPanel.getClassRadioButtons().length
-                                                          - 1)
-                                                       : 0].setSelected(true);
+      int neg = 1;
+      while (colorKeyPanel.getClassRadioButtons()[(colorKeyPanel.getClassRadioButtons().length
+                                                   - neg)].getText().trim().equals("")) {
+        neg++;
+      }
+      colorKeyPanel.getClassRadioButtons()[(colorKeyPanel.getClassRadioButtons().length
+                                            - neg)].setSelected(true);
 
       twoDPanel.createImage();
 
