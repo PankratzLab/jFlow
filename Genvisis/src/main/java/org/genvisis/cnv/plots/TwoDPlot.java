@@ -1516,10 +1516,6 @@ public class TwoDPlot extends JPanel
       }
       colorKeyPanel.getClassRadioButtons()[(colorKeyPanel.getClassRadioButtons().length
                                             - neg)].setSelected(true);
-      System.out.println("ColorCode: {"
-                         + colorKeyPanel.getClassRadioButtons()[(colorKeyPanel.getClassRadioButtons().length
-                                                                 - neg)].getText()
-                         + "}");
 
       twoDPanel.createImage();
 
