@@ -239,8 +239,10 @@ public class SampleQC {
       String qcInfo = "";
       if (checkDuplicates) {
         qcInfo += "\t" + duplicateIds[i];
-        qcInfo += "\t" + (uses[i] ? "1" : "0") + "\t" + useNotes[i];
-        qcInfo += "\t" + (use_cnvs[i] ? "1" : "0") + "\t" + use_cnvNotes[i];
+        qcInfo += "\t" + (uses[i] ? "1" : "0");
+        qcInfo += "\t" + useNotes[i];
+        qcInfo += "\t" + (use_cnvs[i] ? "1" : "0");
+        qcInfo += "\t" + use_cnvNotes[i];
       }
       if (fidiids != null) {
         qcInfo += "\t" + mzTwinIds[i];
@@ -266,7 +268,7 @@ public class SampleQC {
       header.add("mzTwinID");
     }
     String[] headerArr = header.toArray(new String[header.size()]);
-    if (numQ > 0 && quantiles != null) {
+    if (quantiles != null) {
       headerArr = ArrayUtils.combine(headerArr, developMetricsHeader(quantiles, qctitles, numQ,
                                                                      justQuantiles));
     }

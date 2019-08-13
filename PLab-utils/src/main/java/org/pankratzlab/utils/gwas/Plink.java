@@ -700,7 +700,9 @@ public class Plink {
         e.printStackTrace();
       }
     } else {
-      log.report("No duplicates to write out");
+      log.report("No duplicates to write out, writing empty file");
+      Files.write("", genomeFileRoot + "_duplicatesSet.dat");
+      Files.write("", genomeFileRoot + "_duplicates.dat");
     }
     log.report("");
 
