@@ -949,7 +949,7 @@ public class TwoDPlot extends JPanel
                 ids = sampleData.lookup(key);
                 if (ids == null) {
                   colorCode = 0;
-                } else if (generatingScreenshots) {
+                } else if (generatingScreenshots && colorData != null) {
                   colorCode = getColorForScreenshot(ids[0]);
                 } else {
                   String[][] metaData = getCurrentColumnMetaData();
@@ -982,7 +982,7 @@ public class TwoDPlot extends JPanel
             ids = sampleData.lookup(key);
             if (ids == null) {
               colorCode = 0;
-            } else if (generatingScreenshots) {
+            } else if (generatingScreenshots && colorData != null) {
               colorCode = getColorForScreenshot(ids[0]);
             } else {
               String[][] metaData = getCurrentColumnMetaData();
@@ -1516,6 +1516,10 @@ public class TwoDPlot extends JPanel
       }
       colorKeyPanel.getClassRadioButtons()[(colorKeyPanel.getClassRadioButtons().length
                                             - neg)].setSelected(true);
+      System.out.println("ColorCode: {"
+                         + colorKeyPanel.getClassRadioButtons()[(colorKeyPanel.getClassRadioButtons().length
+                                                                 - neg)].getText()
+                         + "}");
 
       twoDPanel.createImage();
 
@@ -1558,10 +1562,10 @@ public class TwoDPlot extends JPanel
         BufferedImage bi = new BufferedImage(colorKeyPanel.classValuesPanel.getWidth(),
                                              colorKeyPanel.classValuesPanel.getHeight(),
                                              BufferedImage.TYPE_INT_ARGB);
-        colorKeyPanel.classValuesPanel.paint(bi.createGraphics());
-        // then reset and dispose of extra resources
         colorKeyPanel.classValuesPanel.setLayout(new org.genvisis.cnv.gui.WrapLayout(FlowLayout.CENTER,
                                                                                      0, 0));
+        colorKeyPanel.classValuesPanel.paint(bi.createGraphics());
+        // then reset and dispose of extra resources
         frame.removeAll();
         frame.dispose();
         frame = null;
@@ -1574,7 +1578,6 @@ public class TwoDPlot extends JPanel
           g.drawImage(twoDPanel.getImage(), 0, 0, null);
           int x = (int) ((.5 * twoDPanel.getWidth()) - (.5 * bi.getWidth()));
           g.drawImage(bi, x, twoDPanel.getHeight(), null);
-          // g.drawImage(bi, 0, twoDPanel.getHeight(), null);
           try {
             ImageIO.write(img, "png", new File(screenname));
           } catch (IOException ie) {
