@@ -294,44 +294,65 @@ public class SnpTest {
     VCFFileReader vcfFileReader = new VCFFileReader(new File(vcfPath), false);
     ArrayList<String> samples = vcfFileReader.getFileHeader().getSampleNamesInOrder();
 
-    String outFile = "./snptest_sample_sheet";
+    String outFile = "./snptest_sample_sheet.txt";
     String covHeader = "";
     String covHeaderTwo = "";
     int sampleSex = 0;
     String samplePheno;
+    ArrayList<Double> currentCovs;
     HashMap<String, ArrayList<Double>> covLookup = null;
     HashMap<String, Integer> sexLookup = null;
     HashMap<String, String> phenoLookup = null;
     try {
+      System.out.println("Building cov map");
       covLookup = buildCovMap(covFile);
+      System.out.println("Building sex map");
       sexLookup = buildSexMap(sexFile);
+      System.out.println("Building pheno map");
       phenoLookup = buildPhenoMap(phenoFile);
     } catch (IOException e) {
       e.printStackTrace();
     }
-    for (int i = 0; i < numCovs; i++) {
+    for (int i = 1; i <= numCovs; i++) {
       covHeader += "cov" + i + "\t";
       covHeaderTwo += "C" + "\t";
     }
 
     String header = "ID_1" + "\t" + "ID_2" + "\t" + "missing" + "\t" + "sex" + "\t" + covHeader
                     + "phenotype" + "\t" + "race" + "\t";
-    String headerTwo = "0" + "\t" + "0" + "\t" + "0" + "\t" + "D" + covHeaderTwo + "B" + "\t" + "D";
+    String headerTwo = "0" + "\t" + "0" + "\t" + "0" + "\t" + "D" + "\t" + covHeaderTwo + "B" + "\t"
+                       + "D";
 
     PrintWriter writer = Files.getAppropriateWriter(outFile);
+    System.out.println("Writing to file");
     writer.write(header + "\n" + headerTwo + "\n");
     if (covLookup != null && sexLookup != null && phenoLookup != null) {
       for (String sample : samples) {
-        sampleSex = sexLookup.get(sample);
         samplePheno = phenoLookup.get(sample);
-        writer.write(sample + "\t" + sample + "NA" + sampleSex + "\t");
-        for (int i = 0; i < numCovs; i++) {
-          writer.write(covLookup.get(sample).get(i) + "\t");
+        writer.write(sample + "\t" + sample + "\t" + "NA" + "\t");
+        if (sexLookup.containsKey(sample)) {
+          writer.write(sexLookup.get(sample) + "\t");
+        } else {
+          writer.write("NA" + "\t");
         }
-        writer.write(samplePheno);
+        for (int i = 0; i < numCovs; i++) {
+          currentCovs = covLookup.get(sample);
+          if (currentCovs != null) {
+            writer.write(currentCovs.get(i) + "\t");
+          } else {
+            writer.write("NA" + "\t");
+          }
+        }
+        if (phenoLookup.containsKey(sample)) {
+          writer.write(samplePheno + "\n");
+        } else {
+          writer.write("NA" + "\t");
+        }
       }
     } else
       throw new IllegalStateException();
+    vcfFileReader.close();
+    writer.close();
   }
 
   private static HashMap<String, ArrayList<Double>> buildCovMap(String covFile) throws IOException {
@@ -339,19 +360,22 @@ public class SnpTest {
 
     try (BufferedReader covReader = Files.getAppropriateReader(covFile)) {
       covReader.readLine();
-      String[] line;
-      while ((line = covReader.readLine().trim().split("\t")) != null) {
+      String line = covReader.readLine();
+      String[] lineArray;
+      while (line != null) {
+        lineArray = line.trim().split("\t");
         ArrayList<Double> pcs = new ArrayList<Double>();
-        for (int i = 2; i < line.length; i++) {
+        for (int i = 2; i < lineArray.length; i++) {
           try {
-            pcs.add(Double.parseDouble(line[i]));
+            pcs.add(Double.parseDouble(lineArray[i]));
           } catch (NumberFormatException nfe) {
             // improper file pc format
             nfe.printStackTrace();
           }
 
         }
-        sampleCovMap.put(line[0], pcs);
+        sampleCovMap.put(lineArray[0], pcs);
+        line = covReader.readLine();
       }
     }
 
@@ -363,16 +387,18 @@ public class SnpTest {
 
     try (BufferedReader sexReader = Files.getAppropriateReader(sexChecksFile)) {
       sexReader.readLine();
-      String[] line;
+      String line;
+      String[] lineArray;
       String fid = null;
       int sex = 0;
-      while ((line = sexReader.readLine().trim().split("\t")) != null) {
+      while ((line = sexReader.readLine()) != null) {
+        lineArray = line.trim().split("\t");
         try {
-          sex = Integer.parseInt(line[3]);
+          sex = Integer.parseInt(lineArray[3]);
         } catch (NumberFormatException nfe) {
           nfe.printStackTrace();
         }
-        fid = line[1];
+        fid = lineArray[1];
         sampleSexMap.put(fid, sex);
       }
     }
@@ -384,13 +410,14 @@ public class SnpTest {
     HashMap<String, String> samplePhenoMap = new HashMap<String, String>();
 
     try (BufferedReader phenoReader = Files.getAppropriateReader(phenoFile)) {
-      phenoReader.readLine();
-      String[] line;
+      String line;
+      String[] lineArray;
       String fid = null;
       String pheno = null;
-      while ((line = phenoReader.readLine().trim().split("\t")) != null) {
-        pheno = line[2];
-        fid = line[0];
+      while ((line = phenoReader.readLine()) != null) {
+        lineArray = line.trim().split("\t");
+        pheno = lineArray[2];
+        fid = lineArray[0];
         samplePhenoMap.put(fid, pheno);
       }
     }
@@ -530,6 +557,7 @@ public class SnpTest {
 
     if (generate) {
       generateSampleSheet(vcfPath, numCov, covFile, sexFile, phenoFile);
+      return;
     }
 
     cli.addArg(ARG_SNPTEST, DESC_SNPTEST);
