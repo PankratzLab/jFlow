@@ -10,7 +10,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
-
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -28,7 +27,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
-
 import org.genvisis.cnv.analysis.MedianLRRWorker;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.filesys.Project;
@@ -37,6 +35,7 @@ import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.PropertyKeys;
+import org.genvisis.cnv.prop.StringListProperty;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.gui.UITools;
@@ -117,6 +116,8 @@ public class MedianLRRWidget extends JFrame implements Runnable {
     private JCheckBox recomputeLRR = new JCheckBox("Recompute LRR");
     private JCheckBox correctLRR = new JCheckBox("Correct LRR");
     private JCheckBox correctXY = new JCheckBox("Correct XY");
+    private JCheckBox correctGC = new JCheckBox("Correct GC");
+
     private ButtonGroup chrXStrategy = new ButtonGroup();
 
     private JRadioButton rawValuesButton = null;
@@ -153,14 +154,17 @@ public class MedianLRRWidget extends JFrame implements Runnable {
         }
       }
 
-      createGroup(chrXStrategy, true, recomputeLRR, correctLRR, correctXY);
+      createGroup(chrXStrategy, true, recomputeLRR, correctLRR, correctXY, correctGC);
       requiresProperty(proj.INTENSITY_PC_FILENAME, correctLRR, correctXY);
+      requiresProperty(proj.GC_CORRECTION_PARAMETERS_FILENAMES, correctGC);
 
       addLabel(correctionPane, "Recompute LRRs?");
       correctionPane.add(recomputeLRR);
       addLabel(correctionPane, "Correct LRRs?");
       correctionPane.add(correctLRR);
       correctionPane.add(correctXY);
+      correctionPane.add(correctGC);
+
       addLabel(correctionPane, "Sex-specific correction strategy for chrX (if present)");
       for (AbstractButton b : Collections.list(chrXStrategy.getElements())) {
         correctionPane.add(b);
@@ -291,6 +295,7 @@ public class MedianLRRWidget extends JFrame implements Runnable {
       boolean doRecompute = false;
       boolean doLRR = false;
       boolean doXY = false;
+      boolean doGC = false;
 
       // Update the output file name based on whether this is a correciton or transformation
       String customName = fileInputArea.getText();
@@ -312,6 +317,10 @@ public class MedianLRRWidget extends JFrame implements Runnable {
         if (correctXY.isSelected()) {
           customName += "_CORRECT_XY";
           doXY = true;
+        }
+        if (correctGC.isSelected()) {
+          customName += "_CORRECT_GC";
+          doGC = true;
         }
 
         if (doRecompute || doLRR || doXY) {
@@ -336,6 +345,10 @@ public class MedianLRRWidget extends JFrame implements Runnable {
         valid = false;
         JOptionPane.showMessageDialog(null,
                                       "Please specify an output name or select correction/transformation options");
+      } else if ((doXY && doGC) || (doLRR && doGC) || (doRecompute && doGC)) {
+        JOptionPane.showMessageDialog(null,
+                                      "GC correction can only be selected as a single option (relies on the original LRRs)");
+        valid = false;
       } else if (!MedianLRRWorker.checkExists(proj, customName)) {
         valid = true;
       } else {
@@ -353,7 +366,8 @@ public class MedianLRRWidget extends JFrame implements Runnable {
         }
       }
       if (valid) {
-        startJob(customName, transformType, transformScope, doRecompute, doLRR, doXY, xStrategy);
+        startJob(customName, transformType, transformScope, doRecompute, doLRR, doXY, doGC,
+                 xStrategy);
       }
     }
 
@@ -362,7 +376,7 @@ public class MedianLRRWidget extends JFrame implements Runnable {
      */
     private void startJob(String outputName, int transformType, int transformScope,
                           boolean recomputeLRR, boolean correctLRR, boolean correctXY,
-                          CHROMOSOME_X_STRATEGY xStrategy) {
+                          boolean correctGC, CHROMOSOME_X_STRATEGY xStrategy) {
       add(progressBar);
       progressBar.setVisible(true);
       progressBar.setStringPainted(true);
@@ -370,7 +384,7 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 
       medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"),
                                             transformType, transformScope, outputName, progressBar,
-                                            recomputeLRR, correctLRR, correctXY,
+                                            recomputeLRR, correctLRR, correctXY, correctGC,
                                             homozygousCheckBox.isSelected(), xStrategy,
                                             proj.getLog());
       medianLRRWorker.execute();
@@ -418,6 +432,19 @@ public class MedianLRRWidget extends JFrame implements Runnable {
       }
 
       return new RequiresFileProperty(property, toggles);
+
+    }
+
+    /**
+     * @return A {@link RequiresStringListProperty} action listener constructed with the given
+     *         parameters
+     */
+    private ActionListener requiresProperty(StringListProperty property, JToggleButton... toggles) {
+      if (toggles == null || toggles.length == 0) {
+        return null;
+      }
+
+      return new RequiresStringListProperty(property, toggles);
     }
   }
 
@@ -444,6 +471,42 @@ public class MedianLRRWidget extends JFrame implements Runnable {
         for (JToggleButton btn : toggles()) {
           btn.setSelected(false);
         }
+      }
+    }
+  }
+
+  /**
+   * ActionListener that listens to an arbitrary number of JToggleButtons and keeps them disabled if
+   * the given project property is unset/invalid
+   */
+  private static class RequiresStringListProperty extends ToggleListener {
+
+    private final StringListProperty prop;
+
+    public RequiresStringListProperty(StringListProperty property, JToggleButton... toggles) {
+      super(toggles);
+
+      this.prop = property;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      boolean valid = true;
+      if (prop.getValue() == null || prop.getValue().length < 1) {
+        valid = false;
+      }
+      for (String file : prop.getValue()) {
+        if (!Files.exists(file)) {
+          valid = false;
+          for (JToggleButton btn : toggles()) {
+            btn.setSelected(false);
+          }
+        }
+      }
+      if (!valid) {
+        JOptionPane.showMessageDialog(null,
+                                      "This option requires a valid setting for the project property: "
+                                            + prop.getName());
       }
     }
   }

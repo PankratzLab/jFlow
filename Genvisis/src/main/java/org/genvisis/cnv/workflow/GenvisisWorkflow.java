@@ -108,7 +108,7 @@ public class GenvisisWorkflow {
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(reverseTransposeStep);
     sb.generateSampleQCAnnotationStep(sampleQCStep);
-    sb.generateMarkerQCStep(reverseTransposeStep);
+    MarkerQCStep markerQCStep = sb.generateMarkerQCStep(reverseTransposeStep);
     SexChecksStep sexChecksStep = sb.generateSexChecksStep(affyMarkerBlastStep,
                                                            createSampleDataStep,
                                                            reverseTransposeStep, sampleQCStep);
@@ -116,7 +116,9 @@ public class GenvisisWorkflow {
     PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(reverseTransposeStep);
     GwasQCStep gwasQCStep = sb.generateGwasQCStep(plinkExportStep);
     AncestryStep ancestryStep = sb.generateAncestryStep(gwasQCStep);
-    sb.generateFurtherAnalysisQCStep(plinkExportStep, gwasQCStep, ancestryStep);
+    FurtherAnalysisQCStep faqcStep = sb.generateFurtherAnalysisQCStep(plinkExportStep, gwasQCStep,
+                                                                      ancestryStep);
+    sb.generateIdentifyProblemMarkersStep(markerQCStep, faqcStep);
     sb.generateMosaicArmsStep(reverseTransposeStep);
     sb.generateAnnotateSampleDataStep(sampleQCStep, createSampleDataStep, gwasQCStep);
     sb.generateMitoCNEstimateStep(reverseTransposeStep);
@@ -145,7 +147,7 @@ public class GenvisisWorkflow {
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(reverseTransposeStep);
     sb.generateSampleQCAnnotationStep(sampleQCStep);
-    sb.generateMarkerQCStep(reverseTransposeStep);
+    MarkerQCStep markerQCStep = sb.generateMarkerQCStep(reverseTransposeStep);
     SexChecksStep sexChecksStep = sb.generateSexChecksStep(affyMarkerBlastStep,
                                                            createSampleDataStep,
                                                            reverseTransposeStep, sampleQCStep);
@@ -153,7 +155,9 @@ public class GenvisisWorkflow {
     PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(reverseTransposeStep);
     GwasQCStep gwasQCStep = sb.generateGwasQCStep(plinkExportStep);
     AncestryStep ancestryStep = sb.generateAncestryStep(gwasQCStep);
-    sb.generateFurtherAnalysisQCStep(plinkExportStep, gwasQCStep, ancestryStep);
+    FurtherAnalysisQCStep faqcStep = sb.generateFurtherAnalysisQCStep(plinkExportStep, gwasQCStep,
+                                                                      ancestryStep);
+    sb.generateIdentifyProblemMarkersStep(markerQCStep, faqcStep);
     sb.generateMosaicArmsStep(reverseTransposeStep);
     sb.generateAnnotateSampleDataStep(sampleQCStep, createSampleDataStep, gwasQCStep);
     sb.generateMitoCNEstimateStep(reverseTransposeStep);
@@ -183,7 +187,7 @@ public class GenvisisWorkflow {
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(parseSamplesStep);
     sb.generateSampleQCAnnotationStep(sampleQCStep);
-    sb.generateMarkerQCStep(parseSamplesStep);
+    MarkerQCStep markerQCStep = sb.generateMarkerQCStep(parseSamplesStep);
     SexChecksStep sexChecksStep = sb.generateSexChecksStep(illumMarkerBlastStep,
                                                            createSampleDataStep, transposeStep,
                                                            sampleQCStep);
@@ -191,7 +195,9 @@ public class GenvisisWorkflow {
     PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(parseSamplesStep);
     GwasQCStep gwasQCStep = sb.generateGwasQCStep(plinkExportStep);
     AncestryStep ancestryStep = sb.generateAncestryStep(gwasQCStep);
-    sb.generateFurtherAnalysisQCStep(plinkExportStep, gwasQCStep, ancestryStep);
+    FurtherAnalysisQCStep faqcStep = sb.generateFurtherAnalysisQCStep(plinkExportStep, gwasQCStep,
+                                                                      ancestryStep);
+    sb.generateIdentifyProblemMarkersStep(markerQCStep, faqcStep);
     sb.generateMosaicArmsStep(parseSamplesStep);
     sb.generateAnnotateSampleDataStep(sampleQCStep, createSampleDataStep, gwasQCStep);
     sb.generateMitoCNEstimateStep(transposeStep);
@@ -216,14 +222,16 @@ public class GenvisisWorkflow {
     gcModelStep = sb.generateGCModelStep();
     sampleQCStep = sb.generateSampleQCStep(reverseTransposeStep);
     sb.generateSampleQCAnnotationStep(sampleQCStep);
-    sb.generateMarkerQCStep(reverseTransposeStep);
+    MarkerQCStep markerQCStep = sb.generateMarkerQCStep(reverseTransposeStep);
     sb.generateSexChecksStep(illumMarkerBlastStep, createSampleDataStep, reverseTransposeStep,
                              sampleQCStep);
     sb.generateABLookupStep(reverseTransposeStep);
     PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(reverseTransposeStep);
     GwasQCStep gwasQCStep = sb.generateGwasQCStep(plinkExportStep);
     AncestryStep ancestryStep = sb.generateAncestryStep(gwasQCStep);
-    sb.generateFurtherAnalysisQCStep(plinkExportStep, gwasQCStep, ancestryStep);
+    FurtherAnalysisQCStep faqcStep = sb.generateFurtherAnalysisQCStep(plinkExportStep, gwasQCStep,
+                                                                      ancestryStep);
+    sb.generateIdentifyProblemMarkersStep(markerQCStep, faqcStep);
     sb.generateMosaicArmsStep(reverseTransposeStep);
     sb.generateAnnotateSampleDataStep(sampleQCStep, createSampleDataStep, gwasQCStep);
     sb.generateMitoCNEstimateStep(reverseTransposeStep);

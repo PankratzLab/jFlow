@@ -19,6 +19,7 @@ import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
 
 public class AncestryStep extends Step {
 
@@ -44,7 +45,7 @@ public class AncestryStep extends Step {
                                                                                                "A SNP name replacement file with two columns, the first being the original SNP name and the second containing the replacement name.",
                                                                                                new File(defaultSnpFile));
     final ProgramRequirement plinkExeReq = new ProgramRequirement(CLI.ARG_PLINK_EXE,
-                                                                  CLI.DESC_PLINK_EXE,
+                                                                  ext.capitalizeFirst(CLI.DESC_PLINK_EXE),
                                                                   CLI.DEF_PLINK_EXE);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(gwasQCStepReq)
                                                        .add(putativeWhitesReq)

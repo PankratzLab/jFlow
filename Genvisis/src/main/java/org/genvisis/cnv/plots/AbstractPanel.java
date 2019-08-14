@@ -1241,17 +1241,19 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
                            AXIS_THICKNESS, Color.BLACK);
     }
     if (displayYLabel) {
-      int strWidth = fontMetrics.stringWidth(yAxisLabel);
+      FontMetrics fx = g.getFontMetrics(g.getFont().deriveFont((float) getAxisFontSize()));
+      int strWidth = fx.stringWidth(yAxisLabel);
       if (strWidth > 0) {
         yLabel = new BufferedImage(strWidth, 36, BufferedImage.TYPE_INT_RGB);
         gfx = yLabel.createGraphics();
-        gfx.setFont(new Font("Arial", 0, getAxisFontSize()));
+        // gfx.setFont(new Font("Arial", 0, getAxisFontSize()));
+        gfx.setFont(g.getFont().deriveFont((float) getAxisFontSize()));
         gfx.setColor(Color.WHITE);
         gfx.fillRect(0, 0, getWidth(), getHeight());
         gfx.setColor(Color.BLACK);
         gfx.drawString(yAxisLabel, 0, yLabel.getHeight() - 6);
 
-        int leftPad = 5; // TODO scale with window size if very small
+        int leftPad = 10; // TODO scale with window size if very small
         g.drawImage(Grafik.rotateImage(yLabel,
                                        true),
                     leftPad, (getHeight() + titleHeight - axisXHeight) / 2
@@ -1286,9 +1288,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
                                    getHeight() - (canvasSectionMaximumY - TICK_LENGTH),
                                    TICK_THICKNESS, Color.BLACK);
               str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
-              g.drawString(str, x1 - str.length() * 8,
-                           getHeight() - (canvasSectionMaximumY - TICK_LENGTH - (2 * xAxisLabelPad)
-                                          - 5));
+              int half = fontMetrics.stringWidth(str) / 2;
+              g.drawString(str, x1 - half, getHeight() - (canvasSectionMaximumY - TICK_LENGTH
+                                                          - (2 * xAxisLabelPad) - 5));
             }
           }
           break;
@@ -1302,9 +1304,12 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     }
     if (xAxisLabel != null && !"".equals(xAxisLabel) && displayXLabel) {
       int yPad = getHeight() - xAxisLabelPad; // TODO scale with window size if very small
+      Font prev = g.getFont();
+      g.setFont(prev.deriveFont((float) getAxisFontSize()));
       g.drawString(xAxisLabel, (getWidth() - getAxisYWidth()) / 2
                                - fontMetrics.stringWidth(xAxisLabel) / 2 + getAxisYWidth(),
                    yPad);
+      g.setFont(prev);
     }
   }
 

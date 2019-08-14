@@ -15,6 +15,7 @@ import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.utils.gwas.MarkerQC;
 import org.pankratzlab.utils.gwas.Qc;
 import org.pankratzlab.utils.gwas.QcMetric;
@@ -49,7 +50,7 @@ public class GwasQCStep extends Step {
                                                                                  QcMetric.CALLRATE.getUserDescription(),
                                                                                  defaultCallrate);
     final Requirement<String> plinkExeReq = new Requirement.ProgramRequirement(CLI.ARG_PLINK_EXE,
-                                                                               CLI.DESC_PLINK_EXE,
+                                                                               ext.capitalizeFirst(CLI.DESC_PLINK_EXE),
                                                                                CLI.DEF_PLINK_EXE);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(plinkExeReq).add(callrateReq);

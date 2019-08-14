@@ -132,7 +132,7 @@ public class TwoDPlot extends JPanel
 
   private Project proj;
   private byte size;
-  private SampleData sampleData;
+  SampleData sampleData;
   private JButton flipButton, invXButton, invYButton;
   private volatile boolean flipStatus, xInvStatus, yInvStatus, hideExcludes;
   private volatile boolean isHistPlot;
@@ -201,7 +201,7 @@ public class TwoDPlot extends JPanel
     size = DEFAULT_SIZE;
 
     if (proj != null && Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
-      sampleData = proj.getSampleData(false);
+      sampleData = proj.getSampleData(true);
     } else {
       sampleData = null;
     }
@@ -710,9 +710,8 @@ public class TwoDPlot extends JPanel
       // Integer>(sampleData.getLinkKeyIndex());
       proj.resetSampleData();
       if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
-        sampleData = proj.getSampleData(false);
+        sampleData = proj.getSampleData(true);
       }
-      sampleData = proj.getSampleData(false);
       // sampleData.setLinkKeyIndex(linkKeyIndexCopy);
       colorKeyPanel.updateSampleData(sampleData);
     }
@@ -950,7 +949,7 @@ public class TwoDPlot extends JPanel
                 ids = sampleData.lookup(key);
                 if (ids == null) {
                   colorCode = 0;
-                } else if (generatingScreenshots) {
+                } else if (generatingScreenshots && colorData != null) {
                   colorCode = getColorForScreenshot(ids[0]);
                 } else {
                   String[][] metaData = getCurrentColumnMetaData();
@@ -983,7 +982,7 @@ public class TwoDPlot extends JPanel
             ids = sampleData.lookup(key);
             if (ids == null) {
               colorCode = 0;
-            } else if (generatingScreenshots) {
+            } else if (generatingScreenshots && colorData != null) {
               colorCode = getColorForScreenshot(ids[0]);
             } else {
               String[][] metaData = getCurrentColumnMetaData();
@@ -1330,6 +1329,10 @@ public class TwoDPlot extends JPanel
     notRqrd.add(SCRN_TAG_COLOR_ID_COL);
     notRqrd.add(SCRN_TAG_COLOR_DATA_COL);
     notRqrd.add(SCRN_TAG_COLOR_FILE);
+    notRqrd.add("minX");
+    notRqrd.add("maxX");
+    notRqrd.add("minY");
+    notRqrd.add("maxY");
 
     HashMap<String, ArrayList<String>> tagValues = new HashMap<>();
     for (String tagKey : tagSet) {
@@ -1421,10 +1424,18 @@ public class TwoDPlot extends JPanel
                                            : Integer.parseInt(tagValues.get("colorIDColumn")
                                                                        .get(i));
 
-      window[0] = Float.parseFloat(tagValues.get("minX").get(i));
-      window[1] = Float.parseFloat(tagValues.get("maxX").get(i));
-      window[2] = Float.parseFloat(tagValues.get("minY").get(i));
-      window[3] = Float.parseFloat(tagValues.get("maxY").get(i));
+      window[0] = tagValues.get("minX").get(i) == null ? Float.NaN
+                                                       : Float.parseFloat(tagValues.get("minX")
+                                                                                   .get(i));
+      window[1] = tagValues.get("maxX").get(i) == null ? Float.NaN
+                                                       : Float.parseFloat(tagValues.get("maxX")
+                                                                                   .get(i));
+      window[2] = tagValues.get("minY").get(i) == null ? Float.NaN
+                                                       : Float.parseFloat(tagValues.get("minY")
+                                                                                   .get(i));
+      window[3] = tagValues.get("maxY").get(i) == null ? Float.NaN
+                                                       : Float.parseFloat(tagValues.get("maxY")
+                                                                                   .get(i));
 
       hideExcludes = Boolean.parseBoolean(tagValues.get("hideExcluded").get(i));
       isHistogram = Boolean.parseBoolean(tagValues.get("isHistogram").get(i));
@@ -1478,11 +1489,8 @@ public class TwoDPlot extends JPanel
       twoDPanel.setForcePlotYmin(screencap.minY);
       twoDPanel.setForcePlotYmax(screencap.maxY);
 
-      boolean colorLoaded = false;
       if (screencap.colorFile != null && Files.exists(baseDir + screencap.colorFile)) {
         loadColor(baseDir, screencap);
-        colorLoaded = true; // vulnerable to issues actually loading color file, but good enough for
-                            // now? TODO need some way to specify HeatMap/Genotype coloration
       }
 
       if (screencap.dataXFile != null) {
@@ -1501,9 +1509,13 @@ public class TwoDPlot extends JPanel
       }
 
       twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
-      colorKeyPanel.getClassRadioButtons()[colorLoaded ? (colorKeyPanel.getClassRadioButtons().length
-                                                          - 1)
-                                                       : 0].setSelected(true);
+      int neg = 1;
+      while (colorKeyPanel.getClassRadioButtons()[(colorKeyPanel.getClassRadioButtons().length
+                                                   - neg)].getText().trim().equals("")) {
+        neg++;
+      }
+      colorKeyPanel.getClassRadioButtons()[(colorKeyPanel.getClassRadioButtons().length
+                                            - neg)].setSelected(true);
 
       twoDPanel.createImage();
 
@@ -1546,10 +1558,10 @@ public class TwoDPlot extends JPanel
         BufferedImage bi = new BufferedImage(colorKeyPanel.classValuesPanel.getWidth(),
                                              colorKeyPanel.classValuesPanel.getHeight(),
                                              BufferedImage.TYPE_INT_ARGB);
-        colorKeyPanel.classValuesPanel.paint(bi.createGraphics());
-        // then reset and dispose of extra resources
         colorKeyPanel.classValuesPanel.setLayout(new org.genvisis.cnv.gui.WrapLayout(FlowLayout.CENTER,
                                                                                      0, 0));
+        colorKeyPanel.classValuesPanel.paint(bi.createGraphics());
+        // then reset and dispose of extra resources
         frame.removeAll();
         frame.dispose();
         frame = null;
@@ -1562,7 +1574,6 @@ public class TwoDPlot extends JPanel
           g.drawImage(twoDPanel.getImage(), 0, 0, null);
           int x = (int) ((.5 * twoDPanel.getWidth()) - (.5 * bi.getWidth()));
           g.drawImage(bi, x, twoDPanel.getHeight(), null);
-          // g.drawImage(bi, 0, twoDPanel.getHeight(), null);
           try {
             ImageIO.write(img, "png", new File(screenname));
           } catch (IOException ie) {
@@ -1816,6 +1827,8 @@ public class TwoDPlot extends JPanel
       frame.pack();
       UITools.centerComponent(frame);
       frame.setVisible(show);
+    } else {
+      twoDPlot.getPanel().setSize(800, 600);
     }
     return twoDPlot;
   }

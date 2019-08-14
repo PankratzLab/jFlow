@@ -112,6 +112,16 @@ public class SampleQC {
     addQCsToSampleData(numQ, 0, justQuantiles);
   }
 
+  public void addExcludesToSampleData() {
+    String[] header = {SampleQC.EXCLUDE_HEADER, "ExcludeNote"};
+    Hashtable<String, String> hashtable = new Hashtable<>();
+    for (int i = 0; i < samples.length; i++) {
+      String qcInfo = (excludes[i] ? "1" : "0") + "\t" + excludeNotes[i];
+      hashtable.put(samples[i], qcInfo);
+    }
+    appendToSampleData(proj, hashtable, header);
+  }
+
   public void addQCsToSampleData(int numQ, int numPCs, boolean justQuantiles) {
     Quantiles[] quantiles = numQ > 0 ? Quantiles.qetQuantilesFor(numQ, qcMatrix, qctitles,
                                                                  proj.getLog())
@@ -226,11 +236,13 @@ public class SampleQC {
   private Hashtable<String, String> developHash(Quantiles[] quantiles, boolean justQuantiles) {
     Hashtable<String, String> hashtable = new Hashtable<>();
     for (int i = 0; i < samples.length; i++) {
-      String qcInfo = (excludes[i] ? "1" : "0") + "\t" + excludeNotes[i];
+      String qcInfo = "";
       if (checkDuplicates) {
         qcInfo += "\t" + duplicateIds[i];
-        qcInfo += "\t" + (uses[i] ? "1" : "0") + "\t" + useNotes[i];
-        qcInfo += "\t" + (use_cnvs[i] ? "1" : "0") + "\t" + use_cnvNotes[i];
+        qcInfo += "\t" + (uses[i] ? "1" : "0");
+        qcInfo += "\t" + useNotes[i];
+        qcInfo += "\t" + (use_cnvs[i] ? "1" : "0");
+        qcInfo += "\t" + use_cnvNotes[i];
       }
       if (fidiids != null) {
         qcInfo += "\t" + mzTwinIds[i];
@@ -245,8 +257,6 @@ public class SampleQC {
 
   private String[] developHeader(Quantiles[] quantiles, int numQ, boolean justQuantiles) {
     ArrayList<String> header = new ArrayList<>();
-    header.add(SampleQC.EXCLUDE_HEADER);
-    header.add("ExcludeNote");
     if (checkDuplicates) {
       header.add(DUPLICATE_ID_HEADER);
       header.add("Use");
@@ -258,7 +268,7 @@ public class SampleQC {
       header.add("mzTwinID");
     }
     String[] headerArr = header.toArray(new String[header.size()]);
-    if (numQ > 0 && quantiles != null) {
+    if (quantiles != null) {
       headerArr = ArrayUtils.combine(headerArr, developMetricsHeader(quantiles, qctitles, numQ,
                                                                      justQuantiles));
     }
@@ -559,7 +569,7 @@ public class SampleQC {
   }
 
   public static SampleQC loadSampleQC(Project proj) {
-    return loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, false, false, null, true);
+    return loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, false, false, null);
   }
 
   /**
@@ -656,8 +666,7 @@ public class SampleQC {
    */
   public static SampleQC loadSampleQC(Project proj, String sampleColumnName,
                                       String[] qcTitlesToLoad, boolean generateSampleQC,
-                                      boolean gcCorrectedLrrSd, String duplicatesSetFile,
-                                      boolean parseExcludes) {
+                                      boolean gcCorrectedLrrSd, String duplicatesSetFile) {
     SampleQC sampleQC = loadSampleQCWithoutSideEffects(proj, sampleColumnName, qcTitlesToLoad,
                                                        generateSampleQC, gcCorrectedLrrSd);
     if (sampleQC != null) {
@@ -670,11 +679,8 @@ public class SampleQC {
       proj.getLog()
           .reportTimeInfo("Filtered " + numFiltered + " empty columns from " + lrrSdToLoad);
 
-      if (parseExcludes) {
-        proj.getLog().reportTimeInfo("Finding samples to exclude");
-        int numExcluded = sampleQC.addExcludes();
-        proj.getLog().reportTimeInfo("Found " + numExcluded + " samples to exclude");
-      }
+      // need excludes for cnv info
+      sampleQC.addExcludes();
 
       if (sampleQC.addPedigreeData()) {
         if (duplicatesSetFile != null) {
@@ -691,7 +697,7 @@ public class SampleQC {
                                                        LrrSd.NUMERIC_COLUMNS, false, false);
     int numExcluded = sampleQC.addExcludes();
     proj.getLog().reportTimeInfo("Found " + numExcluded + " samples to exclude");
-    sampleQC.addQCsToSampleData(0, 0, false);
+    sampleQC.addExcludesToSampleData();
   }
 
   public static void parseAndAddToSampleDataWithoutExcludes(Project proj, int numQ, int numPCs,
@@ -701,7 +707,7 @@ public class SampleQC {
                                                             boolean correctFidIids) {
     // TODO Make gcCorrectedLrrSd functional, put FID/IID in appropriate columns (2&3?)
     SampleQC sampleQC = loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, false,
-                                     gcCorrectedLrrSd, duplicatesSetFile, false);
+                                     gcCorrectedLrrSd, duplicatesSetFile);
     sampleQC.addQCsToSampleData(numQ, numPCs, justQuantiles);
     if (numPCs > 0) {
       sampleQC.addPCsToSampleData(numQ, numPCs, justQuantiles);

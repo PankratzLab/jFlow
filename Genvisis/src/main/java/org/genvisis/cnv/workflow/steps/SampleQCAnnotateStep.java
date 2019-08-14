@@ -135,8 +135,6 @@ public class SampleQCAnnotateStep extends Step implements StepAssist {
     StringBuilder msg = new StringBuilder();
     msg.append("<html>These options will result in <b>").append(numExcluded).append("</b> ")
        .append(numExcluded > 1 ? "samples" : "sample").append(" being excluded.</html>");
-    // msg.append("These options will result in ").append(numExcluded).append(" ")
-    // .append(numExcluded > 1 ? "samples" : "sample").append(" being excluded.");
     assistLabel.setText(msg.toString());
     proj.LRRSD_CUTOFF.setValue(projLrrSdThreshold);
     proj.SAMPLE_CALLRATE_THRESHOLD.setValue(projCallrateThreshold);

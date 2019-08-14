@@ -18,6 +18,7 @@ import org.genvisis.cnv.workflow.steps.ComputePFBStep;
 import org.genvisis.cnv.workflow.steps.FurtherAnalysisQCStep;
 import org.genvisis.cnv.workflow.steps.GCModelStep;
 import org.genvisis.cnv.workflow.steps.GwasQCStep;
+import org.genvisis.cnv.workflow.steps.IdentifyProblemMarkersStep;
 import org.genvisis.cnv.workflow.steps.IlluminaMarkerBlastStep;
 import org.genvisis.cnv.workflow.steps.IlluminaMarkerPositionsStep;
 import org.genvisis.cnv.workflow.steps.MarkerQCStep;
@@ -186,7 +187,7 @@ public class StepBuilder {
                                                                                                           sampleQCStep));
   }
 
-  MarkerQCStep generateMarkerQCStep(Step parseSamplesStep) {
+  public MarkerQCStep generateMarkerQCStep(Step parseSamplesStep) {
     return stepInstanceMap.containsKey(MarkerQCStep.class) ? stepInstanceMap.getInstance(MarkerQCStep.class)
                                                            : register(MarkerQCStep.create(proj,
                                                                                           parseSamplesStep,
@@ -203,38 +204,40 @@ public class StepBuilder {
                                                                                             sampleQCStep));
   }
 
-  PlinkExportStep generatePlinkExportStep(ParseSamplesStep parseSamplesStep) {
+  public PlinkExportStep generatePlinkExportStep(Step parseSamplesStep) {
     return stepInstanceMap.containsKey(PlinkExportStep.class) ? stepInstanceMap.getInstance(PlinkExportStep.class)
                                                               : register(PlinkExportStep.create(proj,
                                                                                                 parseSamplesStep));
   }
 
-  PlinkExportStep generatePlinkExportStep(ReverseTransposeTarget reverseTransposeStep) {
-    return stepInstanceMap.containsKey(PlinkExportStep.class) ? stepInstanceMap.getInstance(PlinkExportStep.class)
-                                                              : register(PlinkExportStep.create(proj,
-                                                                                                reverseTransposeStep));
-  }
-
-  GwasQCStep generateGwasQCStep(PlinkExportStep plinkExportStep) {
+  public GwasQCStep generateGwasQCStep(PlinkExportStep plinkExportStep) {
     return stepInstanceMap.containsKey(GwasQCStep.class) ? stepInstanceMap.getInstance(GwasQCStep.class)
                                                          : register(GwasQCStep.create(proj,
                                                                                       plinkExportStep));
   }
 
-  AncestryStep generateAncestryStep(GwasQCStep gwasQCStep) {
+  public AncestryStep generateAncestryStep(GwasQCStep gwasQCStep) {
     return stepInstanceMap.containsKey(AncestryStep.class) ? stepInstanceMap.getInstance(AncestryStep.class)
                                                            : register(AncestryStep.create(proj,
                                                                                           gwasQCStep));
   }
 
-  FurtherAnalysisQCStep generateFurtherAnalysisQCStep(PlinkExportStep plinkExportStep,
-                                                      GwasQCStep gwasQCStep,
-                                                      AncestryStep ancestryStep) {
+  public FurtherAnalysisQCStep generateFurtherAnalysisQCStep(PlinkExportStep plinkExportStep,
+                                                             GwasQCStep gwasQCStep,
+                                                             AncestryStep ancestryStep) {
     return stepInstanceMap.containsKey(FurtherAnalysisQCStep.class) ? stepInstanceMap.getInstance(FurtherAnalysisQCStep.class)
                                                                     : register(FurtherAnalysisQCStep.create(proj,
                                                                                                             plinkExportStep,
                                                                                                             gwasQCStep,
                                                                                                             ancestryStep));
+  }
+
+  IdentifyProblemMarkersStep generateIdentifyProblemMarkersStep(MarkerQCStep markerQCStep,
+                                                                FurtherAnalysisQCStep faqcStep) {
+    return stepInstanceMap.containsKey(IdentifyProblemMarkersStep.class) ? stepInstanceMap.getInstance(IdentifyProblemMarkersStep.class)
+                                                                         : register(IdentifyProblemMarkersStep.create(proj,
+                                                                                                                      markerQCStep,
+                                                                                                                      faqcStep));
   }
 
   MosaicArmsStep generateMosaicArmsStep(ParseSamplesStep parseSamplesStep) {

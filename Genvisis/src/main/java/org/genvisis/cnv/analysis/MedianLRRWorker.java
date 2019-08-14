@@ -28,6 +28,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
@@ -36,6 +37,7 @@ import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.qc.CNVBDeviation;
 import org.genvisis.cnv.qc.CNVBMAF;
 import org.genvisis.cnv.qc.CNVBMAF.PoplulationBAFs;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.util.CentroidHelper;
 import org.genvisis.cnv.var.IndiPheno;
@@ -312,9 +314,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   private final String outputBase;
   private final int transformationType;
   private final int scope;
-  private final Logger computelog; // considered using the project's default log or using the
-                                   // proj.setLog() command, but nice to have the region specific
-                                   // log named the same
+  // considered using the project's default log or using the proj.setLog() command, but nice to have
+  // the region specific log named the same
+  private final Logger computelog;
+
   private final String[] samples, markerNames;
   private final byte[] chrs;
 
@@ -332,7 +335,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
   private final boolean[] transChrs;
 
-  private final boolean recomputeLRR, correctXY, correctLRR;
+  private final boolean recomputeLRR, correctXY, correctLRR, correctGC;
   private final CHROMOSOME_X_STRATEGY strategy;
   private final boolean homozygousOnly;
 
@@ -340,8 +343,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
   public MedianLRRWorker(Project proj, String[] input, int transformationType, int scope,
                          String outputBase, JProgressBar jProgressBar, boolean recomputeLRR,
-                         boolean correctLRR, boolean correctXY, boolean homozygousOnly,
-                         CHROMOSOME_X_STRATEGY strategy, Logger log) {
+                         boolean correctLRR, boolean correctXY, boolean correctGC,
+                         boolean homozygousOnly, CHROMOSOME_X_STRATEGY strategy, Logger log) {
     this.proj = proj;
     this.input = input;
     this.outputBase = outputBase;
@@ -374,6 +377,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     this.recomputeLRR = recomputeLRR;
     this.correctLRR = correctLRR;
     this.correctXY = correctXY;
+    this.correctGC = correctGC;
     this.homozygousOnly = homozygousOnly;// only valid for marker-based approaches
   }
 
@@ -604,10 +608,12 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     MarkerDataLoader markerDataLoader;
     boolean[] samplesToUse = null;
     PrincipalComponentsResiduals pcrs = null;
+    GcAdjustorParameters gcParameters = null;
+    MarkerDetailSet markerDetailSet = null;
     Logger projLog;
 
     projLog = proj.getLog();
-    if (correctLRR || correctXY || recomputeLRR) {
+    if (correctLRR || correctXY || recomputeLRR || correctGC) {
       samplesToUse = proj.getSamplesToInclude(null);
       if (correctLRR || correctXY) {
         if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
@@ -625,6 +631,19 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
                          + proj.SAMPLE_DATA_FILENAME.getValue() + " for correction clustering");
           projLog.reportTimeInfo("Correcting with " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
                                  + " components");
+        }
+      } else if (correctGC) {
+        String gcfile = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0];
+        if (!Files.exists(gcfile)) {
+          String Error = "Error - could not find the file " + gcfile
+                         + ", cannot perform gc correction";
+          computelog.reportError(Error);
+          warnAndCancel(Error);
+        } else {
+
+          proj.getLog().reportTimeInfo("Loading " + gcfile + " for gc correction");
+          gcParameters = GcAdjustorParameters.readSerial(gcfile, proj.getLog());
+          markerDetailSet = proj.getMarkerSet();
         }
       }
     }
@@ -659,7 +678,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       float[] gcs = markerData.getGCs();
       byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
                                                                regionMarkers[i], 0, projLog);
-
       PrincipalComponentsIntensity pcIntensity = null;
       if (correctLRR || correctXY) {
         int numThreads = proj.getProperty(proj.NUM_THREADS);
@@ -672,6 +690,11 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       }
 
       if (recomputeLRR || correctLRR || correctXY) {
+        if (correctGC) {
+          String Error = "Error - cannot GC correct with other operations that alter LRRs (recompute or pc correct)";
+          computelog.reportError(Error);
+          warnAndCancel(Error);
+        }
         int numThreads = proj.getProperty(proj.NUM_THREADS);
         if (recomputeLRR && !correctLRR) {
           lrrs = CentroidHelper.prepareProperCentroid(proj.getArrayType(), markerData, null,
@@ -695,11 +718,21 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
           lrrs = correctedLrrBafs[1];
           bafs = correctedLrrBafs[0];
         }
+
         if (lrrs == null) {
           String Error = "Error - could not correct Log R Ratios for " + markerData.getMarkerName();
           computelog.reportError(Error);
           warnAndCancel(Error);
         }
+      } else if (correctGC) {
+        int index = markerDetailSet.getMarkerIndexMap()
+                                   .get(markerDetailSet.getMarkerNameMap()
+                                                       .get(markerData.getMarkerName()));
+        float[][] correctedLrrBafs = markerData.getGCCorrectedLRRBAF(gcParameters, index,
+                                                                     proj.getLog());
+        lrrs = correctedLrrBafs[1];
+        bafs = correctedLrrBafs[0];
+
       }
       if (homozygousOnly) {
         for (int j = 0; j < genotypes.length; j++) {
@@ -1036,7 +1069,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     String[] input = readToArray(proj.PROJECT_DIRECTORY.getValue() + regionFileName, log);
     MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, input, transfromationType, scope,
                                                           outputBase, null, false, false, false,
-                                                          false, strategy, log);
+                                                          false, false, strategy, log);
     log.report("Starting job for " + input.length + " regions");
     medianLRRWorker.execute();
 
@@ -1088,6 +1121,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     int scope = 0;
     long time;
     boolean correctXY = false;
+    boolean correctGC = false;
     String outputBase = Transforms.TRANFORMATIONS[transformationType];
     String logfile = outputBase + ".log";
     Logger log;
@@ -1116,6 +1150,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
              + correctXY + " (default));";
     usage += "   (9) Chromosome X strategy.  Options include: ";
     usage += ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy=";
+    usage += "   (10) correct data for GC content using the GC_CORRECTION_PARAMETERS_FILENAMES (must be defined by the properties file) (i.e. correctGC="
+             + correctGC
+             + " (default)). It is critical to ensure that the GC_CORRECTION_PARAMETERS_FILENAMES were generated using the same LRRs that will be used here.;";
     usage += strategy + " (default))\n";
 
     usage += "";
@@ -1148,6 +1185,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       } else if (arg.startsWith("correctXY=")) {
         correctXY = ext.parseBooleanArg(arg);
         numArgs--;
+      } else if (arg.startsWith("correctGC=")) {
+        correctGC = ext.parseBooleanArg(arg);
+        numArgs--;
       } else if (arg.startsWith("sexStrategy=")) {
         strategy = CHROMOSOME_X_STRATEGY.valueOf(ext.parseStringArg(arg, strategy.toString()));
         numArgs--;
@@ -1164,6 +1204,12 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       proj = new Project(filename, logfile);
       log = proj.getLog();
 
+      if (correctXY && correctGC) {
+        proj.getLog()
+            .reportError("Cannot have both gc correction and pc correction using this method");
+        return;
+      }
+
       System.setProperty("java.awt.headless", headless);
       if (Files.isRelativePath(regionFileName)) {
         regionFileName = proj.PROJECT_DIRECTORY.getValue() + regionFileName;
@@ -1171,7 +1217,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(regionFileName, log),
                                                             transformationType, scope, outputBase,
                                                             null, false, false, correctXY, false,
-                                                            strategy, log);
+                                                            correctGC, strategy, log);
       medianLRRWorker.execute();
       while (!medianLRRWorker.isDone()) {
         Thread.sleep(100);
