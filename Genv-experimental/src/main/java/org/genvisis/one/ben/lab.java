@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -41,7 +40,6 @@ import org.genvisis.cnv.filtering.CNVFilter;
 import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.filtering.FilterCalls;
 import org.genvisis.cnv.manage.MDL;
-import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
@@ -2434,21 +2432,8 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          proj = new Project("G:\\WorkFiles\\projects\\Ovation-P1_pcCorrected_20PCsLRR_ONLY_BIOLOGICAL.properties");
-          MarkerSet markerSet = MarkerSet.load(proj.MARKERSET_FILENAME.getValue());
-          for (String file1 : Files.list(proj.MARKER_DATA_DIRECTORY.getValue(), "",
-                                         MarkerData.MARKER_DATA_FILE_EXTENSION, false, true)) {
-            String name = ext.removeDirectoryInfo(file1);
-            String[] parts = name.split("\\.");
-            byte chr = Byte.parseByte(parts[1]);
-            int start = Integer.parseInt(parts[2]);
-            int end = Integer.parseInt(parts[3]);
-            int chrInd = ext.firstIndexOfByte(chr, markerSet.getChrs());
-            String[] num = new String[end - start];
-            System.arraycopy(markerSet.getMarkerNames(), chrInd + start, num, 0, end - start);
-            String[] names = MarkerDataLoader.loadMarkerNames(file1);
-            System.out.println(name + " -- " + ArrayUtils.equals(names, num, false));
-          }
+          String testS = "Raw Values Test";
+          System.out.println(testS.replaceAll(" ", "_"));
 
           return;
         case 1:

@@ -5559,4 +5559,23 @@ public class ArrayUtils {
     }
     return map;
   }
+
+  public static float[][] computeZScores(float[][] regionMedianValues) {
+    float[][] scores = new float[regionMedianValues.length][];
+    for (int i = 0; i < regionMedianValues.length; i++) {
+      scores[i] = computeZScores(regionMedianValues[i]);
+    }
+    return scores;
+  }
+
+  public static float[] computeZScores(float[] regionMedianValues) {
+    float mean = mean(regionMedianValues);
+    float sd = stdev(regionMedianValues, false);
+    float[] scores = new float[regionMedianValues.length];
+    for (int i = 0; i < regionMedianValues.length; i++) {
+      scores[i] = (regionMedianValues[i] - mean) / sd;
+    }
+    return scores;
+  }
+
 }

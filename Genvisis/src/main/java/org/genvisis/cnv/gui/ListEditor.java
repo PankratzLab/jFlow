@@ -129,11 +129,11 @@ public class ListEditor extends JDialog implements ActionListener {
 
     setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     setMinimumSize(new Dimension(100, 100));
-    UITools.setSize(this, new Dimension(450, 300));
+    UITools.setSize(this, new Dimension(550, 300));
     contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     setContentPane(contentPane);
-    contentPane.setLayout(new MigLayout("", "[424px,grow]", "[14px][238px][][][][][grow]"));
+    contentPane.setLayout(new MigLayout("", "[550px,grow]", "[14px][238px][][][][][grow]"));
 
     JScrollPane scrollPane = new JScrollPane();
     contentPane.add(scrollPane, "cell 0 1,grow");

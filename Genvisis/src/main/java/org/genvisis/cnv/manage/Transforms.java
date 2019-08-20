@@ -6,11 +6,6 @@ import org.pankratzlab.common.mining.Transformations;
 
 public class Transforms {
 
-  // public static final String[] TRANFORMATIONS = {"Raw Values", "Quantile", "Inverse normalized",
-  // "Inverse T-distribution with 5 df"};
-  // public static final int[] TRANSFORMATION_TYPES = {Transformations.IDENTITY,
-  // Transformations.QUANTILE, Transformations.INVERSE_NORMALIZE,
-  // Transformations.INVERSE_TDIST_5DF};
   public static final String[] TRANFORMATIONS = {"Raw Values", "Inverse normalized",
                                                  "Inverse T-distribution with 5 df", "BEAST vision",
                                                  "5X multiply"};

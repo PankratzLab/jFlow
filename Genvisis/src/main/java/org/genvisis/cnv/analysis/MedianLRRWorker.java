@@ -12,9 +12,13 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
@@ -34,6 +38,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.Transforms;
+import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.qc.CNVBDeviation;
 import org.genvisis.cnv.qc.CNVBMAF;
 import org.genvisis.cnv.qc.CNVBMAF.PoplulationBAFs;
@@ -50,6 +55,10 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
+
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multiset;
 
 public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
@@ -195,6 +204,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
     // stored as region, sample
     private final float[][] regionMedianValues;
+    private final float[][] regionZScoreValues;
     private final float[][] regionMADValues;
     private final float[][] regionBDeviationAll;
     private final float[][] regionBDeviationHet;
@@ -218,6 +228,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       this.regionBmafMetric = regionBmafMetric;
       this.regionBmafMetricPenalty = regionBmafMetricPenalty;
       this.regionPercentHet = regionPercentHet;
+      this.regionZScoreValues = ArrayUtils.computeZScores(regionMedianValues);
       cnvFileCNs = null;
       cnvFileNames = null;
     }
@@ -254,7 +265,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       }
     }
 
-    public float getCNAt(int region, int sample, int cnvFile) {
+    public int getCNAt(int region, int sample, int cnvFile) {
       return cnvFileCNs[region][sample][cnvFile];
     }
 
@@ -268,6 +279,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
     public float getMedianAt(int region, int sample) {
       return regionMedianValues[region][sample];
+    }
+
+    public float getZScore(int region, int sample) {
+      return regionZScoreValues[region][sample];
     }
 
     public float getPercentHetAt(int region, int sample) {
@@ -307,7 +322,18 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
                                                                 "BMAF_Metric_Penalty",
                                                                 "Proportion_Het"};
   private static final String CNV_CLASSES = "COPYNUMBER" + MARKER_REGION_REGEX
-                                            + ";5=CN0;1=CN1;2=CN2;3=CN3;4=CN4";
+                                            + ";0=CN0;1=CN1;2=CN2;3=CN3;4=CN4";
+
+  private static final String CN_DESC_NONE = "No CNV called";
+  private static final Map<Integer, String> CN_DESC = ImmutableMap.<Integer, String>builder()
+                                                                  .put(0, "homozygous deletion")
+                                                                  .put(1, "heterozygous deletion")
+                                                                  .put(2, CN_DESC_NONE)
+                                                                  .put(3, "duplication")
+                                                                  .put(4, "triplication")
+                                                                  .put(99, "run of homozygosity")
+                                                                  .build();
+  private static final String CN_DESC_MISS = "error with copy number state";
 
   private final Project proj;
   private final String[] input;
@@ -339,15 +365,31 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   private final CHROMOSOME_X_STRATEGY strategy;
   private final boolean homozygousOnly;
 
+  private boolean writeScreenshotCRF = true;
+  private boolean runScreenshotCRF = false;
+  private String screenshotX = MARKER_REGION_RESULTS_SUFFIX[0];
+  private String screenshotY = MARKER_REGION_RESULTS_SUFFIX[1];
+
   private final JProgressBar progressBar;
 
   public MedianLRRWorker(Project proj, String[] input, int transformationType, int scope,
                          String outputBase, JProgressBar jProgressBar, boolean recomputeLRR,
                          boolean correctLRR, boolean correctXY, boolean correctGC,
                          boolean homozygousOnly, CHROMOSOME_X_STRATEGY strategy, Logger log) {
+    this(proj, input, transformationType, scope, outputBase, jProgressBar, recomputeLRR, correctLRR,
+         correctXY, correctGC, homozygousOnly, strategy, true, false,
+         MARKER_REGION_RESULTS_SUFFIX[0], MARKER_REGION_RESULTS_SUFFIX[1], log);
+  }
+
+  public MedianLRRWorker(Project proj, String[] input, int transformationType, int scope,
+                         String outputBase, JProgressBar jProgressBar, boolean recomputeLRR,
+                         boolean correctLRR, boolean correctXY, boolean correctGC,
+                         boolean homozygousOnly, CHROMOSOME_X_STRATEGY strategy,
+                         boolean writePlotCRF, boolean runPlotCRF, String plotXCol, String plotYCol,
+                         Logger log) {
     this.proj = proj;
     this.input = input;
-    this.outputBase = outputBase;
+    this.outputBase = ext.replaceWithLinuxSafeCharacters(outputBase);
     this.transformationType = transformationType;
     this.scope = scope;
     this.strategy = strategy;
@@ -379,6 +421,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     this.correctXY = correctXY;
     this.correctGC = correctGC;
     this.homozygousOnly = homozygousOnly;// only valid for marker-based approaches
+    this.writeScreenshotCRF = writePlotCRF;
+    this.runScreenshotCRF = runPlotCRF;
+    this.screenshotX = plotXCol;
+    this.screenshotY = plotYCol;
   }
 
   // only if transforming by chromosome
@@ -481,6 +527,11 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         fileNameToVisualize = printResults(regionResults, markerRegions);
       }
       Thread.sleep(1000);
+    }
+    if (runScreenshotCRF) {
+      proj.getLog().reportTime("Creating plots...");
+      TwoDPlot.fromParameters(proj.PROJECT_DIRECTORY.getValue() + FILE_PREFIXES[0] + outputBase
+                              + ".screenshots.crf", proj.getLog());
     }
     return fileNameToVisualize;
   }
@@ -918,7 +969,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   // print median values
   private String printMedianLRRs(RegionResults regionResults, MarkerRegion[] markerRegions) {
     boolean reportCNVCN = false;
-    String output = proj.PROJECT_DIRECTORY.getValue() + FILE_PREFIXES[0] + outputBase + FILE_EXT[0];
+    String outputFile = FILE_PREFIXES[0] + outputBase + FILE_EXT[0];
+    String output = proj.PROJECT_DIRECTORY.getValue() + outputFile;
     Hashtable<String, String> hashSamps = HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(),
                                                                        "DNA", CLASSES_TO_DUMP,
                                                                        "\t");
@@ -932,14 +984,44 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     }
     newJob(MEDIAN_WORKER_JOBS[3]);
     try {
+      String screenshotCRF = proj.PROJECT_DIRECTORY.getValue() + FILE_PREFIXES[0] + outputBase
+                             + ".screenshots.crf";
+      PrintWriter screenWriter = writeScreenshotCRF ? Files.openAppropriateWriter(screenshotCRF)
+                                                    : null;
+      if (writeScreenshotCRF) {
+        screenWriter.println("twoDScreenshots");
+        screenWriter.println("proj=" + proj.getPropertyFilename());
+        screenWriter.println("dir=" + proj.PROJECT_DIRECTORY.getValue());
+        screenWriter.println("stitch");
+      }
       PrintWriter writer = Files.openAppropriateWriter(output);
       writer.print("Sample");
       for (String element : CLASSES_TO_DUMP) {
         writer.print("\t" + element.substring(element.lastIndexOf("=") + 1));
       }
-      for (MarkerRegion markerRegion : markerRegions) {
-        for (String element : MARKER_REGION_RESULTS_SUFFIX) {
+      for (int mr = 0; mr < markerRegions.length; mr++) {
+        MarkerRegion markerRegion = markerRegions[mr];
+        int colX = 0;
+        int colY = 0;
+        for (int e = 0; e < MARKER_REGION_RESULTS_SUFFIX.length; e++) {
+          String element = MARKER_REGION_RESULTS_SUFFIX[e];
+          if (screenshotX.equals(element)) {
+            colX = (mr
+                    * (MARKER_REGION_RESULTS_SUFFIX.length + (reportCNVCN ? cnvFiles.length : 0)))
+                   + e + CLASSES_TO_DUMP.length + 1;
+          } else if (screenshotY.equals(element)) {
+            colY = (mr
+                    * (MARKER_REGION_RESULTS_SUFFIX.length + (reportCNVCN ? cnvFiles.length : 0)))
+                   + e + CLASSES_TO_DUMP.length + 1;
+          }
           writer.print("\t" + element + "_" + markerRegion.getRegionName());
+        }
+        if (writeScreenshotCRF) {
+          screenWriter.println("fileX=" + outputFile + " fileY=" + outputFile + " xDataColumn="
+                               + colX + " yDataColumn=" + colY
+                               + " xIDColumn=0 yIDColumn=0 hideExcluded=False colorKey=True includeColorKey=False isHistogram=False output=region_"
+                               + ext.replaceWithLinuxSafeCharacters(markerRegion.getRegionName())
+                               + ".png");
         }
         if (reportCNVCN) {
           for (int j = 0; j < cnvFiles.length; j++) {
@@ -950,6 +1032,59 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
                                                                    + markerRegion.getRegionName())));
           }
         }
+        Map<Float, String> lrrMap = new TreeMap<>(Collections.reverseOrder());
+        for (int s = 0; s < samples.length; s++) {
+          StringBuilder line = new StringBuilder(samples[s]);
+          line.append(samples[s]);
+          line.append("\t");
+          line.append(markerRegion.getRegionName());
+          line.append("\t");
+          line.append("LRR=");
+          line.append(ext.formDeci(regionResults.getMedianAt(mr, s), 2));
+          line.append("; ZScore=");
+          line.append(ext.formDeci(regionResults.getZScore(mr, s), 2));
+          line.append("; MAD=");
+          line.append(ext.formDeci(regionResults.getMADAt(mr, s), 2));
+          if (reportCNVCN) {
+            line.append("; ");
+            Multiset<String> descs = HashMultiset.create();
+            for (int k = 0; k < cnvFiles.length; k++) {
+              int cn = regionResults.getCNAt(mr, s, k);
+              descs.add(CN_DESC.containsKey(cn) ? CN_DESC.get(cn)
+                                                : (CN_DESC_MISS + " (" + cn + ")"));
+            }
+            Set<String> elems = descs.elementSet();
+            int index = 0;
+            for (String elem : elems) {
+              line.append(elem);
+              if (!CN_DESC_NONE.equals(elem) && descs.count(elem) > 1) {
+                line.append(" (" + descs.count(elem) + ")");
+              }
+              if (index < elems.size() - 1) {
+                line.append(", ");
+              }
+              index++;
+            }
+          }
+          lrrMap.put(regionResults.getMedianAt(mr, s), line.toString());
+        }
+        PrintWriter regionListWriter = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                                  + FILE_PREFIXES[0] + outputBase
+                                                                  + "_"
+                                                                  + ext.replaceWithLinuxSafeCharacters(markerRegion.getRegionName())
+                                                                  + ".regions.txt");
+        for (String s : lrrMap.values()) {
+          regionListWriter.println(s);
+        }
+        regionListWriter.close();
+        lrrMap = null;
+      }
+      if (writeScreenshotCRF) {
+        screenWriter.close();
+        proj.getLog()
+            .reportTime("Screenshot CRF file created.  To run, run the following command:");
+        proj.getLog().report("java -jar " + Files.getRunString()
+                             + " org.pankratzlab.internal.utils.Launch " + screenshotCRF);
       }
 
       // check for "CLASS=Exclude" column in SampleData and add to header if present
@@ -1122,7 +1257,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     long time;
     boolean correctXY = false;
     boolean correctGC = false;
-    String outputBase = Transforms.TRANFORMATIONS[transformationType];
+    boolean writeScreenCRF = true;
+    String screenColX = MARKER_REGION_RESULTS_SUFFIX[0];
+    String screenColY = MARKER_REGION_RESULTS_SUFFIX[1];
+    String outputBase = Transforms.TRANFORMATIONS[transformationType].replaceAll(" ", "_");
     String logfile = outputBase + ".log";
     Logger log;
     Project proj;
@@ -1154,6 +1292,14 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
              + correctGC
              + " (default)). It is critical to ensure that the GC_CORRECTION_PARAMETERS_FILENAMES were generated using the same LRRs that will be used here.;";
     usage += strategy + " (default))\n";
+    usage += "   (11) Write screenshot input CRF file (i.e. writePlotCRF=" + writeScreenCRF
+             + " (default))\n";
+    usage += "   (12) X-column prefix to plot, one of {"
+             + ArrayUtils.toStr(MARKER_REGION_RESULTS_SUFFIX, ", ") + "} (i.e. screenX="
+             + screenColX + " (default))\n";
+    usage += "   (13) Y-column prefix to plot, one of {"
+             + ArrayUtils.toStr(MARKER_REGION_RESULTS_SUFFIX, ", ") + "} (i.e. screenY="
+             + screenColY + " (default))\n";
 
     usage += "";
 
@@ -1191,6 +1337,15 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       } else if (arg.startsWith("sexStrategy=")) {
         strategy = CHROMOSOME_X_STRATEGY.valueOf(ext.parseStringArg(arg, strategy.toString()));
         numArgs--;
+      } else if (arg.startsWith("writePlotCRF=")) {
+        writeScreenCRF = ext.parseBooleanArg(arg);
+        numArgs--;
+      } else if (arg.startsWith("screenX=")) {
+        screenColX = ext.parseStringArg(arg);
+        numArgs--;
+      } else if (arg.startsWith("screenY=")) {
+        screenColY = ext.parseStringArg(arg);
+        numArgs--;
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -1217,7 +1372,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(regionFileName, log),
                                                             transformationType, scope, outputBase,
                                                             null, false, false, correctXY, false,
-                                                            correctGC, strategy, log);
+                                                            correctGC, strategy, writeScreenCRF,
+                                                            false, screenColX, screenColY, log);
       medianLRRWorker.execute();
       while (!medianLRRWorker.isDone()) {
         Thread.sleep(100);
