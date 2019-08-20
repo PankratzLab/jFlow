@@ -1035,7 +1035,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         Map<Float, String> lrrMap = new TreeMap<>(Collections.reverseOrder());
         for (int s = 0; s < samples.length; s++) {
           StringBuilder line = new StringBuilder(samples[s]);
-          line.append(samples[s]);
           line.append("\t");
           line.append(markerRegion.getRegionName());
           line.append("\t");
