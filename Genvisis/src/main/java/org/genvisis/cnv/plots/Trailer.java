@@ -289,6 +289,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   private Hashtable<String, ColorManager<String>> previouslyLoadedManagers;
   private Thread updateQCThread = null;
 
+  String[] annotations = new String[] {"0", "1"};
+
   final AbstractAction editFileListener = new AbstractAction() {
 
     @Override
@@ -520,6 +522,43 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     @Override
     public void actionPerformed(ActionEvent e) {
       ext.setClipboard(sample);
+    }
+  };
+
+  AbstractAction cycleAnnotationAction = new AbstractAction() {
+
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (regions != null && regions.length > 0) {
+        if (regions[regionIndex].length == 2) {
+          regions[regionIndex] = ArrayUtils.addStrToArray("", regions[regionIndex]);
+        }
+        String commentText = regions[regionIndex][2];
+        int ind = commentText.lastIndexOf('^');
+        if (ind == -1) {
+          ind = 0;
+        } else {
+          String sub = commentText.substring(ind + 1);
+          commentText = commentText.substring(0, ind);
+          ind = ext.indexOfStr(sub, annotations);
+          if (ind == -1) {
+            ind = 0;
+          } else {
+            ind = ind + 1;
+          }
+        }
+        if (ind < annotations.length) {
+          commentText += "^" + annotations[ind];
+        }
+
+        regions[regionIndex][2] = commentText;
+        commentLabel.setText(regions[regionIndex][2].isEmpty() ? BLANK_COMMENT
+                                                               : "region #" + (regionIndex + 1)
+                                                                 + ":  " + regions[regionIndex][2]);
+        promptCommentSave = promptAndSaveRegions(promptCommentSave);
+      }
     }
   };
 
@@ -1808,6 +1847,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       @Override
       public void mouseClicked(MouseEvent e) {
         super.mouseClicked(e);
+        if (regions != null && regions.length > 0) {
+          commentField.setText(regions[regionIndex][2]);
+        }
         commentLabel.setVisible(false);
         commentField.setVisible(true);
         commentField.requestFocusInWindow();
@@ -1886,9 +1928,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
                  RegionNavigator.PREVIOUS_CHR);
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK),
                  RegionNavigator.NEXT_CHR);
+    inputMap.put(KeyStroke.getKeyStroke('`'), "ANNOTATE_NOTE");
 
     // FIXME this is a duplication of the action listening done by trailer..
     ActionMap actionMap = bafPanel.getActionMap();
+    actionMap.put("ANNOTATE_NOTE", cycleAnnotationAction);
     actionMap.put(RegionNavigator.FIRST_CHR, new AbstractAction() {
 
       public static final long serialVersionUID = 5L;
