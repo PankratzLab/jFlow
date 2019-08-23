@@ -1082,8 +1082,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         screenWriter.close();
         proj.getLog()
             .reportTime("Screenshot CRF file created.  To run, run the following command:");
-        proj.getLog().report("java -jar " + Files.getRunString()
-                             + " org.pankratzlab.internal.utils.Launch " + screenshotCRF);
+        proj.getLog().report(Files.getRunString() + " org.pankratzlab.internal.utils.Launch "
+                             + screenshotCRF);
       }
 
       // check for "CLASS=Exclude" column in SampleData and add to header if present

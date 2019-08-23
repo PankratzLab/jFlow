@@ -1,7 +1,6 @@
 package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -27,14 +26,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
+import org.genvisis.cnv.plots.comp.JCheckBoxListCellRenderer;
 import org.genvisis.cnv.plots.data.DataFile;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
@@ -253,7 +251,7 @@ public class ManhattanLoadGUI extends JDialog {
   }
 
   private void setupList(JList<JCheckBox> list) {
-    list.setCellRenderer(new CellRenderer());
+    list.setCellRenderer(new JCheckBoxListCellRenderer(getFont()));
     list.addMouseListener(new MouseAdapter() {
 
       int prevIndex = -1;
@@ -374,25 +372,6 @@ public class ManhattanLoadGUI extends JDialog {
 
     list.setModel(listModel);
     repaint();
-  }
-
-  protected class CellRenderer implements ListCellRenderer<JCheckBox> {
-
-    public Component getListCellRendererComponent(JList<? extends JCheckBox> list, JCheckBox value,
-                                                  int index, boolean isSelected,
-                                                  boolean cellHasFocus) {
-      JCheckBox checkbox = value;
-
-      checkbox.setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
-      checkbox.setForeground(isSelected ? list.getSelectionForeground() : list.getForeground());
-      checkbox.setEnabled(value.isEnabled());
-      checkbox.setFont(getFont());
-      checkbox.setFocusPainted(false);
-      checkbox.setBorderPainted(true);
-      checkbox.setBorder(isSelected ? UIManager.getBorder("List.focusCellHighlightBorder")
-                                    : noFocusBorder);
-      return checkbox;
-    }
   }
 
   public int getCloseCode() {

@@ -6,6 +6,36 @@ import org.pankratzlab.common.mining.Transformations;
 
 public class Transforms {
 
+  public static enum TRANSFORMATION {
+    RAW("Raw Values", -3, 3),
+    INV_NORM("Inverse normalized", 0, 1),
+    INV_TD_5DF("Inverse T-distribution with 5 df", -8, 8),
+    BEASTV("BEAST vision", -12, 12),
+    MULT_5X("5X multiply", -1, -1);
+
+    private TRANSFORMATION(String desc, int dispMin, int dispMax) {
+      this.desc = desc;
+      this.displayMin = dispMin;
+      this.displayMax = dispMax;
+    }
+
+    private final String desc;
+    private final int displayMin;
+    private final int displayMax;
+
+    public String getDescription() {
+      return desc;
+    }
+
+    public int getDisplayMin() {
+      return displayMin;
+    }
+
+    public int getDisplayMax() {
+      return displayMax;
+    }
+  }
+
   public static final String[] TRANFORMATIONS = {"Raw Values", "Inverse normalized",
                                                  "Inverse T-distribution with 5 df", "BEAST vision",
                                                  "5X multiply"};

@@ -191,6 +191,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   private static final String LAST_REGION = "Last region";
   private static final String TO_SCATTER_PLOT = "To Scatter Plot";
   private static final String TO_COMP_PLOT = "To Comp Plot";
+  private static final String TO_REGION_REVIEWER = "To Region Review";
   private static final String REGION_LIST_LOAD_FILE = "Load Region File";
   private static final String REGION_LIST_SAVE_FILE = "Save Regions to File...";
   private static final String REGION_LIST_ADD = "Add current region";
@@ -1091,8 +1092,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
   @Override
   public void setVisible(boolean b) {
+    this.setVisible(b, true);
+  }
+
+  public void setVisible(boolean visible, boolean jumpToFirstRegion) {
+
     waitForInit();
-    if (b) {
+    if (visible) {
       if (!SwingUtilities.isEventDispatchThread()) {
         try {
           SwingUtilities.invokeAndWait(new Runnable() {
@@ -1101,16 +1107,20 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
             public void run() {
               pack();
               updateGUI();
-              showRegion(0);
+              if (jumpToFirstRegion) {
+                showRegion(0);
+              }
             }
           });
         } catch (InvocationTargetException e) {} catch (InterruptedException e) {}
       } else {
         updateGUI();
-        showRegion(0);
+        if (jumpToFirstRegion) {
+          showRegion(0);
+        }
       }
     }
-    super.setVisible(b);
+    super.setVisible(visible);
   }
 
   /**
@@ -2746,6 +2756,14 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     launchComp.setFont(font);
     launchComp.addActionListener(this);
     act.add(launchComp);
+
+    JMenuItem launchRegionReview = new JMenuItem();
+    launchRegionReview.setText(TO_REGION_REVIEWER);
+    launchRegionReview.setMnemonic(KeyEvent.VK_R);
+    launchRegionReview.setFont(font);
+    launchRegionReview.addActionListener(this);
+    act.add(launchRegionReview);
+
     // act.addSeparator();
     {
 
@@ -3009,6 +3027,22 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
         public void run() {
           CompPlot cp = new CompPlot(proj);
           cp.setRegion(toRegion);
+        }
+      });
+    } else if (command.equals(TO_REGION_REVIEWER)) {
+      if (proj == null) {
+        JOptionPane.showConfirmDialog(this, "Error - a Project is required to open CompPlot",
+                                      "Error - no Project", JOptionPane.CANCEL_OPTION,
+                                      JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      SwingUtilities.invokeLater(new Runnable() {
+
+        @Override
+        public void run() {
+          RegionReviewer rr = new RegionReviewer(proj);
+          final Segment toRegion = new Segment(chr, start, stop);
+          rr.displayRegion(toRegion);
         }
       });
     } else {

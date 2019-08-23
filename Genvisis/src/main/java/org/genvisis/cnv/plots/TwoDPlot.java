@@ -1940,7 +1940,7 @@ public class TwoDPlot extends JPanel
             BufferedImage stitched = Images.stitchImages(paths, Color.WHITE, false, false);
             try {
               ImageIO.write(stitched, "png",
-                            new File(ext.rootOf(filename, false) + ".stiched.png"));
+                            new File(ext.rootOf(filename, false) + ".stitched.png"));
             } catch (IOException e) {
               log.reportException(e);
             }

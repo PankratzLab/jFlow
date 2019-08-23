@@ -31,6 +31,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.swing.JFrame;
+
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
@@ -2432,8 +2434,8 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          String testS = "Raw Values Test";
-          System.out.println(testS.replaceAll(" ", "_"));
+          JFrame frame = new JFrame();
+          System.out.println(frame.getBackground());
 
           return;
         case 1:

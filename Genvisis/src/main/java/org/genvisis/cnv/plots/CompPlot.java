@@ -425,6 +425,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
     JMenuItem bedUcsc;
     JMenuItem medianLRR;
     JMenuItem openTrailer;
+    JMenuItem openRegionReview;
 
     ucsc = new JMenuItem();
     ucsc.setAction(ucscAction);
@@ -461,6 +462,12 @@ public class CompPlot extends JFrame implements ChrNavigator {
     openTrailer.setText("Open all in Trailer");
     openTrailer.setToolTipText("Open the Trailer plot view of all currently visible CNVs");
     act.add(openTrailer);
+
+    openRegionReview = new JMenuItem();
+    openRegionReview.setAction(openReviewAction);
+    openRegionReview.setText("Open Region Review");
+    openRegionReview.setToolTipText("Open region in Region Reviewer");
+    act.add(openRegionReview);
 
     return menuBar;
   }
@@ -520,6 +527,26 @@ public class CompPlot extends JFrame implements ChrNavigator {
         @Override
         public void run() {
           openCNVsInTrailer();
+        }
+      });
+    }
+  };
+
+  /**
+   * Open a {@link RegionReviewer} plot for current region.
+   */
+  private final AbstractAction openReviewAction = new AbstractAction() {
+
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      SwingUtilities.invokeLater(new Runnable() {
+
+        @Override
+        public void run() {
+          RegionReviewer rr = new RegionReviewer(proj);
+          rr.displayRegion(location);
         }
       });
     }
