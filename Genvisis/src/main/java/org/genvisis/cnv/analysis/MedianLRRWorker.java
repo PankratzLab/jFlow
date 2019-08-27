@@ -1282,15 +1282,15 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     usage += "       scopes are: " + ArrayUtils.toStr(Transforms.SCOPES) + "\n";
     usage += "   (5) base name of the output files (i.e out=" + outputBase + " (default))\n";
     usage += "   (6) name of the log file (i.e. log=" + logfile + "\n";
-    usage += "   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));";
+    usage += "   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));\\n";
     usage += "   (8) correct data with principal components (must be defined by the properties file) (i.e. correctXY="
-             + correctXY + " (default));";
+             + correctXY + " (default));\\n";
     usage += "   (9) Chromosome X strategy.  Options include: ";
-    usage += ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy=";
+    usage += ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy="
+             + strategy + " (default));\\n";
     usage += "   (10) correct data for GC content using the GC_CORRECTION_PARAMETERS_FILENAMES (must be defined by the properties file) (i.e. correctGC="
              + correctGC
-             + " (default)). It is critical to ensure that the GC_CORRECTION_PARAMETERS_FILENAMES were generated using the same LRRs that will be used here.;";
-    usage += strategy + " (default))\n";
+             + " (default)). It is critical to ensure that the GC_CORRECTION_PARAMETERS_FILENAMES were generated using the same LRRs that will be used here.;\\n";
     usage += "   (11) Write screenshot input CRF file (i.e. writePlotCRF=" + writeScreenCRF
              + " (default))\n";
     usage += "   (12) X-column prefix to plot, one of {"
