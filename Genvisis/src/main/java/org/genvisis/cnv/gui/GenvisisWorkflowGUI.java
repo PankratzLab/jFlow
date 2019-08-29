@@ -1006,8 +1006,8 @@ public class GenvisisWorkflowGUI extends JDialog {
             // }
             // }
             if (file != null) {
-              proj.message("GenvisisPipeline commands written to " + file, "Command File Written",
-                           JOptionPane.INFORMATION_MESSAGE);
+              proj.message("GenvisisPipeline commands written to " + suggFile,
+                           "Command File Written", JOptionPane.INFORMATION_MESSAGE);
             }
           }
         } catch (Exception e) {

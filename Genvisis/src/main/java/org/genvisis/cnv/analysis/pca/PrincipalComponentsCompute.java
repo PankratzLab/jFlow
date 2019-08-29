@@ -19,6 +19,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.SampleQC;
@@ -805,9 +806,16 @@ public class PrincipalComponentsCompute {
       double[] singularValues = pcs.getSingularValues();
       writer.println(PC_STRING + "\t" + SV_STRING);
       for (int i = 0; i < singularValues.length; i++) {
-        writer.println(PC_STRING + (i + 1) + "\t" + singularValues[i]);
+        writer.println((i + 1) + "\t" + singularValues[i]);
       }
       writer.close();
+
+      TwoDPlot plot = TwoDPlot.createGUI(proj, false, false);
+      plot.loadFile(proj.PROJECT_DIRECTORY.getValue() + output);
+      plot.showSpecificFile(proj.PROJECT_DIRECTORY.getValue() + output, 0, 1);
+      plot.getPanel()
+          .screenCapture(proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(output) + ".png");
+      plot = null;
     } catch (FileNotFoundException fnfe) {
       log.reportError("Error: file \"" + output
                       + "\" could not be written to (it's probably open)");
