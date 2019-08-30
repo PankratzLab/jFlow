@@ -238,17 +238,18 @@ public class SampleQC {
     for (int i = 0; i < samples.length; i++) {
       String qcInfo = "";
       if (checkDuplicates) {
-        qcInfo += "\t" + duplicateIds[i];
+        qcInfo += duplicateIds[i];
         qcInfo += "\t" + (uses[i] ? "1" : "0");
         qcInfo += "\t" + useNotes[i];
         qcInfo += "\t" + (use_cnvs[i] ? "1" : "0");
         qcInfo += "\t" + use_cnvNotes[i];
       }
       if (fidiids != null) {
-        qcInfo += "\t" + mzTwinIds[i];
+        qcInfo += (checkDuplicates ? "\t" : "") + mzTwinIds[i];
       }
       if (quantiles != null) {
-        qcInfo += "\t" + developMetricsLine(i, quantiles, qcMatrix, justQuantiles);
+        qcInfo += ((checkDuplicates || fidiids != null) ? "\t" : "")
+                  + developMetricsLine(i, quantiles, qcMatrix, justQuantiles);
       }
       hashtable.put(samples[i], qcInfo);
     }

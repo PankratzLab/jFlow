@@ -141,15 +141,7 @@ public class AnnotateSampleDataStep extends Step {
     }
     String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
 
-    // These columns should always added by SampleQC
-    String[] baseHeader = {SampleQC.EXCLUDE_HEADER, "ExcludeNote"};
-
-    int[] facts = ext.indexFactors(baseHeader, header, false);
-    for (int i : facts) {
-      if (i == -1) {
-        return false;
-      }
-    }
+    int[] facts;
 
     boolean checkDuplicates = !variables.get(skipIDingDuplicatesReq).booleanValue();
     File duplicateSetFile = new File(GenvisisWorkflow.getPlinkDir(proj) + Qc.QC_SUBDIR
