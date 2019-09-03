@@ -84,7 +84,7 @@ public class SnpTest {
         snpTestString.append(" -exclude_samples ").append(excludeFile);
       }
       if (includeFile != null) {
-        snpTestString.append("-include_samples ").append(includeFile);
+        snpTestString.append(" -include_samples ").append(includeFile);
       }
       snpTestString.append(" -chunk 200 ");
 
