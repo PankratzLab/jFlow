@@ -31,8 +31,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.swing.JFrame;
-
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
@@ -56,10 +54,15 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.parsing.AbstractColumnFilter;
 import org.pankratzlab.common.parsing.AliasedFileColumn;
+import org.pankratzlab.common.parsing.ColumnFilter;
+import org.pankratzlab.common.parsing.DataLine;
 import org.pankratzlab.common.parsing.FileColumn;
 import org.pankratzlab.common.parsing.FileLink;
 import org.pankratzlab.common.parsing.FileParserFactory;
+import org.pankratzlab.common.parsing.NumberWrapperColumn;
+import org.pankratzlab.common.parsing.RoundedDoubleWrapperColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.DosageData;
@@ -2420,6 +2423,56 @@ public class lab {
 
   }
 
+  private static void testFileParser() {
+
+    String file = "K:\\Testing\\confPosition1k.results";
+
+    AliasedFileColumn colMarkerName = new AliasedFileColumn("SNP");
+
+    AliasedFileColumn col1 = new AliasedFileColumn("EMP1");
+    NumberWrapperColumn<Double> col2 = new NumberWrapperColumn<Double>(new AliasedFileColumn("BND1",
+                                                                                             "EMP1"),
+                                                                       (s) -> {
+                                                                         double d = Double.parseDouble(s);
+                                                                         if (d > 0.5) {
+                                                                           return 1 - d;
+                                                                         }
+                                                                         return d;
+                                                                       });
+    RoundedDoubleWrapperColumn col2Rounded = new RoundedDoubleWrapperColumn("BND", col2, 4);
+
+    FileColumn<String> colElse = StandardFileColumns.allExcept("\t", colMarkerName, col1);
+
+    ColumnFilter filterMAF = new AbstractColumnFilter(col2) {
+
+      @Override
+      public boolean filter(DataLine values) {
+        if (values.has(col2)) {
+          if (values.hasValid(col2)) {
+            double maf = values.getUnsafe(col2);
+            return maf > 0.15;
+          }
+          return false;
+        }
+        return true;
+      }
+    };
+
+    List<FileColumn<?>> order = new ArrayList<>();
+    order.add(colMarkerName);
+    order.add(col1);
+    order.add(col2Rounded);
+    order.add(colElse);
+
+    try {
+      FileParserFactory.setup(file, colMarkerName, colElse).optionalColumns(col1, col2Rounded)
+                       .filter(filterMAF).build()
+                       .parseToFile(ext.rootOf(file, false) + ".output.txt", "\t", order);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   public static void main(String[] args) throws IOException, ClassNotFoundException,
                                          URISyntaxException {
     int numArgs = args.length;
@@ -2433,10 +2486,7 @@ public class lab {
 
       switch (args.length) {
         case 0:
-
-          JFrame frame = new JFrame();
-          System.out.println(frame.getBackground());
-
+          testFileParser();
           return;
         case 1:
           if (args[0].equals("-list")) {

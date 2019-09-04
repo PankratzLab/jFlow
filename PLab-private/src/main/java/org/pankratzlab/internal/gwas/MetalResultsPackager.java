@@ -50,7 +50,7 @@ public class MetalResultsPackager {
     AliasedFileColumn colMarkerName = new AliasedFileColumn("MarkerName");
     AliasedFileColumn colDirection = new AliasedFileColumn("Direction");
     AliasedFileColumn colFreq1 = new AliasedFileColumn("Freq1");
-    NumberWrapperColumn<Double> colMAF = new NumberWrapperColumn<Double>(new AliasedFileColumn("MAF",
+    NumberWrapperColumn<Double> colMAF = new NumberWrapperColumn<Double>(new AliasedFileColumn("MAF1",
                                                                                                "Freq1"),
                                                                          (s) -> {
                                                                            double d = Double.parseDouble(s);
@@ -59,7 +59,7 @@ public class MetalResultsPackager {
                                                                            }
                                                                            return d;
                                                                          });
-    RoundedDoubleWrapperColumn colMAFRounded = new RoundedDoubleWrapperColumn(colMAF, 4);
+    RoundedDoubleWrapperColumn colMAFRounded = new RoundedDoubleWrapperColumn("MAF", colMAF, 4);
     FileColumn<String> colElse = StandardFileColumns.allExcept("\t", colMarkerName, colDirection,
                                                                colFreq1);
 
@@ -98,7 +98,8 @@ public class MetalResultsPackager {
       public boolean filter(DataLine values) {
         if (values.has(colMAF)) {
           if (values.hasValid(colMAF)) {
-            return values.getUnsafe(colMAF).doubleValue() > mafFilter;
+            double maf = values.getUnsafe(colMAF);
+            return maf > mafFilter;
           }
           return false;
         }
@@ -110,8 +111,7 @@ public class MetalResultsPackager {
     FileParser parser;
     AbstractFileParserFactory factory = FileParserFactory.setup(inputFile, colMarkerName,
                                                                 colDirection, colElse)
-                                                         .optionalColumns(colFreq1, colMAF,
-                                                                          colMAFRounded)
+                                                         .optionalColumns(colFreq1, colMAFRounded)
                                                          .link(mapLink);
     if (nonMissFilter >= 0) {
       factory.filter(filterDirection);

@@ -26,7 +26,12 @@ public abstract class WrapperColumn<W, B> extends CachedFileColumn<W>
    * @param dieOnParseFailure
    */
   public WrapperColumn(IndexedFileColumn<? extends B> base, boolean dieOnParseFailure) {
-    super(base.getName(), dieOnParseFailure);
+    this(base.getName(), base, dieOnParseFailure);
+  }
+
+  protected WrapperColumn(String name, IndexedFileColumn<? extends B> base,
+                          boolean dieOnParseFailure) {
+    super(name, dieOnParseFailure);
     this.base = base;
   }
 

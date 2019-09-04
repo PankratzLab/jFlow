@@ -13,7 +13,7 @@ public class AliasedFileColumn extends AbstractFileColumn<String>
                                implements IndexedFileColumn<String> {
 
   private final Aliases aliases;
-  private final boolean aliasHeader;
+  private final boolean useAliasAsHeader;
 
   private int matchedIndex;
   private String matchedAlias = null;
@@ -44,7 +44,7 @@ public class AliasedFileColumn extends AbstractFileColumn<String>
   public AliasedFileColumn(String name, Aliases aliases) {
     super(name, false);
     this.aliases = aliases;
-    this.aliasHeader = false;
+    this.useAliasAsHeader = false;
   }
 
   /**
@@ -58,7 +58,7 @@ public class AliasedFileColumn extends AbstractFileColumn<String>
   public AliasedFileColumn(Aliases aliases) {
     super(aliases.getAliases()[0], false);
     this.aliases = aliases;
-    this.aliasHeader = true;
+    this.useAliasAsHeader = true;
   }
 
   @Override
@@ -94,7 +94,7 @@ public class AliasedFileColumn extends AbstractFileColumn<String>
 
   @Override
   public String getHeader() {
-    if (aliasHeader)
+    if (useAliasAsHeader)
       return matchedAlias;
     else
       return super.getHeader();
