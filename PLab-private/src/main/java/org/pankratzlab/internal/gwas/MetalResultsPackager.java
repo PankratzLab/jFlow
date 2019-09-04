@@ -18,6 +18,7 @@ import org.pankratzlab.common.parsing.FileParser;
 import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.IntegerWrapperColumn;
 import org.pankratzlab.common.parsing.NumberWrapperColumn;
+import org.pankratzlab.common.parsing.RoundedDoubleWrapperColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 
 public class MetalResultsPackager {
@@ -48,15 +49,17 @@ public class MetalResultsPackager {
   private void run() throws IOException {
     AliasedFileColumn colMarkerName = new AliasedFileColumn("MarkerName");
     AliasedFileColumn colDirection = new AliasedFileColumn("Direction");
-    NumberWrapperColumn<Double> colFreq1 = new NumberWrapperColumn<Double>(new AliasedFileColumn("MAF",
-                                                                                                 "Freq1"),
-                                                                           (s) -> {
-                                                                             double d = Double.parseDouble(s);
-                                                                             if (d > 0.5) {
-                                                                               return 1 - d;
-                                                                             }
-                                                                             return d;
-                                                                           });
+    AliasedFileColumn colFreq1 = new AliasedFileColumn("Freq1");
+    NumberWrapperColumn<Double> colMAF = new NumberWrapperColumn<Double>(new AliasedFileColumn("MAF",
+                                                                                               "Freq1"),
+                                                                         (s) -> {
+                                                                           double d = Double.parseDouble(s);
+                                                                           if (d > 0.5) {
+                                                                             return 1 - d;
+                                                                           }
+                                                                           return d;
+                                                                         });
+    RoundedDoubleWrapperColumn colMAFRounded = new RoundedDoubleWrapperColumn(colMAF, 4);
     FileColumn<String> colElse = StandardFileColumns.allExcept("\t", colMarkerName, colDirection,
                                                                colFreq1);
 
@@ -89,13 +92,13 @@ public class MetalResultsPackager {
       }
     };
 
-    ColumnFilter filterMAF = new AbstractColumnFilter(colFreq1) {
+    ColumnFilter filterMAF = new AbstractColumnFilter(colMAF) {
 
       @Override
       public boolean filter(DataLine values) {
-        if (values.has(colFreq1)) {
-          if (values.hasValid(colFreq1)) {
-            return values.getUnsafe(colFreq1).doubleValue() > mafFilter;
+        if (values.has(colMAF)) {
+          if (values.hasValid(colMAF)) {
+            return values.getUnsafe(colMAF).doubleValue() > mafFilter;
           }
           return false;
         }
@@ -107,7 +110,9 @@ public class MetalResultsPackager {
     FileParser parser;
     AbstractFileParserFactory factory = FileParserFactory.setup(inputFile, colMarkerName,
                                                                 colDirection, colElse)
-                                                         .optionalColumns(colFreq1).link(mapLink);
+                                                         .optionalColumns(colFreq1, colMAF,
+                                                                          colMAFRounded)
+                                                         .link(mapLink);
     if (nonMissFilter >= 0) {
       factory.filter(filterDirection);
     }
@@ -122,6 +127,7 @@ public class MetalResultsPackager {
     outputColumnOrder.add(colChr);
     outputColumnOrder.add(colPos);
     outputColumnOrder.add(colFreq1);
+    outputColumnOrder.add(colMAFRounded);
     outputColumnOrder.add(colDirection);
     outputColumnOrder.add(colElse);
     for (int i = 2; i < valueColumns.length; i++) {
