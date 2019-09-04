@@ -82,11 +82,11 @@ public class MetalResultsPackager {
           String direction = values.getUnsafe(colDirection);
           int count = 0;
           for (int i = 0; i < direction.length(); i++) {
-            if (direction.charAt(i) == '?') {
+            if (direction.charAt(i) != '?') {
               count++;
             }
           }
-          return count < nonMissFilter;
+          return count >= nonMissFilter;
         }
         return false;
       }
