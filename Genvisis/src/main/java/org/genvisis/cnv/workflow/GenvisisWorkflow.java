@@ -121,7 +121,7 @@ public class GenvisisWorkflow {
     sb.generateIdentifyProblemMarkersStep(markerQCStep, faqcStep);
     sb.generateMosaicArmsStep(reverseTransposeStep);
     sb.generateAnnotateSampleDataStep(sampleQCStep, createSampleDataStep, gwasQCStep);
-    sb.generateMitoCNEstimateStep(reverseTransposeStep);
+    sb.generateMitoCNEstimateStep(parseAxiomCELs);
     ComputePFBStep pfbStep = sb.generatePFBStep(reverseTransposeStep);
     sb.generateSexCentroidsStep(pfbStep);
     sb.generateCNVStep(pfbStep, gcModelStep);
@@ -160,7 +160,7 @@ public class GenvisisWorkflow {
     sb.generateIdentifyProblemMarkersStep(markerQCStep, faqcStep);
     sb.generateMosaicArmsStep(reverseTransposeStep);
     sb.generateAnnotateSampleDataStep(sampleQCStep, createSampleDataStep, gwasQCStep);
-    sb.generateMitoCNEstimateStep(reverseTransposeStep);
+    sb.generateMitoCNEstimateStep(parseAffyCELs);
     ComputePFBStep pfbStep = sb.generatePFBStep(reverseTransposeStep);
     sb.generateSexCentroidsStep(pfbStep);
     sb.generateCNVStep(pfbStep, gcModelStep);

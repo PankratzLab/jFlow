@@ -139,11 +139,6 @@ public class StepBuilder {
                                                                                                         numThreadsReq));
   }
 
-  ParseSamplesStep generateParseSamplesStep() {
-    return stepInstanceMap.containsKey(ParseSamplesStep.class) ? stepInstanceMap.getInstance(ParseSamplesStep.class)
-                                                               : generateParseSamplesStep(null);
-  }
-
   ParseSamplesStep generateParseSamplesStep(IlluminaMarkerPositionsStep markerPositionsStep) {
     return stepInstanceMap.containsKey(ParseSamplesStep.class) ? stepInstanceMap.getInstance(ParseSamplesStep.class)
                                                                : register(ParseSamplesStep.create(proj,
@@ -157,13 +152,13 @@ public class StepBuilder {
                                                                                               samplesParsingStep));
   }
 
-  ReverseTransposeTarget generateReverseTransposeStep(Step parseAffyCELs) {
+  public ReverseTransposeTarget generateReverseTransposeStep(Step parseAffyCELs) {
     return stepInstanceMap.containsKey(ReverseTransposeTarget.class) ? stepInstanceMap.getInstance(ReverseTransposeTarget.class)
                                                                      : register(ReverseTransposeTarget.create(proj,
                                                                                                               parseAffyCELs));
   }
 
-  TransposeStep generateTransposeStep(Step parseSamplesStep) {
+  public TransposeStep generateTransposeStep(Step parseSamplesStep) {
     return stepInstanceMap.containsKey(TransposeStep.class) ? stepInstanceMap.getInstance(TransposeStep.class)
                                                             : register(TransposeStep.create(proj,
                                                                                             parseSamplesStep));
@@ -264,17 +259,10 @@ public class StepBuilder {
                                                                                                               gwasQCStep));
   }
 
-  MitoCNEstimateStep generateMitoCNEstimateStep(TransposeStep transposeStep) {
+  public MitoCNEstimateStep generateMitoCNEstimateStep(Step markersParsingStep) {
     return stepInstanceMap.containsKey(MitoCNEstimateStep.class) ? stepInstanceMap.getInstance(MitoCNEstimateStep.class)
                                                                  : register(MitoCNEstimateStep.create(proj,
-                                                                                                      transposeStep,
-                                                                                                      numThreadsReq));
-  }
-
-  MitoCNEstimateStep generateMitoCNEstimateStep(ReverseTransposeTarget reverseTransposeStep) {
-    return stepInstanceMap.containsKey(MitoCNEstimateStep.class) ? stepInstanceMap.getInstance(MitoCNEstimateStep.class)
-                                                                 : register(MitoCNEstimateStep.create(proj,
-                                                                                                      reverseTransposeStep,
+                                                                                                      markersParsingStep,
                                                                                                       numThreadsReq));
   }
 
