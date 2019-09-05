@@ -183,10 +183,10 @@ public class Ancestry {
     String cleanPutativeWhitesFile = validatePutativeWhites(dir + plinkroot + PSF.Plink.FAM,
                                                             putativeWhitesFile);
     CmdLine.runDefaults(plinkExe + " --bfile " + dir + plinkroot + " --keep "
-                        + cleanPutativeWhitesFile + " --hardy", homoProjDir, log);
+                        + cleanPutativeWhitesFile + " --hardy --noweb", homoProjDir, log);
     CmdLine.runDefaults(plinkExe + " --bfile " + hapMapPlinkRoot + " --keep "
-                        + ext.parseDirectoryOfFile(hapMapPlinkRoot) + "CEUFounders.txt --hardy",
-                        homoHapMapDir, log);
+                        + ext.parseDirectoryOfFile(hapMapPlinkRoot)
+                        + "CEUFounders.txt --hardy --noweb", homoHapMapDir, log);
 
     MergeDatasets.checkForHomogeneity(homoDir, null, null, "UNAFF", log);
   }
