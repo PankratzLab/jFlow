@@ -10,7 +10,6 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
 
@@ -21,6 +20,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import org.genvisis.cnv.filesys.Project;
@@ -161,9 +161,14 @@ public class SexPlot extends JFrame {
     Vector<Boolean> uncertains = new Vector<>();
     Vector<String> notes = new Vector<>();
     try {
-      BufferedReader reader = Files.getReader(proj.SEXCHECK_RESULTS_FILENAME.getValue(), true,
+      BufferedReader reader = Files.getReader(proj.SEXCHECK_RESULTS_FILENAME.getValue(), false,
                                               false);
       if (reader == null) {
+        if (!Files.exists(proj.SEXCHECK_RESULTS_FILENAME.getValue())) {
+          proj.message("Sex Checks results file (" + proj.SEXCHECK_RESULTS_FILENAME.getValue()
+                       + ") couldn't be found. Please run the Sex Checks step in the Genvisis Workflow.",
+                       "Error", JOptionPane.ERROR_MESSAGE);
+        }
         return;
       }
       String[] line = reader.readLine().trim().split("\t");
@@ -196,13 +201,10 @@ public class SexPlot extends JFrame {
         }
       }
       reader.close();
-    } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + proj.SEXCHECK_RESULTS_FILENAME.getValue()
-                         + "\" not found in current directory");
-      return;
     } catch (IOException ioe) {
-      System.err.println("Error reading file \"" + proj.SEXCHECK_RESULTS_FILENAME.getValue()
-                         + "\"");
+      proj.getLog().reportError("problem reading file \""
+                                + proj.SEXCHECK_RESULTS_FILENAME.getValue() + "\"");
+      proj.getLog().reportException(ioe);
       return;
     }
 
