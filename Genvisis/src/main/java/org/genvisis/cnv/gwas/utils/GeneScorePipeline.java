@@ -2324,10 +2324,13 @@ public class GeneScorePipeline {
             RegressionResult rrResult = actualRegression(study.markerScores.get(constr, mf)
                                                                            .columnMap().get(marker),
                                                          null, pd);
-            markerWriter.println(resultPrefix + "\t" + pheno + "\t" + marker + "\t"
-                                 + mf.metaMarkers.get(marker).beta + "\t"
-                                 + mf.metaMarkers.get(marker).se + "\t" + rrResult.getBeta() + "\t"
-                                 + rrResult.se);
+            double metaBeta = mf.metaMarkers.get(marker).beta;
+            double metaSE = mf.metaMarkers.get(marker).se;
+
+            double markerBeta = rrResult.getBeta() * metaBeta;
+            double markerSE = rrResult.se * metaBeta;
+            markerWriter.println(resultPrefix + "\t" + pheno + "\t" + marker + "\t" + metaBeta
+                                 + "\t" + metaSE + "\t" + markerBeta + "\t" + markerSE);
           }
           markerWriter.close();
           String mrrScript = writeMRRScript(prefDir, pheno);
