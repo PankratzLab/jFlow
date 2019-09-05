@@ -14,6 +14,7 @@ import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
 import org.genvisis.cnv.workflow.steps.AxiomCELProcessingStep;
+import org.genvisis.cnv.workflow.steps.AxiomManifestParsingStep;
 import org.genvisis.cnv.workflow.steps.ComputePFBStep;
 import org.genvisis.cnv.workflow.steps.FurtherAnalysisQCStep;
 import org.genvisis.cnv.workflow.steps.GCModelStep;
@@ -95,13 +96,15 @@ public class GenvisisWorkflow {
 
   private List<Step> generateAxiomSteps(boolean isPCCorrectedProject) {
     StepBuilder sb = new StepBuilder(proj);
+    AxiomManifestParsingStep manifestStep;
     AxiomCELProcessingStep parseAxiomCELs;
     AffyMarkerBlastStep affyMarkerBlastStep = null;
     ReverseTransposeTarget reverseTransposeStep = null;
     SampleDataStep createSampleDataStep;
     GCModelStep gcModelStep;
     SampleQCStep sampleQCStep;
-    parseAxiomCELs = sb.generateAxiomCELProcessingStep();
+    manifestStep = sb.generateAxiomManifestParsingStep();
+    parseAxiomCELs = sb.generateAxiomCELProcessingStep(manifestStep);
     reverseTransposeStep = sb.generateReverseTransposeStep(parseAxiomCELs);
     affyMarkerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(reverseTransposeStep);
     createSampleDataStep = sb.generateCreateSampleDataStep(reverseTransposeStep);

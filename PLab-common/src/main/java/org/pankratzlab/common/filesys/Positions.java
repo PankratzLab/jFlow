@@ -6,10 +6,6 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.GenomeBuild;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.parsing.AliasedFileColumn;
-import org.pankratzlab.common.parsing.Aliases;
-import org.pankratzlab.common.parsing.IndexedFileColumn;
-import org.pankratzlab.common.parsing.NumberWrapperColumn;
 
 public class Positions {
 
@@ -441,21 +437,6 @@ public class Positions {
     return ext.indexOfStr(str, CHR_CODES) != -1
            || (ext.isValidInteger(str) && Integer.parseInt(str) >= 1
                && Integer.parseInt(str) <= 26);
-  }
-
-  /**
-   * Creates a non-case-sensitive {@link NumberWrapperColumn} that uses {@link chromosomeNumber} to
-   * determine the byte value of a chromosome wrapped around an {@link AliasedFileColumn} based on
-   * {@link org.pankratzlab.common.Aliases#CHRS} that will fail if multiple aliases are found.
-   * 
-   * @param colName Desired name of column
-   * @param dieOnMissing
-   * @return FileColumn<Byte>
-   */
-  public static IndexedFileColumn<Byte> chr(String colName, boolean dieOnMissing) {
-    return new NumberWrapperColumn<>(new AliasedFileColumn(colName,
-                                                           new Aliases(org.pankratzlab.common.Aliases.CHRS)),
-                                     Positions::chromosomeNumber, dieOnMissing);
   }
 
 }

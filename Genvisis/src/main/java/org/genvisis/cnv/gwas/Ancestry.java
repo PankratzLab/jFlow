@@ -240,8 +240,9 @@ public class Ancestry {
     if (lookup != null) {
       srcData = plinkroot + "_renamed";
       log.report(ext.getTime() + "]\tRenaming snps using lookup file: " + snpIDLookupFile);
-      CmdLine.runDefaults(plinkExe + " --bfile " + plinkroot + " --update-name " + snpIDLookupFile
-                          + " --make-bed --allow-no-sex --out " + srcData + " --noweb", dir, log);
+      CmdLine.runDefaults(plinkExe + " --no-web --bfile " + plinkroot + " --update-name "
+                          + snpIDLookupFile + " --allow-no-sex --make-bed --out " + srcData, dir,
+                          log);
     }
 
     if (!Files.exists(dir + PLINK_BIM_UNAMBIGUOUS_TXT)) {

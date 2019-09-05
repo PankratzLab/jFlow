@@ -1795,8 +1795,8 @@ public class Project implements PropertyChangeListener {
 
   /**
    * Reports message to the log and if and only if a GUI is being used, it also creates a message
-   * dialog as well This simplified method assumes this is an error and says as much in the window
-   * title it creates
+   * dialog as well This simplified method assumes this is an information message and sets the title
+   * as "Alert".
    *
    * @param str The message to display
    */

@@ -111,7 +111,22 @@ public final class StandardFileColumns {
    * {@link tmp#chr(String, boolean)} that will not die on parse failure
    */
   public static IndexedFileColumn<Byte> chr(String colName) {
-    return Positions.chr(colName, false);
+    return chr(colName, false);
+  }
+
+  /**
+   * Creates a non-case-sensitive {@link NumberWrapperColumn} that uses {@link chromosomeNumber} to
+   * determine the byte value of a chromosome wrapped around an {@link AliasedFileColumn} based on
+   * {@link org.pankratzlab.common.Aliases#CHRS} that will fail if multiple aliases are found.
+   * 
+   * @param colName Desired name of column
+   * @param dieOnMissing
+   * @return FileColumn<Byte>
+   */
+  public static IndexedFileColumn<Byte> chr(String colName, boolean dieOnMissing) {
+    return new NumberWrapperColumn<>(new AliasedFileColumn(colName,
+                                                           new Aliases(org.pankratzlab.common.Aliases.CHRS)),
+                                     Positions::chromosomeNumber, dieOnMissing);
   }
 
   /**

@@ -12,6 +12,7 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.BoolRequirement;
 import org.genvisis.cnv.workflow.Requirement.DirRequirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
+import org.genvisis.cnv.workflow.Requirement.StepRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
@@ -36,26 +37,29 @@ public class AxiomCELProcessingStep extends Step {
   public static final String DESC_APT_EXT = "Directory with AffyPowerTools executables (should contain apt-genotype axiom, etc. Available at http://www.affymetrix.com/)";
   public static final String DESC_APT_LIB = "Directory with AffyPowerTools library files (should contain a .cdf file, a .sketch file, etc. Available at http://www.affymetrix.com/)";
 
-  public static AxiomCELProcessingStep create(Project proj, Requirement<Integer> numThreadsReq) {
+  public static AxiomCELProcessingStep create(Project proj, Step axiomManifestStep,
+                                              Requirement<Integer> numThreadsReq) {
     DirRequirement aptExtReq = new DirRequirement("aptExe", DESC_APT_EXT, new File(""));
     DirRequirement aptLibReq = new DirRequirement("aptLib", DESC_APT_LIB, new File(""));
     String annotFile = proj.SNP_DATA_FILE.getValue().equals("") ? AffyMarkerBlast.EXAMPLE_ANNOT_FILE
                                                                 : proj.SNP_DATA_FILE.getValue();
+    StepRequirement manifestReq = new StepRequirement(axiomManifestStep);
     FileRequirement annotFileReq = new Requirement.FileRequirement("annotFile",
                                                                    ext.capitalizeFirst(AffyMarkerBlast.DESC_ANNOT_FILE),
                                                                    new File(annotFile));
     BoolRequirement skipGenoReq = new BoolRequirement("skipGenotypes",
                                                       "Do not import forward genotypes.", false);
 
-    return new AxiomCELProcessingStep(proj, aptExtReq, aptLibReq, annotFileReq, skipGenoReq,
-                                      numThreadsReq);
+    return new AxiomCELProcessingStep(proj, manifestReq, aptExtReq, aptLibReq, annotFileReq,
+                                      skipGenoReq, numThreadsReq);
   }
 
-  private AxiomCELProcessingStep(Project proj, DirRequirement aptExtReq, DirRequirement aptLibReq,
+  private AxiomCELProcessingStep(Project proj, StepRequirement manifestReq,
+                                 DirRequirement aptExtReq, DirRequirement aptLibReq,
                                  FileRequirement annotFileReq, BoolRequirement skipGenoReq,
                                  Requirement<Integer> numThreadsReq) {
     super(NAME, DESC,
-          RequirementSetBuilder.and().add(aptExtReq).add(aptLibReq)
+          RequirementSetBuilder.and().add(manifestReq).add(aptExtReq).add(aptLibReq)
                                .add(RequirementSetBuilder.or().add(annotFileReq).add(skipGenoReq))
                                .add(numThreadsReq),
           EnumSet.of(Requirement.Flag.MULTITHREADED, Requirement.Flag.MEMORY,

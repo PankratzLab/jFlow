@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Set;
 
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.affy.APTAffy6Pipeline.Probesets;
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
@@ -322,22 +321,9 @@ public class APTAxiomPipeline {
   private static Set<String> loadMarkerPositions(Project proj, Logger log, GenomeBuild build) {
     String markerPositions = proj.MARKER_POSITION_FILENAME.getValue();
     if (markerPositions == null || !Files.exists(markerPositions)) {
-      if (markerPositions != null) {
-        log.reportError("Could not find marker position file " + markerPositions);
-      }
-      // TODO FIXME integrate more axiom array subtypes
-      Resource markerPos = Resources.axiomTx(log).genome(build).getMarkerPositions();
-      if (!markerPos.isAvailable()) {
-        throw new IllegalArgumentException("Affymetrix marker positions file for build "
-                                           + build.getBuild()
-                                           + " is not available.  Parsing cannot continue.");
-      } else {
-        log.reportTime("No marker positions file found - copying resource from "
-                       + ext.parseDirectoryOfFile(markerPos.get()) + " to "
-                       + proj.MARKER_POSITION_FILENAME.getValue());
-        Files.copyFile(markerPos.get(), proj.MARKER_POSITION_FILENAME.getValue());
-        markerPositions = proj.MARKER_POSITION_FILENAME.getValue();
-      }
+      throw new IllegalArgumentException("Affymetrix marker positions file for build "
+                                         + build.getBuild()
+                                         + " is not available.  Parsing cannot continue.");
     }
     Set<String> markers = HashVec.loadFileToHashSet(markerPositions, new int[] {0}, "", true);
     return markers;

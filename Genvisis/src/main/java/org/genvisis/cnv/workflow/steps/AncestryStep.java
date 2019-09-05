@@ -40,6 +40,10 @@ public class AncestryStep extends Step {
     if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
         || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
       defaultSnpFile = Resources.affy(proj.getLog()).getRSIDLookup().get();
+    } else if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_AXIOM) {
+      String[] lookups = Files.list(proj.PROJECT_DIRECTORY.getValue(),
+                                    AxiomManifestParsingStep.RSLOOKUP_SUFFIX);
+      defaultSnpFile = lookups.length > 0 ? lookups[0] : "";
     }
     if (defaultSnpFile == null) {
       defaultSnpFile = "";
