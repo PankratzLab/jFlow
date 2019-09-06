@@ -126,14 +126,14 @@ public class StepBuilder {
                                                                                                                 numThreadsReq));
   }
 
-  AxiomCELProcessingStep generateAxiomCELProcessingStep(AxiomManifestParsingStep axiomManifestParsingStep) {
+  public AxiomCELProcessingStep generateAxiomCELProcessingStep(AxiomManifestParsingStep axiomManifestParsingStep) {
     return stepInstanceMap.containsKey(AxiomCELProcessingStep.class) ? stepInstanceMap.getInstance(AxiomCELProcessingStep.class)
                                                                      : register(AxiomCELProcessingStep.create(proj,
                                                                                                               axiomManifestParsingStep,
                                                                                                               numThreadsReq));
   }
 
-  AffyCELProcessingStep generateAffyCELProcessingStep() {
+  public AffyCELProcessingStep generateAffyCELProcessingStep() {
     return stepInstanceMap.containsKey(AffyCELProcessingStep.class) ? stepInstanceMap.getInstance(AffyCELProcessingStep.class)
                                                                     : register(AffyCELProcessingStep.create(proj,
                                                                                                             numThreadsReq));

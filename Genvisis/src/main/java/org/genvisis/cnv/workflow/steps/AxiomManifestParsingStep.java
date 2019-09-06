@@ -23,15 +23,17 @@ import org.pankratzlab.common.parsing.StandardFileColumns;
 
 public class AxiomManifestParsingStep extends Step {
 
+  public static final String AXIOM_MANIFEST_DESC = "An Affymetrix Axiom Manifest file";
+  public static final String AXIOM_EXAMPLE_MANIFEST = "Axiom_tx_v1.na35.annot.csv";
   public static final String NAME = "Parse Axiom Manifest";
   public static final String DESC = "";
   public static final String RSLOOKUP_SUFFIX = ".rsLookup.txt";
 
   public static AxiomManifestParsingStep create(Project proj) {
     String defaultFile = Files.exists(proj.SNP_DATA_FILE.getValue()) ? proj.SNP_DATA_FILE.getValue()
-                                                                     : "Axiom_tx_v1.na35.annot.csv";
+                                                                     : AXIOM_EXAMPLE_MANIFEST;
     final Requirement<File> manifestReq = new Requirement.FileRequirement("manifestFile",
-                                                                          "An Affymetrix Axiom Manifest file",
+                                                                          AXIOM_MANIFEST_DESC,
                                                                           new File(defaultFile));
     return new AxiomManifestParsingStep(proj, manifestReq);
   }
