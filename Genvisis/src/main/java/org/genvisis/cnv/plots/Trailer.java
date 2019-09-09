@@ -3128,9 +3128,14 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       int startPos = getPos(startX);
       int endPos = getPos(curX);
 
+      if (startPos == endPos) {
+        return;
+      }
       start = Math.min(startPos, endPos);
       stop = Math.max(startPos, endPos);
-      if (start == stop) stop++;
+      if (start == stop) {
+        stop++;
+      }
       updateGUI();
     } else {
       highlighting = false;
