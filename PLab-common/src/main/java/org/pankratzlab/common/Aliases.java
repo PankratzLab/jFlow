@@ -50,7 +50,8 @@ public class Aliases {
 
   public static final String[] INDIVIDUAL_ID = {"ID", "IID", "I_ID", "IndID", "Ind_ID"};
   public static final String[] FAMILY_ID = {"Family ID", "FamID", "FID", "F_ID"};
-  public static final String[] DNA = {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID", "SampleID"};
+  public static final String[] DNA = {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID", "SampleID",
+                                      "Sample ID"};
 
   /**
    * Searches all of the reference directories to see if it contains the specified file
