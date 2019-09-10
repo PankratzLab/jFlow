@@ -38,7 +38,7 @@ public class MitoCNEstimateStep extends Step {
     final Requirement<Step> transposeStepReq = new Requirement.StepRequirement(markersParsingStep);
 
     final Requirement<Boolean> hasAnyMitoMarkersReq = new Requirement<Boolean>("Project must have mitochondrial markers",
-                                                                               false) {
+                                                                               "", false) {
 
       @Override
       public boolean checkRequirement(String arg, Set<Step> stepSelections,

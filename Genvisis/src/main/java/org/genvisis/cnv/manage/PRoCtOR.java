@@ -131,7 +131,7 @@ public class PRoCtOR {
     shadowProj.saveProperties();
 
     PennCNVPrep.prepExport(proj, shadowProj, numComponents, null, numThreads, numMarkerThreads,
-                           LS_TYPE.REGULAR, false, correctionType, strategy);
+                           LS_TYPE.REGULAR, correctionType, strategy);
     if (setupCNVCallingIfSuccessfull) {
       GenvisisWorkflow.setupCNVCalling(projectDirectory);
     }
@@ -286,9 +286,8 @@ public class PRoCtOR {
    */
   public static void correctProject(Project proj, Project shadowProject,
                                     PrincipalComponentsResiduals principalComponentsResiduals,
-                                    boolean preserveBafs, int[] sampleSex,
-                                    boolean[] samplesToUseCluster, String[] markers,
-                                    CORRECTION_TYPE correctionType,
+                                    int[] sampleSex, boolean[] samplesToUseCluster,
+                                    String[] markers, CORRECTION_TYPE correctionType,
                                     CHROMOSOME_X_STRATEGY sexStrategy, int numComponents,
                                     int numCorrectionThreads, int numMarkerThreads) {
 
@@ -334,7 +333,8 @@ public class PRoCtOR {
                                         markerData.getPosition(), markerData.getFingerprint(),
                                         markerData.getGCs(), null, null, correctedXY[0],
                                         correctedXY[1], null, null,
-                                        preserveBafs ? markerData.getBAFs() : correctedLRRBAF[0],
+                                        correctionType == CORRECTION_TYPE.XY_PRESERVE_BAFS ? markerData.getBAFs()
+                                                                                           : correctedLRRBAF[0],
                                         correctedLRRBAF[1], abGenotypes, abGenotypes);
             smdw.write(markerData, proj.getArrayType().getCanXYBeNegative());
           }

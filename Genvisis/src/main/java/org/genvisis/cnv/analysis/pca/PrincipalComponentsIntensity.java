@@ -74,23 +74,38 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
    * The two types of intensity correction we support
    */
   public enum CORRECTION_TYPE {
+
     /**
      * No Correction - PCs will be generated and then quit.
      */
-    GENERATE_PCS_ONLY,
+    GENERATE_PCS_ONLY("PCs will be generated but no correction is performed."),
     /**
      * Multi-stage correction of X and Y intensities within a genotype cluster
      */
-    XY,
+    XY("Multi-stage correction of X and Y intensities within a genotype cluster"),
+    /**
+     * Same as XY, except the original BAF values are copied rather than the corrected.
+     */
+    XY_PRESERVE_BAFS("Same as XY, except the original BAF values are copied to the corrected project rather than the corrected values."),
     /**
      * A simple LRR only correction
      */
-    LRR_ONLY,
+    LRR_ONLY("Simple LRR-only correction"),
     /**
      * A highly experimental and who knows what will happen type, geared mainly for chr23 correction
      * LRR are from LRR_ONLY, BAFS are from XY, go figure
      */
-    COMBO;
+    COMBO("Uses the BAFs from the XY correction method and the LRRs from the LRR_ONLY correction method.");
+
+    private final String desc;
+
+    private CORRECTION_TYPE(String desc) {
+      this.desc = desc;
+    }
+
+    public String getDescription() {
+      return desc;
+    }
   }
 
   public enum CHROMOSOME_X_STRATEGY {
@@ -1062,9 +1077,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
               principalComponentsIntensity.correctLRRAt(correctAt);
               break;
             case XY:
+            case XY_PRESERVE_BAFS:
               principalComponentsIntensity.correctXYAt(correctAt);
               break;
-
             case COMBO: // we want both XY corrected bafs, and LRR_ONLY corrected lrrs
               principalComponentsIntensity.correctLRRAt(correctAt);
               principalComponentsIntensity.correctXYAt(correctAt);

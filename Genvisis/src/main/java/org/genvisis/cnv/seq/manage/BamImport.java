@@ -800,7 +800,8 @@ public class BamImport {
                                              pcCorrected.PROJECT_DIRECTORY.getValue()
                                                                   + "tmpPCCorrection/",
                                              correctionPCs, null, numthreads, 1, false,
-                                             LS_TYPE.REGULAR, -1, true, true, CORRECTION_TYPE.XY,
+                                             LS_TYPE.REGULAR, -1, true,
+                                             CORRECTION_TYPE.XY_PRESERVE_BAFS,
                                              CHROMOSOME_X_STRATEGY.BIOLOGICAL);
             // Warning currently set up for 24 threads..
             // TODO
@@ -808,7 +809,7 @@ public class BamImport {
                                              pcCorrected.PROJECT_DIRECTORY.getValue()
                                                                          + "tmpPCCorrection/",
                                              correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
-                                             true, true, CORRECTION_TYPE.XY,
+                                             true, CORRECTION_TYPE.XY_PRESERVE_BAFS,
                                              CHROMOSOME_X_STRATEGY.BIOLOGICAL);
           }
 

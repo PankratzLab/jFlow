@@ -80,8 +80,7 @@ public class PennCNVPrep {
    * {@link MarkerDataStorage} objects, and contain only LRR/BAF and genotypes (currently original
    * genotypes)
    */
-  public void exportSpecialMarkerDataMoreThreads(String tmpDir, boolean preserveBafs,
-                                                 CORRECTION_TYPE correctionType,
+  public void exportSpecialMarkerDataMoreThreads(String tmpDir, CORRECTION_TYPE correctionType,
                                                  CHROMOSOME_X_STRATEGY sexStrategy) {
     String output = (tmpDir == null ? proj.PROJECT_DIRECTORY.getValue() : tmpDir)
                     + dir + STORAGE_BASE + ext.indexLargeFactors(markers, proj.getMarkerNames(),
@@ -129,7 +128,7 @@ public class PennCNVPrep {
                                                  markerData.getFingerprint(), markerData.getGCs(),
                                                  null, null, correctedXY[0], correctedXY[1], null,
                                                  null,
-                                                 (preserveBafs
+                                                 (correctionType == CORRECTION_TYPE.XY_PRESERVE_BAFS
                                                   || correctionType == CORRECTION_TYPE.LRR_ONLY) ? markerData.getBAFs()
                                                                                                  : correctedLRRBAF[0],
                                                  correctionType == CORRECTION_TYPE.XY ? correctedLRRBAF[1]
@@ -615,7 +614,7 @@ public class PennCNVPrep {
   public static void exportSpecialPennCNV(Project proj, String dir, String tmpDir,
                                           int numComponents, String markerFile, int numThreads,
                                           int numMarkerThreads, boolean shadowSamples,
-                                          LS_TYPE lType, int numSampleChunks, boolean preserveBafs,
+                                          LS_TYPE lType, int numSampleChunks,
                                           boolean forceLoadFromFiles,
                                           CORRECTION_TYPE correctionType,
                                           CHROMOSOME_X_STRATEGY sexStrategy) {
@@ -716,13 +715,13 @@ public class PennCNVPrep {
 
     } else {
       prepExport(proj, shadowProj, numComponents, markerFile, numThreads, numMarkerThreads, lType,
-                 preserveBafs, correctionType, sexStrategy);
+                 correctionType, sexStrategy);
     }
   }
 
   public static void prepExport(Project proj, Project shadowProject, int numComponents,
                                 String markerFile, int numThreads, int numMarkerThreads,
-                                LS_TYPE lType, boolean preserveBafs, CORRECTION_TYPE correctionType,
+                                LS_TYPE lType, CORRECTION_TYPE correctionType,
                                 CHROMOSOME_X_STRATEGY sexStrategy) {
     String[] markers;
     PrincipalComponentsResiduals principalComponentsResiduals = loadPcResids(proj, numComponents);
@@ -745,7 +744,7 @@ public class PennCNVPrep {
           .report("Info - loaded " + markers.length + " markers from " + markerFile + " to export");
 
     }
-    PRoCtOR.correctProject(proj, shadowProject, principalComponentsResiduals, preserveBafs, sex,
+    PRoCtOR.correctProject(proj, shadowProject, principalComponentsResiduals, sex,
                            proj.getSamplesToInclude(null), markers, correctionType, sexStrategy,
                            numComponents, numThreads, numMarkerThreads);
   }
@@ -985,7 +984,7 @@ public class PennCNVPrep {
       } else {
         exportSpecialPennCNV(proj, dir, tmpDir, numComponents, markers, numThreads,
                              numMarkerThreads, shadowSamples,
-                             svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, sampleChunks, false,
+                             svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, sampleChunks,
                              forceLoadFromFiles, CORRECTION_TYPE.XY, strategy);
       }
     } catch (Exception e) {

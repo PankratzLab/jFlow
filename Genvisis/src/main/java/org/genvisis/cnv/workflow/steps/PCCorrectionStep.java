@@ -1,9 +1,11 @@
 package org.genvisis.cnv.workflow.steps;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
@@ -69,9 +71,23 @@ public class PCCorrectionStep extends Step {
                                                                                 new File(""));
     final Requirement<CORRECTION_TYPE> correctionStrategyReq = new Requirement.EnumRequirement<CORRECTION_TYPE>("correction",
                                                                                                                 "Correction Type",
+                                                                                                                new StringBuilder("<html>").append(Arrays.stream(CORRECTION_TYPE.values())
+                                                                                                                                                         .map(t -> new StringBuilder(t.name()).append(" - ")
+                                                                                                                                                                                              .append(t.getDescription())
+                                                                                                                                                                                              .toString())
+                                                                                                                                                         .collect(Collectors.joining("<br />")))
+                                                                                                                                           .append("</html>")
+                                                                                                                                           .toString(),
                                                                                                                 CORRECTION_TYPE.XY);
     final Requirement<CHROMOSOME_X_STRATEGY> sexChromosomeStrategyReq = new Requirement.EnumRequirement<CHROMOSOME_X_STRATEGY>("sexChrStrat",
                                                                                                                                "Sex Chromosome Strategy",
+                                                                                                                               new StringBuilder("<html>").append(Arrays.stream(CHROMOSOME_X_STRATEGY.values())
+                                                                                                                                                                        .map(t -> new StringBuilder(t.name()).append(" - ")
+                                                                                                                                                                                                             .append(t.getToolTip())
+                                                                                                                                                                                                             .toString())
+                                                                                                                                                                        .collect(Collectors.joining("<br />")))
+                                                                                                                                                          .append("</html>")
+                                                                                                                                                          .toString(),
                                                                                                                                CHROMOSOME_X_STRATEGY.BIOLOGICAL);
     final Requirement<Boolean> setupCNVCalling = new Requirement.OptionalBoolRequirement("callCNVs",
                                                                                          "Create script with steps to process corrected data and call CNVs?",

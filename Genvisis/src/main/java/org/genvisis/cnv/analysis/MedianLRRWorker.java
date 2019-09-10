@@ -746,7 +746,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
           computelog.reportError(Error);
           warnAndCancel(Error);
         }
-        int numThreads = proj.getProperty(proj.NUM_THREADS);
         if (recomputeLRR && !correctLRR) {
           lrrs = CentroidHelper.prepareProperCentroid(proj.getArrayType(), markerData, null,
                                                       samplesToUse, 1, 0, clusterFilterCollection,
