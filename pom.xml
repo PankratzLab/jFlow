@@ -57,6 +57,7 @@
 		<module>Logicle</module>
 		<module>PLab-common</module>
 		<module>PLab-private</module>
+		<module>FileParser</module>
 		<module>Genvisis</module>
 		<module>CFCS</module>
 		<module>NRSS</module>
@@ -98,6 +99,7 @@
 				 NB: change these to non-SNAPSHOT when releasing -->
 		<meta.version>0.0.1-SNAPSHOT</meta.version>
 		<plab-common.version>0.0.1-SNAPSHOT</plab-common.version>
+		<FileParser.version>0.0.1-SNAPSHOT</FileParser.version>
 		<plab-utils.version>0.0.1-SNAPSHOT</plab-utils.version>
 		<seq.version>0.0.1-SNAPSHOT</seq.version>
 		<plab-utils.version>0.0.1-SNAPSHOT</plab-utils.version>
@@ -229,6 +231,12 @@
 				<groupId>org.genvisis</groupId>
 				<artifactId>PLab-common</artifactId>
 				<version>${plab-common.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>FileParser</artifactId>
+				<version>${FileParser.version}</version>
 			</dependency>
 
 			<dependency>

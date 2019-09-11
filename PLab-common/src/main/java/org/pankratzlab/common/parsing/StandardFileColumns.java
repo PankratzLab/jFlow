@@ -7,6 +7,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.fileparser.AbstractFileColumn;
+import org.pankratzlab.fileparser.AliasedFileColumn;
+import org.pankratzlab.fileparser.Aliases;
+import org.pankratzlab.fileparser.CachedFileColumn;
+import org.pankratzlab.fileparser.DoubleWrapperColumn;
+import org.pankratzlab.fileparser.FileColumn;
+import org.pankratzlab.fileparser.FileParser;
+import org.pankratzlab.fileparser.IndexedFileColumn;
+import org.pankratzlab.fileparser.IntegerWrapperColumn;
+import org.pankratzlab.fileparser.NumberWrapperColumn;
+import org.pankratzlab.fileparser.ParseFailureException;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;

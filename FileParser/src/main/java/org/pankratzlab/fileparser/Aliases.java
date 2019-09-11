@@ -1,4 +1,4 @@
-package org.pankratzlab.common.parsing;
+package org.pankratzlab.fileparser;
 
 import java.util.Arrays;
 import java.util.HashMap;

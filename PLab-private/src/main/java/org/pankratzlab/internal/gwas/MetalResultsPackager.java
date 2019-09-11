@@ -7,19 +7,19 @@ import java.util.List;
 
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.parsing.AbstractColumnFilter;
-import org.pankratzlab.common.parsing.AbstractFileParserFactory;
-import org.pankratzlab.common.parsing.AliasedFileColumn;
-import org.pankratzlab.common.parsing.ColumnFilter;
-import org.pankratzlab.common.parsing.DataLine;
-import org.pankratzlab.common.parsing.FileColumn;
-import org.pankratzlab.common.parsing.FileLink;
-import org.pankratzlab.common.parsing.FileParser;
-import org.pankratzlab.common.parsing.FileParserFactory;
-import org.pankratzlab.common.parsing.IntegerWrapperColumn;
-import org.pankratzlab.common.parsing.NumberWrapperColumn;
 import org.pankratzlab.common.parsing.RoundedDoubleWrapperColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
+import org.pankratzlab.fileparser.AbstractColumnFilter;
+import org.pankratzlab.fileparser.AbstractFileParserFactory;
+import org.pankratzlab.fileparser.AliasedFileColumn;
+import org.pankratzlab.fileparser.ColumnFilter;
+import org.pankratzlab.fileparser.DataLine;
+import org.pankratzlab.fileparser.FileColumn;
+import org.pankratzlab.fileparser.FileLink;
+import org.pankratzlab.fileparser.FileParser;
+import org.pankratzlab.fileparser.FileParserFactory;
+import org.pankratzlab.fileparser.IntegerWrapperColumn;
+import org.pankratzlab.fileparser.NumberWrapperColumn;
 
 public class MetalResultsPackager {
 

@@ -1,8 +1,15 @@
-package org.pankratzlab.common.parsing;
+package org.pankratzlab.fileparser;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.Closeable;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,13 +17,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.Files;
-import org.pankratzlab.common.ext;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
@@ -115,7 +123,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   }
 
   private void open() throws IOException {
-    reader = Files.getAppropriateReader(inputFile);
+    reader = new BufferedReader(getAppropriateInputStream(inputFile));
     for (int i = 0; i < skippedLines; i++) {
       getNextLine();
     }
@@ -123,12 +131,17 @@ public class FileParser implements Iterable<DataLine>, Closeable {
       String headerLine = getNextLine();
       if (headerLine != null) {
         if (inputFileDelim == null) {
-          inputFileDelim = ext.determineDelimiter(headerLine);
+          inputFileDelim = determineDelimiter(headerLine);
         }
-        header = ArrayUtils.immutableIndexMap(headerLine.split(inputFileDelim));
+        String[] headerArray = headerLine.split(inputFileDelim);
+        ImmutableMap.Builder<String, Integer> builder = new ImmutableMap.Builder<>();
+        for (int i = 0; i < headerArray.length; i++) {
+          builder.put(headerArray[i], i);
+        }
+        header = builder.build();
       }
     } else {
-      try (BufferedReader delimReader = Files.getAppropriateReader(inputFile)) {
+      try (BufferedReader delimReader = new BufferedReader(getAppropriateInputStream(inputFile))) {
         for (int i = 0; i < lineCount; i++)
           delimReader.readLine();
         String firstLine;
@@ -137,7 +150,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
         } while (firstLine != null && matchesSkipPrefix(firstLine));
         if (firstLine != null) {
           if (trimInput) firstLine = firstLine.trim();
-          if (inputFileDelim == null) inputFileDelim = ext.determineDelimiter(firstLine);
+          if (inputFileDelim == null) inputFileDelim = determineDelimiter(firstLine);
           String[] firstLineCols = firstLine.split(inputFileDelim);
           ImmutableMap.Builder<String, Integer> headerBuilder = ImmutableMap.builderWithExpectedSize(firstLineCols.length);
           for (int i = 0; i < firstLineCols.length; i++) {
@@ -453,7 +466,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
 
   public List<DataLine> parseToFileAndLoad(String outputFile, String outDelim,
                                            List<FileColumn<?>> outputOrder) throws IOException {
-    try (PrintWriter writer = Files.getAppropriateWriter(outputFile)) {
+    try (PrintWriter writer = openAppropriateWriter(outputFile, false)) {
       List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
       writer.println(buildHeaderLineOut(outputColumns, outDelim));
 
@@ -487,7 +500,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
                                                  List<FileColumn<?>> outputOrder,
                                                  boolean dropIfKeyFail,
                                                  FileColumn<T> keyCol) throws IOException {
-    try (PrintWriter writer = Files.getAppropriateWriter(outputFile)) {
+    try (PrintWriter writer = openAppropriateWriter(outputFile, false)) {
       List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
       writer.println(buildHeaderLineOut(outputColumns, outDelim));
 
@@ -527,7 +540,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
                                                                  List<FileColumn<?>> outputOrder,
                                                                  boolean dropIfKeyFail,
                                                                  FileColumn<?>... keyCols) throws IOException {
-    try (PrintWriter writer = Files.getAppropriateWriter(outputFile)) {
+    try (PrintWriter writer = openAppropriateWriter(outputFile, false)) {
       List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
       writer.println(buildHeaderLineOut(outputColumns, outDelim));
 
@@ -585,7 +598,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   public int parseToFile(String outputFile, String outDelim, boolean writeHeader, boolean append,
                          List<FileColumn<?>> outputOrder) throws IOException {
     int lines = 0;
-    try (PrintWriter writer = Files.getAppropriateWriter(outputFile, append)) {
+    try (PrintWriter writer = openAppropriateWriter(outputFile, append)) {
       List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
       if (writeHeader) {
         writer.println(buildHeaderLineOut(outputColumns, outDelim));
@@ -700,6 +713,64 @@ public class FileParser implements Iterable<DataLine>, Closeable {
       }
     }
     return lineOut.toString();
+  }
+
+  /**
+   * @param filename to open for writing
+   * @param append true to append to rather than replace the file if it exists
+   * @return an appropriate {@link PrintWriter}
+   */
+  private PrintWriter openAppropriateWriter(String filename,
+                                            boolean append) throws FileNotFoundException,
+                                                            IOException {
+    PrintWriter writer;
+
+    if (filename.endsWith(".gz")) {
+      writer = new PrintWriter(new GZIPOutputStream(new FileOutputStream(filename, append)));
+    } else if (filename.endsWith(".zip")) {
+      writer = new PrintWriter(new ZipOutputStream(new FileOutputStream(filename, append)));
+    } else {
+      writer = new PrintWriter(new BufferedWriter(new FileWriter(filename, append)));
+    }
+
+    return writer;
+  }
+
+  private InputStreamReader getAppropriateInputStream(String filename) throws FileNotFoundException,
+                                                                       IOException {
+    InputStream is;
+    if (filename.endsWith(".gz")) {
+      is = new GZIPInputStream(new FileInputStream(filename));
+    } else if (filename.endsWith(".zip")) {
+      is = new ZipInputStream(new FileInputStream(filename));
+    } else {
+      is = new FileInputStream(filename);
+    }
+    return new InputStreamReader(is);
+  }
+
+  private int countInstancesOf(String str, String pattern) {
+    int count;
+    String trav;
+
+    trav = str;
+    count = 0;
+    while (trav.contains(pattern)) {
+      trav = trav.substring(trav.indexOf(pattern) + pattern.length());
+      count++;
+    }
+
+    return count;
+  }
+
+  private String determineDelimiter(String str) {
+    if (str.contains("\t")) {
+      return "\t";
+    } else if (countInstancesOf(str, ",") > countInstancesOf(str, " ")) {
+      return ",";
+    } else {
+      return "[\\s]+";
+    }
   }
 
 }

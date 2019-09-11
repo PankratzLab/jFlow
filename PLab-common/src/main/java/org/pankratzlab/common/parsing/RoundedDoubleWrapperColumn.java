@@ -1,6 +1,9 @@
 package org.pankratzlab.common.parsing;
 
 import org.pankratzlab.common.ext;
+import org.pankratzlab.fileparser.IndexedFileColumn;
+import org.pankratzlab.fileparser.ParseFailureException;
+import org.pankratzlab.fileparser.WrapperColumn;
 
 public class RoundedDoubleWrapperColumn extends WrapperColumn<String, Double> {
 

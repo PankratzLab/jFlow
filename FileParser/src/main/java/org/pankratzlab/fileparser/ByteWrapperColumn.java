@@ -1,4 +1,4 @@
-package org.pankratzlab.common.parsing;
+package org.pankratzlab.fileparser;
 
 public class ByteWrapperColumn extends NumberWrapperColumn<Byte> {
 

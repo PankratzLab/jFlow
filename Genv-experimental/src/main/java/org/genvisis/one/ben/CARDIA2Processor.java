@@ -11,17 +11,17 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.parsing.AbstractColumnFilter;
-import org.pankratzlab.common.parsing.AbstractFileColumn;
-import org.pankratzlab.common.parsing.AliasedFileColumn;
-import org.pankratzlab.common.parsing.ColumnFilter;
-import org.pankratzlab.common.parsing.DataLine;
-import org.pankratzlab.common.parsing.FileColumn;
-import org.pankratzlab.common.parsing.FileParser;
-import org.pankratzlab.common.parsing.FileParserFactory;
-import org.pankratzlab.common.parsing.FixedValueColumn;
-import org.pankratzlab.common.parsing.ParseFailureException;
 import org.pankratzlab.common.parsing.StandardFileColumns;
+import org.pankratzlab.fileparser.AbstractColumnFilter;
+import org.pankratzlab.fileparser.AbstractFileColumn;
+import org.pankratzlab.fileparser.AliasedFileColumn;
+import org.pankratzlab.fileparser.ColumnFilter;
+import org.pankratzlab.fileparser.DataLine;
+import org.pankratzlab.fileparser.FileColumn;
+import org.pankratzlab.fileparser.FileParser;
+import org.pankratzlab.fileparser.FileParserFactory;
+import org.pankratzlab.fileparser.FixedValueColumn;
+import org.pankratzlab.fileparser.ParseFailureException;
 
 public class CARDIA2Processor {
 

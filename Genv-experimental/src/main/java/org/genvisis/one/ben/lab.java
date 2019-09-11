@@ -54,16 +54,16 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.parsing.AbstractColumnFilter;
-import org.pankratzlab.common.parsing.AliasedFileColumn;
-import org.pankratzlab.common.parsing.ColumnFilter;
-import org.pankratzlab.common.parsing.DataLine;
-import org.pankratzlab.common.parsing.FileColumn;
-import org.pankratzlab.common.parsing.FileLink;
-import org.pankratzlab.common.parsing.FileParserFactory;
-import org.pankratzlab.common.parsing.NumberWrapperColumn;
 import org.pankratzlab.common.parsing.RoundedDoubleWrapperColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
+import org.pankratzlab.fileparser.AbstractColumnFilter;
+import org.pankratzlab.fileparser.AliasedFileColumn;
+import org.pankratzlab.fileparser.ColumnFilter;
+import org.pankratzlab.fileparser.DataLine;
+import org.pankratzlab.fileparser.FileColumn;
+import org.pankratzlab.fileparser.FileLink;
+import org.pankratzlab.fileparser.FileParserFactory;
+import org.pankratzlab.fileparser.NumberWrapperColumn;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.DosageData;
 
@@ -2486,7 +2486,16 @@ public class lab {
 
       switch (args.length) {
         case 0:
-          testFileParser();
+
+          BufferedReader reader = Files.getAppropriateReader("K:\\ParsingTesting\\correctness.txt");
+          String delim = ext.determineDelimiter(reader.readLine());
+          String line = null;
+          while ((line = reader.readLine()) != null) {
+            String[] pic = ext.splitLine(line, delim, new Logger());
+            System.out.println(ArrayUtils.toStr(pic, " | "));
+          }
+          reader.close();
+
           return;
         case 1:
           if (args[0].equals("-list")) {

@@ -1,5 +1,6 @@
-package org.pankratzlab.common.parsing;
+package org.pankratzlab.fileparser;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,8 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.pankratzlab.common.Files;
 
 /**
  * Class for creating and configuring {@link FileParser} objects.
@@ -41,7 +40,7 @@ public abstract class AbstractFileParserFactory {
   final List<FileColumn<?>> optlDataToLoad;
 
   protected AbstractFileParserFactory(String inputFile, String inputDelim) {
-    if (!Files.exists(inputFile)) {
+    if (inputFile == null || (!new File(inputFile).exists())) {
       throw new IllegalArgumentException(new FileNotFoundException("File missing: " + inputFile));
     }
     this.inputFile = inputFile;

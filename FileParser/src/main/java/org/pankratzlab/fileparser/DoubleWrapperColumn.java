@@ -1,7 +1,4 @@
-package org.pankratzlab.common.parsing;
-
-import org.pankratzlab.fileparser.IndexedFileColumn;
-import org.pankratzlab.fileparser.NumberWrapperColumn;
+package org.pankratzlab.fileparser;
 
 public class DoubleWrapperColumn extends NumberWrapperColumn<Double> {
 

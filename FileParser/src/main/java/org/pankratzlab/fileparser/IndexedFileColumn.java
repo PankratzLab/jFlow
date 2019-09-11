@@ -1,4 +1,4 @@
-package org.pankratzlab.common.parsing;
+package org.pankratzlab.fileparser;
 
 /**
  * An interface to define a common API for {@link FileColumn}s that point to a single index

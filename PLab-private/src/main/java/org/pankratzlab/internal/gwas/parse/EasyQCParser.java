@@ -3,12 +3,12 @@ package org.pankratzlab.internal.gwas.parse;
 import java.io.IOException;
 
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.parsing.AliasedFileColumn;
-import org.pankratzlab.common.parsing.DoubleWrapperColumn;
-import org.pankratzlab.common.parsing.FileColumn;
-import org.pankratzlab.common.parsing.FileParser;
-import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.StandardFileColumns;
+import org.pankratzlab.fileparser.AliasedFileColumn;
+import org.pankratzlab.fileparser.DoubleWrapperColumn;
+import org.pankratzlab.fileparser.FileColumn;
+import org.pankratzlab.fileparser.FileParser;
+import org.pankratzlab.fileparser.FileParserFactory;
 
 public class EasyQCParser {
 
