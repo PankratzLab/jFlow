@@ -1367,7 +1367,7 @@ public class VCFOps {
 
       outputVCF = dir + root + "." + ext.rootOf(segmentFile) + ".vcf" + (gzipOutput ? ".gz" : "");
       String annoFile = dir + root + "." + ext.rootOf(segmentFile) + ".anno.txt";
-      String annoGQFile = dir + root + "." + ext.rootOf(segmentFile) + "GQ_" + gq + ".anno.txt";
+      String annoGQFile = dir + root + "." + ext.rootOf(segmentFile) + ".GQ_" + gq + ".anno.txt";
 
       if (!Files.exists(outputVCF)) {
         try (VCFFileReader reader = new VCFFileReader(new File(vcf), Files.exists(vcf + ".idx"))) {
