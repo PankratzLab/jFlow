@@ -78,7 +78,7 @@ public class MosdepthImport {
     }
     mi.setSelectedMarkerVCF(cli.get(ARG_SELECTED_SNP_VCF));
     mi.setMosdepthDirectory(cli.get(ARG_MOS_DIR),
-                            cli.has(ARG_MOS_EXT) ? cli.get(ARG_MOS_EXT) : ".bed.gz");
+                            cli.has(ARG_MOS_EXT) ? cli.get(ARG_MOS_EXT) : ".bed");
     mi.setCRAMReadDirectory(cli.get(ARG_CRAMCOUNT_DIR));
     mi.setJobID(cli.has("jobID") ? cli.get("jobID") : null);
     try {
@@ -100,7 +100,7 @@ public class MosdepthImport {
     cli.addArg(ARG_CRAM_DIR, DESC_CRAM_DIR, true);
     cli.addArg(ARG_CRAMCOUNT_DIR, DESC_CRAMCOUNT_DIR, false);
     cli.addArg(ARG_MOS_DIR, DESC_MOS_DIR, false);
-    cli.addArg(ARG_MOS_EXT, DESC_MOS_EXT, ".bed.gz", false);
+    cli.addArg(ARG_MOS_EXT, DESC_MOS_EXT, ".bed", false);
 
     cli.parse(args);
 
@@ -133,7 +133,7 @@ public class MosdepthImport {
       mi.setGenotypeVCF(cli.get(ARG_GENO_VCF));
     }
     mi.setSelectedMarkerVCF(cli.get(ARG_SELECTED_SNP_VCF));
-    mi.setMosdepthDirectory(preMos, cli.has(ARG_MOS_EXT) ? cli.get(ARG_MOS_EXT) : ".bed.gz");
+    mi.setMosdepthDirectory(preMos, cli.has(ARG_MOS_EXT) ? cli.get(ARG_MOS_EXT) : ".bed");
     mi.setCRAMReadDirectory(preCnt);
     mi.setJobID(cli.has("jobID") ? cli.get("jobID") : null);
     try {
