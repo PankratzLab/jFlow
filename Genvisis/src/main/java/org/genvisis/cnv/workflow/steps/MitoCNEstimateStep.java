@@ -43,7 +43,7 @@ public class MitoCNEstimateStep extends Step {
       @Override
       public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                       Map<Step, Variables> variables) {
-        return proj.getMarkerSet().getChrMap().containsKey((byte) 26)
+        return proj.getMarkerSet() != null && proj.getMarkerSet().getChrMap().containsKey((byte) 26)
                && proj.getMarkerSet().getChrMap().get((byte) 26).size() != 0;
       }
 
