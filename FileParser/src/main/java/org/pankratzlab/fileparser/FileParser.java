@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Ordering;
 
 public class FileParser implements Iterable<DataLine>, Closeable {
 
@@ -764,12 +765,36 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   }
 
   private String determineDelimiter(String str) {
-    if (str.contains("\t")) {
-      return "\t";
-    } else if (countInstancesOf(str, ",") > countInstancesOf(str, " ")) {
-      return ",";
-    } else {
+    Multiset<Character> delimCounts = HashMultiset.create();
+    boolean inQuotes = false;
+    char[] chars = str.toCharArray();
+    for (int i = 0; i < chars.length; i++) {
+      // detect quotes and skip everything in quotes
+      if (chars[i] == '"') {
+        if (inQuotes) {
+          inQuotes = false;
+        } else {
+          inQuotes = true;
+        }
+        continue;
+      } else if (inQuotes) {
+        continue;
+      }
+      int code = (int) chars[i];
+      if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
+        // skip A-Z and a-z
+        continue;
+      }
+      delimCounts.add(chars[i]);
+    }
+    Character delim = delimCounts.entrySet().stream()
+                                 .max(Ordering.natural().onResultOf(Multiset.Entry::getCount)).get()
+                                 .getElement();
+    if (delim == ' ') {
+      // return greedy delim
       return "[\\s]+";
+    } else {
+      return Character.toString(delim);
     }
   }
 

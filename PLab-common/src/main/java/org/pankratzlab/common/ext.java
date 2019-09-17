@@ -30,7 +30,10 @@ import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 
 public class ext {
@@ -2027,14 +2030,40 @@ public class ext {
    *          , are not found in the header
    * @return
    */
-  public static String determineDelimiter(String str, boolean spaceAsLastResort) {
-    if (str.contains("\t")) {
-      return "\t";
-    } else if (countInstancesOf(str, ",") > countInstancesOf(str, " ")
-               || (spaceAsLastResort && countInstancesOf(str, ",") > 0)) {
-      return ",";
+  public static String determineDelimiter(String str, boolean preferCommasOverSpaces) {
+    Multiset<Character> delimCounts = HashMultiset.create();
+    boolean inQuotes = false;
+    char[] chars = str.toCharArray();
+    for (int i = 0; i < chars.length; i++) {
+      // detect quotes and skip everything in quotes
+      if (chars[i] == '"') {
+        if (inQuotes) {
+          inQuotes = false;
+        } else {
+          inQuotes = true;
+        }
+        continue;
+      } else if (inQuotes) {
+        continue;
+      }
+      int code = (int) chars[i];
+      if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
+        // skip A-Z and a-z
+        continue;
+      }
+      delimCounts.add(chars[i]);
+    }
+    Character delim = delimCounts.entrySet().stream()
+                                 .max(Ordering.natural().onResultOf(Multiset.Entry::getCount)).get()
+                                 .getElement();
+    if (delim == ' ') {
+      if (preferCommasOverSpaces && delimCounts.count(Character.valueOf(',')) > 0) {
+        return ",";
+      }
+      // return greedy delim
+      return "[\\s]+";
     } else {
-      return PSF.Regex.GREEDY_WHITESPACE;
+      return Character.toString(delim);
     }
   }
 
