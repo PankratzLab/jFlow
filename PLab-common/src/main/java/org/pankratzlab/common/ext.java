@@ -2084,20 +2084,19 @@ public class ext {
 
   public static String[] splitCommasIntelligently(String str, boolean removeAndSimplifyQuotes,
                                                   Logger log) {
-    int numCommas;
+    int numQuotes;
     int startIndex;
     Vector<String> v;
     boolean insideQuotes;
 
     insideQuotes = false;
     v = new Vector<>();
-    startIndex = numCommas = 0;
+    startIndex = numQuotes = 0;
     for (int i = 0; i < str.length(); i++) {
       if (str.charAt(i) == ',') {
-        if (numCommas % 2 == 0) {
+        if (numQuotes % 2 == 0) {
           v.add(removeAndSimplifyQuotes ? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
                                         : str.substring(startIndex, i));
-          // System.out.println(v.elementAt(v.size()-1));
           startIndex = i + 1;
           if (insideQuotes && str.charAt(i - 1) != '\"') {
             if (log != null) {
@@ -2109,7 +2108,7 @@ public class ext {
         }
       }
       if (str.charAt(i) == '\"') {
-        numCommas++;
+        numQuotes++;
         insideQuotes = true;
       }
     }

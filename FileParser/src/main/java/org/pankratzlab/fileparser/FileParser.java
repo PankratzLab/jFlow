@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +34,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 
 public class FileParser implements Iterable<DataLine>, Closeable {
 
@@ -134,7 +136,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
         if (inputFileDelim == null) {
           inputFileDelim = determineDelimiter(headerLine);
         }
-        String[] headerArray = headerLine.split(inputFileDelim);
+        String[] headerArray = splitLine(headerLine);
         ImmutableMap.Builder<String, Integer> builder = new ImmutableMap.Builder<>();
         for (int i = 0; i < headerArray.length; i++) {
           builder.put(headerArray[i], i);
@@ -152,7 +154,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
         if (firstLine != null) {
           if (trimInput) firstLine = firstLine.trim();
           if (inputFileDelim == null) inputFileDelim = determineDelimiter(firstLine);
-          String[] firstLineCols = firstLine.split(inputFileDelim);
+          String[] firstLineCols = splitLine(firstLine);
           ImmutableMap.Builder<String, Integer> headerBuilder = ImmutableMap.builderWithExpectedSize(firstLineCols.length);
           for (int i = 0; i < firstLineCols.length; i++) {
             headerBuilder.put(String.valueOf(i), i);
@@ -199,6 +201,13 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     return line;
   }
 
+  private String[] splitLine(String line) {
+    if (inputFileDelim.equals(",")) {
+      return splitCommasIntelligently(line);
+    }
+    return line.split(inputFileDelim, -1);
+  }
+
   private boolean matchesSkipPrefix(String line) {
     if (!skipPrefices.isEmpty()) {
       for (String skp : skipPrefices) {
@@ -239,8 +248,8 @@ public class FileParser implements Iterable<DataLine>, Closeable {
         throw new IllegalStateException("Line " + lineCount + " was blank!");
       }
 
-      lineData = new DataLine(parseFailValue);
-      parts = line.split(inputFileDelim, -1);
+      lineData = new DataLine(lineCount, parseFailValue);
+      parts = splitLine(line);
       if (failCount && parts.length != header.size()) {
         throw new IllegalStateException("Line " + lineCount + " was the wrong length; expected "
                                         + header.size() + ", found " + parts.length);
@@ -750,21 +759,8 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     return new InputStreamReader(is);
   }
 
-  private int countInstancesOf(String str, String pattern) {
-    int count;
-    String trav;
-
-    trav = str;
-    count = 0;
-    while (trav.contains(pattern)) {
-      trav = trav.substring(trav.indexOf(pattern) + pattern.length());
-      count++;
-    }
-
-    return count;
-  }
-
   private String determineDelimiter(String str) {
+    Set<Character> commonDelims = Sets.newHashSet(' ', ',', '\t', '|');
     Multiset<Character> delimCounts = HashMultiset.create();
     boolean inQuotes = false;
     char[] chars = str.toCharArray();
@@ -787,15 +783,55 @@ public class FileParser implements Iterable<DataLine>, Closeable {
       }
       delimCounts.add(chars[i]);
     }
-    Character delim = delimCounts.entrySet().stream()
-                                 .max(Ordering.natural().onResultOf(Multiset.Entry::getCount)).get()
-                                 .getElement();
+    Character delim = commonDelims.stream().max(new Comparator<Character>() {
+      @Override
+      public int compare(Character o1, Character o2) {
+        return Integer.compare(delimCounts.count(o1), delimCounts.count(o2));
+      }
+    }).get();
+    if (delimCounts.count(delim) == 0) {
+      delim = delimCounts.entrySet().stream()
+                         .max(Ordering.natural().onResultOf(Multiset.Entry::getCount)).get()
+                         .getElement();
+    }
     if (delim == ' ') {
       // return greedy delim
       return "[\\s]+";
     } else {
       return Character.toString(delim);
     }
+  }
+
+  public static String[] splitCommasIntelligently(String str) {
+    List<String> parts = new ArrayList<>();
+
+    boolean inQuotes = false;
+    int startIndex = 0;
+    int quoteCount = 0;
+    for (int i = 0; i < str.length(); i++) {
+      if (str.charAt(i) == ',') {
+        if ((quoteCount % 2) == 0) {
+          String field = str.substring(startIndex, i);
+          if (field.charAt(0) == '"' && field.charAt(field.length() - 1) == '"') {
+            field = field.substring(1, field.length() - 1);
+          }
+          field = field.replaceAll("\"\"", "\"");
+          parts.add(field);
+          startIndex = i + 1;
+          if (inQuotes && str.charAt(i - 1) != '\"') {
+            // TODO error
+          }
+          inQuotes = false;
+        }
+      }
+      if (str.charAt(i) == '"') {
+        quoteCount++;
+        inQuotes = true;
+      }
+    }
+
+    return parts.toArray(new String[parts.size()]);
+
   }
 
 }

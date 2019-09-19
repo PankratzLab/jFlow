@@ -2487,14 +2487,8 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          BufferedReader reader = Files.getAppropriateReader("K:\\ParsingTesting\\correctness.txt");
-          String delim = ext.determineDelimiter(reader.readLine());
-          String line = null;
-          while ((line = reader.readLine()) != null) {
-            String[] pic = ext.splitLine(line, delim, new Logger());
-            System.out.println(ArrayUtils.toStr(pic, " | "));
-          }
-          reader.close();
+          String try1 = "\"test1\"\"\"";
+          System.out.println(try1.replaceAll("\"\"", "\""));
 
           return;
         case 1:

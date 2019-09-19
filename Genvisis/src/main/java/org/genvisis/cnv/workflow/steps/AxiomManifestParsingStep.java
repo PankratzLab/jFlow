@@ -76,12 +76,13 @@ public class AxiomManifestParsingStep extends Step {
           String probeset = dl.get(colPsID);
           String affyId = dl.get(colAffyID);
           String rsId = dl.get(colRSID);
-          Byte chr = dl.get(colChr);
-          Integer pos = dl.get(colPos);
+          Byte chr = dl.hasValid(colChr) ? dl.get(colChr) : 0;
+          Integer pos = dl.hasValid(colPos) ? dl.get(colPos) : 0;
 
           mkrPosWriter.println(probeset + "\t" + chr + "\t" + pos);
           lookupWriter.println(probeset + "\t" + (rsId.equals("---") ? affyId : rsId));
         } catch (ParseFailureException e) {
+          System.err.println("Error parsing line " + dl.getIndexOfLine());
           e.printStackTrace();
         }
       }

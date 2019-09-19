@@ -14,16 +14,18 @@ public class DataLine {
   private Object defaultFailValue;
   private Map<FileColumn<?>, Object> lineValues;
   private Map<FileColumn<?>, Object> failValues;
+  private long lineCount;
 
   /**
    * Constructor
    * 
    * @param defaultFailValue
    */
-  protected DataLine(Object defaultFailValue) {
+  protected DataLine(long lineCount, Object defaultFailValue) {
     lineValues = new HashMap<>();
     failValues = new HashMap<>();
     this.defaultFailValue = defaultFailValue;
+    this.lineCount = lineCount;
   }
 
   /**
@@ -71,6 +73,13 @@ public class DataLine {
   protected void fail(FileColumn<?> fc, Object failValue) {
     lineValues.put(fc, failValue);
     failValues.put(fc, failValue);
+  }
+
+  /**
+   * @return the index of this line in the file
+   */
+  public long getIndexOfLine() {
+    return lineCount;
   }
 
   /**
