@@ -1333,7 +1333,7 @@ public class GeneScorePipeline {
           }
         }
         if (hitMkrLocations.isEmpty()) {
-          FileColumn<String> mkrColumn = new ExplicitIndexedFileColumn("mkr", 0);
+          FileColumn<String> mkrColumn = StandardFileColumns.snp("mkr");
           FileColumn<Byte> chrColumn = StandardFileColumns.chr("chr");
           FileColumn<Integer> posColumn = StandardFileColumns.pos("pos");
           try {
