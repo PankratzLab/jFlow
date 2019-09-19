@@ -2665,7 +2665,7 @@ public class DosageData implements Serializable {
 
     DosageData dd = new DosageData();
 
-    Map<ImmutableList<Object>, DataLine> mapLines = null;
+    Map<ImmutableList<Object>, DataLine> mapLines = ImmutableMap.of();
     FileColumn<String> fid = new ExplicitIndexedFileColumn("FID", PSF.Plink.FAM_FID_INDEX);
     FileColumn<String> iid = new ExplicitIndexedFileColumn("IID", PSF.Plink.FAM_IID_INDEX);
     FileColumn<String> father = new ExplicitIndexedFileColumn("Father", PSF.Plink.FAM_FA_INDEX);
