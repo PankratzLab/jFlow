@@ -128,10 +128,10 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   private void open() throws IOException {
     reader = new BufferedReader(getAppropriateInputStream(inputFile));
     for (int i = 0; i < skippedLines; i++) {
-      getNextLine();
+      readNextLine();
     }
     if (!noHeader) {
-      String headerLine = getNextLine();
+      String headerLine = readNextLine();
       if (headerLine != null) {
         if (inputFileDelim == null) {
           inputFileDelim = determineDelimiter(headerLine);
@@ -182,7 +182,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     optlDataFound = b.build();
   }
 
-  private String getNextLine() throws IOException {
+  private String readNextLine() throws IOException {
     String line;
     boolean skip;
     do {
@@ -231,7 +231,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     return filterHits.count(cf);
   }
 
-  private DataLine readLine() throws IOException {
+  private DataLine parseLine() throws IOException {
     if (reader == null) return null;
 
     DataLine lineData;
@@ -242,7 +242,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
       skip = false;
       parts = null;
       lineData = null;
-      String line = getNextLine();
+      String line = readNextLine();
       if (line == null) break;
       if (failBlank && line.equals("")) {
         throw new IllegalStateException("Line " + lineCount + " was blank!");
@@ -369,12 +369,12 @@ public class FileParser implements Iterable<DataLine>, Closeable {
         try {
           if (!started) {
             // if we're calling next() without having called hasNext() first
-            currentLine = readLine();
+            currentLine = parseLine();
             started = true;
           }
           line = currentLine;
           // read the next line, which will return null when we're done
-          currentLine = readLine();
+          currentLine = parseLine();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -389,7 +389,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
            * filters / skipped lines), so load the first line of data.
            */
           try {
-            currentLine = readLine();
+            currentLine = parseLine();
           } catch (IOException e) {
             throw new RuntimeException(e);
           }
@@ -760,7 +760,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   }
 
   private String determineDelimiter(String str) {
-    Set<Character> commonDelims = Sets.newHashSet(' ', ',', '\t', '|');
+    Set<Character> commonDelims = Sets.newHashSet(' ', ',', '\t', '|', ';', '^');
     Multiset<Character> delimCounts = HashMultiset.create();
     boolean inQuotes = false;
     char[] chars = str.toCharArray();
@@ -802,7 +802,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     }
   }
 
-  public static String[] splitCommasIntelligently(String str) {
+  private static String[] splitCommasIntelligently(String str) {
     List<String> parts = new ArrayList<>();
 
     boolean inQuotes = false;

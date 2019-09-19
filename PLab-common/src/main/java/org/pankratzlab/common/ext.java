@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
 public class ext {
@@ -2031,6 +2033,7 @@ public class ext {
    * @return
    */
   public static String determineDelimiter(String str, boolean preferCommasOverSpaces) {
+    Set<Character> commonDelims = Sets.newHashSet(' ', ',', '\t', '|', ';', '^');
     Multiset<Character> delimCounts = HashMultiset.create();
     boolean inQuotes = false;
     char[] chars = str.toCharArray();
@@ -2053,13 +2056,18 @@ public class ext {
       }
       delimCounts.add(chars[i]);
     }
-    Character delim = delimCounts.entrySet().stream()
-                                 .max(Ordering.natural().onResultOf(Multiset.Entry::getCount)).get()
-                                 .getElement();
-    if (delim == ' ') {
-      if (preferCommasOverSpaces && delimCounts.count(Character.valueOf(',')) > 0) {
-        return ",";
+    Character delim = commonDelims.stream().max(new Comparator<Character>() {
+      @Override
+      public int compare(Character o1, Character o2) {
+        return Integer.compare(delimCounts.count(o1), delimCounts.count(o2));
       }
+    }).get();
+    if (delimCounts.count(delim) == 0) {
+      delim = delimCounts.entrySet().stream()
+                         .max(Ordering.natural().onResultOf(Multiset.Entry::getCount)).get()
+                         .getElement();
+    }
+    if (delim == ' ') {
       // return greedy delim
       return "[\\s]+";
     } else {
