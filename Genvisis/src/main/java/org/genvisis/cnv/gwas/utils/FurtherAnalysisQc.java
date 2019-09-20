@@ -119,6 +119,7 @@ public class FurtherAnalysisQc extends Qc {
       case ILLUMINA:
       case AFFY_AXIOM:
         return DEFAULT_ILLUMINA_MARKER_QC_THRESHOLDS;
+      case NGS:
       default:
         throw new IllegalArgumentException("Undefined for " + arrayType.getClass().getName() + ": "
                                            + arrayType.toString());

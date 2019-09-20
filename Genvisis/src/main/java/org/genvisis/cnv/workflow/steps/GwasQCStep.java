@@ -42,6 +42,7 @@ public class GwasQCStep extends Step {
       case ILLUMINA:
         defaultCallrate = MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
         break;
+      case NGS:
       default:
         throw new IllegalArgumentException("Invalid " + proj.getArrayType().getClass().getName()
                                            + ": " + proj.getArrayType().toString());

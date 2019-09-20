@@ -1,6 +1,7 @@
 package org.genvisis.cnv.workflow;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
+import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
@@ -88,10 +90,64 @@ public class GenvisisWorkflow {
       case ILLUMINA:
         return isPCCorrectedProject ? generatePCCorrectedIlluminaSteps() : generateIlluminaSteps();
       case NGS:
+        return generateNGSSteps(isPCCorrectedProject);
       default:
         throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
                                                 + proj.getArrayType() + ".");
     }
+  }
+
+  private List<Step> generateNGSSteps(boolean isPCCorrectedProject) {
+    StepBuilder sb = new StepBuilder(proj);
+
+    Step mdRAFParsingStep = new Step("MosdepthImport", "", RequirementSetBuilder.and(),
+                                     EnumSet.noneOf(Requirement.Flag.class)) {
+
+      @Override
+      public void setNecessaryPreRunProperties(Variables variables) {}
+
+      @Override
+      public void run(Variables variables) {}
+
+      @Override
+      public String getCommandLine(Variables variables) {
+        return getStepCommandLine(proj, variables);
+      }
+
+      @Override
+      public boolean checkIfOutputExists(Variables variables) {
+        // outliers.ser is written last
+        return Files.exists(proj.MARKER_DATA_DIRECTORY.getValue())
+               && Files.exists(proj.MARKER_DATA_DIRECTORY.getValue() + "outliers.ser");
+      }
+    };
+
+    ReverseTransposeTarget reverseTransposeStep = sb.generateReverseTransposeStep(mdRAFParsingStep);
+    SampleDataStep createSampleDataStep = sb.generateCreateSampleDataStep(reverseTransposeStep);
+    GCModelStep gcModelStep = sb.generateGCModelStep();
+    SampleQCStep sampleQCStep = sb.generateSampleQCStep(reverseTransposeStep);
+    sb.generateSampleQCAnnotationStep(sampleQCStep);
+    MarkerQCStep markerQCStep = sb.generateMarkerQCStep(reverseTransposeStep);
+    SexChecksStep sexChecksStep = sb.generateSexChecksStep(null, createSampleDataStep,
+                                                           reverseTransposeStep, sampleQCStep);
+    sb.generateABLookupStep(reverseTransposeStep);
+    PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(reverseTransposeStep);
+    GwasQCStep gwasQCStep = sb.generateGwasQCStep(plinkExportStep);
+    AncestryStep ancestryStep = sb.generateAncestryStep(gwasQCStep);
+    FurtherAnalysisQCStep faqcStep = sb.generateFurtherAnalysisQCStep(plinkExportStep, gwasQCStep,
+                                                                      ancestryStep);
+    sb.generateIdentifyProblemMarkersStep(markerQCStep, faqcStep);
+    sb.generateMosaicArmsStep(reverseTransposeStep);
+    sb.generateAnnotateSampleDataStep(sampleQCStep, createSampleDataStep, gwasQCStep);
+    sb.generateMitoCNEstimateStep(mdRAFParsingStep);
+    ComputePFBStep pfbStep = sb.generatePFBStep(reverseTransposeStep);
+    sb.generateSexCentroidsStep(pfbStep);
+    sb.generateCNVStep(pfbStep, gcModelStep);
+    if (!isPCCorrectedProject) {
+      sb.generatePCCorrectedProjectStep(reverseTransposeStep, sexChecksStep);
+    }
+
+    return sb.getSortedSteps();
   }
 
   private List<Step> generateAxiomSteps(boolean isPCCorrectedProject) {

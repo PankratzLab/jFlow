@@ -2266,6 +2266,8 @@ public class Project implements PropertyChangeListener {
      */
     NGS(new String[] {"*"}, 100, false/* , 0 */, 2000),
 
+    NGS_MOSDEPTH(new String[] {}, 100, false, 2000),
+
     AFFY_AXIOM(new String[] {}, 25, true, 2000)
 
     // DBGAP(new String[] {}, 0, 909622)

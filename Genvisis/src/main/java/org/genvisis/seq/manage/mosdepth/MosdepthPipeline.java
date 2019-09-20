@@ -174,7 +174,6 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
     writeLookup();
     proj.writeMarkerSet();
     buildOutliers();
-    createSampRAFsFromMDRAFs();
 
     cleanup();
   }
