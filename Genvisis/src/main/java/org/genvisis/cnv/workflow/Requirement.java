@@ -112,6 +112,10 @@ public abstract class Requirement<T> {
       super(key, description, Requirement.RequirementInputType.FILE, defaultValue);
     }
 
+    public FileRequirement(String key, String description, String tooltip, File defaultValue) {
+      super(key, description, tooltip, Requirement.RequirementInputType.FILE, defaultValue);
+    }
+
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
@@ -133,6 +137,10 @@ public abstract class Requirement<T> {
 
     public DirRequirement(String key, String description, File defaultValue) {
       super(key, description, Requirement.RequirementInputType.DIR, defaultValue);
+    }
+
+    public DirRequirement(String key, String description, String tooltip, File defaultValue) {
+      super(key, description, tooltip, Requirement.RequirementInputType.DIR, defaultValue);
     }
 
     @Override

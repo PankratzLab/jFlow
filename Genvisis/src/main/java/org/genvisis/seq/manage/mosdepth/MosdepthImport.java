@@ -20,8 +20,6 @@ import org.pankratzlab.common.ext;
 
 public class MosdepthImport {
 
-  private static final String ARG_BIN_SIZE = "binSize";
-  private static final String DESC_BIN_SIZE = "Base-pair size into which to bin the genome.";
   private static final String ARG_BIN_BED = "binBed";
   private static final String DESC_BIN_BED = "Bins-to-use .BED file; determines which bins to import as markers.  This can be generated for the entire genome with "
                                              + FASTAToBedConversion.class.getCanonicalName();
@@ -60,7 +58,7 @@ public class MosdepthImport {
     cli.addArg(ARG_SELECTED_SNP_VCF, DESC_SELECTED_SNP_VCF, true);
     cli.addArg(ARG_GENO_VCF, DESC_GENO_VCF, false);
     cli.addArg(ARG_MOS_DIR, DESC_MOS_DIR, true);
-    cli.addArg(ARG_MOS_EXT, DESC_MOS_EXT, ".bed.gz", false);
+    cli.addArg(ARG_MOS_EXT, DESC_MOS_EXT, ".bed", false);
     cli.addArg(ARG_CRAMCOUNT_DIR, DESC_CRAMCOUNT_DIR, true);
 
     cli.parse(args);

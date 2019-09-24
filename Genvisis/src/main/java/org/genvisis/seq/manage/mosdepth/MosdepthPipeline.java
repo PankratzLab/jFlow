@@ -143,7 +143,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
     super(20, 25000);
   }
 
-  void run() throws IOException, Elision {
+  public void run() throws IOException, Elision {
     checkVars();
     createProject();
 
@@ -228,7 +228,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
 
   protected void setAdditionalProjectProperties() {
     proj.GENOME_BUILD_VERSION.setValue(GenomeBuild.HG38);
-    proj.ARRAY_TYPE.setValue(ARRAY.NGS);
+    proj.ARRAY_TYPE.setValue(ARRAY.NGS_WGS);
   }
 
   protected String[] parseSamples() {
@@ -730,35 +730,47 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
       if (markerVC.size() == 0) {
         // log.reportTimeWarning("No snp found for bin " + seg.getUCSClocation()
         // + ". Bin will be skipped.");
-        missingSnpsWriter.println(seg.getChr() + "\t" + (seg.getStart() - 1) + "\t" + seg.getStop()
-                                  + "\t" + seg.getUCSClocation());
-        missingSnpsWriter.flush();
-        continue;
-      }
-      if (markerVC.size() > 1) {
+
+        // missingSnpsWriter.println(seg.getChr() + "\t" + (seg.getStart() - 1) + "\t" +
+        // seg.getStop()
+        // + "\t" + seg.getUCSClocation());
+        // missingSnpsWriter.flush();
+
+        int stt = seg.getStart();
+        int stp = seg.getStop();
+        int mid = stt + ((stp - stt) / 2) + 1;
+
+        Marker mSnpPos = new Marker(seg.getUCSClocation(), new GenomicPosition(seg.getChr(), mid));
+        Marker mBinPos = new Marker(seg.getUCSClocation(), new GenomicPosition(seg.getChr(), mid));
+
+        binLookup.put(mSnpPos, seg);
+        snpMarkers.add(mSnpPos);
+        binMarkers.add(mBinPos);
+      } else if (markerVC.size() > 1) {
         log.reportError("Multiple markers-to-use found for bin " + seg.getUCSClocation()
                         + ".  Bin will be skipped.");
         continue;
+      } else {
+        VariantContext chosenSnp = markerVC.get(0);
+
+        Marker mSnpPos = new Marker(chosenSnp.getID(),
+                                    new GenomicPosition(Positions.chromosomeNumber(chosenSnp.getContig()),
+                                                        chosenSnp.getStart()),
+                                    AllelePair.of(chosenSnp.getReference(),
+                                                  chosenSnp.getAlternateAlleles().get(0)));
+        int stt = new Integer(chosenSnp.getAttribute("BINSTART").toString()).intValue();
+        int stp = new Integer(chosenSnp.getAttribute("BINSTOP").toString()).intValue();
+        int mid = stt + ((stp - stt) / 2) + 1;
+
+        Marker mBinPos = new Marker(chosenSnp.getID(),
+                                    new GenomicPosition(Positions.chromosomeNumber(chosenSnp.getContig()),
+                                                        mid),
+                                    AllelePair.of(chosenSnp.getReference(),
+                                                  chosenSnp.getAlternateAlleles().get(0)));
+        binLookup.put(mSnpPos, seg);
+        snpMarkers.add(mSnpPos);
+        binMarkers.add(mBinPos);
       }
-      VariantContext chosenSnp = markerVC.get(0);
-
-      Marker mSnpPos = new Marker(chosenSnp.getID(),
-                                  new GenomicPosition(Positions.chromosomeNumber(chosenSnp.getContig()),
-                                                      chosenSnp.getStart()),
-                                  AllelePair.of(chosenSnp.getReference(),
-                                                chosenSnp.getAlternateAlleles().get(0)));
-      int stt = new Integer(chosenSnp.getAttribute("BINSTART").toString()).intValue();
-      int stp = new Integer(chosenSnp.getAttribute("BINSTOP").toString()).intValue();
-      int mid = stt + ((stp - stt) / 2) + 1;
-
-      Marker mBinPos = new Marker(chosenSnp.getID(),
-                                  new GenomicPosition(Positions.chromosomeNumber(chosenSnp.getContig()),
-                                                      mid),
-                                  AllelePair.of(chosenSnp.getReference(),
-                                                chosenSnp.getAlternateAlleles().get(0)));
-      binLookup.put(mSnpPos, seg);
-      snpMarkers.add(mSnpPos);
-      binMarkers.add(mBinPos);
     }
     snpReader.close();
     if (removeBins != null) {

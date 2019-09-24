@@ -304,7 +304,7 @@ public class HmmOptimizer implements Serializable {
       boolean[] markersToUse = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
       for (int i = 0; i < autosomalMarkers.length; i++) {
         markersToUse[autosomalMarkers[i]] = true;
-        if (proj.ARRAY_TYPE.getValue() == ARRAY.NGS) {
+        if (proj.ARRAY_TYPE.getValue() == ARRAY.NGS_WES) {
           String name = markerSet.getMarkerNames()[autosomalMarkers[i]];
           markersToUse[autosomalMarkers[i]] = NGS_MARKER_TYPE.getType(name) != NGS_MARKER_TYPE.VARIANT_SITE;
         }

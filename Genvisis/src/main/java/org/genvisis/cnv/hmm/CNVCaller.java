@@ -884,7 +884,7 @@ public class CNVCaller {
       markersToUse = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
       for (int i = 0; i < autosomalMarkers.length; i++) {
         markersToUse[autosomalMarkers[i]] = true;
-        if (array == ARRAY.NGS) {
+        if (array == ARRAY.NGS_WES) {
           String name = markerNames[autosomalMarkers[i]];
           markersToUse[autosomalMarkers[i]] = NGS_MARKER_TYPE.getType(name) != NGS_MARKER_TYPE.VARIANT_SITE;
         }

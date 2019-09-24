@@ -740,8 +740,8 @@ public class ProjectCreationGUI extends JDialog {
         actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
         actualProj.setSourceFileHeaders(headers);
         break;
-      case NGS:
-        break;
+      case NGS_WES:
+      case NGS_WGS:
       default:
         break;
 

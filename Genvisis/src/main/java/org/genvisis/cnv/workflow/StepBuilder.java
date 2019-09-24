@@ -25,6 +25,7 @@ import org.genvisis.cnv.workflow.steps.IlluminaMarkerPositionsStep;
 import org.genvisis.cnv.workflow.steps.MarkerQCStep;
 import org.genvisis.cnv.workflow.steps.MitoCNEstimateStep;
 import org.genvisis.cnv.workflow.steps.MosaicArmsStep;
+import org.genvisis.cnv.workflow.steps.MosdepthImportStep;
 import org.genvisis.cnv.workflow.steps.PCCorrectionStep;
 import org.genvisis.cnv.workflow.steps.ParseSamplesStep;
 import org.genvisis.cnv.workflow.steps.PlinkExportStep;
@@ -124,6 +125,11 @@ public class StepBuilder {
                                                                       : register(IlluminaMarkerBlastStep.create(proj,
                                                                                                                 parseSamplesStep,
                                                                                                                 numThreadsReq));
+  }
+
+  public MosdepthImportStep generateMosdepthImportStep() {
+    return stepInstanceMap.containsKey(MosdepthImportStep.class) ? stepInstanceMap.getInstance(MosdepthImportStep.class)
+                                                                 : register(MosdepthImportStep.create(proj));
   }
 
   public AxiomCELProcessingStep generateAxiomCELProcessingStep(AxiomManifestParsingStep axiomManifestParsingStep) {
@@ -333,7 +339,9 @@ public class StepBuilder {
         IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
         ParseSamplesStep parseSamplesStep = generateParseSamplesStep(markerPositions);
         return generateTransposeStep(parseSamplesStep);
-      case NGS:
+      case NGS_WGS:
+        return generateMosdepthImportStep();
+      case NGS_WES:
       default:
         throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
                                                 + proj.getArrayType() + ".");
@@ -354,7 +362,9 @@ public class StepBuilder {
       case ILLUMINA:
         IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
         return generateParseSamplesStep(markerPositions);
-      case NGS:
+      case NGS_WGS:
+        MosdepthImportStep mosStep = generateMosdepthImportStep();
+        return generateReverseTransposeStep(mosStep);
       default:
         throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
                                                 + proj.getArrayType() + ".");
@@ -377,7 +387,9 @@ public class StepBuilder {
         IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
         ParseSamplesStep parseSamplesStep = generateParseSamplesStep(markerPositions);
         return generateIlluminaMarkerBlastAnnotationStep(parseSamplesStep);
-      case NGS:
+      case NGS_WGS:
+        return null;
+      case NGS_WES:
       default:
         throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
                                                 + proj.getArrayType() + ".");

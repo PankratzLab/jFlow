@@ -87,7 +87,7 @@ class CNVForceCaller {
           boolean[] beastMarkers = ArrayUtils.booleanArray(markersToUse.length, false);
           proj.getLog().reportTimeInfo("Starting with " + ArrayUtils.booleanArraySum(markersToUse)
                                        + " markers to use");
-          if (proj.ARRAY_TYPE.getValue() == ARRAY.NGS) {
+          if (proj.ARRAY_TYPE.getValue() == ARRAY.NGS_WES) {
             proj.getLog().reportTimeInfo("subsetting to CN only for " + proj.ARRAY_TYPE.getValue());
             boolean[] tmp = proj.getCNMarkersMask();
             for (int i = 0; i < tmp.length; i++) {

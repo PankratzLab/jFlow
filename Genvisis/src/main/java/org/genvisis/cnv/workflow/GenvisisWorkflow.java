@@ -1,7 +1,6 @@
 package org.genvisis.cnv.workflow;
 
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +10,6 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
-import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
@@ -89,38 +87,19 @@ public class GenvisisWorkflow {
         return generateAffySteps(isPCCorrectedProject);
       case ILLUMINA:
         return isPCCorrectedProject ? generatePCCorrectedIlluminaSteps() : generateIlluminaSteps();
-      case NGS:
-        return generateNGSSteps(isPCCorrectedProject);
+      case NGS_WGS:
+        return generateNGSWGSSteps(isPCCorrectedProject);
+      case NGS_WES:
       default:
         throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
                                                 + proj.getArrayType() + ".");
     }
   }
 
-  private List<Step> generateNGSSteps(boolean isPCCorrectedProject) {
+  private List<Step> generateNGSWGSSteps(boolean isPCCorrectedProject) {
     StepBuilder sb = new StepBuilder(proj);
 
-    Step mdRAFParsingStep = new Step("MosdepthImport", "", RequirementSetBuilder.and(),
-                                     EnumSet.noneOf(Requirement.Flag.class)) {
-
-      @Override
-      public void setNecessaryPreRunProperties(Variables variables) {}
-
-      @Override
-      public void run(Variables variables) {}
-
-      @Override
-      public String getCommandLine(Variables variables) {
-        return getStepCommandLine(proj, variables);
-      }
-
-      @Override
-      public boolean checkIfOutputExists(Variables variables) {
-        // outliers.ser is written last
-        return Files.exists(proj.MARKER_DATA_DIRECTORY.getValue())
-               && Files.exists(proj.MARKER_DATA_DIRECTORY.getValue() + "outliers.ser");
-      }
-    };
+    Step mdRAFParsingStep = sb.generateMosdepthImportStep();
 
     ReverseTransposeTarget reverseTransposeStep = sb.generateReverseTransposeStep(mdRAFParsingStep);
     SampleDataStep createSampleDataStep = sb.generateCreateSampleDataStep(reverseTransposeStep);

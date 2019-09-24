@@ -350,7 +350,7 @@ public class BamImport {
                                                          NORMALIZATON_METHOD normMethod,
                                                          int numThreads) {
 
-    if (proj.getArrayType() == ARRAY.NGS) {
+    if (proj.getArrayType() == ARRAY.NGS_WES) {
       Logger log = proj.getLog();
 
       String serDir = getSerDir(proj);
@@ -386,7 +386,7 @@ public class BamImport {
       return results;
 
     } else {
-      proj.getLog().reportError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS);
+      proj.getLog().reportError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS_WES);
     }
     return null;
   }

@@ -109,7 +109,8 @@ public class CNVAnnotation {
 
           for (String element : namesIn) {
             NGS_MARKER_TYPE type = NGS_MARKER_TYPE.getType(element);
-            if (proj.ARRAY_TYPE.getValue() != ARRAY.NGS || type != NGS_MARKER_TYPE.VARIANT_SITE) {
+            if (proj.ARRAY_TYPE.getValue() != ARRAY.NGS_WES
+                || type != NGS_MARKER_TYPE.VARIANT_SITE) {
               nonVariant.add(track.get(element));
             }
           }

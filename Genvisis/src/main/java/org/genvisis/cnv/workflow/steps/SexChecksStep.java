@@ -25,7 +25,8 @@ public class SexChecksStep extends Step {
                                      final Step sampleQCStep) {
     final Requirement<Step> sampleDataStepReq = new Requirement.StepRequirement(sampleDataStep);
     final Requirement<Step> transposeStepReq = new Requirement.StepRequirement(transposeStep);
-    final Requirement<Step> sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
+    final Requirement<Step> sampleQCStepReq = sampleQCStep == null ? null
+                                                                   : new Requirement.StepRequirement(sampleQCStep);
     final Requirement<Boolean> addToSampleDataReq = new Requirement.OptionalBoolRequirement("addEstSexToSampData",
                                                                                             ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT,
                                                                                             true);
@@ -44,8 +45,11 @@ public class SexChecksStep extends Step {
     }
     mkrReq.add(noCrossHybeReq);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(sampleDataStepReq)
-                                                       .add(transposeStepReq).add(sampleQCStepReq)
-                                                       .add(mkrReq);
+                                                       .add(transposeStepReq);
+    if (sampleQCStepReq != null) {
+      reqSet.add(sampleQCStepReq);
+    }
+    reqSet.add(mkrReq);
     return new SexChecksStep(proj, addToSampleDataReq, noCrossHybeReq, oneHittersReq, reqSet);
   }
 

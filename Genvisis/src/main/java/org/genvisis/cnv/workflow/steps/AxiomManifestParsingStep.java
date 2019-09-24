@@ -76,7 +76,7 @@ public class AxiomManifestParsingStep extends Step {
           String probeset = dl.get(colPsID);
           String affyId = dl.get(colAffyID);
           String rsId = dl.get(colRSID);
-          Byte chr = dl.hasValid(colChr) ? dl.get(colChr) : 0;
+          Byte chr = dl.hasValid(colChr) ? (dl.get(colChr) == -1 ? 0 : dl.get(colChr)) : 0;
           Integer pos = dl.hasValid(colPos) ? dl.get(colPos) : 0;
 
           mkrPosWriter.println(probeset + "\t" + chr + "\t" + pos);

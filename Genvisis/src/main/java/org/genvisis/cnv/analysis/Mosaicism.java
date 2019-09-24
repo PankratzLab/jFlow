@@ -208,8 +208,9 @@ public class Mosaicism {
     Map<Marker, Double> bafs = samp.markerBAFMap(markerSet);
     MosaicBuilder builder = new MosaicBuilder();
     builder.verbose(false);
-    if (proj.getArrayType() == ARRAY.NGS) {
-      proj.getLog().reportTimeWarning("Masking non-variant sites for project type " + ARRAY.NGS);
+    if (proj.getArrayType() == ARRAY.NGS_WES) {
+      proj.getLog()
+          .reportTimeWarning("Masking non-variant sites for project type " + ARRAY.NGS_WES);
       Set<Marker> use = markerSet.markersAsList().stream()
                                  .filter(m -> !proj.getArrayType().isCNOnly(m.getName()))
                                  .collect(ImmutableSet.toImmutableSet());

@@ -78,7 +78,8 @@ public class AffyParsingPipeline {
         this.intensityTransform = d -> power2(d);
         break;
       case ILLUMINA:
-      case NGS:
+      case NGS_WES:
+      case NGS_WGS:
       default:
         break;
 

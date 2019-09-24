@@ -973,7 +973,7 @@ public class lab {
     actualProj.PROJECT_DIRECTORY.setValue(ext.parseDirectoryOfFile(projFile));
     actualProj.SOURCE_DIRECTORY.setValue(srcDir);
     actualProj.SOURCE_FILENAME_EXTENSION.setValue(exten);
-    actualProj.ARRAY_TYPE.setValue(ARRAY.NGS);
+    actualProj.ARRAY_TYPE.setValue(ARRAY.NGS_WES);
     actualProj.saveProperties();
   }
 

@@ -40,9 +40,10 @@ public class GwasQCStep extends Step {
         break;
       case AFFY_AXIOM:
       case ILLUMINA:
+      case NGS_WGS:
         defaultCallrate = MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
         break;
-      case NGS:
+      case NGS_WES:
       default:
         throw new IllegalArgumentException("Invalid " + proj.getArrayType().getClass().getName()
                                            + ": " + proj.getArrayType().toString());
