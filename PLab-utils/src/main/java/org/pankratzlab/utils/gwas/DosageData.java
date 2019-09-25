@@ -2583,7 +2583,7 @@ public class DosageData implements Serializable {
     }
 
     VCFHeader header;
-    List<VariantContext> keepList = Lists.newArrayList();
+    List<VCFExtractData> keepList = Lists.newArrayList();
 
     try (VCFFileReader reader = new VCFFileReader(new File(vcfFile),
                                                   Files.exists(vcfFile + ".tbi"))) {
@@ -2621,7 +2621,7 @@ public class DosageData implements Serializable {
               || segLookup.containsKey(vc.getContig() + ":" + vc.getStart())
               || segsToQuery.contains(new Segment(Positions.chromosomeNumber(vc.getContig()),
                                                   vc.getStart(), vc.getEnd()))) {
-            keepList.add(vc);
+            keepList.add(new VCFExtractData(vc));
             String id = markerSet.contains(vc.getID()) ? vc.getID()
                                                        : segLookup.containsKey(vc.getContig() + ":"
                                                                                + vc.getStart()) ? segLookup.get((vc.getContig() + ":" + vc.getStart())) : vc.getID();
@@ -2642,7 +2642,7 @@ public class DosageData implements Serializable {
         HashSet<String> remaining = loadAll ? null : new HashSet<>(markerSet);
         for (VariantContext vc : reader) {
           if (remaining.contains(vc.getID())) {
-            keepList.add(vc);
+            keepList.add(new VCFExtractData(vc));
             remaining.remove(vc.getID());
           }
           if (remaining.size() == 0) break; // done
@@ -2708,19 +2708,22 @@ public class DosageData implements Serializable {
     String[] markerNames = new String[numMarkers];
 
     if (loadAll) {
+      VCFExtractData vcd;
       try (VCFFileReader reader = new VCFFileReader(new File(vcfFile),
                                                     Files.exists(vcfFile + ".tbi"))) {
         int count = 0;
         for (VariantContext vc : reader) {
-          setData(markerNamePrepend, probTag, dd, markerNames, vc, count);
+          vcd = new VCFExtractData(vc);
+          setData(markerNamePrepend, probTag, dd, markerNames, vcd, count);
           count++;
         }
+        vcd = null;
       }
     } else {
-      VariantContext vc;
+      VCFExtractData vcd;
       for (int i = 0; i < numMarkers; i++) {
-        vc = keepList.get(i);
-        setData(markerNamePrepend, probTag, dd, markerNames, vc, i);
+        vcd = keepList.get(i);
+        setData(markerNamePrepend, probTag, dd, markerNames, vcd, i);
       }
     }
 
@@ -2732,21 +2735,38 @@ public class DosageData implements Serializable {
     return dd;
   }
 
+  static class VCFExtractData {
+    final String name;
+    final byte chr;
+    final int pos;
+    final String[] alleles;
+    GenotypesContext gc;
+
+    public VCFExtractData(VariantContext vc) {
+      this.name = vc.getID();
+      this.chr = Positions.chromosomeNumber(vc.getContig());
+      this.pos = vc.getStart();
+      this.alleles = new String[vc.getAlleles().size()];
+      this.alleles[0] = vc.getReference().getBaseString();
+      for (int i = 1; i < this.alleles.length; i++) {
+        this.alleles[i] = vc.getAlternateAlleles().get(i - 1).getBaseString();
+      }
+      this.gc = vc.getGenotypes();
+    }
+
+  }
+
   private static void setData(String markerNamePrepend, String probTag, DosageData dd,
-                              String[] markerNames, VariantContext vc, int i) {
-    markerNames[i] = vc.getID();
+                              String[] markerNames, VCFExtractData vc, int i) {
+    markerNames[i] = vc.name;
     if (markerNamePrepend != null && !markerNames[i].startsWith(markerNamePrepend)) {
       markerNames[i] = markerNamePrepend + (markerNamePrepend.endsWith("_") ? "" : "_")
                        + markerNames[i];
     }
-    dd.chrs[i] = Positions.chromosomeNumber(vc.getContig());
-    dd.positions[i] = vc.getStart();
-    dd.alleles[i] = new String[vc.getAlleles().size()];
-    dd.alleles[i][0] = vc.getReference().getBaseString();
-    for (int j = 1; j < dd.alleles[i].length; j++) {
-      dd.alleles[i][j] = vc.getAlternateAlleles().get(j - 1).getBaseString();
-    }
-    GenotypesContext gc = vc.getGenotypes();
+    dd.chrs[i] = vc.chr;
+    dd.positions[i] = vc.pos;
+    dd.alleles[i] = vc.alleles;
+    GenotypesContext gc = vc.gc;
     for (int j = 0; j < gc.size(); j++) {
       Genotype g = gc.get(j);
       Object o = g.getExtendedAttribute(probTag);
