@@ -1,5 +1,6 @@
 package org.genvisis.one.ben.imagetag;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
@@ -82,6 +83,8 @@ import javax.swing.tree.TreePath;
 import org.apache.commons.collections4.MultiSet;
 import org.apache.commons.collections4.multiset.HashMultiSet;
 import org.genvisis.one.ben.imagetag.AnnotatedImage.Annotation;
+import org.genvisis.one.ben.imagetag.IAnnotator.Loaded;
+import org.genvisis.one.ben.imagetag.IAnnotator.LoadedSaved;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -1087,7 +1090,17 @@ public class ImageAnnotator {
       setLastUsedImageDir(fS);
       validationFiles.clear();
       annotator = new Annotator();
-      annotator.loadImgDir(fS);
+      Loaded loaded = annotator.loadImgDir(fS);
+      if (loaded.unmatched.size() > 0) {
+        JLabel label = new JLabel("<html>" + loaded.getString() + "</html>");
+        JScrollPane pane = new JScrollPane(label);
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(pane, BorderLayout.CENTER);
+        panel.add(new JLabel("<html>Image names must start with the name of the subdirectory they are in.</html>"),
+                  BorderLayout.SOUTH);
+        JOptionPane.showMessageDialog(ImageAnnotator.this.frmAnnotator, panel, "Unmatched Files",
+                                      JOptionPane.WARNING_MESSAGE);
+      }
       setAnnotationsChanged();
       reloadControls();
       saveProperties();
@@ -1886,7 +1899,7 @@ public class ImageAnnotator {
   private void loadAnnotationFile(String annFile) {
     try {
       annotator = new Annotator();
-      annotator.loadAnnotations(annFile);
+      LoadedSaved saved = annotator.loadAnnotations(annFile);
       setLastSavedAnnotationFile(annFile);
       setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile)));
       recentAnnotFiles.add(annFile);
@@ -1903,6 +1916,19 @@ public class ImageAnnotator {
       tree.setSelectionRow(0);
       tree.scrollRowToVisible(0);
       saveProperties();
+      if (saved.missing > 0 || saved.unmatched.size() > 0) {
+        JLabel label = new JLabel("<html>" + saved.getString() + "</html>");
+        JScrollPane pane = new JScrollPane(label);
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(pane, BorderLayout.CENTER);
+        panel.add(new JLabel("<html>Image names must start with the name of the subdirectory they are in."
+                             + (saved.missing > 0 ? "<br />Missing files can be shown/hidden in the menu."
+                                                  : "")
+                             + "</html>"),
+                  BorderLayout.SOUTH);
+        JOptionPane.showMessageDialog(ImageAnnotator.this.frmAnnotator, panel, "Loading Results",
+                                      JOptionPane.INFORMATION_MESSAGE);
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
