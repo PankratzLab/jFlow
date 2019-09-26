@@ -193,7 +193,7 @@ public class CRAMSnpReader {
 
   public static void main(String[] args) {
     CLI cli = new CLI(CRAMSnpReader.class);
-  
+
     cli.addArg("vcf", "Selected-SNP VCF File", true);
     cli.addArg("cram", "CRAM file directory");
     cli.addArg("list", "File with list of cram files to process");
@@ -201,7 +201,7 @@ public class CRAMSnpReader {
     cli.addArg("out", "Output file directory", true);
     cli.addArg("build", "Genome build, one of " + ArrayUtils.toStr(GenomeBuild.values(), ", "),
                true);
-  
+
     if (args.length == 0) {
       System.setProperty("samjdk.reference_fasta",
                          Resources.genome(GenomeBuild.HG38, new Logger()).getFASTA().get());
@@ -231,7 +231,7 @@ public class CRAMSnpReader {
                           GenomeBuild.valueOf(cli.get("build").toUpperCase()), true).run();
       }
     }
-  
+
   }
 
 }
