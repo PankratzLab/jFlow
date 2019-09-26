@@ -95,4 +95,8 @@ public class AnnotatedImage {
   public ArrayList<AnnotatedImage.Annotation> getAnnotations() {
     return this.annots;
   }
+
+  public boolean isMissing() {
+    return this.missing;
+  }
 }

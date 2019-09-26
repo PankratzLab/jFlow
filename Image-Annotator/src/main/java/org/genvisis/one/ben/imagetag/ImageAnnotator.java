@@ -145,6 +145,7 @@ public class ImageAnnotator {
   private static final String BACKUP_FILE = BACKUP_DIR + "backup.annotations";
   private volatile boolean annotationsChanged = false;
   private volatile boolean checkBxAdvanceAfterAnnotationKeyed = true;
+  private volatile boolean checkBxHideMissing = false;
 
   private void setAnnotationsChanged() {
     annotationsChanged = true;
@@ -840,6 +841,17 @@ public class ImageAnnotator {
     mntmNavAdvAfterAnnot.setText("Advance after annotating (or SHIFT)");
     mntmNavAdvAfterAnnot.setSelected(true);
     mnNav.add(mntmNavAdvAfterAnnot);
+
+    JCheckBoxMenuItem mntmNavHideMissing = new JCheckBoxMenuItem();
+    mntmNavHideMissing.setAction(new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        checkBxHideMissing = mntmNavHideMissing.isSelected();
+        updateAvail();
+      }
+    });
+    mntmNavHideMissing.setText("Hide Missing");
+    mnNav.add(mntmNavHideMissing);
 
     return menuBar;
   }
@@ -1720,6 +1732,7 @@ public class ImageAnnotator {
                                                                                          .getRoot());
     root.removeAllChildren();
     for (AnnotatedImage img : imgs) {
+      if (checkBxHideMissing && img.isMissing()) continue;
       DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode();
       dmtn.setUserObject(img);
       root.add(dmtn);
