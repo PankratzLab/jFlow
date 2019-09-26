@@ -47,6 +47,8 @@ import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.parsing.DoubleFilter;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.common.stats.Maths.COMPARISON;
+import org.pankratzlab.common.stats.ProbDist;
+import org.pankratzlab.common.stats.RegressionModel;
 import org.pankratzlab.fileparser.AbstractColumnFilter;
 import org.pankratzlab.fileparser.AbstractFileColumn;
 import org.pankratzlab.fileparser.AliasedFileColumn;
@@ -54,14 +56,11 @@ import org.pankratzlab.fileparser.ColumnFilter;
 import org.pankratzlab.fileparser.ColumnFilters;
 import org.pankratzlab.fileparser.DataLine;
 import org.pankratzlab.fileparser.DoubleWrapperColumn;
-import org.pankratzlab.fileparser.ExplicitIndexedFileColumn;
 import org.pankratzlab.fileparser.FileColumn;
 import org.pankratzlab.fileparser.FileParser;
 import org.pankratzlab.fileparser.FileParserFactory;
 import org.pankratzlab.fileparser.IndexedFileColumn;
 import org.pankratzlab.fileparser.ParseFailureException;
-import org.pankratzlab.common.stats.ProbDist;
-import org.pankratzlab.common.stats.RegressionModel;
 import org.pankratzlab.utils.bioinformatics.MapSNPsAndGenes;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.DosageData;
@@ -1827,6 +1826,7 @@ public class GeneScorePipeline {
 
       for (Constraint constr : analysisConstraints) {
         if (study.data.get(mf, constr).isEmpty()) {
+          study.markerData.put(constr, mf, new HashMap<>());
           continue;
         }
 
