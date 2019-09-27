@@ -17,10 +17,10 @@ import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.parsing.DoubleWrapperColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.fileparser.AliasedFileColumn;
-import org.pankratzlab.fileparser.DoubleWrapperColumn;
 import org.pankratzlab.fileparser.FileColumn;
 import org.pankratzlab.fileparser.FileLink;
 import org.pankratzlab.fileparser.FileParserFactory;
@@ -501,6 +501,7 @@ public class SnpTest {
     boolean parse = false;
     String parseDir = null;
     String infoDirAndTemp = null;
+    String infoTemplate = null;
     boolean generate = false;
     String sexFile = null;
     String phenoFile = null;
@@ -526,6 +527,9 @@ public class SnpTest {
       if (arg.startsWith("phenoList=")) {
         phenoFile = arg.split("=")[1];
       }
+      if (arg.startsWith("infoTemplate=")) {
+        infoTemplate = arg.split("=")[1];
+      }
       if (arg.startsWith("covFile=")) {
         covFile = arg.split("=")[1];
       }
@@ -541,8 +545,6 @@ public class SnpTest {
       if (parseDir == null || infoDirAndTemp == null) {
         invalidParse = true;
       }
-    } else if (generate) {
-
     } else {
       if (parseDir != null || infoDirAndTemp != null) {
         invalidParse = true;
@@ -598,6 +600,9 @@ public class SnpTest {
       run.setDataFileTemplate(data);
     } else if (ext != null) {
       run.setDataFileExtension(ext);
+    }
+    if (infoTemplate != null) {
+      run.infoFileTemplate = infoTemplate;
     }
     run.setSampleFile(samp);
     run.setPheno(phen);
