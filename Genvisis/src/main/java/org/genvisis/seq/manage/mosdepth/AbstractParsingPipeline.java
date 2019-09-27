@@ -78,6 +78,7 @@ public abstract class AbstractParsingPipeline {
     String propFile = ext.verifyDirFormat(propFileDir)
                       + ext.replaceWithLinuxSafeCharacters(projName) + ".properties";
     if (!Files.exists(propFile)) {
+      Files.ensurePathExists(propFileDir);
       Files.write((new Project()).PROJECT_NAME.getName() + "=" + projName, propFile);
       proj = new Project(propFile);
       log = proj.getLog();
