@@ -14,6 +14,7 @@ import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
 import org.genvisis.cnv.workflow.steps.AxiomCELProcessingStep;
+import org.genvisis.cnv.workflow.steps.AxiomManifestParsingStep;
 import org.genvisis.cnv.workflow.steps.ComputePFBStep;
 import org.genvisis.cnv.workflow.steps.FurtherAnalysisQCStep;
 import org.genvisis.cnv.workflow.steps.GCModelStep;
@@ -86,22 +87,59 @@ public class GenvisisWorkflow {
         return generateAffySteps(isPCCorrectedProject);
       case ILLUMINA:
         return isPCCorrectedProject ? generatePCCorrectedIlluminaSteps() : generateIlluminaSteps();
-      case NGS:
+      case NGS_WGS:
+        return generateNGSWGSSteps(isPCCorrectedProject);
+      case NGS_WES:
       default:
         throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
                                                 + proj.getArrayType() + ".");
     }
   }
 
+  private List<Step> generateNGSWGSSteps(boolean isPCCorrectedProject) {
+    StepBuilder sb = new StepBuilder(proj);
+
+    Step mdRAFParsingStep = sb.generateMosdepthImportStep();
+
+    ReverseTransposeTarget reverseTransposeStep = sb.generateReverseTransposeStep(mdRAFParsingStep);
+    SampleDataStep createSampleDataStep = sb.generateCreateSampleDataStep(reverseTransposeStep);
+    GCModelStep gcModelStep = sb.generateGCModelStep();
+    SampleQCStep sampleQCStep = sb.generateSampleQCStep(reverseTransposeStep);
+    sb.generateSampleQCAnnotationStep(sampleQCStep);
+    MarkerQCStep markerQCStep = sb.generateMarkerQCStep(reverseTransposeStep);
+    SexChecksStep sexChecksStep = sb.generateSexChecksStep(null, createSampleDataStep,
+                                                           reverseTransposeStep, sampleQCStep);
+    sb.generateABLookupStep(reverseTransposeStep);
+    PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(reverseTransposeStep);
+    GwasQCStep gwasQCStep = sb.generateGwasQCStep(plinkExportStep);
+    AncestryStep ancestryStep = sb.generateAncestryStep(gwasQCStep);
+    FurtherAnalysisQCStep faqcStep = sb.generateFurtherAnalysisQCStep(plinkExportStep, gwasQCStep,
+                                                                      ancestryStep);
+    sb.generateIdentifyProblemMarkersStep(markerQCStep, faqcStep);
+    sb.generateMosaicArmsStep(reverseTransposeStep);
+    sb.generateAnnotateSampleDataStep(sampleQCStep, createSampleDataStep, gwasQCStep);
+    sb.generateMitoCNEstimateStep(mdRAFParsingStep);
+    ComputePFBStep pfbStep = sb.generatePFBStep(reverseTransposeStep);
+    sb.generateSexCentroidsStep(pfbStep);
+    sb.generateCNVStep(pfbStep, gcModelStep);
+    if (!isPCCorrectedProject) {
+      sb.generatePCCorrectedProjectStep(reverseTransposeStep, sexChecksStep);
+    }
+
+    return sb.getSortedSteps();
+  }
+
   private List<Step> generateAxiomSteps(boolean isPCCorrectedProject) {
     StepBuilder sb = new StepBuilder(proj);
+    AxiomManifestParsingStep manifestStep;
     AxiomCELProcessingStep parseAxiomCELs;
     AffyMarkerBlastStep affyMarkerBlastStep = null;
     ReverseTransposeTarget reverseTransposeStep = null;
     SampleDataStep createSampleDataStep;
     GCModelStep gcModelStep;
     SampleQCStep sampleQCStep;
-    parseAxiomCELs = sb.generateAxiomCELProcessingStep();
+    manifestStep = sb.generateAxiomManifestParsingStep();
+    parseAxiomCELs = sb.generateAxiomCELProcessingStep(manifestStep);
     reverseTransposeStep = sb.generateReverseTransposeStep(parseAxiomCELs);
     affyMarkerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(reverseTransposeStep);
     createSampleDataStep = sb.generateCreateSampleDataStep(reverseTransposeStep);
@@ -121,7 +159,7 @@ public class GenvisisWorkflow {
     sb.generateIdentifyProblemMarkersStep(markerQCStep, faqcStep);
     sb.generateMosaicArmsStep(reverseTransposeStep);
     sb.generateAnnotateSampleDataStep(sampleQCStep, createSampleDataStep, gwasQCStep);
-    sb.generateMitoCNEstimateStep(reverseTransposeStep);
+    sb.generateMitoCNEstimateStep(parseAxiomCELs);
     ComputePFBStep pfbStep = sb.generatePFBStep(reverseTransposeStep);
     sb.generateSexCentroidsStep(pfbStep);
     sb.generateCNVStep(pfbStep, gcModelStep);
@@ -160,7 +198,7 @@ public class GenvisisWorkflow {
     sb.generateIdentifyProblemMarkersStep(markerQCStep, faqcStep);
     sb.generateMosaicArmsStep(reverseTransposeStep);
     sb.generateAnnotateSampleDataStep(sampleQCStep, createSampleDataStep, gwasQCStep);
-    sb.generateMitoCNEstimateStep(reverseTransposeStep);
+    sb.generateMitoCNEstimateStep(parseAffyCELs);
     ComputePFBStep pfbStep = sb.generatePFBStep(reverseTransposeStep);
     sb.generateSexCentroidsStep(pfbStep);
     sb.generateCNVStep(pfbStep, gcModelStep);

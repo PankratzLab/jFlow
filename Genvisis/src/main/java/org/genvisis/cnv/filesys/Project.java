@@ -1795,8 +1795,8 @@ public class Project implements PropertyChangeListener {
 
   /**
    * Reports message to the log and if and only if a GUI is being used, it also creates a message
-   * dialog as well This simplified method assumes this is an error and says as much in the window
-   * title it creates
+   * dialog as well This simplified method assumes this is an information message and sets the title
+   * as "Alert".
    *
    * @param str The message to display
    */
@@ -2264,7 +2264,9 @@ public class Project implements PropertyChangeListener {
     /**
      * For bamFiles
      */
-    NGS(new String[] {"*"}, 100, false/* , 0 */, 2000),
+    NGS_WES(new String[] {"*"}, 100, false/* , 0 */, 2000),
+
+    NGS_WGS(new String[] {"*"}, 100, false, 2000),
 
     AFFY_AXIOM(new String[] {}, 25, true, 2000)
 
@@ -2314,9 +2316,12 @@ public class Project implements PropertyChangeListener {
      * @return whether the marker trips the {@link ARRAY#cnFlags} flags
      */
     public boolean isCNOnly(String markerName) {
-      if (this == NGS) {
-        return NGS_MARKER_TYPE.getType(markerName) != NGS_MARKER_TYPE.VARIANT_SITE;// only non cn
-                                                                                   // type we have
+      if (this == NGS_WES) {
+        // only non cn type we have
+        return NGS_MARKER_TYPE.getType(markerName) != NGS_MARKER_TYPE.VARIANT_SITE;
+      } else if (this == NGS_WGS) {
+        // all WGS / mosdepth markers are valid markers
+        return false;
       } else {
         for (String cnFlag : cnFlags) {
           if (ext.indexOfStartsWith(cnFlag, new String[] {markerName}, false) >= 0) {

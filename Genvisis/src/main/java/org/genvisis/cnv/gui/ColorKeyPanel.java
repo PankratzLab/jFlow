@@ -36,7 +36,7 @@ public class ColorKeyPanel extends JPanel {
 
   private final Color[] colorScheme;
   private final JPanel classVariablesPanel;
-  public JPanel classValuesPanel;
+  private JPanel classValuesPanel;
   private int currentClass;
   private JRadioButton[] classRadioButtons;
 
@@ -70,6 +70,7 @@ public class ColorKeyPanel extends JPanel {
     updateColorVariablePanel(listener == null ? defaultClassListener : listener);
     add(classVariablesPanel);
     classValuesPanel = new JPanel(new WrapLayout(FlowLayout.CENTER, 0, 0));
+
     classValuesPanel.setBackground(BACKGROUND_COLOR);
     add(classValuesPanel);
   }
@@ -240,6 +241,7 @@ public class ColorKeyPanel extends JPanel {
                          + ")");
       label.setToolTipText("Remove " + colorKey[1] + " from the display by selecting here");
       label.setName(currentClass + "\t" + colorKey[0]);
+      label.setFont(new Font("Arial", 0, 14));
       label.addMouseListener(mouseListenerForColorKey);
       currentClassUniqueValues.remove(colorKey[0]);
       colorDisabled(label, colorKey[0]);

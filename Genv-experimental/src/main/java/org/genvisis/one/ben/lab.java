@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -41,7 +40,6 @@ import org.genvisis.cnv.filtering.CNVFilter;
 import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.filtering.FilterCalls;
 import org.genvisis.cnv.manage.MDL;
-import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
@@ -56,11 +54,16 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.parsing.AliasedFileColumn;
-import org.pankratzlab.common.parsing.FileColumn;
-import org.pankratzlab.common.parsing.FileLink;
-import org.pankratzlab.common.parsing.FileParserFactory;
+import org.pankratzlab.common.parsing.RoundedDoubleWrapperColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
+import org.pankratzlab.fileparser.AbstractColumnFilter;
+import org.pankratzlab.fileparser.AliasedFileColumn;
+import org.pankratzlab.fileparser.ColumnFilter;
+import org.pankratzlab.fileparser.DataLine;
+import org.pankratzlab.fileparser.FileColumn;
+import org.pankratzlab.fileparser.FileLink;
+import org.pankratzlab.fileparser.FileParserFactory;
+import org.pankratzlab.fileparser.NumberWrapperColumn;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.DosageData;
 
@@ -970,7 +973,7 @@ public class lab {
     actualProj.PROJECT_DIRECTORY.setValue(ext.parseDirectoryOfFile(projFile));
     actualProj.SOURCE_DIRECTORY.setValue(srcDir);
     actualProj.SOURCE_FILENAME_EXTENSION.setValue(exten);
-    actualProj.ARRAY_TYPE.setValue(ARRAY.NGS);
+    actualProj.ARRAY_TYPE.setValue(ARRAY.NGS_WES);
     actualProj.saveProperties();
   }
 
@@ -2420,6 +2423,56 @@ public class lab {
 
   }
 
+  private static void testFileParser() {
+
+    String file = "K:\\Testing\\confPosition1k.results";
+
+    AliasedFileColumn colMarkerName = new AliasedFileColumn("SNP");
+
+    AliasedFileColumn col1 = new AliasedFileColumn("EMP1");
+    NumberWrapperColumn<Double> col2 = new NumberWrapperColumn<Double>(new AliasedFileColumn("BND1",
+                                                                                             "EMP1"),
+                                                                       (s) -> {
+                                                                         double d = Double.parseDouble(s);
+                                                                         if (d > 0.5) {
+                                                                           return 1 - d;
+                                                                         }
+                                                                         return d;
+                                                                       });
+    RoundedDoubleWrapperColumn col2Rounded = new RoundedDoubleWrapperColumn("BND", col2, 4);
+
+    FileColumn<String> colElse = StandardFileColumns.allExcept("\t", colMarkerName, col1);
+
+    ColumnFilter filterMAF = new AbstractColumnFilter(col2) {
+
+      @Override
+      public boolean filter(DataLine values) {
+        if (values.has(col2)) {
+          if (values.hasValid(col2)) {
+            double maf = values.getUnsafe(col2);
+            return maf > 0.15;
+          }
+          return false;
+        }
+        return true;
+      }
+    };
+
+    List<FileColumn<?>> order = new ArrayList<>();
+    order.add(colMarkerName);
+    order.add(col1);
+    order.add(col2Rounded);
+    order.add(colElse);
+
+    try {
+      FileParserFactory.setup(file, colMarkerName, colElse).optionalColumns(col1, col2Rounded)
+                       .filter(filterMAF).build()
+                       .parseToFile(ext.rootOf(file, false) + ".output.txt", "\t", order);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   public static void main(String[] args) throws IOException, ClassNotFoundException,
                                          URISyntaxException {
     int numArgs = args.length;
@@ -2434,21 +2487,8 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          proj = new Project("G:\\WorkFiles\\projects\\Ovation-P1_pcCorrected_20PCsLRR_ONLY_BIOLOGICAL.properties");
-          MarkerSet markerSet = MarkerSet.load(proj.MARKERSET_FILENAME.getValue());
-          for (String file1 : Files.list(proj.MARKER_DATA_DIRECTORY.getValue(), "",
-                                         MarkerData.MARKER_DATA_FILE_EXTENSION, false, true)) {
-            String name = ext.removeDirectoryInfo(file1);
-            String[] parts = name.split("\\.");
-            byte chr = Byte.parseByte(parts[1]);
-            int start = Integer.parseInt(parts[2]);
-            int end = Integer.parseInt(parts[3]);
-            int chrInd = ext.firstIndexOfByte(chr, markerSet.getChrs());
-            String[] num = new String[end - start];
-            System.arraycopy(markerSet.getMarkerNames(), chrInd + start, num, 0, end - start);
-            String[] names = MarkerDataLoader.loadMarkerNames(file1);
-            System.out.println(name + " -- " + ArrayUtils.equals(names, num, false));
-          }
+          String try1 = "\"test1\"\"\"";
+          System.out.println(try1.replaceAll("\"\"", "\""));
 
           return;
         case 1:

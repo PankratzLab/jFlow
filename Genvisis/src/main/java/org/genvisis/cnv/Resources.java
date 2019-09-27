@@ -623,13 +623,6 @@ public final class Resources {
     }
 
     /**
-     * @return Marker positions for the specified {@link GenomeBuild}
-     */
-    public Resource getMarkerPositions() {
-      return getResource("Axiom_tx_v1." + build.getBuild() + ".markerPositions.txt");
-    }
-
-    /**
      * @return
      */
     public Resource getIntensityPCMarkers_ProbeSets() {
@@ -671,10 +664,6 @@ public final class Resources {
 
     public AxiomTxGenomes genome(GenomeBuild build) {
       return new AxiomTxGenomes(build, log());
-    }
-
-    public Resource getAPTGenotypeAxiomXML() {
-      return getResource("Axiom_tx_v1.r5.apt-genotype-axiom.AxiomCN_GT1.apt2.custom.xml");
     }
 
   }

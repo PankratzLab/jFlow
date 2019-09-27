@@ -71,6 +71,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.ProjectPropertiesEditor;
 import org.genvisis.cnv.gui.FileAndOutputSelectorGUI;
 import org.genvisis.cnv.gui.ImportProjectGUI;
+import org.genvisis.cnv.gui.ImportToSampleData;
 import org.genvisis.cnv.gui.PlinkExportOptions;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
 import org.genvisis.cnv.gui.VCFExportOptions;
@@ -144,6 +145,7 @@ public class Launch extends JFrame implements ActionListener {
   public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
   public static final String PARSE_FILES_CSV = "Parse .csv files";
   public static final String TRANSPOSE_DATA = "Transpose data";
+  public static final String ADD_DATA_TO_SAMPLEDATA = "Add data to SampleData";
   public static final String MITOPIPELINE = "MitoPipeline";
 
   public static final String CHECK_SEX = "Check sex";
@@ -221,7 +223,7 @@ public class Launch extends JFrame implements ActionListener {
     MENUS.put("File", ImmutableList.of(NEW_PROJECT, IMPORT_PROJECT, SELECT_PROJECT, DELETE_PROJECT,
                                        EDIT, PREFERENCES, CHECK_FOR_UPDATES, EXIT));
     MENUS.put("Data", ImmutableList.of(MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV,
-                                       TRANSPOSE_DATA, PIPELINE));
+                                       TRANSPOSE_DATA, ADD_DATA_TO_SAMPLEDATA, PIPELINE));
     MENUS.put("Quality",
               ImmutableList.of(CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS,
                                FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS,
@@ -905,6 +907,15 @@ public class Launch extends JFrame implements ActionListener {
         org.genvisis.cnv.qc.SexChecks.sexCheck(proj, true, nonCrossHybridizingMarkersFile);
       } else if (command.equals(TRANSPOSE_DATA)) {
         TransposeData.transposeData(proj, 2000000000, false);
+      } else if (command.equals(ADD_DATA_TO_SAMPLEDATA)) {
+        SwingUtilities.invokeLater(new Runnable() {
+
+          @Override
+          public void run() {
+            ImportToSampleData itsd = new ImportToSampleData(proj);
+            itsd.setVisible(true);
+          }
+        });
       } else if (command.equals(GENERATE_ABLOOKUP)) {
         ABLookup abLookup;
         String filename;

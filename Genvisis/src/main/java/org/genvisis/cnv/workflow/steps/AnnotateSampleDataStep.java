@@ -26,7 +26,8 @@ public class AnnotateSampleDataStep extends Step {
   public static AnnotateSampleDataStep create(Project proj, final Step sampleQCStep,
                                               final Step createSampleDataStep,
                                               final Step gwasQCStep) {
-    final Requirement<Step> sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
+    final Requirement<Step> sampleQCStepReq = sampleQCStep == null ? null
+                                                                   : new Requirement.StepRequirement(sampleQCStep);
     final Requirement<Step> createSampleDataStepReq = new Requirement.StepRequirement(createSampleDataStep);
     final Requirement<Boolean> skipIDingDuplicatesReq = new Requirement.BoolRequirement("skipDuplicates",
                                                                                         "Skip identifying duplicates",
@@ -59,15 +60,14 @@ public class AnnotateSampleDataStep extends Step {
                                                                                           "Replace FID and IID with data from Pedigree",
                                                                                           false);
 
-    final RequirementSet reqSet = RequirementSetBuilder.and().add(sampleQCStepReq)
-                                                       .add(createSampleDataStepReq)
-                                                       .add(RequirementSetBuilder.or()
-                                                                                 .add(skipIDingDuplicatesReq)
-                                                                                 .add(gwasQCStepReq))
-                                                       .add(RequirementSetBuilder.or()
-                                                                                 .add(notGcCorrectedLrrSdReq)
-                                                                                 .add(gcCorrectedLrrSdReq))
-                                                       .add(numQReq).add(replaceFIDIIDReq);
+    final RequirementSet reqSet = RequirementSetBuilder.and();
+    if (sampleQCStepReq != null) {
+      reqSet.add(sampleQCStepReq);
+    }
+    reqSet.add(createSampleDataStepReq)
+          .add(RequirementSetBuilder.or().add(skipIDingDuplicatesReq).add(gwasQCStepReq))
+          .add(RequirementSetBuilder.or().add(notGcCorrectedLrrSdReq).add(gcCorrectedLrrSdReq))
+          .add(numQReq).add(replaceFIDIIDReq);
     return new AnnotateSampleDataStep(proj, replaceFIDIIDReq, numQReq, notGcCorrectedLrrSdReq,
                                       skipIDingDuplicatesReq, reqSet);
   }
@@ -141,15 +141,7 @@ public class AnnotateSampleDataStep extends Step {
     }
     String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
 
-    // These columns should always added by SampleQC
-    String[] baseHeader = {SampleQC.EXCLUDE_HEADER, "ExcludeNote"};
-
-    int[] facts = ext.indexFactors(baseHeader, header, false);
-    for (int i : facts) {
-      if (i == -1) {
-        return false;
-      }
-    }
+    int[] facts;
 
     boolean checkDuplicates = !variables.get(skipIDingDuplicatesReq).booleanValue();
     File duplicateSetFile = new File(GenvisisWorkflow.getPlinkDir(proj) + Qc.QC_SUBDIR

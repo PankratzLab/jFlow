@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -49,6 +50,7 @@ import org.pankratzlab.utils.db.FilterDB;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
@@ -336,15 +338,22 @@ public class MarkerMetrics {
         mendelWriter.println(ArrayUtils.toStr(MENDEL_HEADER));
       }
 
-      // markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
-      // markerNames);
+      double bonf = 0.05 / markerNames.length;
+      double bonf100 = bonf * 100d;
+      double bonfBatch = 0.05 / (double) (markerNames.length + batchHeaderBatches.size());
+      Map<TestType, Multiset<String>> countBonf = new HashMap<>();
+      Map<TestType, Multiset<String>> countBonf100 = new HashMap<>();
+      Map<TestType, Multiset<String>> countBonfBatch = new HashMap<>();
+      for (BatchEffects.TestType testType : BatchEffects.TestType.values()) {
+        countBonf.put(testType, HashMultiset.create());
+        countBonf100.put(testType, HashMultiset.create());
+        countBonfBatch.put(testType, HashMultiset.create());
+      }
+
       MDL mdl = new MDL(proj, markerNames, 2, 100);
       time = new Date().getTime();
-      // for (int i = 0; i < markerNames.length; i++) {
-      int index = 0;
       while (mdl.hasNext()) {
         MarkerData markerData = mdl.next();
-        index++;
 
         markerName = markerData.getMarkerName();
         thetas = markerData.getThetas();
@@ -485,7 +494,17 @@ public class MarkerMetrics {
               if (batchEffects != null) {
                 for (BatchEffects.BatchEffect batchEffect : batchEffects) {
                   if (batchEffect.getTestType().equals(testType)) {
-                    batchLineAddition = Double.toString(batchEffect.getpValue());
+                    double pval = batchEffect.getpValue();
+                    if (pval <= bonf) {
+                      countBonf.get(testType).add(batch);
+                    }
+                    if (pval <= bonf100) {
+                      countBonf100.get(testType).add(batch);
+                    }
+                    if (pval <= bonfBatch) {
+                      countBonfBatch.get(testType).add(batch);
+                    }
+                    batchLineAddition = Double.toString(pval);
                     break;
                   }
                 }
@@ -507,7 +526,38 @@ public class MarkerMetrics {
       }
       mdl.shutdown();
 
-      // writer.print(line);
+      PrintWriter writerBonf = Files.getAppropriateWriter(ext.rootOf(fullPathToOutput, false)
+                                                          + ".bonferroni.txt");
+      writerBonf.print("Test");
+      for (Map.Entry<String, ImmutableMap<Integer, String>> indexBatchesEntry : batchHeaderIndexBatches.entrySet()) {
+        String batchHeader = indexBatchesEntry.getKey();
+        Collection<String> batches = batchHeaderBatches.get(batchHeader).elementSet();
+        for (String batch : batches) {
+          writerBonf.print("\tBonf_" + batch);
+          writerBonf.print("\tBonf100_" + batch);
+          writerBonf.print("\tBonfBatch_" + batch);
+        }
+      }
+      writerBonf.println();
+
+      for (TestType type : TestType.values()) {
+        writerBonf.print(type.name());
+        for (Map.Entry<String, ImmutableMap<Integer, String>> indexBatchesEntry : batchHeaderIndexBatches.entrySet()) {
+          String batchHeader = indexBatchesEntry.getKey();
+          Collection<String> batches = batchHeaderBatches.get(batchHeader).elementSet();
+          for (String batch : batches) {
+            int batchCount1 = countBonf.get(type).count(batch);
+            int batchCount2 = countBonf100.get(type).count(batch);
+            int batchCount3 = countBonfBatch.get(type).count(batch);
+            writerBonf.print("\t" + batchCount1);
+            writerBonf.print("\t" + batchCount2);
+            writerBonf.print("\t" + batchCount3);
+          }
+        }
+        writerBonf.println();
+      }
+      writerBonf.close();
+
       log.report("Finished analyzing " + markerNames.length + " in " + ext.getTimeElapsed(time));
     } catch (Exception e) {
       log.reportError("Error writing marker metrics to " + fullPathToOutput);

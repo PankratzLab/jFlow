@@ -38,6 +38,8 @@ import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.SDL.LOAD_TYPE;
+import org.genvisis.cnv.qc.SexChecks;
+import org.genvisis.cnv.qc.SexChecks.EstimatedSex;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Elision;
@@ -210,6 +212,19 @@ public class PlinkData {
      * @return the project IID or null if could not be identified
      */
     public abstract String getProjIID(Project proj, String plinkFID, String plinkIID);
+
+    /**
+     * @param proj Project to lookup from
+     * @param plinkFID FID from plink file
+     * @param plinkIID IID from plink file
+     * @return the project FID + \t + IID or null if could not be identified
+     */
+    public String getProjFIDIID(Project proj, String plinkFID, String plinkIID) {
+      String fid = getProjFID(proj, plinkFID, plinkIID);
+      String iid = getProjIID(proj, plinkFID, plinkIID);
+      if (fid == null || iid == null) return null;
+      return fid + "\t" + iid;
+    }
 
     /**
      * @param proj Project to lookup from
@@ -1621,13 +1636,24 @@ public class PlinkData {
           String iid = exportIDScheme.formPlinkIID(projFID, projIID, dna);
           String fa = exportIDScheme.formPlinkParent(projFID, projFA);
           String mo = exportIDScheme.formPlinkParent(projFID, projMO);
-          String sex = line[Pedigree.SEX_INDEX];
+          int sex = proj.getSampleData(false).getSexForIndividual(dna);
+          final EstimatedSex estimatedSex = SexChecks.EstimatedSex.values()[Integer.parseInt(line[Pedigree.SEX_INDEX])];
+          int foundSex = estimatedSex.getBinarySex().ordinal();
+          if (sex != foundSex) {
+            log.reportTimeWarning("Mismatched sex codes found for sample " + dna
+                                  + "; SampleData Sex: {" + sex + "/"
+                                  + SexChecks.EstimatedSex.values()[sex].name()
+                                  + "}; Pedigree Sex: {" + line[Pedigree.SEX_INDEX] + " -> "
+                                  + estimatedSex.name() + "["
+                                  + estimatedSex.getBinarySex().ordinal() + "/"
+                                  + estimatedSex.getBinarySex().name() + "]}");
+          }
           String aff = line[Pedigree.AFF_INDEX];
           if (dropSamples == null
               || !(dropSamples.contains(projFID + "\t" + projIID) || dropSamples.contains(dna))) {
             dnas.add(dna);
-            writer.println(new StringJoiner("\t").add(fid).add(iid).add(fa).add(mo).add(sex)
-                                                 .add(aff));
+            writer.println(new StringJoiner("\t").add(fid).add(iid).add(fa).add(mo)
+                                                 .add(Integer.toString(foundSex)).add(aff));
           }
         }
       }

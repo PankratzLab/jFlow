@@ -100,7 +100,7 @@ public class LrrSd extends Parallelizable {
           .reportError("Error - was not able to detect any autosomal markers for sample QC in project");
     }
     NavigableMap<Byte, NavigableSet<Marker>> nonAutosomalMarkers = chrMap.tailMap((byte) 23, true);
-    if (nonAutosomalMarkers.firstKey() != 23) {
+    if (nonAutosomalMarkers.isEmpty() || nonAutosomalMarkers.firstKey() != 23) {
       proj.getLog().report("Info - did not detect chromosome 23 in project");
     }
     Set<Marker> returnMarkers;

@@ -295,7 +295,7 @@ public abstract class Step {
       step.setNecessaryPreRunProperties(variables);
       step.run(variables);
     } else {
-      proj.getLog().reportError("requirements not met for step " + step.getDescription());
+      proj.getLog().reportError("requirements not met for step: {" + step.getName() + "}");
     }
   }
 

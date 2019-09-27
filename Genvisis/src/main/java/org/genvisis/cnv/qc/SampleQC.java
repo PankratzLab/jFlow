@@ -14,6 +14,7 @@ import java.util.List;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -238,17 +239,18 @@ public class SampleQC {
     for (int i = 0; i < samples.length; i++) {
       String qcInfo = "";
       if (checkDuplicates) {
-        qcInfo += "\t" + duplicateIds[i];
+        qcInfo += duplicateIds[i];
         qcInfo += "\t" + (uses[i] ? "1" : "0");
         qcInfo += "\t" + useNotes[i];
         qcInfo += "\t" + (use_cnvs[i] ? "1" : "0");
         qcInfo += "\t" + use_cnvNotes[i];
       }
       if (fidiids != null) {
-        qcInfo += "\t" + mzTwinIds[i];
+        qcInfo += (checkDuplicates ? "\t" : "") + mzTwinIds[i];
       }
       if (quantiles != null) {
-        qcInfo += "\t" + developMetricsLine(i, quantiles, qcMatrix, justQuantiles);
+        qcInfo += ((checkDuplicates || fidiids != null) ? "\t" : "")
+                  + developMetricsLine(i, quantiles, qcMatrix, justQuantiles);
       }
       hashtable.put(samples[i], qcInfo);
     }
@@ -384,6 +386,8 @@ public class SampleQC {
 
   private void addDuplicatesData(String duplicatesSetFile) {
     proj.getLog().reportTimeInfo("Identifying duplicate samples");
+    PlinkData.ExportIDScheme exportIDScheme = PlinkData.detectExportIDScheme(proj,
+                                                                             duplicatesSetFile);
     try {
       BufferedReader reader = Files.getAppropriateReader(duplicatesSetFile);
       duplicateIds = ArrayUtils.stringArray(samples.length, ".");
@@ -399,7 +403,7 @@ public class SampleQC {
                            + ArrayUtils.toStr(line));
           return;
         }
-        String fidiid = line[0] + "\t" + line[1];
+        String fidiid = exportIDScheme.getProjFIDIID(proj, line[0], line[1]);
         String duplicateId = line[2];
         try {
           int index = fidiidToIndex.get(fidiid);

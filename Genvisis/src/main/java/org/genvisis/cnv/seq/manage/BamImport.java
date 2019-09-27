@@ -350,7 +350,7 @@ public class BamImport {
                                                          NORMALIZATON_METHOD normMethod,
                                                          int numThreads) {
 
-    if (proj.getArrayType() == ARRAY.NGS) {
+    if (proj.getArrayType() == ARRAY.NGS_WES) {
       Logger log = proj.getLog();
 
       String serDir = getSerDir(proj);
@@ -386,7 +386,7 @@ public class BamImport {
       return results;
 
     } else {
-      proj.getLog().reportError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS);
+      proj.getLog().reportError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS_WES);
     }
     return null;
   }
@@ -800,7 +800,8 @@ public class BamImport {
                                              pcCorrected.PROJECT_DIRECTORY.getValue()
                                                                   + "tmpPCCorrection/",
                                              correctionPCs, null, numthreads, 1, false,
-                                             LS_TYPE.REGULAR, -1, true, true, CORRECTION_TYPE.XY,
+                                             LS_TYPE.REGULAR, -1, true,
+                                             CORRECTION_TYPE.XY_PRESERVE_BAFS,
                                              CHROMOSOME_X_STRATEGY.BIOLOGICAL);
             // Warning currently set up for 24 threads..
             // TODO
@@ -808,7 +809,7 @@ public class BamImport {
                                              pcCorrected.PROJECT_DIRECTORY.getValue()
                                                                          + "tmpPCCorrection/",
                                              correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
-                                             true, true, CORRECTION_TYPE.XY,
+                                             true, CORRECTION_TYPE.XY_PRESERVE_BAFS,
                                              CHROMOSOME_X_STRATEGY.BIOLOGICAL);
           }
 

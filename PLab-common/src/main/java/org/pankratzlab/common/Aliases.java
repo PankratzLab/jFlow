@@ -13,7 +13,8 @@ public class Aliases {
   public static final String[] REGION = {"Region", "UCSC", "Band", "Arm"};
   public static final String[] CHRS = {"Chr", "Chromosome", "CHROM", "#CHROM"};
   public static final String[] POSITIONS = {"Position", "position", "pos", "Pos", "POS", "BP",
-                                            "MapInfo", "PositionOfFirstMarkerInGene"};
+                                            "MapInfo", "PositionOfFirstMarkerInGene",
+                                            "Physical Position"};
   public static final String[] POSITIONS_START = {"Start", "Begin"};
   public static final String[] POSITIONS_STOP = {"Stop", "End", "Stop Position"};
   public static final String[] CENTIMORGANS = {"centiMorgans", "cM"};
@@ -49,7 +50,8 @@ public class Aliases {
 
   public static final String[] INDIVIDUAL_ID = {"ID", "IID", "I_ID", "IndID", "Ind_ID"};
   public static final String[] FAMILY_ID = {"Family ID", "FamID", "FID", "F_ID"};
-  public static final String[] DNA = {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID", "SampleID"};
+  public static final String[] DNA = {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID", "SampleID",
+                                      "Sample ID"};
 
   /**
    * Searches all of the reference directories to see if it contains the specified file

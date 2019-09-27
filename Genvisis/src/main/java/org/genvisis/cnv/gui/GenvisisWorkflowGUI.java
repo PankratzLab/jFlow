@@ -672,6 +672,10 @@ public class GenvisisWorkflowGUI extends JDialog {
                                          + "</p></html>");
       requirementLbl.setFont(requirementLbl.getFont().deriveFont(Font.PLAIN, 9));
       panel.add(requirementLbl, "aligny top, cell 0 " + rowIndex);
+      if (levelReqs.get(i).getTooltip() != null && !"".equals(levelReqs.get(i).getTooltip())) {
+        panel.add(Grafik.getToolTipIconLabel(levelReqs.get(i).getTooltip()),
+                  "aligny top, cell 0 " + rowIndex);
+      }
       requirementsLabels.get(step).put(levelReqs.get(i), requirementLbl);
       if (i < levelReqs.size() - 1 || levelReqSets.size() > 0) {
         JLabel joinLbl = new JLabel(join);
@@ -1006,8 +1010,8 @@ public class GenvisisWorkflowGUI extends JDialog {
             // }
             // }
             if (file != null) {
-              proj.message("GenvisisPipeline commands written to " + file, "Command File Written",
-                           JOptionPane.INFORMATION_MESSAGE);
+              proj.message("GenvisisPipeline commands written to " + suggFile,
+                           "Command File Written", JOptionPane.INFORMATION_MESSAGE);
             }
           }
         } catch (Exception e) {

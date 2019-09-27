@@ -287,7 +287,7 @@ public class Pipeline {
                        projectFile);
     }
     Project proj = new Project(projectFile);
-    proj.ARRAY_TYPE.setValue(ARRAY.NGS);
+    proj.ARRAY_TYPE.setValue(ARRAY.NGS_WES);
     proj.saveProperties();
     return proj;
   }

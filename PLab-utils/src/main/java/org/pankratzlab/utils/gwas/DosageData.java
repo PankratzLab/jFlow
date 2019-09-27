@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -47,13 +48,13 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.bioinformatics.Sequence;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.parsing.DataLine;
-import org.pankratzlab.common.parsing.ExplicitIndexedFileColumn;
-import org.pankratzlab.common.parsing.FileColumn;
-import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.stats.LeastSquares;
 import org.pankratzlab.common.stats.LogisticRegression;
 import org.pankratzlab.common.stats.RegressionModel;
+import org.pankratzlab.fileparser.DataLine;
+import org.pankratzlab.fileparser.ExplicitIndexedFileColumn;
+import org.pankratzlab.fileparser.FileColumn;
+import org.pankratzlab.fileparser.FileParserFactory;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.bgen.BGENReader;
 import org.pankratzlab.utils.gwas.bgen.BGENReader.BGENRecord;
@@ -178,7 +179,7 @@ public class DosageData implements Serializable {
                                              -1, -1, -1, -1, -1, -1, -1},
                                             {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1,
                                              -1, -1, -1, 0, 0, 3, 3}, // freeze5
-                                            {FID_IID_TYPE, 3, VCF_FORMAT_INTERNAL, -1, -1, -1, -1,
+                                            {FID_IID_TYPE, 3, VCF_FORMAT_INTERNAL, 3, -1, -1, -1,
                                              -1, -1, -1, -1, -1, -1, -1}, // vcf
                                             {FID_IID_TYPE, 3, BGEN_FORMAT_INTERNAL, -1, -1, -1, -1,
                                              -1, -1, -1, -1, -1, -1, -1}, // bgen
@@ -2575,12 +2576,14 @@ public class DosageData implements Serializable {
       }
     }
 
+    boolean loadAll = markersToKeep == null && regionsToKeep == null && markerLocations == null;
+
     if (segsToQuery.size() > 0) {
       Collections.sort(segsToQuery);
     }
 
     VCFHeader header;
-    List<VariantContext> keepList = Lists.newArrayList();
+    List<VCFExtractData> keepList = Lists.newArrayList();
 
     try (VCFFileReader reader = new VCFFileReader(new File(vcfFile),
                                                   Files.exists(vcfFile + ".tbi"))) {
@@ -2618,7 +2621,7 @@ public class DosageData implements Serializable {
               || segLookup.containsKey(vc.getContig() + ":" + vc.getStart())
               || segsToQuery.contains(new Segment(Positions.chromosomeNumber(vc.getContig()),
                                                   vc.getStart(), vc.getEnd()))) {
-            keepList.add(vc);
+            keepList.add(new VCFExtractData(vc));
             String id = markerSet.contains(vc.getID()) ? vc.getID()
                                                        : segLookup.containsKey(vc.getContig() + ":"
                                                                                + vc.getStart()) ? segLookup.get((vc.getContig() + ":" + vc.getStart())) : vc.getID();
@@ -2628,25 +2631,41 @@ public class DosageData implements Serializable {
       }
     }
 
-    if (markerSet.size() > 0) {
+    System.out.println(ext.reportMemoryUsage());
+
+    int numMarkers = keepList.size();
+    if (markerSet != null && markerSet.size() > 0) {
       log.reportTime("Scanning through " + vcfFile + " for " + markerSet.size()
                      + " remaining variants.");
       try (VCFFileReader reader = new VCFFileReader(new File(vcfFile),
                                                     Files.exists(vcfFile + ".tbi"))) {
-        HashSet<String> remaining = new HashSet<>(markerSet);
+        HashSet<String> remaining = loadAll ? null : new HashSet<>(markerSet);
         for (VariantContext vc : reader) {
           if (remaining.contains(vc.getID())) {
-            keepList.add(vc);
+            keepList.add(new VCFExtractData(vc));
             remaining.remove(vc.getID());
           }
           if (remaining.size() == 0) break; // done
         }
       }
+      numMarkers = keepList.size();
+    } else if (loadAll) {
+      numMarkers = 0;
+
+      try (VCFFileReader reader = new VCFFileReader(new File(vcfFile),
+                                                    Files.exists(vcfFile + ".tbi"))) {
+        AtomicInteger count = new AtomicInteger(0);
+        reader.iterator().stream().parallel().forEach(v -> count.incrementAndGet());
+        numMarkers = count.get();
+      }
     }
+
+    System.gc();
+    System.out.println(ext.reportMemoryUsage());
 
     DosageData dd = new DosageData();
 
-    Map<ImmutableList<Object>, DataLine> mapLines = null;
+    Map<ImmutableList<Object>, DataLine> mapLines = ImmutableMap.of();
     FileColumn<String> fid = new ExplicitIndexedFileColumn("FID", PSF.Plink.FAM_FID_INDEX);
     FileColumn<String> iid = new ExplicitIndexedFileColumn("IID", PSF.Plink.FAM_IID_INDEX);
     FileColumn<String> father = new ExplicitIndexedFileColumn("Father", PSF.Plink.FAM_FA_INDEX);
@@ -2680,7 +2699,7 @@ public class DosageData implements Serializable {
       dd.ids[i] = idLine;
     }
 
-    int numMarkers = keepList.size();
+    System.gc();
     dd.genotypeProbabilities = new float[numMarkers][dd.ids.length][];
     dd.alleles = new String[numMarkers][2];
     dd.chrs = new byte[numMarkers];
@@ -2688,33 +2707,23 @@ public class DosageData implements Serializable {
     dd.labelPrepend = markerNamePrepend;
     String[] markerNames = new String[numMarkers];
 
-    VariantContext vc;
-    for (int i = 0; i < numMarkers; i++) {
-      vc = keepList.get(i);
-      markerNames[i] = vc.getID();
-      if (markerNamePrepend != null && !markerNames[i].startsWith(markerNamePrepend)) {
-        markerNames[i] = markerNamePrepend + (markerNamePrepend.endsWith("_") ? "" : "_")
-                         + markerNames[i];
-      }
-      dd.chrs[i] = Positions.chromosomeNumber(vc.getContig());
-      dd.positions[i] = vc.getStart();
-      dd.alleles[i] = new String[vc.getAlleles().size()];
-      dd.alleles[i][0] = vc.getReference().getBaseString();
-      for (int j = 1; j < dd.alleles[i].length; j++) {
-        dd.alleles[i][j] = vc.getAlternateAlleles().get(j - 1).getBaseString();
-      }
-      GenotypesContext gc = vc.getGenotypes();
-      for (int j = 0; j < gc.size(); j++) {
-        Genotype g = gc.get(j);
-        Object o = g.getExtendedAttribute(probTag);
-        float[] probs = ArrayUtils.floatArray(3, Float.NaN);
-        if (o != null) {
-          String[] probStr = ((String) o).split(",");
-          probs[0] = Float.parseFloat(probStr[0]);
-          probs[1] = Float.parseFloat(probStr[1]);
-          probs[2] = Float.parseFloat(probStr[2]);
+    if (loadAll) {
+      VCFExtractData vcd;
+      try (VCFFileReader reader = new VCFFileReader(new File(vcfFile),
+                                                    Files.exists(vcfFile + ".tbi"))) {
+        int count = 0;
+        for (VariantContext vc : reader) {
+          vcd = new VCFExtractData(vc);
+          setData(markerNamePrepend, probTag, dd, markerNames, vcd, count);
+          count++;
         }
-        dd.genotypeProbabilities[i][j] = probs;
+        vcd = null;
+      }
+    } else {
+      VCFExtractData vcd;
+      for (int i = 0; i < numMarkers; i++) {
+        vcd = keepList.get(i);
+        setData(markerNamePrepend, probTag, dd, markerNames, vcd, i);
       }
     }
 
@@ -2724,6 +2733,52 @@ public class DosageData implements Serializable {
     dd.empty = markerNames.length == 0;
 
     return dd;
+  }
+
+  static class VCFExtractData {
+    final String name;
+    final byte chr;
+    final int pos;
+    final String[] alleles;
+    GenotypesContext gc;
+
+    public VCFExtractData(VariantContext vc) {
+      this.name = vc.getID();
+      this.chr = Positions.chromosomeNumber(vc.getContig());
+      this.pos = vc.getStart();
+      this.alleles = new String[vc.getAlleles().size()];
+      this.alleles[0] = vc.getReference().getBaseString();
+      for (int i = 1; i < this.alleles.length; i++) {
+        this.alleles[i] = vc.getAlternateAlleles().get(i - 1).getBaseString();
+      }
+      this.gc = vc.getGenotypes();
+    }
+
+  }
+
+  private static void setData(String markerNamePrepend, String probTag, DosageData dd,
+                              String[] markerNames, VCFExtractData vc, int i) {
+    markerNames[i] = vc.name;
+    if (markerNamePrepend != null && !markerNames[i].startsWith(markerNamePrepend)) {
+      markerNames[i] = markerNamePrepend + (markerNamePrepend.endsWith("_") ? "" : "_")
+                       + markerNames[i];
+    }
+    dd.chrs[i] = vc.chr;
+    dd.positions[i] = vc.pos;
+    dd.alleles[i] = vc.alleles;
+    GenotypesContext gc = vc.gc;
+    for (int j = 0; j < gc.size(); j++) {
+      Genotype g = gc.get(j);
+      Object o = g.getExtendedAttribute(probTag);
+      float[] probs = ArrayUtils.floatArray(3, Float.NaN);
+      if (o != null) {
+        String[] probStr = ((String) o).split(",");
+        probs[0] = Float.parseFloat(probStr[0]);
+        probs[1] = Float.parseFloat(probStr[1]);
+        probs[2] = Float.parseFloat(probStr[2]);
+      }
+      dd.genotypeProbabilities[i][j] = probs;
+    }
   }
 
   private static boolean keepVariant(VariantContext e, Map<Integer, List<int[]>> rgnsToKeep,

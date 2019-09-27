@@ -183,10 +183,10 @@ public class Ancestry {
     String cleanPutativeWhitesFile = validatePutativeWhites(dir + plinkroot + PSF.Plink.FAM,
                                                             putativeWhitesFile);
     CmdLine.runDefaults(plinkExe + " --bfile " + dir + plinkroot + " --keep "
-                        + cleanPutativeWhitesFile + " --hardy", homoProjDir, log);
+                        + cleanPutativeWhitesFile + " --hardy --noweb", homoProjDir, log);
     CmdLine.runDefaults(plinkExe + " --bfile " + hapMapPlinkRoot + " --keep "
-                        + ext.parseDirectoryOfFile(hapMapPlinkRoot) + "CEUFounders.txt --hardy",
-                        homoHapMapDir, log);
+                        + ext.parseDirectoryOfFile(hapMapPlinkRoot)
+                        + "CEUFounders.txt --hardy --noweb", homoHapMapDir, log);
 
     MergeDatasets.checkForHomogeneity(homoDir, null, null, "UNAFF", log);
   }
@@ -239,9 +239,11 @@ public class Ancestry {
     String srcData = plinkroot;
     if (lookup != null) {
       srcData = plinkroot + "_renamed";
-      log.report(ext.getTime() + "]\tRenaming snps using lookup file: " + snpIDLookupFile);
-      CmdLine.runDefaults(plinkExe + " --bfile " + plinkroot + " --update-name " + snpIDLookupFile
-                          + " --make-bed --allow-no-sex --out " + srcData + " --noweb", dir, log);
+      log.report(ext.getTime() + "]\tRenaming snps using lookup file: " + snpIDLookupFile
+                 + ". Warning, this doesn't work with <Plink1.9");
+      String cmd = plinkExe + " --noweb --bfile " + plinkroot + " --update-name " + snpIDLookupFile
+                   + " --allow-no-sex --make-bed --out " + srcData;
+      CmdLine.runDefaults(cmd, dir, log);
     }
 
     if (!Files.exists(dir + PLINK_BIM_UNAMBIGUOUS_TXT)) {
@@ -253,9 +255,10 @@ public class Ancestry {
 
     if (!Files.exists(dir + "unambiguousHapMap.bed")) {
       log.report(ext.getTime() + "]\tExtracting unambiguous SNPs for HapMap founders");
-      CmdLine.runDefaults(plinkExe + " --bfile " + hapMapPlinkRoot + " --extract "
-                          + PLINK_BIM_UNAMBIGUOUS_TXT
-                          + " --make-bed --allow-no-sex --out unambiguousHapMap --noweb", dir, log);
+      String cmd = plinkExe + " --bfile " + hapMapPlinkRoot + " --extract "
+                   + PLINK_BIM_UNAMBIGUOUS_TXT
+                   + " --make-bed --allow-no-sex --out unambiguousHapMap --noweb";
+      CmdLine.runDefaults(cmd, dir, log);
     }
 
     if (!Files.exists(dir + "overlap.txt")) {

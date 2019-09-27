@@ -7,6 +7,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.fileparser.AbstractFileColumn;
+import org.pankratzlab.fileparser.AliasedFileColumn;
+import org.pankratzlab.fileparser.Aliases;
+import org.pankratzlab.fileparser.CachedFileColumn;
+import org.pankratzlab.fileparser.DoubleWrapperColumn;
+import org.pankratzlab.fileparser.FileColumn;
+import org.pankratzlab.fileparser.FileParser;
+import org.pankratzlab.fileparser.IndexedFileColumn;
+import org.pankratzlab.fileparser.IntegerWrapperColumn;
+import org.pankratzlab.fileparser.NumberWrapperColumn;
+import org.pankratzlab.fileparser.ParseFailureException;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
@@ -111,7 +122,22 @@ public final class StandardFileColumns {
    * {@link tmp#chr(String, boolean)} that will not die on parse failure
    */
   public static IndexedFileColumn<Byte> chr(String colName) {
-    return Positions.chr(colName, false);
+    return chr(colName, false);
+  }
+
+  /**
+   * Creates a non-case-sensitive {@link NumberWrapperColumn} that uses {@link chromosomeNumber} to
+   * determine the byte value of a chromosome wrapped around an {@link AliasedFileColumn} based on
+   * {@link org.pankratzlab.common.Aliases#CHRS} that will fail if multiple aliases are found.
+   * 
+   * @param colName Desired name of column
+   * @param dieOnMissing
+   * @return FileColumn<Byte>
+   */
+  public static IndexedFileColumn<Byte> chr(String colName, boolean dieOnMissing) {
+    return new NumberWrapperColumn<>(new AliasedFileColumn(colName,
+                                                           new Aliases(org.pankratzlab.common.Aliases.CHRS)),
+                                     Positions::chromosomeNumber, dieOnMissing);
   }
 
   /**

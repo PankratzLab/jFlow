@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
@@ -34,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -72,6 +72,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Images;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Numbers;
 import org.pankratzlab.common.ext;
@@ -642,9 +643,16 @@ public class TwoDPlot extends JPanel
       List<String> params = parseControlFile(selFile.getAbsolutePath(), log);
       // final String projFile = params.get(0).split("=")[1];
       final String baseDir = params.get(1).split("=")[1];
-      final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()),
+      final boolean stitch = params.get(2).trim().equals("stitch");
+      final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(stitch ? 3 : 2,
+                                                                                 params.size()),
                                                                   true);
       createScreenshots(baseDir, screens);
+      if (stitch) {
+        String[] paths = screens.stream().map(ScreenToCapture::getFinalPath)
+                                .collect(Collectors.toList()).toArray(new String[screens.size()]);
+        Images.stitchImages(paths, Color.WHITE, false, false);
+      }
     }
   }
 
@@ -1248,6 +1256,7 @@ public class TwoDPlot extends JPanel
     boolean isHistogram;
     boolean createColorKey;
     boolean includeColorKey;
+    private String finalPath;
 
     public ScreenToCapture(String[] files, int[] dataIndices, int[] idIndices,
                            float[] displayWindow, boolean excluded, boolean colorKey,
@@ -1273,6 +1282,14 @@ public class TwoDPlot extends JPanel
       outputName = outputFilename;
       this.title = title;
     }
+
+    public void setFinalPath(String screenname) {
+      this.finalPath = screenname;
+    }
+
+    public String getFinalPath() {
+      return finalPath;
+    }
   }
 
   public static final String COMMAND_TWO_D_SCREENSHOTS = "twoDScreenshots";
@@ -1281,7 +1298,9 @@ public class TwoDPlot extends JPanel
     List<String> params;
 
     params = Files.parseControlFile(filename, COMMAND_TWO_D_SCREENSHOTS,
-                                    new String[] {"proj=", "dir=", "# Per-line:",
+                                    new String[] {"proj=", "dir=",
+                                                  "# uncomment to stitch result images together in the order they're listed:",
+                                                  "# stitch", "# Per-line:",
                                                   "# after being set once, all tags can be duplicated in a subsequent line by omitting them; the only necessary tags are {xDataColumn=<> and yDataColumn=<>}. If the output tag is not specified for each line, the created file will be named as <xFilename>_<xDataColumn>_<yFilename>_<yDataColumn>",
                                                   "# fileX=<> fileY=<> xDataColumn=<> yDataColumn=<> xIDColumn=<> yIDColumn=<> colorFile=<> colorDataColumn=<> colorIDColumn=<> minX=<> minY=<> maxX=<> maxY=<> hideExcluded=True/False colorKey=True/False includeColorKey=True/False isHistogram=True/False output=<>",},
                                     log);
@@ -1516,7 +1535,7 @@ public class TwoDPlot extends JPanel
       }
       colorKeyPanel.getClassRadioButtons()[(colorKeyPanel.getClassRadioButtons().length
                                             - neg)].setSelected(true);
-
+      this.repaint();
       twoDPanel.createImage();
 
       int count = 1;
@@ -1546,25 +1565,40 @@ public class TwoDPlot extends JPanel
 
       screenname = baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true)
                    + (addPng ? ".png" : "");
+      screencap.setFinalPath(screenname);
 
       if (screencap.createColorKey) {
+        JPanel classValuesPanel = colorKeyPanel.getClassValuesPanel();
+        /*
+         * Uncomment to pack without using a jframe; causes a bug where the actual color keys aren't
+         * drawn though.
+         * 
+         * classValuesPanel.setLayout(new org.genvisis.cnv.gui.WrapLayout(FlowLayout.CENTER, 0, 0));
+         * classValuesPanel.setSize(new Dimension(twoDPanel.getImage().getWidth(), 200));
+         * classValuesPanel.getLayout().layoutContainer(classValuesPanel);
+         * classValuesPanel.doLayout();
+         * classValuesPanel.setSize(classValuesPanel.getPreferredSize()); BufferedImage bi = new
+         * BufferedImage(classValuesPanel.getWidth(), classValuesPanel.getHeight(),
+         * BufferedImage.TYPE_INT_ARGB); classValuesPanel.paint(bi.createGraphics());
+         */
         // Use a JFrame for it's 'pack()' method - this shrinks colorKeyPanel to the minimum
         // required dimensions
         JFrame frame = new JFrame();
-        // then change the layout (briefly) to disable WrapLayout's line-wrapping
-        colorKeyPanel.classValuesPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        frame.add(colorKeyPanel.classValuesPanel);
+        frame.setPreferredSize(new Dimension(twoDPanel.getImage().getWidth(),
+                                             twoDPanel.getImage().getHeight()));
+        frame.setPreferredSize(new Dimension(twoDPanel.getImage().getWidth(),
+                                             twoDPanel.getImage().getHeight()));
+        frame.add(classValuesPanel);
         frame.pack();
-        BufferedImage bi = new BufferedImage(colorKeyPanel.classValuesPanel.getWidth(),
-                                             colorKeyPanel.classValuesPanel.getHeight(),
+        BufferedImage bi = new BufferedImage((int) classValuesPanel.getPreferredSize().getWidth(),
+                                             (int) classValuesPanel.getPreferredSize().getHeight(),
                                              BufferedImage.TYPE_INT_ARGB);
-        colorKeyPanel.classValuesPanel.setLayout(new org.genvisis.cnv.gui.WrapLayout(FlowLayout.CENTER,
-                                                                                     0, 0));
-        colorKeyPanel.classValuesPanel.paint(bi.createGraphics());
+        classValuesPanel.paint(bi.createGraphics());
         // then reset and dispose of extra resources
         frame.removeAll();
         frame.dispose();
         frame = null;
+
         if (screencap.includeColorKey) {
           int totW, totH;
           totW = Math.max(bi.getWidth(), twoDPanel.getImage().getWidth());
@@ -1887,7 +1921,9 @@ public class TwoDPlot extends JPanel
       String[] parts = params.get(0).split("=");
       final String projFile = parts.length == 1 ? null : parts[1];
       final String baseDir = params.get(1).split("=")[1];
-      final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()),
+      final boolean stitch = params.get(2).trim().equals("stitch");
+      final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(stitch ? 3 : 2,
+                                                                                 params.size()),
                                                                   true);
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
 
@@ -1897,6 +1933,18 @@ public class TwoDPlot extends JPanel
           TwoDPlot tdp = createGUI(proj, false, false);
           tdp.createScreenshots(baseDir, screens);
           tdp.windowClosing(null);
+          if (stitch) {
+            String[] paths = screens.stream().map(ScreenToCapture::getFinalPath)
+                                    .collect(Collectors.toList())
+                                    .toArray(new String[screens.size()]);
+            BufferedImage stitched = Images.stitchImages(paths, Color.WHITE, false, false);
+            try {
+              ImageIO.write(stitched, "png",
+                            new File(ext.rootOf(filename, false) + ".stitched.png"));
+            } catch (IOException e) {
+              log.reportException(e);
+            }
+          }
         }
       });
     }

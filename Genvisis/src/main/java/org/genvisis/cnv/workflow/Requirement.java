@@ -60,7 +60,12 @@ public abstract class Requirement<T> {
 
     public ParsedRequirement(String key, String description, Requirement.RequirementInputType type,
                              T defaultValue) {
-      super(description, defaultValue);
+      this(key, description, "", type, defaultValue);
+    }
+
+    public ParsedRequirement(String key, String description, String tooltip,
+                             Requirement.RequirementInputType type, T defaultValue) {
+      super(description, tooltip, defaultValue);
       this.key = key;
       this.type = type;
     }
@@ -107,6 +112,10 @@ public abstract class Requirement<T> {
       super(key, description, Requirement.RequirementInputType.FILE, defaultValue);
     }
 
+    public FileRequirement(String key, String description, String tooltip, File defaultValue) {
+      super(key, description, tooltip, Requirement.RequirementInputType.FILE, defaultValue);
+    }
+
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
@@ -128,6 +137,10 @@ public abstract class Requirement<T> {
 
     public DirRequirement(String key, String description, File defaultValue) {
       super(key, description, Requirement.RequirementInputType.DIR, defaultValue);
+    }
+
+    public DirRequirement(String key, String description, String tooltip, File defaultValue) {
+      super(key, description, tooltip, Requirement.RequirementInputType.DIR, defaultValue);
     }
 
     @Override
@@ -387,6 +400,10 @@ public abstract class Requirement<T> {
       super(key, description, RequirementInputType.ENUM, defaultValue);
     }
 
+    public EnumRequirement(String key, String description, String tooltip, Y defaultValue) {
+      super(key, description, tooltip, RequirementInputType.ENUM, defaultValue);
+    }
+
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
@@ -455,22 +472,24 @@ public abstract class Requirement<T> {
   }
 
   private final String description;
+  private final String tooltip;
   private final T defaultValue;
 
   /**
    * @param description
    */
   public Requirement(String description) {
-    this(description, null);
+    this(description, "", null);
   }
 
   /**
    * @param description
    * @param defaultValue
    */
-  public Requirement(String description, T defaultValue) {
+  public Requirement(String description, String tooltip, T defaultValue) {
     super();
     this.description = description;
+    this.tooltip = tooltip;
     this.defaultValue = defaultValue != null ? defaultValue : null;
   }
 
@@ -496,6 +515,10 @@ public abstract class Requirement<T> {
 
   public String getDescription() {
     return description;
+  }
+
+  public String getTooltip() {
+    return tooltip;
   }
 
   public T getDefaultValue() {

@@ -13,6 +13,7 @@ import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
 import org.genvisis.cnv.workflow.steps.AnnotateSampleDataStep;
 import org.genvisis.cnv.workflow.steps.AxiomCELProcessingStep;
+import org.genvisis.cnv.workflow.steps.AxiomManifestParsingStep;
 import org.genvisis.cnv.workflow.steps.CallCNVsStep;
 import org.genvisis.cnv.workflow.steps.ComputePFBStep;
 import org.genvisis.cnv.workflow.steps.FurtherAnalysisQCStep;
@@ -24,6 +25,7 @@ import org.genvisis.cnv.workflow.steps.IlluminaMarkerPositionsStep;
 import org.genvisis.cnv.workflow.steps.MarkerQCStep;
 import org.genvisis.cnv.workflow.steps.MitoCNEstimateStep;
 import org.genvisis.cnv.workflow.steps.MosaicArmsStep;
+import org.genvisis.cnv.workflow.steps.MosdepthImportStep;
 import org.genvisis.cnv.workflow.steps.PCCorrectionStep;
 import org.genvisis.cnv.workflow.steps.ParseSamplesStep;
 import org.genvisis.cnv.workflow.steps.PlinkExportStep;
@@ -108,6 +110,11 @@ public class StepBuilder {
     return s;
   }
 
+  public AxiomManifestParsingStep generateAxiomManifestParsingStep() {
+    return stepInstanceMap.containsKey(AxiomManifestParsingStep.class) ? stepInstanceMap.getInstance(AxiomManifestParsingStep.class)
+                                                                       : register(AxiomManifestParsingStep.create(proj));
+  }
+
   IlluminaMarkerPositionsStep generateIlluminaMarkerPositionsStep() {
     return stepInstanceMap.containsKey(IlluminaMarkerPositionsStep.class) ? stepInstanceMap.getInstance(IlluminaMarkerPositionsStep.class)
                                                                           : register(IlluminaMarkerPositionsStep.create(proj));
@@ -120,13 +127,19 @@ public class StepBuilder {
                                                                                                                 numThreadsReq));
   }
 
-  AxiomCELProcessingStep generateAxiomCELProcessingStep() {
+  public MosdepthImportStep generateMosdepthImportStep() {
+    return stepInstanceMap.containsKey(MosdepthImportStep.class) ? stepInstanceMap.getInstance(MosdepthImportStep.class)
+                                                                 : register(MosdepthImportStep.create(proj));
+  }
+
+  public AxiomCELProcessingStep generateAxiomCELProcessingStep(AxiomManifestParsingStep axiomManifestParsingStep) {
     return stepInstanceMap.containsKey(AxiomCELProcessingStep.class) ? stepInstanceMap.getInstance(AxiomCELProcessingStep.class)
                                                                      : register(AxiomCELProcessingStep.create(proj,
+                                                                                                              axiomManifestParsingStep,
                                                                                                               numThreadsReq));
   }
 
-  AffyCELProcessingStep generateAffyCELProcessingStep() {
+  public AffyCELProcessingStep generateAffyCELProcessingStep() {
     return stepInstanceMap.containsKey(AffyCELProcessingStep.class) ? stepInstanceMap.getInstance(AffyCELProcessingStep.class)
                                                                     : register(AffyCELProcessingStep.create(proj,
                                                                                                             numThreadsReq));
@@ -137,11 +150,6 @@ public class StepBuilder {
                                                                   : register(AffyMarkerBlastStep.create(proj,
                                                                                                         parseSamplesStep,
                                                                                                         numThreadsReq));
-  }
-
-  ParseSamplesStep generateParseSamplesStep() {
-    return stepInstanceMap.containsKey(ParseSamplesStep.class) ? stepInstanceMap.getInstance(ParseSamplesStep.class)
-                                                               : generateParseSamplesStep(null);
   }
 
   ParseSamplesStep generateParseSamplesStep(IlluminaMarkerPositionsStep markerPositionsStep) {
@@ -157,13 +165,13 @@ public class StepBuilder {
                                                                                               samplesParsingStep));
   }
 
-  ReverseTransposeTarget generateReverseTransposeStep(Step parseAffyCELs) {
+  public ReverseTransposeTarget generateReverseTransposeStep(Step parseAffyCELs) {
     return stepInstanceMap.containsKey(ReverseTransposeTarget.class) ? stepInstanceMap.getInstance(ReverseTransposeTarget.class)
                                                                      : register(ReverseTransposeTarget.create(proj,
                                                                                                               parseAffyCELs));
   }
 
-  TransposeStep generateTransposeStep(Step parseSamplesStep) {
+  public TransposeStep generateTransposeStep(Step parseSamplesStep) {
     return stepInstanceMap.containsKey(TransposeStep.class) ? stepInstanceMap.getInstance(TransposeStep.class)
                                                             : register(TransposeStep.create(proj,
                                                                                             parseSamplesStep));
@@ -264,17 +272,10 @@ public class StepBuilder {
                                                                                                               gwasQCStep));
   }
 
-  MitoCNEstimateStep generateMitoCNEstimateStep(TransposeStep transposeStep) {
+  public MitoCNEstimateStep generateMitoCNEstimateStep(Step markersParsingStep) {
     return stepInstanceMap.containsKey(MitoCNEstimateStep.class) ? stepInstanceMap.getInstance(MitoCNEstimateStep.class)
                                                                  : register(MitoCNEstimateStep.create(proj,
-                                                                                                      transposeStep,
-                                                                                                      numThreadsReq));
-  }
-
-  MitoCNEstimateStep generateMitoCNEstimateStep(ReverseTransposeTarget reverseTransposeStep) {
-    return stepInstanceMap.containsKey(MitoCNEstimateStep.class) ? stepInstanceMap.getInstance(MitoCNEstimateStep.class)
-                                                                 : register(MitoCNEstimateStep.create(proj,
-                                                                                                      reverseTransposeStep,
+                                                                                                      markersParsingStep,
                                                                                                       numThreadsReq));
   }
 
@@ -329,7 +330,8 @@ public class StepBuilder {
   public Step generateMarkersParsingStep() {
     switch (proj.getArrayType()) {
       case AFFY_AXIOM:
-        return generateAxiomCELProcessingStep();
+        AxiomManifestParsingStep manifestStep = generateAxiomManifestParsingStep();
+        return generateAxiomCELProcessingStep(manifestStep);
       case AFFY_GW6:
       case AFFY_GW6_CN:
         return generateAffyCELProcessingStep();
@@ -337,7 +339,9 @@ public class StepBuilder {
         IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
         ParseSamplesStep parseSamplesStep = generateParseSamplesStep(markerPositions);
         return generateTransposeStep(parseSamplesStep);
-      case NGS:
+      case NGS_WGS:
+        return generateMosdepthImportStep();
+      case NGS_WES:
       default:
         throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
                                                 + proj.getArrayType() + ".");
@@ -348,7 +352,8 @@ public class StepBuilder {
   public Step generateSamplesParsingStep() {
     switch (proj.getArrayType()) {
       case AFFY_AXIOM:
-        AxiomCELProcessingStep parseAxiomCELs = generateAxiomCELProcessingStep();
+        AxiomManifestParsingStep manifestStep = generateAxiomManifestParsingStep();
+        AxiomCELProcessingStep parseAxiomCELs = generateAxiomCELProcessingStep(manifestStep);
         return generateReverseTransposeStep(parseAxiomCELs);
       case AFFY_GW6:
       case AFFY_GW6_CN:
@@ -357,7 +362,9 @@ public class StepBuilder {
       case ILLUMINA:
         IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
         return generateParseSamplesStep(markerPositions);
-      case NGS:
+      case NGS_WGS:
+        MosdepthImportStep mosStep = generateMosdepthImportStep();
+        return generateReverseTransposeStep(mosStep);
       default:
         throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
                                                 + proj.getArrayType() + ".");
@@ -367,7 +374,8 @@ public class StepBuilder {
   public Step generateMarkerBlastStep() {
     switch (proj.getArrayType()) {
       case AFFY_AXIOM:
-        AxiomCELProcessingStep parseAxiomCELs = generateAxiomCELProcessingStep();
+        AxiomManifestParsingStep manifestStep = generateAxiomManifestParsingStep();
+        AxiomCELProcessingStep parseAxiomCELs = generateAxiomCELProcessingStep(manifestStep);
         ReverseTransposeTarget reverseTranspose = generateReverseTransposeStep(parseAxiomCELs);
         return generateAffyMarkerBlastAnnotationStep(reverseTranspose);
       case AFFY_GW6:
@@ -379,7 +387,9 @@ public class StepBuilder {
         IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
         ParseSamplesStep parseSamplesStep = generateParseSamplesStep(markerPositions);
         return generateIlluminaMarkerBlastAnnotationStep(parseSamplesStep);
-      case NGS:
+      case NGS_WGS:
+        return null;
+      case NGS_WES:
       default:
         throw new UnsupportedOperationException("GenvisisWorkflow does not currently support arrays of type "
                                                 + proj.getArrayType() + ".");

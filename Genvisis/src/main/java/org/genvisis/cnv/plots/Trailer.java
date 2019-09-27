@@ -191,6 +191,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   private static final String LAST_REGION = "Last region";
   private static final String TO_SCATTER_PLOT = "To Scatter Plot";
   private static final String TO_COMP_PLOT = "To Comp Plot";
+  private static final String TO_REGION_REVIEWER = "To Region Review";
   private static final String REGION_LIST_LOAD_FILE = "Load Region File";
   private static final String REGION_LIST_SAVE_FILE = "Save Regions to File...";
   private static final String REGION_LIST_ADD = "Add current region";
@@ -288,6 +289,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   private String[] otherColors;
   private Hashtable<String, ColorManager<String>> previouslyLoadedManagers;
   private Thread updateQCThread = null;
+
+  String[] annotations = new String[] {"0", "1"};
 
   final AbstractAction editFileListener = new AbstractAction() {
 
@@ -520,6 +523,43 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     @Override
     public void actionPerformed(ActionEvent e) {
       ext.setClipboard(sample);
+    }
+  };
+
+  AbstractAction cycleAnnotationAction = new AbstractAction() {
+
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (regions != null && regions.length > 0) {
+        if (regions[regionIndex].length == 2) {
+          regions[regionIndex] = ArrayUtils.addStrToArray("", regions[regionIndex]);
+        }
+        String commentText = regions[regionIndex][2];
+        int ind = commentText.lastIndexOf('^');
+        if (ind == -1) {
+          ind = 0;
+        } else {
+          String sub = commentText.substring(ind + 1);
+          commentText = commentText.substring(0, ind);
+          ind = ext.indexOfStr(sub, annotations);
+          if (ind == -1) {
+            ind = 0;
+          } else {
+            ind = ind + 1;
+          }
+        }
+        if (ind < annotations.length) {
+          commentText += "^" + annotations[ind];
+        }
+
+        regions[regionIndex][2] = commentText;
+        commentLabel.setText(regions[regionIndex][2].isEmpty() ? BLANK_COMMENT
+                                                               : "region #" + (regionIndex + 1)
+                                                                 + ":  " + regions[regionIndex][2]);
+        promptCommentSave = promptAndSaveRegions(promptCommentSave);
+      }
     }
   };
 
@@ -1052,8 +1092,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
   @Override
   public void setVisible(boolean b) {
+    this.setVisible(b, true);
+  }
+
+  public void setVisible(boolean visible, boolean jumpToFirstRegion) {
+
     waitForInit();
-    if (b) {
+    if (visible) {
       if (!SwingUtilities.isEventDispatchThread()) {
         try {
           SwingUtilities.invokeAndWait(new Runnable() {
@@ -1062,16 +1107,20 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
             public void run() {
               pack();
               updateGUI();
-              showRegion(0);
+              if (jumpToFirstRegion) {
+                showRegion(0);
+              }
             }
           });
         } catch (InvocationTargetException e) {} catch (InterruptedException e) {}
       } else {
         updateGUI();
-        showRegion(0);
+        if (jumpToFirstRegion) {
+          showRegion(0);
+        }
       }
     }
-    super.setVisible(b);
+    super.setVisible(visible);
   }
 
   /**
@@ -1808,6 +1857,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       @Override
       public void mouseClicked(MouseEvent e) {
         super.mouseClicked(e);
+        if (regions != null && regions.length > 0) {
+          commentField.setText(regions[regionIndex][2]);
+        }
         commentLabel.setVisible(false);
         commentField.setVisible(true);
         commentField.requestFocusInWindow();
@@ -1886,9 +1938,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
                  RegionNavigator.PREVIOUS_CHR);
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK),
                  RegionNavigator.NEXT_CHR);
+    inputMap.put(KeyStroke.getKeyStroke('`'), "ANNOTATE_NOTE");
 
     // FIXME this is a duplication of the action listening done by trailer..
     ActionMap actionMap = bafPanel.getActionMap();
+    actionMap.put("ANNOTATE_NOTE", cycleAnnotationAction);
     actionMap.put(RegionNavigator.FIRST_CHR, new AbstractAction() {
 
       public static final long serialVersionUID = 5L;
@@ -2702,6 +2756,14 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     launchComp.setFont(font);
     launchComp.addActionListener(this);
     act.add(launchComp);
+
+    JMenuItem launchRegionReview = new JMenuItem();
+    launchRegionReview.setText(TO_REGION_REVIEWER);
+    launchRegionReview.setMnemonic(KeyEvent.VK_R);
+    launchRegionReview.setFont(font);
+    launchRegionReview.addActionListener(this);
+    act.add(launchRegionReview);
+
     // act.addSeparator();
     {
 
@@ -2967,6 +3029,22 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
           cp.setRegion(toRegion);
         }
       });
+    } else if (command.equals(TO_REGION_REVIEWER)) {
+      if (proj == null) {
+        JOptionPane.showConfirmDialog(this, "Error - a Project is required to open CompPlot",
+                                      "Error - no Project", JOptionPane.CANCEL_OPTION,
+                                      JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      SwingUtilities.invokeLater(new Runnable() {
+
+        @Override
+        public void run() {
+          RegionReviewer rr = new RegionReviewer(proj);
+          final Segment toRegion = new Segment(chr, start, stop);
+          rr.displayRegion(toRegion);
+        }
+      });
     } else {
       System.err.println("Error - unknown command '" + command + "'");
     }
@@ -3050,9 +3128,14 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       int startPos = getPos(startX);
       int endPos = getPos(curX);
 
+      if (startPos == endPos) {
+        return;
+      }
       start = Math.min(startPos, endPos);
       stop = Math.max(startPos, endPos);
-      if (start == stop) stop++;
+      if (start == stop) {
+        stop++;
+      }
       updateGUI();
     } else {
       highlighting = false;

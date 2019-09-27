@@ -851,13 +851,13 @@ public class CentroidCompute {
 
             CentroidCompute centroidCompute = builders[i].build(markerData, proj.getLog());
             ARRAY array = proj.getArrayType();
-            if ((array == ARRAY.ILLUMINA || array == ARRAY.NGS)
-                && array.isCNOnly(markerData.getMarkerName())) {
-              setFakeAB(markerData, centroidCompute, centroidCompute.getClusterFilterCollection(),
-                        0, proj.getLog());
-            } else if (array.isCNOnly(markerData.getMarkerName())) {
-              if (array != ARRAY.AFFY_GW6_CN && array != ARRAY.AFFY_GW6) {
-                proj.getLog().reportError("Intenstity only centroid designed for Affymetrix only");
+            if (array.isCNOnly(markerData.getMarkerName())) {
+              if (array == ARRAY.ILLUMINA || array == ARRAY.NGS_WGS || array == ARRAY.NGS_WES) {
+                setFakeAB(markerData, centroidCompute, centroidCompute.getClusterFilterCollection(),
+                          0, proj.getLog());
+              } else if (array != ARRAY.AFFY_GW6_CN && array != ARRAY.AFFY_GW6
+                         && array != ARRAY.AFFY_AXIOM) {
+                proj.getLog().reportError("Intensity-only centroid designed for Affymetrix only");
                 return null;
               }
             }

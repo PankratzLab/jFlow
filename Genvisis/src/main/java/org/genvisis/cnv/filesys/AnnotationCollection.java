@@ -156,7 +156,7 @@ public class AnnotationCollection implements Serializable, TextExport {
     matrix = new String[markerAnnotations.size() + 2][];
     keysAnnotations.add(0, "");
     matrix[0] = keysAnnotations.toArray(new String[keysAnnotations.size()]);
-    keysAnnotations.add(0, "MarkerName");
+    keysAnnotations.set(0, "MarkerName");
     matrix[1] = keysAnnotations.toArray(new String[keysAnnotations.size()]);
     for (int i = 1; i < matrix[1].length; i++) {
       matrix[1][i] = getDescriptionForComment(matrix[1][i].charAt(0), false, false);

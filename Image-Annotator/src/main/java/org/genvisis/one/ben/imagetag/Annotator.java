@@ -10,7 +10,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
@@ -104,7 +106,7 @@ public class Annotator implements IAnnotator {
   }
 
   @Override
-  public void loadImgDir(String dir) {
+  public Loaded loadImgDir(String dir) {
     File dFil = new File(dir);
     File[] subDirs = dFil.listFiles(new FileFilter() {
 
@@ -113,11 +115,19 @@ public class Annotator implements IAnnotator {
         return pathname.isDirectory();
       }
     });
+    Loaded load = new Loaded();
     for (File d : subDirs) {
       String rootIdent = d.getName();
-      rootKeys.add(rootIdent);
-      HashMap<String, AnnotatedImage> imgs = new HashMap<>();
-      imageMap.put(rootIdent, imgs);
+      if (!rootKeys.contains(rootIdent)) {
+        rootKeys.add(rootIdent);
+      }
+      HashMap<String, AnnotatedImage> imgs;
+      if (imageMap.containsKey(rootIdent)) {
+        imgs = imageMap.get(rootIdent);
+      } else {
+        imgs = new HashMap<>();
+        imageMap.put(rootIdent, imgs);
+      }
       String[] imgFiles = d.list(new FilenameFilter() {
 
         @Override
@@ -126,11 +136,26 @@ public class Annotator implements IAnnotator {
         }
       });
       for (String img : imgFiles) {
-        AnnotatedImage ai = parseAnnotatedImage(ext.verifyDirFormat(d.getAbsolutePath()), rootIdent,
-                                                img);
-        imgs.put(img, ai);
+        if (!imgs.containsKey(img)) {
+          AnnotatedImage ai = parseAnnotatedImage(ext.verifyDirFormat(d.getAbsolutePath()),
+                                                  rootIdent, img);
+          imgs.put(img, ai);
+        }
+      }
+
+      int unmatchedImages = d.list(new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+          return !name.startsWith(rootIdent) && (name.endsWith(".png") || name.endsWith(".jpg"));
+        }
+      }).length;
+      if (unmatchedImages > 0) {
+        load.unmatched.put(rootIdent, unmatchedImages);
+        load.total.put(rootIdent, unmatchedImages + imgFiles.length);
       }
     }
+
+    return load;
   }
 
   private static AnnotatedImage parseAnnotatedImage(String dirPath, String rootID,
@@ -151,10 +176,13 @@ public class Annotator implements IAnnotator {
   private static final String IMAGE_TOKEN = "@IMAGE";
 
   @Override
-  public void loadAnnotations(String annotFile) throws IOException {
+  public LoadedSaved loadAnnotations(String annotFile) throws IOException {
     BufferedReader reader = Files.getAppropriateReader(annotFile);
     String line = null;
 
+    Set<String> rootDirs = new HashSet<>();
+    int missing = 0;
+    int count = 0;
     while ((line = reader.readLine()) != null) {
       if ("".equals(line)) continue;
       if (line.startsWith(ANNOT_TOKEN)) {
@@ -167,6 +195,11 @@ public class Annotator implements IAnnotator {
         String imgFile = pts[1].equals("") ? null : pts[1];
         ai.setImageFile(imgFile);
         ai.setMissing(imgFile == null || (!imgFile.contains(";") && !Files.exists(imgFile)));
+        if (ai.isMissing()) {
+          missing++;
+        } else {
+          count++;
+        }
         if (pts.length > 2) {
           for (int i = 2; i < pts.length; i++) {
             for (AnnotatedImage.Annotation a : this.annotations) {
@@ -180,15 +213,26 @@ public class Annotator implements IAnnotator {
         if (!rootKeys.contains(rootKey)) {
           rootKeys.add(rootKey);
         }
+        String rootDir = imgFile.substring(0, imgFile.indexOf(rootKey));
+        rootDirs.add(rootDir);
         HashMap<String, AnnotatedImage> map = imageMap.get(rootKey);
         if (map == null) {
           map = new HashMap<>();
           imageMap.put(rootKey, map);
         }
-        map.put(ai.getName(), ai);
+        map.put(ext.removeDirectoryInfo(imgFile), ai);
       }
     }
     reader.close();
+    LoadedSaved saved = new LoadedSaved();
+    saved.loaded = count;
+    saved.missing = missing;
+    for (String dir : rootDirs) {
+      if (Files.exists(dir)) {
+        saved.unmatched.put(dir, loadImgDir(dir));
+      }
+    }
+    return saved;
   }
 
   private String parseRootKey(String fullPathToFile) {
@@ -246,6 +290,8 @@ public class Annotator implements IAnnotator {
     writer.println();
     for (HashMap<String, AnnotatedImage> annMap : imageMap.values()) {
       for (Entry<String, AnnotatedImage> ent : annMap.entrySet()) {
+        // only write annotations
+        if (ent.getValue().getAnnotations().size() == 0) continue;
         writer.println(IMAGE_TOKEN + "\t" + ent.getValue().exportToString());
       }
     }

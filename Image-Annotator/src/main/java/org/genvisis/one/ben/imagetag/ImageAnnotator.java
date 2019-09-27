@@ -1,5 +1,6 @@
 package org.genvisis.one.ben.imagetag;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
@@ -82,6 +83,8 @@ import javax.swing.tree.TreePath;
 import org.apache.commons.collections4.MultiSet;
 import org.apache.commons.collections4.multiset.HashMultiSet;
 import org.genvisis.one.ben.imagetag.AnnotatedImage.Annotation;
+import org.genvisis.one.ben.imagetag.IAnnotator.Loaded;
+import org.genvisis.one.ben.imagetag.IAnnotator.LoadedSaved;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -116,6 +119,10 @@ public class ImageAnnotator {
   private JSplitPane splitPane;
   private JMenu mnTravAnn;
   private JMenu mnDelAnn;
+  private JMenu mnSaveAnn;
+  private JLabel validationLabel;
+  private JLabel validationCountLabel;
+  private JMenu mnNavHide;
   private JRadioButtonMenuItem jrbTravAll;
   private JRadioButtonMenuItem jrbTravAnn;
   private JRadioButtonMenuItem jrbTravNon;
@@ -123,6 +130,8 @@ public class ImageAnnotator {
   private HashMap<Annotation, JRadioButtonMenuItem> annTravMap = new HashMap<>();
   private HashMap<Annotation, JMenuItem> annDelMap = new HashMap<>();
   private HashMap<Annotation, JMenuItem> annSaveMap = new HashMap<>();
+  private HashMap<Annotation, JCheckBoxMenuItem> annHideMap = new HashMap<>();
+  private HashSet<Annotation> hiddenAnnotations = new HashSet<>();
   private SORT_TYPE sortOrder = SORT_TYPE.GENOMIC_POSITION;
 
   private static final String PROP_FILE = ".imageannotator.properties";
@@ -145,6 +154,7 @@ public class ImageAnnotator {
   private static final String BACKUP_FILE = BACKUP_DIR + "backup.annotations";
   private volatile boolean annotationsChanged = false;
   private volatile boolean checkBxAdvanceAfterAnnotationKeyed = true;
+  private volatile boolean checkBxHideMissing = false;
 
   private void setAnnotationsChanged() {
     annotationsChanged = true;
@@ -441,6 +451,7 @@ public class ImageAnnotator {
     frmAnnotator.getContentPane().add(splitPane, "cell 0 0,grow");
 
     imagePanel = new JPanel() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       protected void paintComponent(Graphics g) {
@@ -508,6 +519,7 @@ public class ImageAnnotator {
     constructTree();
     im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
     am.put("enter", new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent arg0) {
@@ -540,6 +552,7 @@ public class ImageAnnotator {
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
     DefaultTreeModel dtm = new DefaultTreeModel(rootNode);
     tree.setCellRenderer(new DefaultTreeCellRenderer() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
@@ -577,6 +590,8 @@ public class ImageAnnotator {
 
           JMenuItem closeItem = new JMenuItem();
           closeItem.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void actionPerformed(ActionEvent arg0) {
               menu.setVisible(false);
@@ -740,6 +755,7 @@ public class ImageAnnotator {
 
     JMenuItem mntmExit = new JMenuItem();
     mntmExit.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -788,6 +804,8 @@ public class ImageAnnotator {
       JRadioButtonMenuItem mntmSort = new JRadioButtonMenuItem();
       sortGroup.add(mntmSort);
       mntmSort.setAction(new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+
         @Override
         public void actionPerformed(ActionEvent e) {
           ImageAnnotator.this.sortOrder = sort;
@@ -810,6 +828,7 @@ public class ImageAnnotator {
 
     JMenuItem mntmNavFind = new JMenuItem();
     mntmNavFind.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -831,6 +850,7 @@ public class ImageAnnotator {
 
     JCheckBoxMenuItem mntmNavAdvAfterAnnot = new JCheckBoxMenuItem();
     mntmNavAdvAfterAnnot.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -841,12 +861,31 @@ public class ImageAnnotator {
     mntmNavAdvAfterAnnot.setSelected(true);
     mnNav.add(mntmNavAdvAfterAnnot);
 
+    mnNavHide = new JMenu();
+    mnNavHide.setText("Hide:");
+    mnNav.add(mnNavHide);
+
+    JCheckBoxMenuItem mntmNavHideMissing = new JCheckBoxMenuItem();
+    mntmNavHideMissing.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        checkBxHideMissing = mntmNavHideMissing.isSelected();
+        updateAvail();
+      }
+    });
+    mntmNavHideMissing.setText("Hide Missing");
+    mnNavHide.add(mntmNavHideMissing);
+    mnNavHide.add(new JSeparator(SwingConstants.HORIZONTAL));
+
     return menuBar;
   }
 
   private void addContextItemsToMenu(JComponent mnFile, String file) {
     JMenuItem mntmCopyUCSC = new JMenuItem();
     mntmCopyUCSC.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -860,6 +899,7 @@ public class ImageAnnotator {
 
     JMenuItem mntmCopyUCSCLink = new JMenuItem();
     mntmCopyUCSCLink.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -873,6 +913,7 @@ public class ImageAnnotator {
 
     JMenuItem mntmCopySample = new JMenuItem();
     mntmCopySample.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -885,6 +926,7 @@ public class ImageAnnotator {
 
     JMenuItem mntmCopySampleFile = new JMenuItem();
     mntmCopySampleFile.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -908,6 +950,7 @@ public class ImageAnnotator {
     annSaveMap.put(annot, jmn);
     JMenuItem jmd = new JMenuItem();
     jmd.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -918,6 +961,24 @@ public class ImageAnnotator {
     mnDelAnn.add(jmd);
     annDelMap.put(annot, jmd);
     mnSaveAnn.add(jmn);
+
+    JCheckBoxMenuItem mntmHideAnn = new JCheckBoxMenuItem();
+    mntmHideAnn.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mntmHideAnn.isSelected()) {
+          hiddenAnnotations.add(annot);
+        } else {
+          hiddenAnnotations.remove(annot);
+        }
+        updateAvail();
+      }
+    });
+    mntmHideAnn.setText(annot.annotation);
+    annHideMap.put(annot, mntmHideAnn);
+    mnNavHide.add(mntmHideAnn);
   }
 
   private void deleteAnnotation(Annotation annot) {
@@ -926,13 +987,17 @@ public class ImageAnnotator {
     mnTravAnn.remove(jrb);
     mnSaveAnn.remove(annSaveMap.get(annot));
     mnDelAnn.remove(annDelMap.get(annot));
+    mnNavHide.remove(annHideMap.get(annot));
+    hiddenAnnotations.remove(annot);
     annotator.deleteAnnotation(annot);
 
     setAnnotationsChanged();
     refreshAnnotations();
+    updateAvail();
   }
 
   private AbstractAction saveAnnotationAction = new AbstractAction() {
+    private static final long serialVersionUID = 1L;
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -986,6 +1051,7 @@ public class ImageAnnotator {
       for (String s : recentAnnotFiles) {
         JMenuItem mnRecent = new JMenuItem();
         mnRecent.setAction(new AbstractAction() {
+          private static final long serialVersionUID = 1L;
 
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -1024,7 +1090,17 @@ public class ImageAnnotator {
       setLastUsedImageDir(fS);
       validationFiles.clear();
       annotator = new Annotator();
-      annotator.loadImgDir(fS);
+      Loaded loaded = annotator.loadImgDir(fS);
+      if (loaded.unmatched.size() > 0) {
+        JLabel label = new JLabel("<html>" + loaded.getString() + "</html>");
+        JScrollPane pane = new JScrollPane(label);
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(pane, BorderLayout.CENTER);
+        panel.add(new JLabel("<html>Image names must start with the name of the subdirectory they are in.</html>"),
+                  BorderLayout.SOUTH);
+        JOptionPane.showMessageDialog(ImageAnnotator.this.frmAnnotator, panel, "Unmatched Files",
+                                      JOptionPane.WARNING_MESSAGE);
+      }
       setAnnotationsChanged();
       reloadControls();
       saveProperties();
@@ -1094,6 +1170,7 @@ public class ImageAnnotator {
       final AnnotatedImage ai1 = ai;
       final int ind = i;
       AbstractAction mnemAct = new AbstractAction() {
+        private static final long serialVersionUID = 1L;
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -1640,6 +1717,8 @@ public class ImageAnnotator {
     final JPopupMenu menu = new JPopupMenu();
     JMenuItem copyExtraBedSegs = new JMenuItem();
     copyExtraBedSegs.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
+
       @Override
       public void actionPerformed(ActionEvent arg0) {
         ext.setClipboard(extraBedSegStr);
@@ -1649,6 +1728,8 @@ public class ImageAnnotator {
     menu.add(copyExtraBedSegs);
     JMenuItem copyExtraImages = new JMenuItem();
     copyExtraImages.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
+
       @Override
       public void actionPerformed(ActionEvent arg0) {
         ext.setClipboard(extraFileSegStr);
@@ -1720,6 +1801,9 @@ public class ImageAnnotator {
                                                                                          .getRoot());
     root.removeAllChildren();
     for (AnnotatedImage img : imgs) {
+      if (checkBxHideMissing && img.isMissing()) continue;
+      boolean hidden = img.getAnnotations().stream().anyMatch(hiddenAnnotations::contains);
+      if (hidden) continue;
       DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode();
       dmtn.setUserObject(img);
       root.add(dmtn);
@@ -1815,12 +1899,16 @@ public class ImageAnnotator {
   private void loadAnnotationFile(String annFile) {
     try {
       annotator = new Annotator();
-      annotator.loadAnnotations(annFile);
+      LoadedSaved saved = annotator.loadAnnotations(annFile);
       setLastSavedAnnotationFile(annFile);
       setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile)));
       recentAnnotFiles.add(annFile);
       reloadControls();
       mnTravAnn.removeAll();
+      for (JCheckBoxMenuItem mnItm : annHideMap.values()) {
+        mnNavHide.remove(mnItm);
+      }
+      hiddenAnnotations.clear();
       for (Annotation a : annotator.getAnnotations()) {
         addAnnotationToTraversalMenu(a);
       }
@@ -1828,6 +1916,19 @@ public class ImageAnnotator {
       tree.setSelectionRow(0);
       tree.scrollRowToVisible(0);
       saveProperties();
+      if (saved.missing > 0 || saved.unmatched.size() > 0) {
+        JLabel label = new JLabel("<html>" + saved.getString() + "</html>");
+        JScrollPane pane = new JScrollPane(label);
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(pane, BorderLayout.CENTER);
+        panel.add(new JLabel("<html>Image names must start with the name of the subdirectory they are in."
+                             + (saved.missing > 0 ? "<br />Missing files can be shown/hidden in the menu."
+                                                  : "")
+                             + "</html>"),
+                  BorderLayout.SOUTH);
+        JOptionPane.showMessageDialog(ImageAnnotator.this.frmAnnotator, panel, "Loading Results",
+                                      JOptionPane.INFORMATION_MESSAGE);
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -2103,6 +2204,7 @@ public class ImageAnnotator {
   }
 
   private final Action loadAction = new AbstractAction() {
+    private static final long serialVersionUID = 1L;
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -2111,6 +2213,7 @@ public class ImageAnnotator {
   };
 
   private final Action existAction = new AbstractAction() {
+    private static final long serialVersionUID = 1L;
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -2119,6 +2222,7 @@ public class ImageAnnotator {
   };
 
   private final Action exportAction = new AbstractAction() {
+    private static final long serialVersionUID = 1L;
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -2129,6 +2233,7 @@ public class ImageAnnotator {
   };
 
   private final Action validateAction = new AbstractAction() {
+    private static final long serialVersionUID = 1L;
 
     @Override
     public void actionPerformed(ActionEvent arg0) {
@@ -2137,6 +2242,7 @@ public class ImageAnnotator {
   };
 
   private final Action saveAsAction = new AbstractAction() {
+    private static final long serialVersionUID = 1L;
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -2144,13 +2250,11 @@ public class ImageAnnotator {
     }
   };
   private final Action saveAction = new AbstractAction() {
+    private static final long serialVersionUID = 1L;
 
     @Override
     public void actionPerformed(ActionEvent e) {
       saveAnnotations(false);
     }
   };
-  private JMenu mnSaveAnn;
-  private JLabel validationLabel;
-  private JLabel validationCountLabel;
 }

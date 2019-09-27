@@ -44,24 +44,23 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.bioinformatics.Sequence;
 import org.pankratzlab.common.filesys.Positions;
-import org.pankratzlab.common.parsing.AbstractColumnFilter;
-import org.pankratzlab.common.parsing.AbstractFileColumn;
-import org.pankratzlab.common.parsing.AliasedFileColumn;
-import org.pankratzlab.common.parsing.ColumnFilter;
-import org.pankratzlab.common.parsing.ColumnFilters;
-import org.pankratzlab.common.parsing.DataLine;
 import org.pankratzlab.common.parsing.DoubleFilter;
-import org.pankratzlab.common.parsing.DoubleWrapperColumn;
-import org.pankratzlab.common.parsing.ExplicitIndexedFileColumn;
-import org.pankratzlab.common.parsing.FileColumn;
-import org.pankratzlab.common.parsing.FileParser;
-import org.pankratzlab.common.parsing.FileParserFactory;
-import org.pankratzlab.common.parsing.IndexedFileColumn;
-import org.pankratzlab.common.parsing.ParseFailureException;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.common.stats.Maths.COMPARISON;
 import org.pankratzlab.common.stats.ProbDist;
 import org.pankratzlab.common.stats.RegressionModel;
+import org.pankratzlab.fileparser.AbstractColumnFilter;
+import org.pankratzlab.fileparser.AbstractFileColumn;
+import org.pankratzlab.fileparser.AliasedFileColumn;
+import org.pankratzlab.fileparser.ColumnFilter;
+import org.pankratzlab.fileparser.ColumnFilters;
+import org.pankratzlab.fileparser.DataLine;
+import org.pankratzlab.fileparser.DoubleWrapperColumn;
+import org.pankratzlab.fileparser.FileColumn;
+import org.pankratzlab.fileparser.FileParser;
+import org.pankratzlab.fileparser.FileParserFactory;
+import org.pankratzlab.fileparser.IndexedFileColumn;
+import org.pankratzlab.fileparser.ParseFailureException;
 import org.pankratzlab.utils.bioinformatics.MapSNPsAndGenes;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.DosageData;
@@ -1333,7 +1332,7 @@ public class GeneScorePipeline {
           }
         }
         if (hitMkrLocations.isEmpty()) {
-          FileColumn<String> mkrColumn = new ExplicitIndexedFileColumn("mkr", 0);
+          FileColumn<String> mkrColumn = StandardFileColumns.snp("mkr");
           FileColumn<Byte> chrColumn = StandardFileColumns.chr("chr");
           FileColumn<Integer> posColumn = StandardFileColumns.pos("pos");
           try {
@@ -1827,6 +1826,7 @@ public class GeneScorePipeline {
 
       for (Constraint constr : analysisConstraints) {
         if (study.data.get(mf, constr).isEmpty()) {
+          study.markerData.put(constr, mf, new HashMap<>());
           continue;
         }
 
@@ -2324,10 +2324,13 @@ public class GeneScorePipeline {
             RegressionResult rrResult = actualRegression(study.markerScores.get(constr, mf)
                                                                            .columnMap().get(marker),
                                                          null, pd);
-            markerWriter.println(resultPrefix + "\t" + pheno + "\t" + marker + "\t"
-                                 + mf.metaMarkers.get(marker).beta + "\t"
-                                 + mf.metaMarkers.get(marker).se + "\t" + rrResult.getBeta() + "\t"
-                                 + rrResult.se);
+            double metaBeta = mf.metaMarkers.get(marker).beta;
+            double metaSE = mf.metaMarkers.get(marker).se;
+
+            double markerBeta = rrResult.getBeta() * metaBeta;
+            double markerSE = rrResult.se * metaBeta;
+            markerWriter.println(resultPrefix + "\t" + pheno + "\t" + marker + "\t" + metaBeta
+                                 + "\t" + metaSE + "\t" + markerBeta + "\t" + markerSE);
           }
           markerWriter.close();
           String mrrScript = writeMRRScript(prefDir, pheno);
@@ -2384,7 +2387,7 @@ public class GeneScorePipeline {
   private String writeMRRScript(File prefDir, String pheno) {
 
     List<String> commands = new ArrayList<>();
-    commands.add("setwd(\"" + prefDir.getAbsolutePath() + "\")");
+    commands.add("setwd(\"" + ext.verifyDirFormat(prefDir.getAbsolutePath()) + "\")");
     commands.add("if (!require(MendelianRandomization)) {");
     commands.add("  install.packages(\"MendelianRandomization\")");
     commands.add("}");

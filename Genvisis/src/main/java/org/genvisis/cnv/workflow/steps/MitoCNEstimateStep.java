@@ -2,37 +2,64 @@ package org.genvisis.cnv.workflow.steps;
 
 import java.io.File;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.IntensityMarkers;
 import org.genvisis.cnv.workflow.Requirement;
+import org.genvisis.cnv.workflow.Requirement.BoolRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.common.PSF;
 
 public class MitoCNEstimateStep extends Step {
 
   public static final String NAME = "Create Mitochondrial Copy-Number Estimates File";
   public static final String DESC = "";
+  public static final String ALL_MITO_MARKERS_FILENAME = "AllMitoMarkers.txt";
 
-  public static MitoCNEstimateStep create(Project proj, Step transposeStep,
+  public static MitoCNEstimateStep create(Project proj, Step markersParsingStep,
                                           Requirement<Integer> numThreadsReq) {
     // FIXME http://genvisis.org/MitoPipeline/#illumina_marker_lists has illumina markers.. this
     // should be linked to, or
     // these steps split or something...
-    final Requirement<Step> transposeStepReq = new Requirement.StepRequirement(transposeStep);
-    final Requirement<File> medianMarkersReq = new Requirement.FileRequirement("medianMarkersFile",
-                                                                               "MedianMarkers file must exist.",
+    final Requirement<Step> transposeStepReq = new Requirement.StepRequirement(markersParsingStep);
+
+    final Requirement<Boolean> hasAnyMitoMarkersReq = new Requirement<Boolean>("Project must have mitochondrial markers",
+                                                                               "", false) {
+
+      @Override
+      public boolean checkRequirement(String arg, Set<Step> stepSelections,
+                                      Map<Step, Variables> variables) {
+        return proj.getMarkerSet() != null && proj.getMarkerSet().getChrMap().containsKey((byte) 26)
+               && proj.getMarkerSet().getChrMap().get((byte) 26).size() != 0;
+      }
+
+      @Override
+      public Boolean parseValue(String raw) {
+        return Boolean.valueOf(raw);
+      }
+
+    };
+    final Requirement<File> medianMarkersReq = new Requirement.FileRequirement("cleanMitoMarkers",
+                                                                               "A file containing mitochondrial markers with clean clusters must exist (see http://genvisis.org/MitoPipeline/scatter.html for more details).",
                                                                                new File(""));
+    final BoolRequirement useAllMitoMarkersReq = new BoolRequirement("useAllMitoMarkers",
+                                                                     "Use all mitochondrial markers",
+                                                                     false);
+
     final Requirement<Double> lrrSdThresholdReq = new Requirement.DoubleRequirement("lrrSDThreshold",
                                                                                     "LRR SD threshold to filter samples.",
                                                                                     proj.LRRSD_CUTOFF.getValue(),
@@ -68,7 +95,11 @@ public class MitoCNEstimateStep extends Step {
                                                                                           new File(""));
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(transposeStepReq)
-                                                       .add(medianMarkersReq).add(lrrSdThresholdReq)
+                                                       .add(hasAnyMitoMarkersReq)
+                                                       .add(RequirementSetBuilder.or()
+                                                                                 .add(medianMarkersReq)
+                                                                                 .add(useAllMitoMarkersReq))
+                                                       .add(lrrSdThresholdReq)
                                                        .add(callrateThresholdReq)
                                                        .add(qcPassingOnlyReq).add(imputeNaNs)
                                                        .add(recomputeLrrPCMarkersReq)
@@ -78,15 +109,16 @@ public class MitoCNEstimateStep extends Step {
                                                        .add(numThreadsReq)
                                                        .add(pcSelectionSamplesReq)
                                                        .add(externalBetaFileReq);
-    return new MitoCNEstimateStep(proj, medianMarkersReq, lrrSdThresholdReq, callrateThresholdReq,
-                                  qcPassingOnlyReq, imputeNaNs, recomputeLrrPCMarkersReq,
-                                  recomputeLrrMedianMarkersReq, homozygousOnlyReq,
-                                  gcRegressionDistanceReq, pcSelectionSamplesReq,
+    return new MitoCNEstimateStep(proj, useAllMitoMarkersReq, medianMarkersReq, lrrSdThresholdReq,
+                                  callrateThresholdReq, qcPassingOnlyReq, imputeNaNs,
+                                  recomputeLrrPCMarkersReq, recomputeLrrMedianMarkersReq,
+                                  homozygousOnlyReq, gcRegressionDistanceReq, pcSelectionSamplesReq,
                                   externalBetaFileReq, numThreadsReq, reqSet);
   }
 
   final Project proj;
-  final Requirement<File> medianMarkersReq;
+  final Requirement<Boolean> useAllMitoMarkersReq;
+  final Requirement<File> cleanMitoMarkersReq;
   final Requirement<Double> lrrSdThresholdReq;
   final Requirement<Double> callrateThresholdReq;
   final Requirement<Boolean> qcPassingOnlyReq;
@@ -99,7 +131,8 @@ public class MitoCNEstimateStep extends Step {
   final Requirement<File> externalBetaFileReq;
   final Requirement<Integer> numThreadsReq;
 
-  private MitoCNEstimateStep(Project proj, Requirement<File> medianMarkersReq,
+  private MitoCNEstimateStep(Project proj, Requirement<Boolean> useAllMitoMarkersReq,
+                             Requirement<File> cleanMitoMarkersReq,
                              Requirement<Double> lrrSdThresholdReq,
                              Requirement<Double> callrateThresholdReq,
                              Requirement<Boolean> qcPassingOnlyReq, Requirement<Boolean> imputeNaNs,
@@ -112,7 +145,8 @@ public class MitoCNEstimateStep extends Step {
                              Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
     this.proj = proj;
-    this.medianMarkersReq = medianMarkersReq;
+    this.useAllMitoMarkersReq = useAllMitoMarkersReq;
+    this.cleanMitoMarkersReq = cleanMitoMarkersReq;
     this.lrrSdThresholdReq = lrrSdThresholdReq;
     this.callrateThresholdReq = callrateThresholdReq;
     this.qcPassingOnlyReq = qcPassingOnlyReq;
@@ -160,9 +194,17 @@ public class MitoCNEstimateStep extends Step {
 
   @Override
   public void run(Variables variables) {
-    String medianMarkers = variables.hasValid(medianMarkersReq) ? variables.get(medianMarkersReq)
-                                                                           .getPath()
-                                                                : null;
+    String medianMarkers = null;
+    if (variables.get(useAllMitoMarkersReq)) {
+      medianMarkers = proj.PROJECT_DIRECTORY.getValue() + ALL_MITO_MARKERS_FILENAME;
+      if (!Files.exists(medianMarkers)) {
+        List<String> mitoNames = proj.getMarkerSet().getChrMap().get((byte) 26).stream()
+                                     .map(Marker::getName).collect(Collectors.toList());
+        Files.writeIterable(mitoNames, medianMarkers);
+      }
+    } else if (variables.hasValid(cleanMitoMarkersReq)) {
+      medianMarkers = variables.get(cleanMitoMarkersReq).getPath();
+    }
     double markerCallRateFilter = variables.get(callrateThresholdReq);
     // FIXME: This gcCorrect assignment was carried over from the old indexed version but
     // appears incorrect
@@ -203,51 +245,7 @@ public class MitoCNEstimateStep extends Step {
 
   @Override
   public String getCommandLine(Variables variables) {
-    String medianMarkers = variables.get(medianMarkersReq).getPath();
-    double lrrSD = variables.get(lrrSdThresholdReq);
-    double markerCallRateFilter = variables.get(callrateThresholdReq);
-    // FIXME: This gcCorrect assignment was carried over from the old indexed version but
-    // appears incorrect
-    boolean gcCorrect = variables.get(qcPassingOnlyReq);
-    boolean imputeMeanForNaN = variables.get(imputeNaNs);
-    boolean recomputeLRRPCs = variables.get(recomputeLrrPCMarkersReq);
-    boolean recomputeLRRMedian = variables.get(recomputeLrrMedianMarkersReq);
-    boolean homozygousOnly = variables.get(homozygousOnlyReq);
-    int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
-    int regressionDistance = variables.get(gcRegressionDistanceReq);
-    int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
-    String outputBase = MitoPipeline.FILE_BASE;
-
-    String betaOptFile = variables.get(pcSelectionSamplesReq).getAbsolutePath();
-    String betaFile = variables.get(externalBetaFileReq).getAbsolutePath();
-    boolean sampLrr = true;
-
-    String projPropFile = proj.getPropertyFilename();
-    StringBuilder cmd = new StringBuilder();
-    cmd.append(Files.getRunString()).append(" org.genvisis.cnv.manage.MitoPipeline")
-       .append(" proj=").append(projPropFile).append(" mitochondrialMarkers=").append(medianMarkers)
-       .append(" numComponents=").append(numComponents).append(" imputeMeanForNaN=")
-       .append(imputeMeanForNaN).append(" recomputeLRR_PCs=").append(recomputeLRRPCs)
-       .append(" recomputeLRR_Median=").append(recomputeLRRMedian).append(" gcCorrect=")
-       .append(gcCorrect).append(" bpGcModel=").append(bpGcModel).append(" LRRSD=").append(lrrSD)
-       .append(" markerCallRate=").append(markerCallRateFilter).append(" regressionDistance=")
-       .append(regressionDistance).append(" sampLRR=").append(sampLrr).append(" ")
-       .append(PSF.Ext.NUM_THREADS_COMMAND).append(numThreads).append(" log=")
-       .append(proj.getLog().getFilename()).append(" output=").append(outputBase);
-    if (!"".equals(betaOptFile)) {
-      cmd.append(" ").append(MitoPipeline.PC_OPT_FILE).append("=").append(betaOptFile);
-    }
-    if (!"".equals(betaFile)) {
-      cmd.append(" betas=").append(betaFile);
-    }
-    if (!homozygousOnly) {
-      cmd.append(" -allCalls ");
-    }
-
-    cmd.append(" -SkipProjectCreationWithLongUndocumentedFlag ");
-
-    return cmd.toString();
+    return getStepCommandLine(proj, variables);
   }
 
   @Override
@@ -255,6 +253,15 @@ public class MitoCNEstimateStep extends Step {
     String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
     String finalReport = outputBase + PCA.FILE_EXTs[0];
     return Files.exists(finalReport);
+  }
+
+  public static void main(String[] args) {
+    Project proj = Step.parseProject(args);
+    StepBuilder sb = new StepBuilder(proj);
+    Step markersParsingStep = sb.generateMarkersParsingStep();
+    Step step = sb.generateMitoCNEstimateStep(markersParsingStep);
+    Variables variables = step.parseArguments(args);
+    Step.run(proj, step, variables);
   }
 
 }

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -30,7 +31,11 @@ import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
 public class ext {
@@ -2027,14 +2032,46 @@ public class ext {
    *          , are not found in the header
    * @return
    */
-  public static String determineDelimiter(String str, boolean spaceAsLastResort) {
-    if (str.contains("\t")) {
-      return "\t";
-    } else if (countInstancesOf(str, ",") > countInstancesOf(str, " ")
-               || (spaceAsLastResort && countInstancesOf(str, ",") > 0)) {
-      return ",";
+  public static String determineDelimiter(String str, boolean preferCommasOverSpaces) {
+    Set<Character> commonDelims = Sets.newHashSet(' ', ',', '\t', '|', ';', '^');
+    Multiset<Character> delimCounts = HashMultiset.create();
+    boolean inQuotes = false;
+    char[] chars = str.toCharArray();
+    for (int i = 0; i < chars.length; i++) {
+      // detect quotes and skip everything in quotes
+      if (chars[i] == '"') {
+        if (inQuotes) {
+          inQuotes = false;
+        } else {
+          inQuotes = true;
+        }
+        continue;
+      } else if (inQuotes) {
+        continue;
+      }
+      int code = (int) chars[i];
+      if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
+        // skip A-Z and a-z
+        continue;
+      }
+      delimCounts.add(chars[i]);
+    }
+    Character delim = commonDelims.stream().max(new Comparator<Character>() {
+      @Override
+      public int compare(Character o1, Character o2) {
+        return Integer.compare(delimCounts.count(o1), delimCounts.count(o2));
+      }
+    }).get();
+    if (delimCounts.count(delim) == 0) {
+      delim = delimCounts.entrySet().stream()
+                         .max(Ordering.natural().onResultOf(Multiset.Entry::getCount)).get()
+                         .getElement();
+    }
+    if (delim == ' ') {
+      // return greedy delim
+      return "[\\s]+";
     } else {
-      return PSF.Regex.GREEDY_WHITESPACE;
+      return Character.toString(delim);
     }
   }
 
@@ -2055,20 +2092,19 @@ public class ext {
 
   public static String[] splitCommasIntelligently(String str, boolean removeAndSimplifyQuotes,
                                                   Logger log) {
-    int numCommas;
+    int numQuotes;
     int startIndex;
     Vector<String> v;
     boolean insideQuotes;
 
     insideQuotes = false;
     v = new Vector<>();
-    startIndex = numCommas = 0;
+    startIndex = numQuotes = 0;
     for (int i = 0; i < str.length(); i++) {
       if (str.charAt(i) == ',') {
-        if (numCommas % 2 == 0) {
+        if (numQuotes % 2 == 0) {
           v.add(removeAndSimplifyQuotes ? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
                                         : str.substring(startIndex, i));
-          // System.out.println(v.elementAt(v.size()-1));
           startIndex = i + 1;
           if (insideQuotes && str.charAt(i - 1) != '\"') {
             if (log != null) {
@@ -2080,7 +2116,7 @@ public class ext {
         }
       }
       if (str.charAt(i) == '\"') {
-        numCommas++;
+        numQuotes++;
         insideQuotes = true;
       }
     }

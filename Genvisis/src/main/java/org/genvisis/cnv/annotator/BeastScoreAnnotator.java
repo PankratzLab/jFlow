@@ -129,11 +129,10 @@ public class BeastScoreAnnotator extends AbstractAnnotator<CNVariant> {
     Stream<Marker> cnvMarkers = md.viewMarkersInSeg(segmentToAnnotate.getChr(), start, stop);
 
     // Get the transformed values for each marker in this CNV
-    final boolean isNGS = ARRAY.NGS.equals(proj.ARRAY_TYPE.getValue());
+    final boolean isWES = ARRAY.NGS_WES.equals(proj.ARRAY_TYPE.getValue());
 
-    // TODO This NGS check seems overly complex
     List<Double> cnvMarkerVals = cnvMarkers.filter(m -> transformedRow.containsKey(m)
-                                                        && !(isNGS
+                                                        && !(isWES
                                                              && NGS_MARKER_TYPE.VARIANT_SITE.equals(NGS_MARKER_TYPE.getType(m))))
                                            .map(transformedRow::get).sorted()
                                            .collect(Collectors.toList());

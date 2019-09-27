@@ -25,7 +25,8 @@ public class SexChecksStep extends Step {
                                      final Step sampleQCStep) {
     final Requirement<Step> sampleDataStepReq = new Requirement.StepRequirement(sampleDataStep);
     final Requirement<Step> transposeStepReq = new Requirement.StepRequirement(transposeStep);
-    final Requirement<Step> sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
+    final Requirement<Step> sampleQCStepReq = sampleQCStep == null ? null
+                                                                   : new Requirement.StepRequirement(sampleQCStep);
     final Requirement<Boolean> addToSampleDataReq = new Requirement.OptionalBoolRequirement("addEstSexToSampData",
                                                                                             ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT,
                                                                                             true);
@@ -33,17 +34,22 @@ public class SexChecksStep extends Step {
     final Requirement<File> oneHittersReq = new Requirement.FileRequirement("noCrossHybeMarkers",
                                                                             "List of markers that do not cross hybridize",
                                                                             new File(MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue())));
-    final Requirement<Step> markerBlastStepReq = new Requirement.StepRequirement(markerBlastStep);
+    final Requirement<Step> markerBlastStepReq = markerBlastStep == null ? null
+                                                                         : new Requirement.StepRequirement(markerBlastStep);
     final Requirement<Boolean> noCrossHybeReq = new Requirement.BoolRequirement("useXYMarkersOnly",
                                                                                 NO_CROSS_HYBE_REQUIREMENT,
                                                                                 false);
-
+    RequirementSet mkrReq = RequirementSetBuilder.or().add(oneHittersReq);
+    if (markerBlastStepReq != null) {
+      mkrReq.add(markerBlastStepReq);
+    }
+    mkrReq.add(noCrossHybeReq);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(sampleDataStepReq)
-                                                       .add(transposeStepReq).add(sampleQCStepReq)
-                                                       .add(RequirementSetBuilder.or()
-                                                                                 .add(oneHittersReq)
-                                                                                 .add(markerBlastStepReq)
-                                                                                 .add(noCrossHybeReq));
+                                                       .add(transposeStepReq);
+    if (sampleQCStepReq != null) {
+      reqSet.add(sampleQCStepReq);
+    }
+    reqSet.add(mkrReq);
     return new SexChecksStep(proj, addToSampleDataReq, noCrossHybeReq, oneHittersReq, reqSet);
   }
 
