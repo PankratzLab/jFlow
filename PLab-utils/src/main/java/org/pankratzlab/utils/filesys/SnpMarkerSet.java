@@ -205,10 +205,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 
     markerNames = new String[count];
     if (indices[1] == CHR_INFO_IN_FILENAME) {
-      Matcher m = Pattern.compile(DosageData.CHR_REGEX).matcher(filename);
-      byte chr = -1;
-      if (m.matches()) {
-        chr = (byte) Integer.parseInt(m.group(1));
+      byte chr = determineChrFromFilename(filename);
+      if (chr != -1) {
         log.report("Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{"
                    + chr + "}.");
         chrs = ArrayUtils.byteArray(count, chr);
@@ -269,6 +267,11 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
       }
     }
     convertMarkerNamesToRSnumbers(markerNames, verbose, log);
+  }
+
+  private byte determineChrFromFilename(String filename) {
+    Matcher m = Pattern.compile(DosageData.CHR_REGEX).matcher(filename);
+    return m.matches() ? (byte) Integer.parseInt(m.group(1)) : -1;
   }
 
   public void convertMarkerNamesToRSnumbers(String[] markerNames, boolean verbose, Logger log) {
@@ -464,7 +467,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
         if (indices[0] != -1) {
           line[indices[0]] = markerNames[i];
         }
-        if (indices[1] != -1) {
+        if (indices[1] != -1 && indices[1] != CHR_INFO_IN_FILENAME) {
           line[indices[1]] = chrs == null ? "." : Byte.toString(chrs[i]);
         }
         if (indices[2] != -1) {
