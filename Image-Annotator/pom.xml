@@ -57,6 +57,15 @@
 				<app.url>http://genvisis.org/dist-image-annotator</app.url>
 			</properties>
 		</profile>
+		<!-- properties for production -->
+		<profile>
+			<id>test</id>
+			<properties>
+				<app.filename>testing-image-annotator</app.filename>
+				<app.cacheDir>USERLIB/pankratzlab/testing-image-annotator</app.cacheDir>
+				<app.url>http://genvisis.org/testing-dist-image-annotator</app.url>
+			</properties>
+		</profile>
 		<profile>
 			<id>win32</id>
 			<activation>
