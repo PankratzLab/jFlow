@@ -85,7 +85,6 @@ public class SourceFileHeaderData implements Serializable {
       if ("[Data]".equals(line) || line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
           || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
                               false)[0] != -1) {
-        System.out.println();
         break;
       }
       String[] parts = line.trim().split(",");
