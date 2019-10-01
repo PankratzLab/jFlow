@@ -687,8 +687,14 @@ public class SampleQC {
       sampleQC.addExcludes();
 
       if (sampleQC.addPedigreeData()) {
-        if (duplicatesSetFile != null) {
-          sampleQC.addDuplicatesData(duplicatesSetFile);
+        if (duplicatesSetFile != null && !"".equals(duplicatesSetFile)) {
+          if (Files.exists(duplicatesSetFile, true)) {
+            sampleQC.addDuplicatesData(duplicatesSetFile);
+          } else if (Files.exists(duplicatesSetFile, false)) {
+            proj.getLog().reportTimeWarning("Duplicate sets was empty: " + duplicatesSetFile);
+          } else {
+            proj.getLog().reportTimeWarning("Duplicate sets file: " + duplicatesSetFile);
+          }
         }
       }
       sampleQC.addUse_cnvs();
@@ -772,7 +778,7 @@ public class SampleQC {
         gcCorrectedLrrSd = ext.parseBooleanArg(arg);
         numArgs--;
       } else if (arg.startsWith("duplicatesSetFile=")) {
-        duplicatesSetFile = arg.split("=")[1];
+        duplicatesSetFile = ext.parseStringArg(arg);
         numArgs--;
       } else if (arg.startsWith("correctFidIids=")) {
         correctFidIids = ext.parseBooleanArg(arg);
