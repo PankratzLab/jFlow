@@ -58,7 +58,7 @@ public class SnpTest {
       this.includeFile = includeFile;
     }
 
-    private String getCommand() {
+    public String getCommand() {
       StringBuilder snpTestString = new StringBuilder(snpTestLocation).append(" -data ")
                                                                       .append(dataFile).append(" ")
                                                                       .append(sampleFile)
@@ -261,7 +261,7 @@ public class SnpTest {
     }
   }
 
-  private Map<Integer, String> loadFiles() {
+  public Map<Integer, String> loadFiles() {
     Map<Integer, String> returnFiles = new HashMap<>();
     if (dataFileTemplate != null) {
       for (int i = 1; i < 27; i++) {
@@ -501,7 +501,6 @@ public class SnpTest {
     boolean parse = false;
     String parseDir = null;
     String infoDirAndTemp = null;
-    String infoTemplate = null;
     boolean generate = false;
     String sexFile = null;
     String phenoFile = null;
@@ -526,9 +525,6 @@ public class SnpTest {
       }
       if (arg.startsWith("phenoList=")) {
         phenoFile = arg.split("=")[1];
-      }
-      if (arg.startsWith("infoTemplate=")) {
-        infoTemplate = arg.split("=")[1];
       }
       if (arg.startsWith("covFile=")) {
         covFile = arg.split("=")[1];
@@ -600,9 +596,6 @@ public class SnpTest {
       run.setDataFileTemplate(data);
     } else if (ext != null) {
       run.setDataFileExtension(ext);
-    }
-    if (infoTemplate != null) {
-      run.infoFileTemplate = infoTemplate;
     }
     run.setSampleFile(samp);
     run.setPheno(phen);
