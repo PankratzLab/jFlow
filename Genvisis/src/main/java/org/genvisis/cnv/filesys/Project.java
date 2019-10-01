@@ -992,7 +992,7 @@ public class Project implements PropertyChangeListener {
 
   public MarkerDetailSet getMarkerSet() {
     MarkerDetailSet markerSet = markerSetSupplier.get();
-    markerSet.clearArrayRefs();
+    if (markerSet != null) markerSet.clearArrayRefs();
     return markerSet;
   }
 

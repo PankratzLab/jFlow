@@ -75,15 +75,17 @@ public class SourceFileHeaderData implements Serializable {
     int lineCnt = 0;
     String delim = ",";
     while ((line = reader.readLine()) != null) {
-      delim = ext.determineDelimiter(line, true); // TODO if file ends with .csv [or contains
-                                                  // .csv?], can assume that delim is ','. Sim., if
-                                                  // ends with .xln, can assume delim is '\t'
+      delim = ext.determineDelimiter(line, true);
+      // TODO if file ends with .csv [or contains
+      // .csv?], can assume that delim is ','. Sim., if
+      // ends with .xln, can assume delim is '\t'
       if (",".equals(delim)) {
         delim = "[\\s]*,[\\s]*"; // ext.indexFactors doesn't call trim()
       }
       if ("[Data]".equals(line) || line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
           || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
                               false)[0] != -1) {
+        System.out.println();
         break;
       }
       String[] parts = line.trim().split(",");

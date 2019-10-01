@@ -2033,7 +2033,12 @@ public class ext {
    * @return
    */
   public static String determineDelimiter(String str, boolean preferCommasOverSpaces) {
-    Set<Character> commonDelims = Sets.newHashSet(' ', ',', '\t', '|', ';', '^');
+    return determineDelimiter(str, preferCommasOverSpaces, true);
+  }
+
+  public static String determineDelimiter(String str, boolean preferCommasOverSpaces,
+                                          boolean restrictToCommonDelims) {
+    Set<Character> commonDelims = Sets.newHashSet('\t', ' ', ',', '|', ';', '^');
     Multiset<Character> delimCounts = HashMultiset.create();
     boolean inQuotes = false;
     char[] chars = str.toCharArray();
@@ -2056,22 +2061,28 @@ public class ext {
       }
       delimCounts.add(chars[i]);
     }
-    Character delim = commonDelims.stream().max(new Comparator<Character>() {
+    if (delimCounts.count('\t') > 0) {
+      // tabs in CSV files must be contained in quotes, so if tabs are outside of quotes, it's
+      // probably the delimiter
+      return "\t";
+    }
+    Character mostCommonDelim = commonDelims.stream().max(new Comparator<Character>() {
       @Override
       public int compare(Character o1, Character o2) {
         return Integer.compare(delimCounts.count(o1), delimCounts.count(o2));
       }
     }).get();
-    if (delimCounts.count(delim) == 0) {
-      delim = delimCounts.entrySet().stream()
-                         .max(Ordering.natural().onResultOf(Multiset.Entry::getCount)).get()
-                         .getElement();
+    if (delimCounts.count(mostCommonDelim) == 0) {
+      mostCommonDelim = delimCounts.entrySet().stream()
+                                   .max(Ordering.natural().onResultOf(Multiset.Entry::getCount))
+                                   .get().getElement();
     }
-    if (delim == ' ') {
+    if (mostCommonDelim == ' '
+        || (restrictToCommonDelims && !commonDelims.contains(mostCommonDelim))) {
       // return greedy delim
       return "[\\s]+";
     } else {
-      return Character.toString(delim);
+      return Character.toString(mostCommonDelim);
     }
   }
 
