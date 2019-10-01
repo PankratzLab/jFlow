@@ -165,7 +165,6 @@ public class MosaicismDetect {
                                                                    .toArray(String[]::new),
                                                          2, false, verbose);
       MosaicRegion[] tmp = new MosaicRegion[dud.getLoci().length];
-      proj.getLog().reportTimeInfo("Scoring mosaic regions");
       for (int i = 0; i < dud.getLoci().length; i++) {
         CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
         int numFMarkers = dud.getLoci()[i].getNumMarkers();
