@@ -688,10 +688,10 @@ public class SampleQC {
 
       if (sampleQC.addPedigreeData()) {
         if (duplicatesSetFile != null && !"".equals(duplicatesSetFile)) {
-          if (Files.exists(duplicatesSetFile, true)) {
-            sampleQC.addDuplicatesData(duplicatesSetFile);
-          } else if (Files.exists(duplicatesSetFile, false)) {
+          if (!Files.exists(duplicatesSetFile, true) || Files.getSize(duplicatesSetFile) < 10) {
             proj.getLog().reportTimeWarning("Duplicate sets was empty: " + duplicatesSetFile);
+          } else if (Files.exists(duplicatesSetFile)) {
+            sampleQC.addDuplicatesData(duplicatesSetFile);
           } else {
             proj.getLog().reportTimeWarning("Duplicate sets file: " + duplicatesSetFile);
           }
