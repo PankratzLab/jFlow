@@ -6,12 +6,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.qsub.Qsub;
 
 public class GiantSnpTest extends SnpTest {
 
-  public void runGiantSnpTest(SnpTest run) throws IOException {
+  public void runGiantSnpTest(SnpTest run) throws IOException, InterruptedException {
     for (int i = 1; i < 27; i++) {
       String dataFile = run.dataDirectory + "chr" + i + ".dose.vcf.gz";
       if (!org.pankratzlab.common.Files.exists(dataFile)) {
@@ -23,8 +24,8 @@ public class GiantSnpTest extends SnpTest {
       String excludes = run.excludesFile;
       String includes = run.includesFile;
       String cmd = new SnpTestCommand(run.snpTestExec, dataFile, run.sampleFile, true, run.vcfField,
-                                      run.pheno, run.covars, i, outFile, excludes, includes)
-                                                                                            .getCommand();
+                                      run.pheno, run.covars, i, outFile, excludes, includes,
+                                      run.chunk).getCommand();
       try (PrintWriter in = new PrintWriter("./chr" + i + "/input.txt")) {
         in.write(cmd);
       } catch (Exception e) {
@@ -40,6 +41,7 @@ public class GiantSnpTest extends SnpTest {
                                                                              .availableProcessors());
       Qsub.qsub("./chr" + i + "/runSnpTestChr" + i + ".qsub", scriptExecCmd.toString(), 61440, 96,
                 1);
+      CmdLine.run("qsub " + "./chr" + i + "/runSnpTestChr" + i + ".qsub", ext.pwd());
     }
   }
 
@@ -52,6 +54,7 @@ public class GiantSnpTest extends SnpTest {
   private static final String ARG_REPL = "repl";
   private static final String ARG_EXCLUDES = "exclude";
   private static final String ARG_INCLUDES = "include";
+  private static final String ARG_CHUNK = "chunk";
 
   private static final String DESC_SNPTEST = "SnpTest executable (full path included unless on path)";
   private static final String DESC_DATADIR = "Data file directory";
@@ -62,6 +65,7 @@ public class GiantSnpTest extends SnpTest {
   private static final String DESC_REPL = "Special character in data file template into which chromosome number will be placed.";
   private static final String DESC_EXCLUDES = "File with a list of samples that should be excluded from analysis. These should match samples from the sample file.";
   private static final String DESC_INCLUDES = "File with a list of samples that should be included. Samples not in this file will be excluded.";
+  private static final String DESC_CHUNK = "Chunk size for SnpTest. Default chunk=10000";
 
   public static void main(String[] args) throws IOException {
     CLI cli = new CLI(SnpTest.class);
@@ -72,6 +76,7 @@ public class GiantSnpTest extends SnpTest {
     cli.addArg(ARG_SAMPLE, DESC_SAMPLE);
     cli.addArg(ARG_PHENO, DESC_PHENO);
 
+    cli.addArg(ARG_CHUNK, DESC_CHUNK, false);
     cli.addArg(ARG_COVARS, DESC_COVARS, false);
     cli.addArg(ARG_REPL, DESC_REPL, false);
     cli.addArg(ARG_EXCLUDES, DESC_EXCLUDES, false);
@@ -103,8 +108,17 @@ public class GiantSnpTest extends SnpTest {
     if (cli.has(ARG_INCLUDES)) {
       run.setIncludes(cli.get(ARG_INCLUDES));
     }
+    if (cli.has(ARG_CHUNK)) {
+      run.setChunk(cli.get(ARG_CHUNK));
+    } else {
+      run.setChunk("10000");
+    }
 
-    giant.runGiantSnpTest(run);
+    try {
+      giant.runGiantSnpTest(run);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
 
   }
 

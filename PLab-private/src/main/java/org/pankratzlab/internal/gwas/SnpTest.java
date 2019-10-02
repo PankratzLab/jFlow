@@ -42,10 +42,12 @@ public class SnpTest {
     private String outputFile;
     private String excludeFile;
     private String includeFile;
+    private String chunk;
 
     public SnpTestCommand(String snpTestLocation, String dataFile, String sampleFile,
                           boolean isVCFData, String vcfDataField, String phenoName, String[] covars,
-                          int chr, String outputFile, String excludeFile, String includeFile) {
+                          int chr, String outputFile, String excludeFile, String includeFile,
+                          String chunk) {
       this.snpTestLocation = snpTestLocation;
       this.dataFile = dataFile;
       this.sampleFile = sampleFile;
@@ -56,6 +58,7 @@ public class SnpTest {
       this.outputFile = outputFile;
       this.excludeFile = excludeFile;
       this.includeFile = includeFile;
+      this.chunk = chunk;
     }
 
     public String getCommand() {
@@ -86,7 +89,7 @@ public class SnpTest {
       if (includeFile != null) {
         snpTestString.append(" -include_samples ").append(includeFile);
       }
-      snpTestString.append(" -chunk 200 ");
+      snpTestString.append(" -chunk " + this.chunk + " ");
 
       return snpTestString.toString();
     }
@@ -172,6 +175,7 @@ public class SnpTest {
   String includesFile;
   String pheno;
   String[] covars = null;
+  String chunk = "200";
   boolean isVCFOverride = false;
   String vcfField = "GP";
 
@@ -189,6 +193,10 @@ public class SnpTest {
 
   public void setRepl(String repl) {
     this.repl = repl;
+  }
+
+  public void setChunk(String chunk) {
+    this.chunk = chunk;
   }
 
   public void setSampleFile(String sampleFile) {
@@ -434,10 +442,9 @@ public class SnpTest {
       String excludes = this.excludesFile;
       String includes = this.includesFile;
       cmds.add(new SnpTestCommand(snpTestExec, file.getValue(), sampleFile,
-                                  file.getValue().contains(".vcf")
-                                                                            || isVCFOverride,
-                                  vcfField, pheno, covars, file.getKey(), outFile, excludes,
-                                  includes).getCommand());
+                                  file.getValue().contains(".vcf") || isVCFOverride, vcfField,
+                                  pheno, covars, file.getKey(), outFile, excludes, includes,
+                                  this.chunk).getCommand());
 
       cmdOuts.add(outFile);
     }
