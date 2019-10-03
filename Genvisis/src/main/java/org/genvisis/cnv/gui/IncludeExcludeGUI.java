@@ -4,20 +4,32 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.HashMap;
+import java.util.Map;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.gui.UITools;
 
 import net.miginfocom.swing.MigLayout;
@@ -29,49 +41,119 @@ public class IncludeExcludeGUI extends JDialog {
   */
   private static final long serialVersionUID = 1L;
   private final JPanel contentPanel = new JPanel();
-  private JPanel panel;
   private volatile int close = JOptionPane.CLOSED_OPTION;
-  private final ArrayList<JCheckBox> chks = new ArrayList<>();
+  private String[] opts;
+  private Map<String, JCheckBox> optChks = new HashMap<>();
+  private JTextField textField;
+  private JList<JCheckBox> list;
 
   /**
    * Create the dialog.
    */
+  public IncludeExcludeGUI(Frame owner, String[] opts, boolean[] preSel) {
+    super(owner);
+    initialize(opts, preSel);
+  }
+
+  /**
+   * 
+   * @param owner
+   * @param opts
+   * @param preSel
+   * @wbp.parser.constructor
+   */
   public IncludeExcludeGUI(Window owner, String[] opts, boolean[] preSel) {
     super(owner);
+    initialize(opts, preSel);
+  }
+
+  private void initialize(String[] opts, boolean[] preSel) {
     setModal(true);
     setMinimumSize(new Dimension(100, 100));
+    this.opts = opts;
     UITools.setSize(this, new Dimension(450, 300));
     getContentPane().setLayout(new BorderLayout());
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
-    contentPanel.setLayout(new BorderLayout(0, 0));
     {
-      JScrollPane scrollPane = new JScrollPane();
-      scrollPane.setViewportBorder(null);
-      scrollPane.setBorder(null);
-      contentPanel.add(scrollPane);
-      {
-        panel = new JPanel();
-        scrollPane.setViewportView(panel);
-        StringBuilder rows = new StringBuilder();
-        for (String opt : opts) {
-          rows.append("[]");
-        }
-        panel.setLayout(new MigLayout("", "[grow,fill]", rows.toString()));
+      DefaultListModel<JCheckBox> listModel = new DefaultListModel<>();
+      for (int i = 0; i < opts.length; i++) {
+        optChks.put(opts[i], new JCheckBox(opts[i], preSel[i]));
+        listModel.addElement(optChks.get(opts[i]));
       }
+      JScrollPane pane = new JScrollPane();
+      list = new JList<>();
+      list.setCellRenderer(new JCheckBoxListCellRenderer(getFont()));
+      list.addMouseListener(new MouseAdapter() {
+
+        int prevIndex = -1;
+
+        public void mousePressed(MouseEvent e) {
+          int index = list.locationToIndex(e.getPoint());
+          if (index != -1) {
+            JCheckBox checkbox = (JCheckBox) list.getModel().getElementAt(index);
+            if (checkbox.isEnabled()) {
+              boolean cl = e.getClickCount() >= 2;
+              boolean li = prevIndex != -1 && index == prevIndex;
+              if (cl || li) {
+                checkbox.setSelected(!checkbox.isSelected());
+              }
+              prevIndex = index;
+            }
+            repaint();
+          }
+        }
+      });
+      list.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            list.getSelectedValuesList().stream().forEach(chk -> {
+              chk.setSelected(!chk.isSelected());
+            });
+          }
+          super.keyPressed(e);
+          repaint();
+        }
+      });
+      contentPanel.setLayout(new MigLayout("", "[258px,grow]", "[17px][130px,grow][][]"));
+      list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+      list.setModel(listModel);
+      pane.setViewportView(list);
+      contentPanel.add(pane, "cell 0 1,grow");
     }
     {
       JLabel lblSelectItemsTo = new JLabel("<html><u>Select Items to Include:</u></html>");
       lblSelectItemsTo.setFont(new Font("Arial", Font.BOLD, 14));
-      contentPanel.add(lblSelectItemsTo, BorderLayout.NORTH);
+      contentPanel.add(lblSelectItemsTo, "cell 0 0,growx,aligny top");
     }
-    int rowInd = 0;
-    for (String opt : opts) {
-      JCheckBox chk = new JCheckBox(opt);
-      chk.setSelected(preSel[rowInd]);
-      chks.add(chk);
-      panel.add(chk, "cell 0 " + rowInd);
-      rowInd++;
+    {
+      JLabel lblFind = new JLabel("Find:");
+      contentPanel.add(lblFind, "cell 0 2");
+    }
+    {
+      textField = new JTextField();
+      textField.addKeyListener(new KeyAdapter() {
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+          super.keyTyped(e);
+          SwingUtilities.invokeLater(() -> {
+            String txt = textField.getText();
+            final DefaultListModel<JCheckBox> newMod = new DefaultListModel<>();
+            for (String opt : opts) {
+              if (ext.RabinKarp.runRabinKarp(txt, opt) < opt.length()) {
+                newMod.addElement(optChks.get(opt));
+              }
+            }
+            list.setModel(newMod);
+            list.revalidate();
+            repaint();
+          });
+        }
+      });
+      contentPanel.add(textField, "cell 0 3,growx");
+      textField.setColumns(10);
     }
 
     {
@@ -118,9 +200,9 @@ public class IncludeExcludeGUI extends JDialog {
   }
 
   public boolean[] getSelected() {
-    boolean[] sel = new boolean[chks.size()];
+    boolean[] sel = new boolean[opts.length];
     for (int i = 0; i < sel.length; i++) {
-      sel[i] = chks.get(i).isSelected();
+      sel[i] = optChks.get(opts[i]).isSelected();
     }
     return sel;
   }

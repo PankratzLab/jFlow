@@ -32,7 +32,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
-import org.genvisis.cnv.plots.comp.JCheckBoxListCellRenderer;
+import org.genvisis.cnv.gui.JCheckBoxListCellRenderer;
 import org.genvisis.cnv.plots.data.DataFile;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;

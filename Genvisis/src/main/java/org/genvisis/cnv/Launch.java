@@ -72,6 +72,7 @@ import org.genvisis.cnv.filesys.ProjectPropertiesEditor;
 import org.genvisis.cnv.gui.FileAndOutputSelectorGUI;
 import org.genvisis.cnv.gui.ImportProjectGUI;
 import org.genvisis.cnv.gui.ImportToSampleData;
+import org.genvisis.cnv.gui.IncludeExcludeGUI;
 import org.genvisis.cnv.gui.PlinkExportOptions;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
 import org.genvisis.cnv.gui.VCFExportOptions;
@@ -1027,8 +1028,18 @@ public class Launch extends JFrame implements ActionListener {
         ImputationGUI dialog = new ImputationGUI(proj);
         dialog.setVisible(true);
       } else if (command.equals(GENERATE_PENNCNV_FILES)) {
-        org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(),
-                                                          null, null, proj.NUM_THREADS.getValue());
+        IncludeExcludeGUI iegui = new IncludeExcludeGUI(Launch.this.getOwner(), proj.getSamples(),
+                                                        ArrayUtils.booleanArray(proj.getNumberOfParsedSamples(),
+                                                                                true));
+        iegui.setModal(true);
+        iegui.setVisible(true);
+        if (iegui.getCloseCode() == JOptionPane.OK_OPTION) {
+          org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj,
+                                                            ArrayUtils.subArray(proj.getSamples(),
+                                                                                iegui.getSelected()),
+                                                            null, null,
+                                                            proj.NUM_THREADS.getValue());
+        }
       } else if (command.equals(PARSE_RAW_PENNCNV_RESULTS)) {
         // TODO make dialog to ask for filenames with a JCheckBox for denovo parsing
         org.genvisis.cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log");

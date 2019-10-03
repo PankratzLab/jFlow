@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
+import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +41,68 @@ import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
 public class ext {
+
+  /**
+   * Adapted into a static utility class (by cole0482) from
+   * https://algs4.cs.princeton.edu/53substring/RabinKarp.java.html
+   * 
+   * Copyright © 2000–2017, Robert Sedgewick and Kevin Wayne.
+   */
+  public static class RabinKarp {
+
+    public static int runRabinKarp(String pat, String txt) {
+      int R = 256;
+      int m = pat.length();
+      long q = longRandomPrime();
+
+      // precompute R^(m-1) % q for use in removing leading digit
+      long RM = 1;
+      for (int i = 1; i <= m - 1; i++)
+        RM = (R * RM) % q;
+      long patHash = hash(pat, m, R, q);
+
+      int n = txt.length();
+      if (n < m) return n;
+      long txtHash = hash(txt, m, R, q);
+
+      // check for match at offset 0
+      if ((patHash == txtHash) && check(txt, 0, m, pat)) return 0;
+
+      // check for hash match; if hash match, check for exact match
+      for (int i = m; i < n; i++) {
+        // Remove leading digit, add trailing digit, check for match.
+        txtHash = (txtHash + q - RM * txt.charAt(i - m) % q) % q;
+        txtHash = (txtHash * R + txt.charAt(i)) % q;
+
+        // match
+        int offset = i - m + 1;
+        if ((patHash == txtHash) && check(txt, offset, m, pat)) return offset;
+      }
+
+      // no match
+      return n;
+    }
+
+    // Compute hash for key[0..m-1].
+    private static long hash(String key, int m, int R, long q) {
+      long h = 0;
+      for (int j = 0; j < m; j++)
+        h = (R * h + key.charAt(j)) % q;
+      return h;
+    }
+
+    private static boolean check(String txt, int i, int m, String pat) {
+      for (int j = 0; j < m; j++)
+        if (pat.charAt(j) != txt.charAt(i + j)) return false;
+      return true;
+    }
+
+    // a random 31-bit prime
+    private static long longRandomPrime() {
+      BigInteger prime = BigInteger.probablePrime(31, new Random());
+      return prime.longValue();
+    }
+  }
 
   private static final String[] SUFFIXES = new String[] {"th", "st", "nd", "rd", "th", "th", "th",
                                                          "th", "th", "th"};

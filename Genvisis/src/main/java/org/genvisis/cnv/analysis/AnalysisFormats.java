@@ -101,10 +101,7 @@ public class AnalysisFormats implements Runnable {
     dir = proj.PENNCNV_DATA_DIRECTORY.getValue(false, false) + (subDir == null ? "" : subDir);
     sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
     new File(dir).mkdirs();
-    // gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
     gzip = proj.PENNCNV_GZIP_YESNO.getValue();
-
-    // int threadCount = Runtime.getRuntime().availableProcessors();
 
     final ConcurrentLinkedQueue<Integer>[] sampleIndexQueues = new ConcurrentLinkedQueue[threadCount];
     for (int i = 0; i < threadCount; i++) {

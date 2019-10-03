@@ -1,4 +1,4 @@
-package org.genvisis.cnv.plots.comp;
+package org.genvisis.cnv.gui;
 
 import java.awt.Component;
 import java.awt.Font;
