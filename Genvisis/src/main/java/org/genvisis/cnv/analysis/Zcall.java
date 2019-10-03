@@ -63,8 +63,8 @@ public class Zcall {
 
     samples = proj.getSamples();
     if (samplesToInclude == null) {
-      samplesToInclude = ArrayUtils.booleanArray(samples.length, true);
-    } else if (samplesToInclude.length != samples.length) {
+      samplesToInclude = ArrayUtils.booleanArray(proj.getNumberOfParsedSamples(), true);
+    } else if (samplesToInclude.length != proj.getNumberOfParsedSamples()) {
       log.reportError("Error - length of samplesToInclude does not match length of samples");
       return;
     }
@@ -79,7 +79,7 @@ public class Zcall {
       writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
                                            + "GenomeStudioData.txt");
       writer.print(ArrayUtils.toStr(BASIC_HEADER));
-      for (int i = 0; i < samples.length; i++) {
+      for (int i = 0; i < proj.getNumberOfParsedSamples(); i++) {
         if (samplesToInclude[i]) {
           writer.print("\t" + samples[i] + ".gtype\t" + samples[i] + ".X\t" + samples[i] + ".Y");
         }
@@ -109,7 +109,7 @@ public class Zcall {
 
         writer.print(markerName + "\t" + markerData.getChr() + "\t" + markerData.getPosition());
 
-        for (int j = 0; j < samples.length; j++) {
+        for (int j = 0; j < proj.getNumberOfParsedSamples(); j++) {
           if (samplesToInclude[j]) {
             writer.print("\t" + AB_GENOTYPES[1 + abGenotypes[j]] + "\t" + xs[j] + "\t" + ys[j]);
           }

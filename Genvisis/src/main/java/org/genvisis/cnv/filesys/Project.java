@@ -905,7 +905,7 @@ public class Project implements PropertyChangeListener {
     // TODO strict check for #files == #samples?
     return Files.exists(sampleDirectory)
            && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION).length > 0
-           && getSampleList() != null && getSampleList().getSamples().length > 0;
+           && getNumberOfParsedSamples() > 0;
   }
 
   @SuppressWarnings("unchecked")
@@ -1105,7 +1105,7 @@ public class Project implements PropertyChangeListener {
       log.report("Failed to find SampleList; generating one...");
       sampleList = SampleList.generateSampleList(this);
     }
-    if (sampleList != null && sampleList.getSamples().length == 0) {
+    if (sampleList != null && getNumberOfParsedSamples() == 0) {
       log.report("SampleList is of length zero; generating a new one...");
       sampleList = SampleList.generateSampleList(this);
     }

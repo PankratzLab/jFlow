@@ -182,7 +182,7 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
       } else {
         estimate = tmpResiduals.getMedians();
       }
-      if (estimate.length != tmpResiduals.getProj().getSamples().length) {
+      if (estimate.length != tmpResiduals.getProj().getNumberOfParsedSamples()) {
         throw new IllegalStateException("Could not obtain estimate for all samples in project");
       }
     }
@@ -388,8 +388,8 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 // }
 //
 // if (tmpResiduals.getNumComponents() == 100) {
-// String[] wtf = new String[tmpResiduals.getProj().getSamples().length];
-// for (int j = 0; j < tmpResiduals.getProj().getSamples().length; j++) {
+// String[] wtf = new String[tmpResiduals.getProj().getNumberOfParsedSamples()];
+// for (int j = 0; j < tmpResiduals.getProj().getNumberOfParsedSamples(); j++) {
 // wtf[j] = tmpResiduals.getProj().getSamples()[j] + "\t" + tmpResiduals.getMedians()[j] + "\t" +
 // estimate[j];
 // }

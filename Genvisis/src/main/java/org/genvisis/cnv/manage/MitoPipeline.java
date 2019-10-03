@@ -292,12 +292,11 @@ public class MitoPipeline {
     if (Files.exists(sampleDirectory)
         && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION).length > 0
         && proj.getSampleList() != null && proj.getNumberOfParsedSamples() > 0) {
-      sampleList = proj.getSampleList();
       log.report("Detected that "
-                 + (sampleList.getSamples().length > 1 ? sampleList.getSamples().length
-                                                         + " samples have"
-                                                       : sampleList.getSamples().length
-                                                         + " sample has")
+                 + (proj.getNumberOfParsedSamples() > 1 ? proj.getNumberOfParsedSamples()
+                                                          + " samples have"
+                                                        : proj.getNumberOfParsedSamples()
+                                                          + " sample has")
                  + " already been parsed");
       // log.report("Skipping sample import step for the analysis. If this is an incorrect number of
       // samples, please remove (or change the name of) " +
@@ -323,8 +322,7 @@ public class MitoPipeline {
     try {
       Thread.sleep(5000); // Got hit with the error below for no reason twice now
     } catch (InterruptedException ie) {}
-    sampleList = proj.getSampleList();
-    if (sampleList == null || sampleList.getSamples().length == 0) {
+    if (proj.getNumberOfParsedSamples() == 0) {
       log.report("\n" + ext.getTime()
                  + "\tError - samples were not imported properly, halting MitoPipeline");
       if (doAbLookup) {
@@ -340,7 +338,7 @@ public class MitoPipeline {
       // do nothing, as the next check, verifyAllSamples, checks for the same things;
     }
     // we require that every sample that has been parsed has an entry in sampleData
-    if (verifyAllSamples(proj, sampleList.getSamples())) {
+    if (verifyAllSamples(proj, proj.getSamples())) {
       if (doAbLookup) {
         log.report("Info - determined that an AB lookup is required and was not provided, attempting to generate one now");
         if (generateABLookup(proj, log) == 0) {
@@ -348,7 +346,7 @@ public class MitoPipeline {
         }
       }
       // if a useFile is given, all samples must be available
-      if (verifyUseFile(proj, sampleList.getSamples(), useFile)) {
+      if (verifyUseFile(proj, proj.getSamples(), useFile)) {
         if (Files.list(proj.MARKER_DATA_DIRECTORY.getValue(false, false), "mdRAF").length > 0) {
           log.report("Marker data (files with extension mdRAF in "
                      + proj.MARKER_DATA_DIRECTORY.getValue(false, false)
@@ -368,7 +366,8 @@ public class MitoPipeline {
           if (verifyAuxMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(),
                                PC_MARKER_COMMAND)) {
             int errorCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC,
-                                            markerCallRateFilter, useFile, sampleList, log);
+                                            markerCallRateFilter, useFile, proj.getSampleList(),
+                                            log);
             // check that all median markers are available
             if (errorCode == 42 && verifyAuxMarkers(proj, medianMarkers, MITO_MARKER_COMMAND)) {
               // compute PCs with samples passing QC

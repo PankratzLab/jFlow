@@ -397,7 +397,7 @@ public class VCFImporter {
     projNorm.saveProperties();
     projNorm.DATA_DIRECTORY.getValue(true, false);
 
-    if (projNorm.getSamples() == null || projNorm.getSamples().length == 0) {
+    if (projNorm.getSamples() == null || projNorm.getNumberOfParsedSamples() == 0) {
       VCFSamplePrepWorker vPrepWorker = new VCFSamplePrepWorker(proj,
                                                                 projNorm.SAMPLE_DIRECTORY.getValue(true,
                                                                                                    false),
