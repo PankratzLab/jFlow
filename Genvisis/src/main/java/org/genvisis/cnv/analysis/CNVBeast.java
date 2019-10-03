@@ -659,7 +659,7 @@ public class CNVBeast {
     if (samplesToAnalyzeFile == null) {
       return samplesToUse;
     } else {
-      samplesToUse = new boolean[proj.getSamples().length];
+      samplesToUse = new boolean[proj.getNumberOfParsedSamples()];
       Arrays.fill(samplesToUse, false);
       String[] samps = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()
                                                      + samplesToAnalyzeFile, false, new int[] {0},

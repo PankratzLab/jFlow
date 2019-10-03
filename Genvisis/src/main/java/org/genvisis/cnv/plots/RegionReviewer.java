@@ -775,7 +775,7 @@ public class RegionReviewer extends JFrame {
 
   private void showHideSamples() {
     DefaultListModel<JCheckBox> listModel = new DefaultListModel<>();
-    for (int i = 0; i < proj.getSamples().length; i++) {
+    for (int i = 0; i < proj.getNumberOfParsedSamples(); i++) {
       listModel.addElement(new JCheckBox(proj.getSamples()[i],
                                          hidden.contains(proj.getSamples()[i])));
     }

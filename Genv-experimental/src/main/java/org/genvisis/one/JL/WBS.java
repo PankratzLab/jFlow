@@ -29,7 +29,7 @@ public class WBS {
   public static void main(String[] args) {
     Project proj = new Project("/Users/Kitty/.genvisis/projects/LLFS.properties");
 
-    System.out.println(proj.getSamples().length);
+    System.out.println(proj.getNumberOfParsedSamples());
     Sample samp = proj.getFullSampleFromRandomAccessFile("10007060");
     MarkerDetailSet md = proj.getMarkerSet();
     System.out.println(ArrayUtils.toStr(ArrayUtils.subArray(samp.getLRRs(),

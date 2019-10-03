@@ -125,7 +125,7 @@ public class CallCNVsStep extends Step {
   public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Variables variables,
                                      List<Step> selectedSteps) {
     CALLING_SCOPE scope = variables.get(callingTypeReq);
-    int numSteps = proj.getSamples().length;
+    int numSteps = proj.getNumberOfParsedSamples();
     if (scope == CALLING_SCOPE.BOTH) {
       numSteps *= 2;
     }

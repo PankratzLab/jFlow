@@ -65,7 +65,7 @@ public class ShadowRework {
     public void setupMarkerFiles(Project proj) {
       samples = proj.getSamples();
       mkrInds = proj.getMarkerIndices();
-      numInd = proj.getSamples().length;
+      numInd = proj.getNumberOfParsedSamples();
       fingerprint = MarkerSet.fingerprintForMarkers(proj);
       NavigableMap<Byte, NavigableSet<Marker>> chrMap = proj.getMarkerSet().getChrMap();
       int numMarkers = 2500;

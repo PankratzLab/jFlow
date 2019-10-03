@@ -1471,7 +1471,7 @@ public class Sample implements Serializable {
       WorkerHive<HashLoadResult> hive = new WorkerHive<HashLoadResult>(numthreads, 10,
                                                                        proj.getLog());
 
-      for (int i = 0; i < proj.getSamples().length; i++) {
+      for (int i = 0; i < proj.getNumberOfParsedSamples(); i++) {
         final String currentSampleRAF = proj.SAMPLE_DIRECTORY.getValue() + proj.getSamples()[i]
                                         + Sample.SAMPLE_FILE_EXTENSION;
         final String sampleName = proj.getSamples()[i];

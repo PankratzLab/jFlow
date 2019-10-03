@@ -178,7 +178,7 @@ public class TempFileTranspose {
                                                                                                       false))
                       * (long) Compression.bytesToInt(readParameter(file),
                                                       TransposeData.MARKERDATA_NUMMARKERS_START)
-                      * proj.getSamples().length;
+                      * proj.getNumberOfParsedSamples();
           long found = Files.getSize(getTempFile(file));
           if (found == size) {
             add = false;
@@ -290,7 +290,7 @@ public class TempFileTranspose {
                                                                               0, -1, f,
                                                                               proj.getLog());
     OutputStream os = new FileOutputStream(out);
-    for (int s = 0, c = proj.getSamples().length; s < c; s++) {
+    for (int s = 0, c = proj.getNumberOfParsedSamples(); s < c; s++) {
       for (int m = 0; m < readBuffer.length; m++) { // should be all markers
         os.write(readBuffer[m], s * numBytesPerSampleMarker, numBytesPerSampleMarker);
       }
@@ -308,7 +308,7 @@ public class TempFileTranspose {
 
   public void setupSampleListFile() {
     new File(proj.SAMPLE_DIRECTORY.getValue()).mkdirs();
-    String[] samples = Arrays.copyOf(proj.getSamples(), proj.getSamples().length);
+    String[] samples = Arrays.copyOf(proj.getSamples(), proj.getNumberOfParsedSamples());
     // for (int i = 0; i < samples.length; i++) {
     // samples[i] = proj.SAMPLE_DIRECTORY.getValue() + samples[i] + ".sampRAF";
     // }

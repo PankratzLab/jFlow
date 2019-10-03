@@ -172,7 +172,7 @@ public class DemoProject extends Project {
   }
 
   private static boolean[] loadSamples(Project proj, String samplesFile, DEMO_TYPE dType) {
-    boolean[] samplesToUse = new boolean[proj.getSamples().length];
+    boolean[] samplesToUse = new boolean[proj.getNumberOfParsedSamples()];
     Arrays.fill(samplesToUse, true);// defualt to all samples;
     // String sampleSubsetFile = proj.getFilename(proj.SAMPLE_SUBSET_FILENAME);
     String sampleSubsetFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
@@ -254,12 +254,12 @@ public class DemoProject extends Project {
                                         + markersToExport.length + " markers will be exported");
       }
       if (samplesToUse == null) {
-        samplesToUse = new boolean[proj.getSamples().length];
+        samplesToUse = new boolean[proj.getNumberOfParsedSamples()];
         Arrays.fill(samplesToUse, true);
         proj.getLog().reportTimeWarning("Since the samples to export were not provided, all "
                                         + samplesToUse.length + " samples will be exported");
       }
-      if (samplesToUse.length != proj.getSamples().length) {
+      if (samplesToUse.length != proj.getNumberOfParsedSamples()) {
         proj.getLog().reportError("The array length provided does (" + samplesToUse.length
                                   + ") does not contain boolean values for all samples");
         created = false;

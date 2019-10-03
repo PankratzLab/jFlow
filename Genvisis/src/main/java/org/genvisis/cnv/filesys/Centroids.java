@@ -1110,7 +1110,8 @@ public class Centroids implements Serializable, TextExport {
       } else if (importFile != null) {
         importFromText(proj, importFile, centFile);
       } else if (fromGenotypes) {
-        parseCentroidsFromGenotypes(proj, ArrayUtils.booleanArray(proj.getSamples().length, true),
+        parseCentroidsFromGenotypes(proj,
+                                    ArrayUtils.booleanArray(proj.getNumberOfParsedSamples(), true),
                                     1);
       } else if (projComputeDump) {
         CentroidCompute.computeAndDumpCentroids(proj);

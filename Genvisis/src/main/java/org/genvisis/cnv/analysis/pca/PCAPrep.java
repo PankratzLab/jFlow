@@ -244,7 +244,7 @@ public class PCAPrep {
                  + (targetMarkersFile == null ? "all markers in project."
                                               : "markers in " + targetMarkersFile));
       writeMarkersToQC(proj, targetMarkersFile, markersToQCFile);
-      boolean[] samplesToExclude = new boolean[proj.getSamples().length];
+      boolean[] samplesToExclude = new boolean[proj.getNumberOfParsedSamples()];
       Arrays.fill(samplesToExclude, false);
 
       PSF.checkInterrupted();

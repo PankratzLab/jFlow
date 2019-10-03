@@ -145,7 +145,7 @@ public class SampleQC {
       Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, pcBasisSubset, pcTitles,
                                                         proj.getLog());
       Hashtable<String, String> hashtable = new Hashtable<>();
-      for (int i = 0; i < proj.getSamples().length; i++) {
+      for (int i = 0; i < proj.getNumberOfParsedSamples(); i++) {
         String qcInfo = developMetricsLine(i, quantiles, pcBasisSubset, justQuantiles);
         hashtable.put(proj.getSamples()[i], qcInfo);
       }

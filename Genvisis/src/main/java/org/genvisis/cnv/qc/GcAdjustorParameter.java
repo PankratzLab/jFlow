@@ -551,7 +551,7 @@ public class GcAdjustorParameter implements Serializable {
           sampleIndex++;
           if (sampleIndex % 100 == 0) {
             proj.getLog().reportTimeInfo("Generated gc correction parameters for " + sampleIndex
-                                         + " of " + proj.getSamples().length + " samples");
+                                         + " of " + proj.getNumberOfParsedSamples() + " samples");
           }
         }
         proj.GC_CORRECTION_PARAMETERS_FILENAMES.setValue(new String[] {});

@@ -214,12 +214,12 @@ public class MosaicismQuant implements Calcfc {
 
   public static SampleMosiac prep(Project proj, String sampleName, String qcMetric,
                                   int numControls) {
-    if (numControls > proj.getSamples().length - 1) {
+    if (numControls > proj.getNumberOfParsedSamples() - 1) {
       proj.getLog()
-          .reportTimeWarning("Only have " + proj.getSamples().length
+          .reportTimeWarning("Only have " + proj.getNumberOfParsedSamples()
                              + " total samples, changing number of controls to "
-                             + (proj.getSamples().length - 1));
-      numControls = proj.getSamples().length - 1;
+                             + (proj.getNumberOfParsedSamples() - 1));
+      numControls = proj.getNumberOfParsedSamples() - 1;
     }
     SampleMosiacBase[] controls = new SampleMosiacBase[numControls];
     int sampleIndex = ext.indexOfStr(sampleName, proj.getSamples());
@@ -232,7 +232,7 @@ public class MosaicismQuant implements Calcfc {
     if (sampleSortIndex == minIndex) {
       minIndex++;
     }
-    int maxIndex = Math.min(proj.getSamples().length, sampleSortIndex + numControls);
+    int maxIndex = Math.min(proj.getNumberOfParsedSamples(), sampleSortIndex + numControls);
     if (sampleSortIndex == maxIndex) {
       maxIndex--;
     }
@@ -831,7 +831,7 @@ public class MosaicismQuant implements Calcfc {
           writer.print("\t" + set.getLoci()[i].getUCSClocation());
         }
         writer.println();
-        MosaicQuantResults[] sampleMosaicQuantResults = new MosaicQuantResults[proj.getSamples().length];
+        MosaicQuantResults[] sampleMosaicQuantResults = new MosaicQuantResults[proj.getNumberOfParsedSamples()];
         int index = 0;
         while (train.hasNext()) {
 

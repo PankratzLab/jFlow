@@ -5,7 +5,7 @@ import org.genvisis.cnv.filesys.Project;
 public class Stats {
 
   public static void runTheNumbers(Project proj) {
-    System.out.println("Number of samples: " + proj.getSamples().length);
+    System.out.println("Number of samples: " + proj.getNumberOfParsedSamples());
     System.out.println("Number of markers: " + proj.getMarkerNames().length);
     System.out.println("Number of markers in Lookup: " + proj.getMarkerLookup().getSize());
   }

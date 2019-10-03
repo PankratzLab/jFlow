@@ -107,7 +107,7 @@ public class AncestryStep extends Step {
     if (variables.get(useAllSamplesReq).booleanValue()) {
       putativeWhites = proj.PROJECT_DIRECTORY.getValue() + PUTATIVE_ALL_FILENAME;
       if (!Files.exists(putativeWhites)
-          || Files.countLines(putativeWhites, 0) != proj.getSamples().length) {
+          || Files.countLines(putativeWhites, 0) != proj.getNumberOfParsedSamples()) {
         PrintWriter writer = Files.getAppropriateWriter(putativeWhites);
         for (String samp : proj.getSamples()) {
           writer.println(samp + "\t" + samp);

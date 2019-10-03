@@ -965,7 +965,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
                                             boolean[] samplesTobuildModel,
                                             int numComponentsForModel, LS_TYPE lType, String title,
                                             boolean verbose) {
-    int numSamples = proj.getSamples().length;
+    int numSamples = proj.getNumberOfParsedSamples();
     boolean go = true;
     CrossValidation cval;
     if (numComponentsForModel <= 0) {
@@ -1465,7 +1465,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
   }
 }
 // int trainIndex = 0;
-// for (int i = 0; i < proj.getSamples().length; i++) {
+// for (int i = 0; i < proj.getNumberOfParsedSamples(); i++) {
 // if (samplesTobuildModel[i]) {
 // // System.out.println("TRAIN\t"+proj.getSamples()[trainIndex] + "\t" + data[trainIndex] + "\t" +
 // Array.toStr(train_indeps[trainIndex]));
@@ -1483,6 +1483,6 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 //
 // }
 
-// for (int i = 0; i < proj.getSamples().length; i++) {
+// for (int i = 0; i < proj.getNumberOfParsedSamples(); i++) {
 // System.out.println(proj.getSamples()[i] + "\t" + data[i]);
 // }

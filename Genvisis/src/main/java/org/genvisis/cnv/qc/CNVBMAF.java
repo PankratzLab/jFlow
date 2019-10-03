@@ -186,7 +186,7 @@ public class CNVBMAF extends CNVBDeviation {
     String[] markers = HashVec.loadFileToStringArray(display, false, new int[] {0}, true);
     MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
                                                                                                 markers);
-    PoplulationBAFs poplulationBDeviation = new PoplulationBAFs(proj.getSamples().length,
+    PoplulationBAFs poplulationBDeviation = new PoplulationBAFs(proj.getNumberOfParsedSamples(),
                                                                 DEFAULT_INTENSITY_ONLY_FLAGS,
                                                                 DEFAULT_GC_THRESHOLD);
     for (int i = 0; i < markers.length; i++) {

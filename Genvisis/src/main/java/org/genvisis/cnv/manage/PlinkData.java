@@ -799,12 +799,12 @@ public class PlinkData {
   // ".bed"));
   //
   // if (markerList == null) {
-  // nMarkers = proj.getSamples().length;
+  // nMarkers = proj.getNumberOfParsedSamples();
   // markerList = proj.getMarkerNames();
   // } else {
   // nMarkers = markerList.length;
   // }
-  // nSamples = proj.getSamples().length;
+  // nSamples = proj.getNumberOfParsedSamples();
   // clusterFilterCollection = proj.getClusterFilterCollection();
   //
   // try {

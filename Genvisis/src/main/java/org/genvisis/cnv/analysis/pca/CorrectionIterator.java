@@ -173,7 +173,7 @@ public class CorrectionIterator implements Serializable {
     switch (bType) {
       // case WITHOUT_QC_BUILDERS:
       //
-      // samplesForModels = Array.booleanArray(proj.getSamples().length, true);
+      // samplesForModels = Array.booleanArray(proj.getNumberOfParsedSamples(), true);
       // break;
       case WITH_QC_BUILDERS:
         if (!Files.exists(samplesToBuildModels)) {
@@ -189,7 +189,7 @@ public class CorrectionIterator implements Serializable {
 
           int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true,
                                                 proj.getLog(), true);
-          samplesForModels = ArrayUtils.booleanArray(proj.getSamples().length, false);
+          samplesForModels = ArrayUtils.booleanArray(proj.getNumberOfParsedSamples(), false);
           for (int i = 0; i < indices.length; i++) {
             samplesForModels[indices[i]] = true;
           }

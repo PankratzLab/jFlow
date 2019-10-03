@@ -265,7 +265,7 @@ public class VCFImporter {
     // while (train.hasNext()) {
     // index++;
     // if (index % 10 == 0) {
-    // proj.getLog().reportTimeInfo(index + " of " + proj.getSamples().length);
+    // proj.getLog().reportTimeInfo(index + " of " + proj.getNumberOfParsedSamples());
     // }
     // Hashtable<String, Float> outliers = train.next();
     // if (outliers.size() > 0) {
@@ -330,7 +330,7 @@ public class VCFImporter {
     proj.MARKER_DATA_DIRECTORY.getValue(true, false);
     proj.DATA_DIRECTORY.getValue(true, false);
     Hashtable<String, Float> allOutliers = new Hashtable<>();
-    if (proj.getSamples() == null || proj.getSamples().length == 0) {
+    if (proj.getSamples() == null || proj.getNumberOfParsedSamples() == 0) {
       for (int i = 0; i < sampleChunks.size(); i++) {
         hive.addCallable(new VCFImporterWorker(proj, vcf, getset(sampleChunks.get(i)), i == 0));
       }
@@ -344,11 +344,11 @@ public class VCFImporter {
       }
     }
 
-    if (proj.getSamples() != null && proj.getSamples().length != samples.length) {
+    if (proj.getSamples() != null && proj.getNumberOfParsedSamples() != samples.length) {
       proj.getLog().reportError("A different number of samples appear to be parsed in "
                                 + proj.SAMPLE_DIRECTORY.getValue());
       proj.getLog().reportError("Found " + samples.length + " samples in the vcf and "
-                                + proj.getSamples().length + " samples were parsed");
+                                + proj.getNumberOfParsedSamples() + " samples were parsed");
       return;
     }
 
@@ -411,7 +411,7 @@ public class VCFImporter {
         while (train.hasNext()) {
           index++;
           if (index % 10 == 0) {
-            proj.getLog().reportTimeInfo(index + " of " + proj.getSamples().length);
+            proj.getLog().reportTimeInfo(index + " of " + proj.getNumberOfParsedSamples());
           }
           Hashtable<String, Float> outliers = train.next();
           if (outliers.size() > 0) {

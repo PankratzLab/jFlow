@@ -316,12 +316,12 @@ public class MDL implements Iterator<MarkerData> {
       file.read(parameterReadBuffer);
       nullStatus = parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START];
       bytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
-      numBytesPerMarker = bytesPerSampleMarker * proj.getSamples().length;
+      numBytesPerMarker = bytesPerSampleMarker * proj.getNumberOfParsedSamples();
       numSamplesObserved = Compression.bytesToInt(parameterReadBuffer,
                                                   TransposeData.MARKERDATA_NUMSAMPLES_START);
-      if (numSamplesObserved != proj.getSamples().length) {
+      if (numSamplesObserved != proj.getNumberOfParsedSamples()) {
         String error = "mismatched number of samples between sample list (n="
-                       + proj.getSamples().length + ") and file '" + fileMatch.getFileName()
+                       + proj.getNumberOfParsedSamples() + ") and file '" + fileMatch.getFileName()
                        + "' (n=" + numSamplesObserved + ")";
         proj.getLog().reportError(error);
         throw new IllegalStateException(error);

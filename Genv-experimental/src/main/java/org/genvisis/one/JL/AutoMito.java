@@ -28,13 +28,14 @@ public class AutoMito {
                           double callRateSamp, double callRateMarker, double hetExMarker,
                           double sexZscore, double lrrSDSamp,
                           int numThreads) throws FileNotFoundException {
-    long arrayLength = maxNumMarkers * proj.getSamples().length;
+    long arrayLength = maxNumMarkers * proj.getNumberOfParsedSamples();
     if (arrayLength >= Integer.MAX_VALUE) {
       proj.getLog().reportTimeWarning("Maximum number of markers set to: " + maxNumMarkers);
-      proj.getLog().reportTimeWarning("Number of samples : " + proj.getSamples().length);
-      proj.getLog().reportTimeWarning(proj.getSamples().length + " X " + maxNumMarkers + " = "
-                                      + arrayLength + " , which is greater than max java integer");
-      maxNumMarkers = Math.round(Integer.MAX_VALUE / (proj.getSamples().length + 1f));
+      proj.getLog().reportTimeWarning("Number of samples : " + proj.getNumberOfParsedSamples());
+      proj.getLog()
+          .reportTimeWarning(proj.getNumberOfParsedSamples() + " X " + maxNumMarkers + " = "
+                             + arrayLength + " , which is greater than max java integer");
+      maxNumMarkers = Math.round(Integer.MAX_VALUE / (proj.getNumberOfParsedSamples() + 1f));
       proj.getLog().reportTimeWarning("Updated max num markers to " + maxNumMarkers);
     }
 
@@ -100,7 +101,7 @@ public class AutoMito {
     }
 
     SampleQC sampleQC = SampleQC.loadSampleQC(proj);
-    boolean[] samplesPassing = ArrayUtils.booleanArray(proj.getSamples().length, false);
+    boolean[] samplesPassing = ArrayUtils.booleanArray(proj.getNumberOfParsedSamples(), false);
     String sampleFiltRound1 = qcDir + name + "_base_sampleFilter.txt";
     double[] lrr = sampleQC.getDataFor("LRR_SD");
     double[] callRate = sampleQC.getDataFor("Genotype_callrate");

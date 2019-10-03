@@ -52,7 +52,7 @@ public class BaselineUnclusteredMarkers implements Serializable {
     boolean success = true;
     String taskName = "createBaselineUnclusteredMarkersFileFromSamples_sampleCalls";
     proj.getProgressMonitor().beginDeterminateTask(taskName, "Summing marker calls for each sample",
-                                                   proj.getSamples().length,
+                                                   proj.getNumberOfParsedSamples(),
                                                    ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
     int[] autosomalMarkerIndices = proj.getAutosomalMarkerIndices();
     int[] autosomalMarkerCalls = new int[autosomalMarkerIndices.length];
@@ -89,7 +89,7 @@ public class BaselineUnclusteredMarkers implements Serializable {
       BaselineUnclusteredMarkers bum = new BaselineUnclusteredMarkers();
       for (int i = 0; i < autosomalMarkers.length; i++) {
         proj.getProgressMonitor().updateTask(taskName);
-        float callrate = (float) autosomalMarkerCalls[i] / proj.getSamples().length;
+        float callrate = (float) autosomalMarkerCalls[i] / proj.getNumberOfParsedSamples();
         if (callrate < MARKER_CALLRATE_THRESHOLD) {
           bum.markerCallrate.put(autosomalMarkers[i], callrate);
         }

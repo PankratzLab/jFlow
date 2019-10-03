@@ -282,8 +282,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
         }
       }
       int[] titleIndices = ext.indexFactors(titles, header, true);
-      double[][] data = new double[titles.length][proj.getSamples().length];
-      boolean[][] masks = new boolean[titles.length][proj.getSamples().length];
+      double[][] data = new double[titles.length][proj.getNumberOfParsedSamples()];
+      boolean[][] masks = new boolean[titles.length][proj.getNumberOfParsedSamples()];
       for (int i = 0; i < masks.length; i++) {
         Arrays.fill(data[i], Double.NaN);
         Arrays.fill(masks[i], false);

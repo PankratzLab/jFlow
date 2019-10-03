@@ -662,7 +662,7 @@ public class IntensityCorrectionQC {
       ClassDefinition[] classDefinitions = new ClassDefinition[numClasses];
       for (int i = 0; i < numClasses; i++) {
         classDefinitions[i] = new ClassDefinition(proj, sampleData.getClassName(i),
-                                                  proj.getSamples().length);
+                                                  proj.getNumberOfParsedSamples());
         for (int j = 0; j < samples.length; j++) {
           if (samplesToUse[j]) {
             classDefinitions[i].addClassDef(sampleData.getClassForInd(samples[j], i) + "", j);
@@ -688,7 +688,7 @@ public class IntensityCorrectionQC {
   }
 
   private static boolean[] getModelDefMask(Project proj, ClassDefinition[] classDefinitions) {
-    int[] modelDef = new int[proj.getSamples().length];
+    int[] modelDef = new int[proj.getNumberOfParsedSamples()];
     Arrays.fill(modelDef, 1);
     for (ClassDefinition classDefinition : classDefinitions) {
       if (classDefinition.isIncludedInPCDef()) {
@@ -703,7 +703,7 @@ public class IntensityCorrectionQC {
   }
 
   private static double[] loadDataFile(Project proj, String dataFile, Logger log) {
-    double[] data = new double[proj.getSamples().length];
+    double[] data = new double[proj.getNumberOfParsedSamples()];
     Arrays.fill(data, (0.0D / 0.0D));
     try {
       BufferedReader reader = Files.getAppropriateReader(dataFile);

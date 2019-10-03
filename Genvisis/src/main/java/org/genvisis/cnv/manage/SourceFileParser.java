@@ -1086,9 +1086,9 @@ public class SourceFileParser implements Runnable {
     SampleList.generateSampleList(proj)
               .writeToTextFile(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
     if (!proj.LONG_FORMAT.getValue()) {
-      if (files.length != proj.getSamples().length) {
+      if (files.length != proj.getNumberOfParsedSamples()) {
         proj.getLog()
-            .reportError("The number of parsed samples (" + proj.getSamples().length
+            .reportError("The number of parsed samples (" + proj.getNumberOfParsedSamples()
                          + ") does not equal the number of source files detected (" + files.length
                          + ")");
         proj.getLog()

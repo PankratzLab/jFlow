@@ -1112,6 +1112,11 @@ public class Project implements PropertyChangeListener {
     return sampleList;
   }
 
+  public int getNumberOfParsedSamples() {
+    String[] samples = getSamples();
+    return samples == null ? 0 : samples.length;
+  }
+
   public String[] getSamples() {
     SampleList sampleList;
 

@@ -128,7 +128,7 @@ public class testKSPOD {
           String offDNA = pedigree.getiDNA(offIndex);
           System.out.println(offDNA + '\t' + pair[0] + "\t" + pedigree.getFaDNAIndex(offIndex)
                              + "\t" + pedigree.getMoDNAIndex(offIndex));
-          System.out.println(proj.getSamples().length + "\t" + pedigree.getDnas().length);
+          System.out.println(proj.getNumberOfParsedSamples() + "\t" + pedigree.getDnas().length);
           if (!completed.contains(offDNA)) {
             // pedigree.
             String faDNA = null;

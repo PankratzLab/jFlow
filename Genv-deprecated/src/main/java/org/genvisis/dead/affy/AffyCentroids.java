@@ -385,7 +385,7 @@ public class AffyCentroids implements Serializable {
     proj = new Project(filename, logfile);
     try {
       if (fromGenotypes) {
-        parseCentroids(proj, ArrayUtils.booleanArray(proj.getSamples().length, true), 1,
+        parseCentroids(proj, ArrayUtils.booleanArray(proj.getNumberOfParsedSamples(), true), 1,
                        callConfidence);
       } else if (sampleFilter) {
         parseCentroidsFilteredSamples(proj, 1, callConfidence);

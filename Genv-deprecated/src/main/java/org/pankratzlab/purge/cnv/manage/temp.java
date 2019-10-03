@@ -85,7 +85,7 @@ public class temp {
 
     System.exit(1);
 
-    System.out.println(proj.getSamples().length + " samples");
+    System.out.println(proj.getNumberOfParsedSamples() + " samples");
     System.out.println(proj.getMarkerNames().length + " markers");
 
     System.exit(1);

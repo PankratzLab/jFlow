@@ -101,7 +101,7 @@ public class ReverseTransposeTarget extends Step {
   public boolean checkIfOutputExists(Variables variables) {
     return Files.exists(proj.SAMPLE_DIRECTORY.getValue())
            && Files.countFiles(proj.SAMPLE_DIRECTORY.getValue(false, false),
-                               Sample.SAMPLE_FILE_EXTENSION) == proj.getSamples().length;
+                               Sample.SAMPLE_FILE_EXTENSION) == proj.getNumberOfParsedSamples();
   }
 
 }

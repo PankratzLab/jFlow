@@ -185,8 +185,9 @@ public class PrincipalComponentsEval {
   // MarkerDataLoader markerDataLoader =
   // MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
   // markersToUse);
-  // byte[][] abGentypes = new byte[markersToUse.length][proj.getSamples().length];
-  // boolean[][] homozygousMarkersToUse = new boolean[markerDatas.length][proj.getSamples().length];
+  // byte[][] abGentypes = new byte[markersToUse.length][proj.getNumberOfParsedSamples()];
+  // boolean[][] homozygousMarkersToUse = new
+  // boolean[markerDatas.length][proj.getNumberOfParsedSamples()];
   // for (int i = 0; i < markerDatas.length; i++) {
   // markerDatas[i] = markerDataLoader.requestMarkerData(i);
   // abGentypes[i] = markerDatas[i].getAbGenotypes();
@@ -207,9 +208,9 @@ public class PrincipalComponentsEval {
   // + ext.rootOf(evalFile) + ".SpearmanP" + "\t" + ext.rootOf(evalFile)
   // + ".ICCMETHODS" + "\t" + ext.rootOf(evalFile) + ".ICCMATCHED");
   // for (int i = 0; i <= pcResiduals.getNumComponents(); i += jump) {
-  // double[][] curData = new double[markersToUse.length][proj.getSamples().length];
-  // double[][] tmpData = new double[proj.getSamples().length][markersToUse.length];
-  // double[] cnEstimate = new double[proj.getSamples().length];
+  // double[][] curData = new double[markersToUse.length][proj.getNumberOfParsedSamples()];
+  // double[][] tmpData = new double[proj.getNumberOfParsedSamples()][markersToUse.length];
+  // double[] cnEstimate = new double[proj.getNumberOfParsedSamples()];
   // ExecutorService executor = Executors.newFixedThreadPool(numMarkerThreads);
   // Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
   // if (i > 0) {
@@ -239,7 +240,7 @@ public class PrincipalComponentsEval {
   // for (int j = 0; j < markersToUse.length; j++) {
   // try {
   // curData[j] = tmpResults.get(Integer.toString(j)).get();
-  // for (int k = 0; k < proj.getSamples().length; k++) {
+  // for (int k = 0; k < proj.getNumberOfParsedSamples(); k++) {
   // tmpData[k][j] = curData[j][k];
   // }
   // } catch (InterruptedException e) {
@@ -264,7 +265,7 @@ public class PrincipalComponentsEval {
   // pcResiduals.setFullData(curData);
   // pcResiduals.setAbGenotypesAfterFilters(abGentypes);
   // cnEstimate = pcResiduals.getLRRMedian();
-  // for (int j = 0; j < proj.getSamples().length; j++) {
+  // for (int j = 0; j < proj.getNumberOfParsedSamples(); j++) {
   // }
   // evalAndPrint(proj, eval, writer, i, cnEstimate, numQs, i == 0, evalFile);
   // }
@@ -301,7 +302,7 @@ public class PrincipalComponentsEval {
   }
 
   private static double[] loadDataFile(Project proj, String dataFile, Logger log) {
-    double[] data = new double[proj.getSamples().length];
+    double[] data = new double[proj.getNumberOfParsedSamples()];
     Arrays.fill(data, Double.NaN);
     try {
       BufferedReader reader = Files.getAppropriateReader(dataFile);

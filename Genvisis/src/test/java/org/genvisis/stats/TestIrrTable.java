@@ -15,7 +15,7 @@ public class TestIrrTable {
     SampleQC sampleQC = SampleQC.loadSampleQC(proj);
     Quantiles[] quantiles = Quantiles.qetQuantilesFor(100, sampleQC.getQcMatrix(),
                                                       sampleQC.getQctitles(), proj.getLog());
-    IrrTable rIrrTable = new IrrTable(2, proj.getSamples().length, true, proj.getLog());
+    IrrTable rIrrTable = new IrrTable(2, proj.getNumberOfParsedSamples(), true, proj.getLog());
     rIrrTable.addRatings(0, quantiles[1].getQuantileMembershipAsRoundedInt());
     rIrrTable.addRatings(1, quantiles[1].getQuantileMembershipAsRoundedInt());
     rIrrTable.parseAgreement();
