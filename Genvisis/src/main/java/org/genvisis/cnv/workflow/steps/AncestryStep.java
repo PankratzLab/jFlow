@@ -42,7 +42,7 @@ public class AncestryStep extends Step {
       defaultSnpFile = Resources.affy(proj.getLog()).getRSIDLookup().get();
     } else if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_AXIOM) {
       String[] lookups = Files.list(proj.PROJECT_DIRECTORY.getValue(),
-                                    AxiomManifestParsingStep.RSLOOKUP_SUFFIX);
+                                    AffymetrixManifestParsingStep.RSLOOKUP_SUFFIX);
       defaultSnpFile = lookups.length > 0 ? lookups[0] : "";
     }
     if (defaultSnpFile == null) {

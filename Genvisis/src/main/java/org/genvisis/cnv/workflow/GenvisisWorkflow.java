@@ -12,9 +12,9 @@ import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
+import org.genvisis.cnv.workflow.steps.AffymetrixManifestParsingStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
 import org.genvisis.cnv.workflow.steps.AxiomCELProcessingStep;
-import org.genvisis.cnv.workflow.steps.AxiomManifestParsingStep;
 import org.genvisis.cnv.workflow.steps.ComputePFBStep;
 import org.genvisis.cnv.workflow.steps.FurtherAnalysisQCStep;
 import org.genvisis.cnv.workflow.steps.GCModelStep;
@@ -131,14 +131,14 @@ public class GenvisisWorkflow {
 
   private List<Step> generateAxiomSteps(boolean isPCCorrectedProject) {
     StepBuilder sb = new StepBuilder(proj);
-    AxiomManifestParsingStep manifestStep;
+    AffymetrixManifestParsingStep manifestStep;
     AxiomCELProcessingStep parseAxiomCELs;
     AffyMarkerBlastStep affyMarkerBlastStep = null;
     ReverseTransposeTarget reverseTransposeStep = null;
     SampleDataStep createSampleDataStep;
     GCModelStep gcModelStep;
     SampleQCStep sampleQCStep;
-    manifestStep = sb.generateAxiomManifestParsingStep();
+    manifestStep = sb.generateAffymetrixManifestParsingStep();
     parseAxiomCELs = sb.generateAxiomCELProcessingStep(manifestStep);
     reverseTransposeStep = sb.generateReverseTransposeStep(parseAxiomCELs);
     affyMarkerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(reverseTransposeStep);
@@ -172,13 +172,16 @@ public class GenvisisWorkflow {
 
   private List<Step> generateAffySteps(boolean isPCCorrectedProject) {
     StepBuilder sb = new StepBuilder(proj);
+
+    AffymetrixManifestParsingStep manifestStep;
     AffyCELProcessingStep parseAffyCELs;
     AffyMarkerBlastStep affyMarkerBlastStep = null;
     ReverseTransposeTarget reverseTransposeStep = null;
     SampleDataStep createSampleDataStep;
     GCModelStep gcModelStep;
     SampleQCStep sampleQCStep;
-    parseAffyCELs = sb.generateAffyCELProcessingStep();
+    manifestStep = sb.generateAffymetrixManifestParsingStep();
+    parseAffyCELs = sb.generateAffyCELProcessingStep(manifestStep);
     reverseTransposeStep = sb.generateReverseTransposeStep(parseAffyCELs);
     affyMarkerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(reverseTransposeStep);
     createSampleDataStep = sb.generateCreateSampleDataStep(reverseTransposeStep);
@@ -328,7 +331,8 @@ public class GenvisisWorkflow {
     StepBuilder sb = new StepBuilder(proj);
 
     Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
-    AffyCELProcessingStep parseCELFiles = sb.generateAffyCELProcessingStep();
+    AffymetrixManifestParsingStep manifestStep = sb.generateAffymetrixManifestParsingStep();
+    AffyCELProcessingStep parseCELFiles = sb.generateAffyCELProcessingStep(manifestStep);
     ReverseTransposeTarget reverseTranspose = sb.generateReverseTransposeStep(parseCELFiles);
     SampleDataStep sampleData = sb.generateCreateSampleDataStep(reverseTranspose);
     AffyMarkerBlastStep blast = sb.generateAffyMarkerBlastAnnotationStep(reverseTranspose);

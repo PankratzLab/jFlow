@@ -11,6 +11,7 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.DirRequirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
 import org.genvisis.cnv.workflow.Requirement.OptionalBoolRequirement;
+import org.genvisis.cnv.workflow.Requirement.StepRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
@@ -37,22 +38,25 @@ public class AffyCELProcessingStep extends Step {
   public static final String DESC_APT_LIB = "Directory with Affy Power Tools library files (should contain GenomeWideSNP_6.cdf, etc. Available at http://www.affymetrix.com/)";
   public static final String DESC_SKETCH = "A target sketch file (such as hapmap.quant-norm.normalization-target.txt)";
 
-  public static AffyCELProcessingStep create(Project proj, Requirement<Integer> numThreadsReq) {
-
+  public static AffyCELProcessingStep create(Project proj, Step affyMarkerPositionsStep,
+                                             Requirement<Integer> numThreadsReq) {
+    StepRequirement manifestReq = new StepRequirement(affyMarkerPositionsStep);
     OptionalBoolRequirement fullReq = new OptionalBoolRequirement("full", DESC_FULL, false);
     DirRequirement aptExtReq = new DirRequirement("aptExe", DESC_APT_EXT, new File(""));
     DirRequirement aptLibReq = new DirRequirement("aptLib", DESC_APT_LIB, new File(""));
     FileRequirement sketchReq = new FileRequirement("sketch", DESC_SKETCH, new File(""));
 
-    return new AffyCELProcessingStep(proj, aptExtReq, aptLibReq, sketchReq, fullReq, numThreadsReq);
+    return new AffyCELProcessingStep(proj, manifestReq, aptExtReq, aptLibReq, sketchReq, fullReq,
+                                     numThreadsReq);
   }
 
-  private AffyCELProcessingStep(Project proj, DirRequirement aptExtReq, DirRequirement aptLibReq,
-                                FileRequirement sketchReq, OptionalBoolRequirement fullReq,
+  private AffyCELProcessingStep(Project proj, StepRequirement manifestReq, DirRequirement aptExtReq,
+                                DirRequirement aptLibReq, FileRequirement sketchReq,
+                                OptionalBoolRequirement fullReq,
                                 Requirement<Integer> numThreadsReq) {
     super(NAME, DESC,
-          RequirementSetBuilder.and().add(aptExtReq).add(aptLibReq).add(sketchReq).add(fullReq)
-                               .add(numThreadsReq),
+          RequirementSetBuilder.and().add(manifestReq).add(aptExtReq).add(aptLibReq).add(sketchReq)
+                               .add(fullReq).add(numThreadsReq),
           EnumSet.of(Requirement.Flag.MULTITHREADED, Requirement.Flag.MEMORY,
                      Requirement.Flag.RUNTIME));
     this.proj = proj;

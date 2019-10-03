@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.EnumSet;
 
+import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
@@ -21,27 +23,29 @@ import org.pankratzlab.fileparser.FileParser;
 import org.pankratzlab.fileparser.FileParserFactory;
 import org.pankratzlab.fileparser.ParseFailureException;
 
-public class AxiomManifestParsingStep extends Step {
+public class AffymetrixManifestParsingStep extends Step {
 
-  public static final String AXIOM_MANIFEST_DESC = "An Affymetrix Axiom Manifest file";
+  public static final String AFFY_MANIFEST_DESC = "An Affymetrix Manifest file";
   public static final String AXIOM_EXAMPLE_MANIFEST = "Axiom_tx_v1.na35.annot.csv";
-  public static final String NAME = "Parse Axiom Manifest";
+  public static final String NAME = "Parse Affymetrix Manifest";
   public static final String DESC = "";
   public static final String RSLOOKUP_SUFFIX = ".rsLookup.txt";
 
-  public static AxiomManifestParsingStep create(Project proj) {
+  public static AffymetrixManifestParsingStep create(Project proj) {
+    String example = proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
+                     || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN ? new Resources.AffySnp6(proj.getLog()).getAnnotationFile().get() : AXIOM_EXAMPLE_MANIFEST;
     String defaultFile = Files.exists(proj.SNP_DATA_FILE.getValue()) ? proj.SNP_DATA_FILE.getValue()
-                                                                     : AXIOM_EXAMPLE_MANIFEST;
+                                                                     : example;
     final Requirement<File> manifestReq = new Requirement.FileRequirement("manifestFile",
-                                                                          AXIOM_MANIFEST_DESC,
+                                                                          AFFY_MANIFEST_DESC,
                                                                           new File(defaultFile));
-    return new AxiomManifestParsingStep(proj, manifestReq);
+    return new AffymetrixManifestParsingStep(proj, manifestReq);
   }
 
   final Project proj;
   final Requirement<File> manifestReq;
 
-  private AxiomManifestParsingStep(Project proj, Requirement<File> manifestReq) {
+  private AffymetrixManifestParsingStep(Project proj, Requirement<File> manifestReq) {
     super(NAME, DESC, RequirementSetBuilder.and().add(manifestReq),
           EnumSet.noneOf(Requirement.Flag.class));
     this.proj = proj;
@@ -70,13 +74,13 @@ public class AxiomManifestParsingStep extends Step {
                                                             + ext.rootOf(variables.get(manifestReq)
                                                                                   .getPath(),
                                                                          true)
-                                                            + AxiomManifestParsingStep.RSLOOKUP_SUFFIX);
+                                                            + AffymetrixManifestParsingStep.RSLOOKUP_SUFFIX);
       for (DataLine dl : parser) {
         try {
           String probeset = dl.get(colPsID);
           String affyId = dl.get(colAffyID);
           String rsId = dl.get(colRSID);
-          Byte chr = dl.hasValid(colChr) ? (dl.get(colChr) == -1 ? 0 : dl.get(colChr)) : 0;
+          Byte chr = dl.hasValid(colChr) ? dl.get(colChr) : 0;
           Integer pos = dl.hasValid(colPos) ? dl.get(colPos) : 0;
 
           mkrPosWriter.println(probeset + "\t" + chr + "\t" + pos);

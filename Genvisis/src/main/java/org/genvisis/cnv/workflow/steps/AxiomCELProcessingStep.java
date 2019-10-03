@@ -48,10 +48,10 @@ public class AxiomCELProcessingStep extends Step {
                                                        new File(""));
 
     String annotFile = proj.SNP_DATA_FILE.getValue()
-                                         .equals("") ? AxiomManifestParsingStep.AXIOM_EXAMPLE_MANIFEST
+                                         .equals("") ? AffymetrixManifestParsingStep.AXIOM_EXAMPLE_MANIFEST
                                                      : proj.SNP_DATA_FILE.getValue();
     FileRequirement annotFileReq = new Requirement.FileRequirement("annotFile",
-                                                                   AxiomManifestParsingStep.AXIOM_MANIFEST_DESC,
+                                                                   AffymetrixManifestParsingStep.AFFY_MANIFEST_DESC,
                                                                    new File(annotFile));
     BoolRequirement skipGenoReq = new BoolRequirement("skipGenotypes",
                                                       "Do not import forward genotypes.", false);
@@ -115,7 +115,7 @@ public class AxiomCELProcessingStep extends Step {
   public static void main(String[] args) {
     Project proj = Step.parseProject(args);
     StepBuilder sb = new StepBuilder(proj);
-    AxiomManifestParsingStep manifestStep = sb.generateAxiomManifestParsingStep();
+    AffymetrixManifestParsingStep manifestStep = sb.generateAffymetrixManifestParsingStep();
     Step step = sb.generateAxiomCELProcessingStep(manifestStep);
     Variables variables = step.parseArguments(args);
     Step.run(proj, step, variables);

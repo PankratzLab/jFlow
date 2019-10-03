@@ -10,10 +10,10 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.workflow.steps.ABLookupStep;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
+import org.genvisis.cnv.workflow.steps.AffymetrixManifestParsingStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
 import org.genvisis.cnv.workflow.steps.AnnotateSampleDataStep;
 import org.genvisis.cnv.workflow.steps.AxiomCELProcessingStep;
-import org.genvisis.cnv.workflow.steps.AxiomManifestParsingStep;
 import org.genvisis.cnv.workflow.steps.CallCNVsStep;
 import org.genvisis.cnv.workflow.steps.ComputePFBStep;
 import org.genvisis.cnv.workflow.steps.FurtherAnalysisQCStep;
@@ -110,9 +110,9 @@ public class StepBuilder {
     return s;
   }
 
-  public AxiomManifestParsingStep generateAxiomManifestParsingStep() {
-    return stepInstanceMap.containsKey(AxiomManifestParsingStep.class) ? stepInstanceMap.getInstance(AxiomManifestParsingStep.class)
-                                                                       : register(AxiomManifestParsingStep.create(proj));
+  public AffymetrixManifestParsingStep generateAffymetrixManifestParsingStep() {
+    return stepInstanceMap.containsKey(AffymetrixManifestParsingStep.class) ? stepInstanceMap.getInstance(AffymetrixManifestParsingStep.class)
+                                                                            : register(AffymetrixManifestParsingStep.create(proj));
   }
 
   IlluminaMarkerPositionsStep generateIlluminaMarkerPositionsStep() {
@@ -132,16 +132,17 @@ public class StepBuilder {
                                                                  : register(MosdepthImportStep.create(proj));
   }
 
-  public AxiomCELProcessingStep generateAxiomCELProcessingStep(AxiomManifestParsingStep axiomManifestParsingStep) {
+  public AxiomCELProcessingStep generateAxiomCELProcessingStep(AffymetrixManifestParsingStep axiomManifestParsingStep) {
     return stepInstanceMap.containsKey(AxiomCELProcessingStep.class) ? stepInstanceMap.getInstance(AxiomCELProcessingStep.class)
                                                                      : register(AxiomCELProcessingStep.create(proj,
                                                                                                               axiomManifestParsingStep,
                                                                                                               numThreadsReq));
   }
 
-  public AffyCELProcessingStep generateAffyCELProcessingStep() {
+  public AffyCELProcessingStep generateAffyCELProcessingStep(AffymetrixManifestParsingStep affyManifestParsingStep) {
     return stepInstanceMap.containsKey(AffyCELProcessingStep.class) ? stepInstanceMap.getInstance(AffyCELProcessingStep.class)
                                                                     : register(AffyCELProcessingStep.create(proj,
+                                                                                                            affyManifestParsingStep,
                                                                                                             numThreadsReq));
   }
 
@@ -330,11 +331,12 @@ public class StepBuilder {
   public Step generateMarkersParsingStep() {
     switch (proj.getArrayType()) {
       case AFFY_AXIOM:
-        AxiomManifestParsingStep manifestStep = generateAxiomManifestParsingStep();
+        AffymetrixManifestParsingStep manifestStep = generateAffymetrixManifestParsingStep();
         return generateAxiomCELProcessingStep(manifestStep);
       case AFFY_GW6:
       case AFFY_GW6_CN:
-        return generateAffyCELProcessingStep();
+        AffymetrixManifestParsingStep manifestStep1 = generateAffymetrixManifestParsingStep();
+        return generateAffyCELProcessingStep(manifestStep1);
       case ILLUMINA:
         IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
         ParseSamplesStep parseSamplesStep = generateParseSamplesStep(markerPositions);
@@ -352,12 +354,13 @@ public class StepBuilder {
   public Step generateSamplesParsingStep() {
     switch (proj.getArrayType()) {
       case AFFY_AXIOM:
-        AxiomManifestParsingStep manifestStep = generateAxiomManifestParsingStep();
+        AffymetrixManifestParsingStep manifestStep = generateAffymetrixManifestParsingStep();
         AxiomCELProcessingStep parseAxiomCELs = generateAxiomCELProcessingStep(manifestStep);
         return generateReverseTransposeStep(parseAxiomCELs);
       case AFFY_GW6:
       case AFFY_GW6_CN:
-        Step parseAffyCELs = generateAffyCELProcessingStep();
+        AffymetrixManifestParsingStep manifestStep1 = generateAffymetrixManifestParsingStep();
+        Step parseAffyCELs = generateAffyCELProcessingStep(manifestStep1);
         return generateReverseTransposeStep(parseAffyCELs);
       case ILLUMINA:
         IlluminaMarkerPositionsStep markerPositions = generateIlluminaMarkerPositionsStep();
@@ -374,13 +377,14 @@ public class StepBuilder {
   public Step generateMarkerBlastStep() {
     switch (proj.getArrayType()) {
       case AFFY_AXIOM:
-        AxiomManifestParsingStep manifestStep = generateAxiomManifestParsingStep();
+        AffymetrixManifestParsingStep manifestStep = generateAffymetrixManifestParsingStep();
         AxiomCELProcessingStep parseAxiomCELs = generateAxiomCELProcessingStep(manifestStep);
         ReverseTransposeTarget reverseTranspose = generateReverseTransposeStep(parseAxiomCELs);
         return generateAffyMarkerBlastAnnotationStep(reverseTranspose);
       case AFFY_GW6:
       case AFFY_GW6_CN:
-        Step parseAffyCELs = generateAffyCELProcessingStep();
+        AffymetrixManifestParsingStep manifestStep1 = generateAffymetrixManifestParsingStep();
+        Step parseAffyCELs = generateAffyCELProcessingStep(manifestStep1);
         ReverseTransposeTarget reverseTranspose1 = generateReverseTransposeStep(parseAffyCELs);
         return generateAffyMarkerBlastAnnotationStep(reverseTranspose1);
       case ILLUMINA:
