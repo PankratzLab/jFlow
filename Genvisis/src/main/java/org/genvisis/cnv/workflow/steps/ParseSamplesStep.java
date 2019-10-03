@@ -87,7 +87,7 @@ public class ParseSamplesStep extends Step {
     returnValue = returnValue && proj.getSampleList() != null;
     returnValue = returnValue && Files.exists(sampleDirectory);
 
-    int numSamples = returnValue ? proj.getSampleList().getSamples().length : 0;
+    int numSamples = returnValue ? proj.getNumberOfParsedSamples() : 0;
     returnValue = returnValue && numSamples > 0;
     returnValue = returnValue
                   && Files.countFiles(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION) == numSamples;

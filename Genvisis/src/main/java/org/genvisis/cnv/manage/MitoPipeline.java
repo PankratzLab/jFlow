@@ -291,7 +291,7 @@ public class MitoPipeline {
     sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
     if (Files.exists(sampleDirectory)
         && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION).length > 0
-        && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0) {
+        && proj.getSampleList() != null && proj.getNumberOfParsedSamples() > 0) {
       sampleList = proj.getSampleList();
       log.report("Detected that "
                  + (sampleList.getSamples().length > 1 ? sampleList.getSamples().length

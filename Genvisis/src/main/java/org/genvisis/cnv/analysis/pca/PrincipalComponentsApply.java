@@ -112,7 +112,7 @@ public class PrincipalComponentsApply {
    * Load the necessary markers and apply each marker's loadings on the fly
    */
   public void applyLoadings() {
-    if (proj.getSampleList().getSamples().length != samplesToUse.length) {
+    if (proj.getNumberOfParsedSamples() != samplesToUse.length) {
       log.reportError("Error - the boolean array of samples to use does not equal the length of the samples in the project, exiting");
       return;
     } else {

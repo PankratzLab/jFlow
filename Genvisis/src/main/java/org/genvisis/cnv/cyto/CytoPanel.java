@@ -522,10 +522,10 @@ public class CytoPanel extends JPanel implements ActionListener {
   private void deleteSampleList() {
 
     // if (Files.exists(proj.getFilename(proj.SAMPLELIST_FILENAME)) && proj.getSampleList() != null
-    // && proj.getSampleList().getSamples().length > 0) {
+    // && proj.getNumberOfParsedSamples() > 0) {
     // new File(proj.getFilename(proj.SAMPLELIST_FILENAME)).delete();
     if (Files.exists(proj.SAMPLELIST_FILENAME.getValue()) && proj.getSampleList() != null
-        && proj.getSampleList().getSamples().length > 0) {
+        && proj.getNumberOfParsedSamples() > 0) {
       new File(proj.SAMPLELIST_FILENAME.getValue()).delete();
     }
   }
