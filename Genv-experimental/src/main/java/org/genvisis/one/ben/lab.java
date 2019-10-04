@@ -2487,8 +2487,12 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          String try1 = "\"test1\"\"\"";
-          System.out.println(try1.replaceAll("\"\"", "\""));
+          proj = new Project("/home/pankrat2/cole0482/projects/UKBioBank.properties");
+          org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj,
+                                                            new String[] {"3758005", "1456666"},
+                                                            null, null,
+                                                            proj.NUM_THREADS.getValue());
+          System.out.println("Done!");
 
           return;
         case 1:

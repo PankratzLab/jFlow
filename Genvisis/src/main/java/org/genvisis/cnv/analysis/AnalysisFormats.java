@@ -83,8 +83,8 @@ public class AnalysisFormats implements Runnable {
     // Create the scripts for building cnvs from the penncnv data
     // TODO: sex checks (3rd flag) - should probably determine if they would be
     // appropriate or not.
-    PennCNV.doBatch(proj, true, true, true, false, 1, true, null, null, null, false, true, false,
-                    threadCount);
+    PennCNV.doBatch(proj, samples, true, true, true, false, 1, true, null, null, null, false, true,
+                    false, threadCount);
   }
 
   public static void exportPenncnvSamples(final Project proj, final String[] samples,
@@ -95,6 +95,8 @@ public class AnalysisFormats implements Runnable {
     final String dir;
     final String sampleDir;
     final Logger log = proj.getLog();
+
+    log.reportTime("DEBUG: Exporting " + samples.length + " total samples");
 
     final String PROG_KEY = "GeneratePennCNV";
 

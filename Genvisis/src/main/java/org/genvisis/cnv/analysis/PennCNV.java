@@ -880,11 +880,11 @@ public class PennCNV {
     }
   }
 
-  public static void doBatch(Project proj, boolean auto, boolean chrx, boolean sexCent,
-                             boolean transformData, int numChunks, boolean separateQsubFiles,
-                             String pfbFile, String gcmodelFile, String hmmFile,
-                             boolean submitImmed, boolean createCombined, boolean useExcludes,
-                             int threadCount) {
+  public static void doBatch(Project proj, String[] samplesToUse, boolean auto, boolean chrx,
+                             boolean sexCent, boolean transformData, int numChunks,
+                             boolean separateQsubFiles, String pfbFile, String gcmodelFile,
+                             String hmmFile, boolean submitImmed, boolean createCombined,
+                             boolean useExcludes, int threadCount) {
     boolean problem = false;
     Vector<String> execList;
     Logger log = proj.getLog();
@@ -918,7 +918,8 @@ public class PennCNV {
       execList = new Vector<>();
     }
 
-    String[] samples = getSamplesForTransform(proj, !useExcludes);
+    String[] samples = samplesToUse == null ? getSamplesForTransform(proj, !useExcludes)
+                                            : samplesToUse;
 
     if (auto) {
       if (transformData) {
@@ -1186,7 +1187,7 @@ public class PennCNV {
           gcmodelFile = Resources.cnv(proj.getLog()).genome(proj.GENOME_BUILD_VERSION.getValue())
                                  .getAllGcmodel().get();
         }
-        doBatch(proj, auto, chrx, sexCent, transformData, numChunks, separateQsubs, pfbFile,
+        doBatch(proj, null, auto, chrx, sexCent, transformData, numChunks, separateQsubs, pfbFile,
                 gcmodelFile, hmmFile, separateQsubs ? submit : false, recode, excludes, numThreads);
       }
       if (rawlog != null) {
