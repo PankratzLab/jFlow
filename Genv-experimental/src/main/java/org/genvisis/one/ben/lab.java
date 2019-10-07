@@ -2473,6 +2473,50 @@ public class lab {
     }
   }
 
+  private static void batchInfos() {
+    String dir = "/scratch.global/aric/topmed_imputation/AA/impute2/";
+    String[] infos = Files.list(dir, "", ".info", false, true);
+    for (String info : infos) {
+      try {
+        batch(info);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    System.out.println("Done!");
+  }
+
+  private static void batch(String file) throws IOException {
+    String dir = "/scratch.global/aric/topmed_imputation/AA/impute2/markerLists/";
+    FileColumn<String> snpCol = new AliasedFileColumn("SNP");
+    FileParser parser = FileParserFactory.setup(file, "\t", snpCol).build();
+    int start = -1;
+    int pos = -1;
+    String chrStr = "chrNull";
+    ArrayList<String> snpNames = new ArrayList<>();
+    for (DataLine line : parser) {
+      String name = line.getUnsafe(snpCol);
+      String[] parts = name.split(":");
+      chrStr = parts[0];
+      String posStr = parts[1];
+      pos = Integer.parseInt(posStr);
+      snpNames.add(name);
+      if (start == -1) {
+        start = pos;
+      } else if (pos - start > 5000000) {
+        String filename = chrStr + "." + start + "-" + pos + ".snps.txt";
+        Files.writeIterable(snpNames, dir + filename);
+        snpNames.clear();
+        start = -1;
+      }
+    }
+    parser.close();
+    if (snpNames.size() > 0) {
+      String filename = chrStr + "." + start + "-" + pos + ".snps.txt";
+      Files.writeIterable(snpNames, dir + filename);
+    }
+  }
+
   public static void main(String[] args) throws IOException, ClassNotFoundException,
                                          URISyntaxException {
     int numArgs = args.length;
