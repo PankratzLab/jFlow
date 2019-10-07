@@ -62,6 +62,7 @@ import org.pankratzlab.fileparser.ColumnFilter;
 import org.pankratzlab.fileparser.DataLine;
 import org.pankratzlab.fileparser.FileColumn;
 import org.pankratzlab.fileparser.FileLink;
+import org.pankratzlab.fileparser.FileParser;
 import org.pankratzlab.fileparser.FileParserFactory;
 import org.pankratzlab.fileparser.NumberWrapperColumn;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
