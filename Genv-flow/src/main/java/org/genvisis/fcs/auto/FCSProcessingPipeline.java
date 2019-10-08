@@ -41,46 +41,6 @@ public class FCSProcessingPipeline {
 
     ProcessorFactory<? extends SampleProcessor> pf = null;
 
-    // pf = new GateAssignmentFactory();
-    // pf = new PercentageWriterFactory();
-    // pf = new LeafDataSamplerFactory("/scratch.global/cole0482/FCS/", new Logger());
-    // pf = new ProcessorFactory<ConcordanceProcessor>() {
-    //
-    // ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap = new
-    // ConcurrentHashMap<>();
-    // ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMapTree = new
-    // ConcurrentHashMap<>();
-    // public void cleanup(Object owner) {
-    // PrintWriter writer = Files.getAppropriateWriter(OUT + "concordance.xln");
-    //
-    // Set<String> files = resultMap.keySet();
-    // for (String s : files) {
-    // for (int i = 0; i < MATCH.length; i++) {
-    // writer.println(s + "\t" + MATCH[i][1] + "\t" + resultMap.get(s).get(MATCH[i][1]));
-    // }
-    // }
-    // writer.flush();
-    // writer.close();
-    //
-    // writer = Files.getAppropriateWriter(OUT + "concordance_tree.xln");
-    //
-    // files = resultMapTree.keySet();
-    // for (String s : files) {
-    // for (int i = 0; i < MATCH.length; i++) {
-    // writer.println(s + "\t" + MATCH[i][1] + "\t" + resultMapTree.get(s).get(MATCH[i][1]));
-    // }
-    // }
-    // writer.flush();
-    // writer.close();
-    // };
-    //
-    // @Override
-    // public ConcordanceProcessor createProcessor(Object owner, int index) {
-    // return new ConcordanceProcessor(resultMap, resultMapTree);
-    // }
-    // };
-    //
-    // SamplingPipeline sp = new SamplingPipeline(1, null, WSP, FCS, null, OUT, pf);
     switch (pipeToRun) {
       case BOOL:
         pf = new ProcessorFactory<SampleProcessor>() {
@@ -135,17 +95,6 @@ public class FCSProcessingPipeline {
   public static void main(String[] args) throws IOException {
     int numArgs = args.length;
 
-    // private static final String FCS = "/home/pankrat2/shared/flow/fcs2/";
-    // private static final String FCS = "/scratch.global/cole0482/FCS/src/";
-    // private static final String FCS =
-    // "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD FCS HRS CTL/";
-    // private static final String WSP = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD WSP/";
-    // private static final String OUT = "/scratch.global/cole0482/FCS/testConcordance/";
-
-    // String fcs = "/home/pankrat2/shared/flow/fcs2/";
-    // String wsp = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD WSP/";
-    // String auto = "/home/pankrat2/shared/flow/testAutoGate/test2/gates2/";
-    // String out = "/scratch.global/cole0482/FCS/testConcordance/";
     String fcs = "F:/Flow/boolGating/";
     String wsp = fcs;
     String auto = null;
@@ -159,20 +108,6 @@ public class FCSProcessingPipeline {
     String clusterSuffix = "_subFirst_TRUE_normalize_FALSE.IntMatrix.txt.gz";
     int panel = -1;
     PIPELINE pipe = PIPELINE.VIZ;
-    // boolean test = Files.isWindows();
-    // if (test) {
-    // String dir = "C:\\Users\\Ben\\Desktop\\dev\\work\\flow\\phenograph\\";
-    // fcs = dir + "src\\";
-    // wsp = dir + "src\\";
-    // out = dir + "out\\";
-    // gateOverrideDir = dir + "src\\";
-    // gateOverrideMatchFile = dir + "src\\ovvrMatch.txt";
-    // new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
-    // gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile).run(
-    // PIPELINE.VIZ,
-    // -1);
-    // return;
-    // }
 
     for (String arg : args) {
       if (arg.startsWith("fcs=")) {
