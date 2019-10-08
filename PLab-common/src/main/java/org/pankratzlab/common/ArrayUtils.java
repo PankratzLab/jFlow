@@ -2598,6 +2598,23 @@ public class ArrayUtils {
   }
 
   /**
+   * Prints an array of booleans separated by the specified delimiter
+   *
+   * @param array an array of booleans
+   * @param delimiter String delimiter
+   * @return String of printed integers
+   */
+  public static String toStr(boolean[] array, String delimiter) {
+    String str = "";
+
+    for (int i = 0; i < array.length; i++) {
+      str += (i == 0 ? "" : delimiter) + array[i];
+    }
+
+    return str;
+  }
+
+  /**
    * Prints an array of bytes separated by the specified delimiter
    *
    * @param array an array of bytes
@@ -3723,7 +3740,7 @@ public class ArrayUtils {
    *
    * @param array an array of Strings
    * @param start first index to use
-   * @param stop last index to use
+   * @param stop last index to use (exclusive)
    * @return the subset of the original array
    */
   public static String[] subArray(String[] array, int start, int stopBefore) {

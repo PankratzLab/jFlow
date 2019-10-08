@@ -2661,7 +2661,9 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          exportUKBPennCNV();
+          proj = new Project("/home/pankrat2/cole0482/projects/ARIC_shadowsWithWGS.properties");
+          Sample.verifyAndGenerateOutliers(proj, 1, true);
+          System.out.println("Done!");
 
           return;
         case 1:

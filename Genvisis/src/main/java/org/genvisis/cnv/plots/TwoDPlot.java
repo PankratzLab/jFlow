@@ -80,6 +80,8 @@ import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.gui.UITools;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 public class TwoDPlot extends JPanel
                       implements WindowListener, ActionListener, TreeSelectionListener {
@@ -1700,6 +1702,8 @@ public class TwoDPlot extends JPanel
 
       String tempLine = "";
       int cnt = 0;
+      Multimap<Integer, Integer> mismatchLines = HashMultimap.create();
+
       while ((tempLine = reader.readLine()) != null) {
         if ("".equals(tempLine)) {
           continue;
@@ -1711,6 +1715,10 @@ public class TwoDPlot extends JPanel
           log.reportError(e);
           reader.close();
           return e;
+        }
+        if (line.length > lineLength) {
+          mismatchLines.put(line.length, cnt);
+          line = ArrayUtils.subArray(line, 0, lineLength + 1);
         }
         valid = ArrayUtils.booleanArrayAnd(valid, validate(line));
         data.add(line);
@@ -1726,6 +1734,23 @@ public class TwoDPlot extends JPanel
 
       log.reportTimeElapsed("Read file " + filename + " in: ", t1);
 
+      if (mismatchLines.keys().size() == 1) {
+        String e = "Header missing elements: found " + mismatchLines.keys().iterator().next()
+                   + " elements in all columns, but only " + header.length + " header values";
+        log.reportTimeWarning(e);
+        return e;
+      } else if (mismatchLines.keys().size() > 1) {
+        StringBuilder e = new StringBuilder();
+        e.append("Problem with file: found ").append(mismatchLines.keys().size())
+         .append(" column counts on " + mismatchLines.values().size() + " different lines.");
+        if (mismatchLines.size() < 5) {
+          mismatchLines.entries().stream().forEach(en -> {
+            e.append("\nFound ").append(en.getKey()).append(" on line ").append(en.getValue());
+          });
+        }
+        log.reportTimeWarning(e.toString());
+        return e.toString();
+      }
     } catch (FileNotFoundException fnfe) {
       String e = "Error: file \"" + filename + "\" not found in current directory";
       log.reportError(e);
