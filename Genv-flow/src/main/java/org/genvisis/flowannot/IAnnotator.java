@@ -1,4 +1,4 @@
-package org.genvisis.one.ben.flowannot;
+package org.genvisis.flowannot;
 
 import java.io.IOException;
 import java.util.ArrayList;

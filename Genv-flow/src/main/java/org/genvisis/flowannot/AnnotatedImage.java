@@ -1,4 +1,4 @@
-package org.genvisis.one.ben.flowannot;
+package org.genvisis.flowannot;
 
 import java.awt.Color;
 import java.awt.FontMetrics;

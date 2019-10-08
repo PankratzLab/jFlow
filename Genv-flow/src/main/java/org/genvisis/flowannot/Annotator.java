@@ -1,4 +1,4 @@
-package org.genvisis.one.ben.flowannot;
+package org.genvisis.flowannot;
 
 import java.io.BufferedReader;
 import java.io.File;
