@@ -2570,7 +2570,7 @@ public class GeneScorePipeline {
                    + "   (7) Directory of R libraries to generate Mendelian Randomization script from .meta SNPs (i.e. "
                    + ARG_R_LIBS_DIR + "/panfs/roc/msisoft/R/3.3.3/ (not activated by default))\n"
 
-                   + "   (8) Flag to plot Odds Ratios isntead of Relative Risk in Forest Plots (i.e. "
+                   + "   (8) Flag to plot Odds Ratios isntead of Beta in Forest Plots (i.e. "
                    + FLAG_PLOT_ODDS_RATIO + " (not activated by default))\n" +
 
                    // " (8) Number of threads to use for computation (i.e. threads=" + threads + "
