@@ -19,12 +19,12 @@ import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 
-public class SampleQCAnnotateStep extends Step implements StepAssist {
+public class ExcludeSamplesStep extends Step implements StepAssist {
 
   public static final String NAME = "Identify Excluded Samples";
   public static final String DESC = "";
 
-  public static SampleQCAnnotateStep create(Project proj, final Step sampleQCStep) {
+  public static ExcludeSamplesStep create(Project proj, final Step sampleQCStep) {
     final Requirement<Step> sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
     final Requirement<Double> lrrSdThresholdReq = new Requirement.DoubleRequirement("lrrSDThreshold",
                                                                                     "LRR SD Threshold",
@@ -38,15 +38,15 @@ public class SampleQCAnnotateStep extends Step implements StepAssist {
                                                                                        proj.SAMPLE_CALLRATE_THRESHOLD.getMinValue(),
                                                                                        proj.SAMPLE_CALLRATE_THRESHOLD.getMaxValue());
 
-    return new SampleQCAnnotateStep(proj, sampleQCStepReq, lrrSdThresholdReq, callrateThresholdReq);
+    return new ExcludeSamplesStep(proj, sampleQCStepReq, lrrSdThresholdReq, callrateThresholdReq);
   }
 
   final Project proj;
   final Requirement<Double> callrateThresholdReq;
   final Requirement<Double> lrrSdThresholdReq;
 
-  public SampleQCAnnotateStep(Project proj, Requirement<Step> sampleQCStepReq,
-                              Requirement<Double> lrrSdReq, Requirement<Double> callrateReq) {
+  public ExcludeSamplesStep(Project proj, Requirement<Step> sampleQCStepReq,
+                            Requirement<Double> lrrSdReq, Requirement<Double> callrateReq) {
     super(NAME, DESC,
           RequirementSetBuilder.and().add(sampleQCStepReq).add(lrrSdReq).add(callrateReq),
           EnumSet.noneOf(Requirement.Flag.class));
@@ -105,7 +105,7 @@ public class SampleQCAnnotateStep extends Step implements StepAssist {
     Project proj = Step.parseProject(args);
     StepBuilder sb = new StepBuilder(proj);
     Step samplesStep = sb.generateSamplesParsingStep();
-    SampleQCAnnotateStep step = SampleQCAnnotateStep.create(proj, samplesStep);
+    ExcludeSamplesStep step = ExcludeSamplesStep.create(proj, samplesStep);
     Variables variables = step.parseArguments(args);
     Step.run(proj, step, variables);
   }

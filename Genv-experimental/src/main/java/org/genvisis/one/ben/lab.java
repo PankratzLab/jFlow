@@ -2504,7 +2504,7 @@ public class lab {
       snpNames.add(name);
       if (start == -1) {
         start = pos;
-      } else if (pos - start > 5000000) {
+      } else if (pos - start > 3500000) {
         String filename = chrStr + "." + start + "-" + pos + ".snps.txt";
         Files.writeIterable(snpNames, dir + filename);
         snpNames.clear();
@@ -2661,9 +2661,7 @@ public class lab {
       switch (args.length) {
         case 0:
 
-          proj = new Project("/home/pankrat2/cole0482/projects/ARIC_shadowsWithWGS.properties");
-          Sample.verifyAndGenerateOutliers(proj, 1, true);
-          System.out.println("Done!");
+          batchInfos();
 
           return;
         case 1:

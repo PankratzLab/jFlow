@@ -26,7 +26,7 @@ import org.genvisis.cnv.workflow.steps.ParseSamplesStep;
 import org.genvisis.cnv.workflow.steps.PlinkExportStep;
 import org.genvisis.cnv.workflow.steps.ReverseTransposeTarget;
 import org.genvisis.cnv.workflow.steps.SampleDataStep;
-import org.genvisis.cnv.workflow.steps.SampleQCAnnotateStep;
+import org.genvisis.cnv.workflow.steps.ExcludeSamplesStep;
 import org.genvisis.cnv.workflow.steps.SampleQCStep;
 import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
 import org.genvisis.cnv.workflow.steps.SexChecksStep;
@@ -337,7 +337,7 @@ public class GenvisisWorkflow {
     SampleDataStep sampleData = sb.generateCreateSampleDataStep(reverseTranspose);
     AffyMarkerBlastStep blast = sb.generateAffyMarkerBlastAnnotationStep(reverseTranspose);
     SampleQCStep sampleQc = null;
-    SampleQCAnnotateStep sampleExcludes = null;
+    ExcludeSamplesStep sampleExcludes = null;
     MarkerQCStep markerQc = null;
     SexChecksStep sexChecks = null;
     PlinkExportStep exportPlink = null;
@@ -471,7 +471,7 @@ public class GenvisisWorkflow {
     SampleDataStep sampleData = sb.generateCreateSampleDataStep(parseSamples);
     IlluminaMarkerBlastStep blast = sb.generateIlluminaMarkerBlastAnnotationStep(parseSamples);
     SampleQCStep sampleQc = null;
-    SampleQCAnnotateStep sampleExcludes = null;
+    ExcludeSamplesStep sampleExcludes = null;
     MarkerQCStep markerQc = null;
     SexChecksStep sexChecks = null;
     PlinkExportStep exportPlink = null;
