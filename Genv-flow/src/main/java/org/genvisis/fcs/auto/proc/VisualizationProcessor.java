@@ -18,7 +18,7 @@ import org.genvisis.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.fcs.FCSDataLoader.LOAD_STATE;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Workbench.SampleNode;
-import org.genvisis.one.ben.flowannot.GateTree;
+import org.genvisis.flowannot.GateTree;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;

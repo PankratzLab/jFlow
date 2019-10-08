@@ -1,4 +1,4 @@
-package org.genvisis.one.ben.flowannot;
+package org.genvisis.flowannot;
 
 import java.awt.EventQueue;
 import java.awt.Graphics;
@@ -59,8 +59,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import org.genvisis.one.ben.flowannot.AnnotatedImage.Annotation;
-import org.genvisis.one.ben.flowannot.IAnnotator.PANEL;
+import org.genvisis.flowannot.AnnotatedImage.Annotation;
+import org.genvisis.flowannot.IAnnotator.PANEL;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
