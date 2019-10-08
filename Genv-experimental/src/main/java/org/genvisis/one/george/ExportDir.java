@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.genvisis.one.ben.fcs.FCSDataLoader;
+import org.genvisis.fcs.FCSDataLoader;
 
 // deprecated, see FileManipulator
 public class ExportDir {
