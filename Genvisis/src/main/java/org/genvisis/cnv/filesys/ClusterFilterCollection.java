@@ -68,7 +68,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
   // ??? How to select the last filter???
   public byte getGenotype(String markerName, byte index) {
     if (hash.containsKey(markerName) && hash.get(markerName).size() > index) {
-      return hash.get(markerName).get(index).getCluterGenotype();
+      return hash.get(markerName).get(index).getClusterGenotype();
     } else {
       System.err.println("Error - Trying to get a ClusterFilter that does not exist.");
       return (byte) -1;
@@ -146,7 +146,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
             && realY[j] >= clusterFilters.get(i).getYMin()
             && realX[j] <= clusterFilters.get(i).getXMax()
             && realY[j] <= clusterFilters.get(i).getYMax()) {
-          result[j] = clusterFilters.get(i).getCluterGenotype();
+          result[j] = clusterFilters.get(i).getClusterGenotype();
           if (result[j] < -1) {
             System.err.println("Error - result[" + j + "]=" + result[j]);
           }
@@ -203,7 +203,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
         for (int j = 0; j < list.size(); j++) {
           filter = list.get(j);
           writer.println(i + "\t" + markerNames[i] + "\t" + j + "\t" + filter.getPlotType() + "\t"
-                         + filter.getCluterGenotype() + "\t" + filter.getXMin() + "\t"
+                         + filter.getClusterGenotype() + "\t" + filter.getXMin() + "\t"
                          + filter.getYMin() + "\t" + filter.getXMax() + "\t" + filter.getYMax());
         }
       }

@@ -590,7 +590,7 @@ public class MarkerData implements Serializable {
         for (int j = 0; j < result.length; j++) {
           if (realX[j] >= clusterFilterXMin && realY[j] >= clusterFilterYMin
               && realX[j] <= clusterFilterXMax && realY[j] <= clusterFilterYMax) {
-            result[j] = clusterFilter.getCluterGenotype();
+            result[j] = clusterFilter.getClusterGenotype();
             counter++;
           }
         }

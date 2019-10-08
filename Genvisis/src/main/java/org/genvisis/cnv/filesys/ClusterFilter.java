@@ -63,7 +63,7 @@ public class ClusterFilter implements Serializable {
     this.newGenotype = newGenotype;
   }
 
-  public byte getCluterGenotype() {
+  public byte getClusterGenotype() {
     return newGenotype;
   }
 

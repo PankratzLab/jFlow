@@ -587,7 +587,7 @@ public class Sample implements Serializable {
           }
           if (realX >= clusterFilter.getXMin() && realY >= clusterFilter.getYMin()
               && realX <= clusterFilter.getXMax() && realY <= clusterFilter.getYMax()) {
-            result[i] = clusterFilter.getCluterGenotype();
+            result[i] = clusterFilter.getClusterGenotype();
           }
         }
       }
@@ -647,7 +647,7 @@ public class Sample implements Serializable {
             }
             if (realX >= clusterFilter.getXMin() && realY >= clusterFilter.getYMin()
                 && realX <= clusterFilter.getXMax() && realY <= clusterFilter.getYMax()) {
-              result[i] = clusterFilter.getCluterGenotype();
+              result[i] = clusterFilter.getClusterGenotype();
             }
           }
         }

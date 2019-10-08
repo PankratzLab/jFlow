@@ -150,7 +150,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   private static final String CLUSTER_FILTER_FORWARD = "Forward";
   private static final String CLUSTER_FILTER_DELETE = "Delete";
   private static final String CAPTURE = "Screen capture";
-  private static final String DUMP = "Dump raw data";
+  private static final String DUMP_RAW = "Dump raw data";
+  private static final String DUMP_RECLUSTERED = "Dump reclustered data";
   private static final String TRAVERSE_ALL = "Traverse all";
   private static final String TRAVERSE_ANNOTATED_ONLY = "Traverse annotated only";
   private static final String TRAVERSE_UNANNOTATED_ONLY = "Traverse unannotated only";
@@ -801,8 +802,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       }
     } else if (command.equals(CAPTURE)) {
       doScreenCapture();
-    } else if (command.equals(DUMP)) {
-      doDataDump();
+    } else if (command.equals(DUMP_RAW)) {
+      doRawDataDump();
+    } else if (command.equals(DUMP_RECLUSTERED)) {
+      doReclusteredDataDump();
     } else if (command.equals(MASK_MISSING) || command.equals(UNMASK_MISSING)) {
       maskMissing[selectedPanelIndex] = !maskMissing[selectedPanelIndex];
       // ((AbstractButton)ae.getSource()).setText(maskMissing?UNMASK_MISSING:MASK_MISSING);
@@ -3522,12 +3525,19 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     screenCapItem.setMnemonic(KeyEvent.VK_S);
     actMenu.add(screenCapItem);
 
-    JMenuItem dumpDataItem = new JMenuItem();
-    dumpDataItem.setActionCommand(DUMP);
-    dumpDataItem.addActionListener(this);
-    dumpDataItem.setText(DUMP);
-    dumpDataItem.setMnemonic(KeyEvent.VK_D);
-    actMenu.add(dumpDataItem);
+    JMenuItem dumpRawDataItem = new JMenuItem();
+    dumpRawDataItem.setActionCommand(DUMP_RAW);
+    dumpRawDataItem.addActionListener(this);
+    dumpRawDataItem.setText(DUMP_RAW);
+    dumpRawDataItem.setMnemonic(KeyEvent.VK_D);
+    actMenu.add(dumpRawDataItem);
+
+    JMenuItem dumpReclustDataItem = new JMenuItem();
+    dumpReclustDataItem.setActionCommand(DUMP_RECLUSTERED);
+    dumpReclustDataItem.addActionListener(this);
+    dumpReclustDataItem.setText(DUMP_RECLUSTERED);
+    dumpReclustDataItem.setMnemonic(KeyEvent.VK_U);
+    actMenu.add(dumpReclustDataItem);
 
     // Mask Missing Values
     // JCheckBoxMenuItem maskMissingItem = new JCheckBoxMenuItem();
@@ -3593,16 +3603,37 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     });
   }
 
-  private void doDataDump() {
+  private void doRawDataDump() {
     int count = 1;
     String filename = null;
     do {
-      filename = markerList[markerIndex] + "_dump" + (count == 1 ? "" : " v" + count);
+      filename = markerList[markerIndex] + "_dumpRaw" + (count == 1 ? "" : " v" + count);
       filename = ext.replaceWithLinuxSafeCharacters(filename, true);
       count++;
     } while (new File(proj.PROJECT_DIRECTORY.getValue() + filename + ".xln").exists());
     String outFile = proj.PROJECT_DIRECTORY.getValue() + filename + ".xln";
     getCurrentMarkerData().dump(sampleData, outFile, samples, false, log);
+    log.report(ext.getTime() + "]\tWrote data dump to [" + outFile + "]");
+  }
+
+  private void doReclusteredDataDump() {
+    int count = 1;
+    String filename = null;
+    do {
+      filename = markerList[markerIndex] + "_dumpReclust" + (count == 1 ? "" : " v" + count);
+      filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+      count++;
+    } while (new File(proj.PROJECT_DIRECTORY.getValue() + filename + ".xln").exists());
+    String outFile = proj.PROJECT_DIRECTORY.getValue() + filename + ".xln";
+    MarkerData md = getCurrentMarkerData();
+    float gcThresh = getGCthreshold();
+    MarkerData nMD = new MarkerData(md.getMarkerName(), md.getChr(), md.getPosition(),
+                                    md.getFingerprint(), md.getGCs(), null, null, md.getXs(),
+                                    md.getYs(), md.getThetas(), md.getRs(), md.getBAFs(),
+                                    md.getLRRs(),
+                                    clusterFilterCollection.filterMarker(md, gcThresh),
+                                    md.getForwardGenotypes());
+    nMD.dump(sampleData, outFile, samples, false, log);
     log.report(ext.getTime() + "]\tWrote data dump to [" + outFile + "]");
   }
 
