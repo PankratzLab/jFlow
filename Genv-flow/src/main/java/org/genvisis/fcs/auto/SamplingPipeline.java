@@ -26,15 +26,6 @@ import org.pankratzlab.common.ext;
 
 public class SamplingPipeline {
 
-  // private static final String CSV_DIR = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD ANALYZED
-  // DATA/";
-  // private static final String WSP_DIR = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD WSP/";
-  // private static final String FCS_DIR = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD FCS HRS
-  // samples/";
-  // private static final String OUTLIERS_FILE = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD
-  // FCS HRS samples/outliers.txt";
-  // private static final String OUT_DIR = "/scratch.global/cole0482/FCS/";
-
   private static final String CSV_EXT = ".csv";
   private static final FilenameFilter CSV_FILTER = new FilenameFilter() {
 

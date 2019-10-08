@@ -192,8 +192,8 @@ public class StepBuilder {
 
   public ExcludeSamplesStep generateSampleQCAnnotationStep(Step sampleQCStep) {
     return stepInstanceMap.containsKey(ExcludeSamplesStep.class) ? stepInstanceMap.getInstance(ExcludeSamplesStep.class)
-                                                                   : register(ExcludeSamplesStep.create(proj,
-                                                                                                          sampleQCStep));
+                                                                 : register(ExcludeSamplesStep.create(proj,
+                                                                                                      sampleQCStep));
   }
 
   public MarkerQCStep generateMarkerQCStep(Step parseSamplesStep) {
