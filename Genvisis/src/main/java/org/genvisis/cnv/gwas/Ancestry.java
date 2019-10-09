@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -40,6 +41,7 @@ import org.pankratzlab.utils.gwas.RelationAncestryQc;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MoreCollectors;
 import com.google.common.collect.Sets;
@@ -357,7 +359,7 @@ public class Ancestry {
       Table<String, String, HapMapPopulation> fidIidHapMapPopTable = parseHapMapAncestries();
       if (fidIidHapMapPopTable == null) return;
 
-      Set<PCImputeRace.Sample> samples = Sets.newHashSet();
+      List<PCImputeRace.Sample> samples = Lists.newArrayList();
       Set<PCImputeRace.Sample> europeans = Sets.newHashSet();
       Set<PCImputeRace.Sample> africans = Sets.newHashSet();
       Set<PCImputeRace.Sample> asians = Sets.newHashSet();

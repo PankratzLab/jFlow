@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -20,6 +21,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.Maths;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -122,7 +124,7 @@ public class PCImputeRace {
     }
   };
   private final Project proj;
-  private final Collection<Sample> samples;
+  private final List<Sample> samples;
   private final Collection<Sample> eurSeeds;
   private final Collection<Sample> afrSeeds;
   private final Collection<Sample> asianSeeds;
@@ -136,7 +138,7 @@ public class PCImputeRace {
    * @param asianSeeds
    * @param log
    */
-  public PCImputeRace(Project proj, Collection<Sample> samples, Collection<Sample> eurSeeds,
+  public PCImputeRace(Project proj, List<Sample> samples, Collection<Sample> eurSeeds,
                       Collection<Sample> afrSeeds, Collection<Sample> asianSeeds, Logger log) {
     super();
     this.proj = proj;
@@ -484,7 +486,7 @@ public class PCImputeRace {
     }
     try {
       String[] input = HashVec.loadFileToStringArray(inFile, true, null, false);
-      Set<Sample> samples = Sets.newHashSet();
+      List<Sample> samples = Lists.newArrayList();
       Set<Sample> europeans = Sets.newHashSet();
       Set<Sample> africans = Sets.newHashSet();
       Set<Sample> asians = Sets.newHashSet();
