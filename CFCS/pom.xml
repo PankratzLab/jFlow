@@ -16,7 +16,7 @@
 	<version>${cfcs.version}</version>
 	<packaging>jar</packaging>
 
-	<description></description>
+	<description>See https://github.com/cmap/cmapJ</description>
 
 	<inceptionYear>2002</inceptionYear>
 
@@ -24,10 +24,6 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.genvisis</groupId>
-			<artifactId>Genvisis</artifactId>
-		</dependency>
 	</dependencies>
 
 	<build>
