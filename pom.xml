@@ -486,8 +486,7 @@
 								<Implementation-Version>${project.version}</Implementation-Version>
 								<Compile-Time>${timestamp}</Compile-Time>
 								<Build-Type>Development</Build-Type>
-								<Copyright>(c)2009-2018 Nathan Pankratz, GNU General Public
-									License, v2</Copyright>
+								<Copyright>(c)2009-2019 Nathan Pankratz, GNU General Public License, v2</Copyright>
 							</manifestEntries>
 						</archive>
 					</configuration>
@@ -546,8 +545,7 @@
 								<Implementation-Version>${project.version}</Implementation-Version>
 								<Compile-Time>${timestamp}</Compile-Time>
 								<Build-Type>Development</Build-Type>
-								<Copyright>(c)2009-2018 Nathan Pankratz, GNU General Public
-									License, v2</Copyright>
+								<Copyright>(c)2009-2019 Nathan Pankratz, GNU General Public License, v2</Copyright>
 							</manifestEntries>
 						</archive>
 						<skipIfEmpty>true</skipIfEmpty>
