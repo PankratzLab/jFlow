@@ -45,8 +45,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.genvisis.cnv.gui.FileChooser;
-import org.genvisis.cnv.gui.GuiManager;
+import org.genvisis.common.gui.FileChooserPkl;
+import org.genvisis.common.gui.GuiManager;
 import org.genvisis.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.fcs.FCSDataLoader.DATA_SET;
@@ -1100,7 +1100,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
   }
 
   private void loadAutoGUI() {
-    FileChooser fc = new FileChooser(this, "", false, true, "Select Auto-gated result directory",
+    FileChooserPkl fc = new FileChooserPkl(this, "", false, true, "Select Auto-gated result directory",
                                      new Logger());
     if (!fc.isSelected()) return;
     File autoDir = fc.getSelectedFile();

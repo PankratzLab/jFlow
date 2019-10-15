@@ -68,7 +68,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.genvisis.cnv.gui.IncludeExcludeGUI;
+import org.genvisis.common.gui.IncludeExcludeGUI;
 import org.genvisis.fcs.AbstractPanel2;
 import org.genvisis.fcs.FCSDataLoader;
 import org.genvisis.fcs.FCSPlot;

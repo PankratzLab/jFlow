@@ -31,7 +31,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import org.genvisis.cnv.gui.JAccordionPanel;
+import org.genvisis.common.gui.JAccordionPanel;
 import org.genvisis.fcs.FCSPlot;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Gating;

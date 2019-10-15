@@ -66,7 +66,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-import org.genvisis.cnv.gui.IncludeExcludeGUI;
+import org.genvisis.common.gui.IncludeExcludeGUI;
 import org.genvisis.fcs.AbstractPanel2;
 import org.genvisis.fcs.FCSPlot;
 import org.genvisis.fcs.sub.MeanCtrlPanel.LabelPresenter;

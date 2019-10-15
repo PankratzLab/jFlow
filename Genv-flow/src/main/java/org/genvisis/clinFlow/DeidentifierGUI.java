@@ -27,7 +27,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
-import org.genvisis.cnv.gui.FileChooser;
+import org.genvisis.common.gui.FileChooserPkl;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
@@ -208,7 +208,7 @@ public class DeidentifierGUI extends JDialog {
   }
 
   private void selectOut() {
-    FileChooser fc = new FileChooser(this, "", false, true, "Select Output Directory",
+    FileChooserPkl fc = new FileChooserPkl(this, "", false, true, "Select Output Directory",
                                      new Logger());
     if (!fc.isSelected()) return;
     final String dir = fc.getSelectedFile().getAbsolutePath();
@@ -216,7 +216,7 @@ public class DeidentifierGUI extends JDialog {
   }
 
   private void selectIn() {
-    FileChooser fc = new FileChooser(this, "", false, true, "Select Source Directory",
+    FileChooserPkl fc = new FileChooserPkl(this, "", false, true, "Select Source Directory",
                                      new Logger());
     if (!fc.isSelected()) return;
     final String dir = fc.getSelectedFile().getAbsolutePath();
@@ -224,7 +224,7 @@ public class DeidentifierGUI extends JDialog {
   }
 
   private void selectLink() {
-    FileChooser fc = new FileChooser(this, "", false, true, "Select Link File Directory",
+    FileChooserPkl fc = new FileChooserPkl(this, "", false, true, "Select Link File Directory",
                                      new Logger());
     if (!fc.isSelected()) return;
     final String dir = fc.getSelectedFile().getAbsolutePath();

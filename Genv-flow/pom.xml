@@ -1,12 +1,17 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.genvisis</groupId>
-		<artifactId>pom-genvisis</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<groupId>org.pankratzlab</groupId>
+		<artifactId>pom-jflow</artifactId>
+		<version>0.1-SNAPSHOT</version>
 	</parent>
+
+	<groupId>org.genvisis.fcs</groupId>
 	<artifactId>Genv-flow</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
 	<name>Genv-flow</name>
 	<description>Genvisis Flow Cytometry Software</description>
 	<packaging>jar</packaging>
@@ -16,23 +21,70 @@
 		<mainClass>org.genvisis.clinFlow.DeidentifierGUI</mainClass>
 		<resourcesDir>${project.basedir}/buildRsrc</resourcesDir>
 		<genvisis.jvm.version>1.8</genvisis.jvm.version>
+		<skipTests>true</skipTests>
+		<!-- NB: Avoid platform encoding warning when copying resources. -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<!-- NB: Specify formatting of the maven.build.timestamp property. -->
+		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
+
+		<!-- Controls the Java and Maven compliance versions -->
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.compilerId>javac</maven.compiler.compilerId>
+		<genvisis.mvn.version>3.0.4</genvisis.mvn.version>
+		<jsr305.version>3.0.2</jsr305.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.genvisis</groupId>
-			<artifactId>Genvisis</artifactId>
+			<groupId>org.pankratzlab</groupId>
+			<artifactId>PLab-public</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.miglayout</groupId>
+			<artifactId>miglayout-swing</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.flowcyt</groupId>
 			<artifactId>CFCS</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>edu.stanford.facs</groupId>
+			<artifactId>Logicle</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.11</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.princeton.cs</groupId>
+			<artifactId>algs4</artifactId>
+			<version>1.0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ejml</groupId>
+			<artifactId>all</artifactId>
+		</dependency>
 	</dependencies>
 	<profiles>
-		<!-- This profile encapsulates the assembly building of the JFlow jar,
-				 allowing disabling if desired. -->
+		<!-- This profile encapsulates the assembly building of the JFlow jar, 
+			allowing disabling if desired. -->
 		<profile>
 			<id>flow</id>
 			<activation>
