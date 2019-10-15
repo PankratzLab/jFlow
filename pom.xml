@@ -111,10 +111,10 @@
 		<genv-flow.version>0.0.2-SNAPSHOT</genv-flow.version>
 
 		<!-- CFCS -->
-		<cfcs.version>0.0.2</cfcs.version>
+		<cfcs.version>0.0.3-SNAPSHOT</cfcs.version>
 
 		<!-- Logicle -->
-		<logicle.version>0.0.2</logicle.version>
+		<logicle.version>0.0.3-SNAPSHOT</logicle.version>
 
 		<!-- JUnit - http://junit.org/ -->
 		<junit.version>4.11</junit.version>

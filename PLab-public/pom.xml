@@ -16,6 +16,13 @@
 
 	<description></description>
 
+	<repositories>
+		<repository>
+			<id>github-jflow</id>
+			<url>https://maven.pkg.github.com/PankratzLab/jFlow</url>
+		</repository>
+	</repositories>
+
 	<properties>
 		<!-- NB: Avoid platform encoding warning when copying resources. -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

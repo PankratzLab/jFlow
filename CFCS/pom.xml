@@ -7,12 +7,12 @@
 	<parent>
 		<groupId>org.pankratzlab</groupId>
 		<artifactId>pom-jflow</artifactId>
-		<version>0.2</version>
+		<version>0.3-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.flowcyt</groupId>
 	<artifactId>CFCS</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<description>See https://github.com/cmap/cmapJ</description>
@@ -34,6 +34,13 @@
 		<genvisis.mvn.version>3.0.4</genvisis.mvn.version>
 		<jsr305.version>3.0.2</jsr305.version>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>github-jflow</id>
+			<url>https://maven.pkg.github.com/PankratzLab/jFlow</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 	</dependencies>

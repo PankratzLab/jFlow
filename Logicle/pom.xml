@@ -7,12 +7,12 @@
 	<parent>
 		<groupId>org.pankratzlab</groupId>
 		<artifactId>pom-jflow</artifactId>
-		<version>0.2</version>
+		<version>0.3-SNAPSHOT</version>
 	</parent>
 
 	<groupId>edu.stanford.facs</groupId>
 	<artifactId>Logicle</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<description></description>
@@ -35,6 +35,13 @@
 		<jsr305.version>3.0.2</jsr305.version>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>github-jflow</id>
+			<url>https://maven.pkg.github.com/PankratzLab/jFlow</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -51,7 +58,8 @@
 				<configuration>
 					<licenseName>bsd_3</licenseName>
 					<projectName>The Logicle Data Scale</projectName>
-					<organizationName>The Board of Trustees of the Leland Stanford Junior University.</organizationName>
+					<organizationName>The Board of Trustees of the Leland Stanford
+						Junior University.</organizationName>
 				</configuration>
 			</plugin>
 		</plugins>
