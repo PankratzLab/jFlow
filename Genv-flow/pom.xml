@@ -16,6 +16,13 @@
 	<description>Genvisis Flow Cytometry Software</description>
 	<packaging>jar</packaging>
 
+	<repositories>
+		<repository>
+			<id>github-jflow</id>
+			<url>https://maven.pkg.github.com/PankratzLab/jFlow</url>
+		</repository>
+	</repositories>
+
 	<properties>
 		<assemblyName>genvflow</assemblyName>
 		<mainClass>org.genvisis.clinFlow.DeidentifierGUI</mainClass>
