@@ -7,12 +7,12 @@
 	<parent>
 		<groupId>org.pankratzlab</groupId>
 		<artifactId>pom-jflow</artifactId>
-		<version>0.1</version>
+		<version>0.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>PLab-public</artifactId>
 	<packaging>jar</packaging>
-	<version>0.0.1</version>
+	<version>0.0.2-SNAPSHOT</version>
 
 	<description></description>
 
