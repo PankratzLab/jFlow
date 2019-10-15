@@ -24,12 +24,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
-import org.genvisis.cnv.gui.ColorIcon;
-import org.genvisis.cnv.plots.GenericLine;
-import org.genvisis.cnv.plots.GenericPath;
-import org.genvisis.cnv.plots.GenericRectangle;
-import org.genvisis.cnv.plots.PlotPoint;
-import org.genvisis.cnv.plots.PlotPoint.PointType;
+import org.genvisis.common.gui.ColorIcon;
 import org.genvisis.fcs.FCSPlot.Classification;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.GateDimension;
@@ -39,11 +34,16 @@ import org.genvisis.fcs.gating.GateDimension.RectangleGateDimension;
 import org.genvisis.fcs.sub.PolygonGateEditor;
 import org.genvisis.fcs.sub.RectangleGateEditor;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
-import org.pankratzlab.common.ext;
+import org.pankratzlab.common.plots.GenericLine;
+import org.pankratzlab.common.plots.GenericPath;
+import org.pankratzlab.common.plots.GenericRectangle;
+import org.pankratzlab.common.plots.PlotPoint;
+import org.pankratzlab.common.plots.PlotPoint.PointType;
 
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
 

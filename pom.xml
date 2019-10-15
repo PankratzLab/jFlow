@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.genvisis</groupId>
-	<artifactId>pom-genvisis</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<groupId>org.pankratzlab</groupId>
+	<artifactId>pom-jflow</artifactId>
+	<version>0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Genvisis Projects</name>
@@ -15,7 +17,12 @@
 		<name>Genvisis</name>
 		<url>http://www.genvisis.org/</url>
 	</organization>
-
+	<scm>
+		<connection>scm:git:git://github.com/PankratzLab/jFlow</connection>
+		<developerConnection>scm:git:git@github.com:PankratzLab/jFlow</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/PankratzLab/jFlow</url>
+	</scm>
 	<developers>
 		<developer>
 			<id>npankrat</id>
@@ -49,41 +56,45 @@
 		</developer>
 	</developers>
 
-	<!-- Genvisis is structured as a multi-module maven project. By defining the
-			 bulk of configuration in this parent pom.xml, each individual component
-			 is simplified and consistent. -->
+	<!-- Genvisis is structured as a multi-module maven project. By defining 
+		the bulk of configuration in this parent pom.xml, each individual component 
+		is simplified and consistent. -->
 	<modules>
-		<module>Meta</module>
-		<module>Logicle</module>
-		<module>PLab-common</module>
-		<module>PLab-private</module>
-		<module>FileParser</module>
-		<module>Genvisis</module>
 		<module>CFCS</module>
-		<module>NRSS</module>
-		<module>SEQ</module>
-		<module>PLab-utils</module>
-		<module>PhenoPrep</module>
+		<module>Logicle</module>
+		<module>PLab-public</module>
 		<module>Genv-flow</module>
-		<module>Genv-experimental</module>
-		<module>Genv-deprecated</module>
-		<module>Assembly</module>
-		<module>App</module>
 	</modules>
+
+	<repositories>
+		<repository>
+			<id>central</id>
+			<url>https://repo1.maven.org/maven2</url>
+		</repository>
+		<repository>
+			<id>algs4</id>
+			<url>https://dl.bintray.com/algs4/maven/</url>
+		</repository>
+		<repository>
+			<id>github-jflow</id>
+			<url>https://maven.pkg.github.com/PankratzLab/jFlow</url>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>github-jflow</id>
+			<url>https://maven.pkg.github.com/PankratzLab/jFlow</url>
+		</repository>
+	</distributionManagement>
 
 	<prerequisites>
 		<maven>${genvisis.mvn.version}</maven>
 	</prerequisites>
 
-	<scm>
-		<connection>scm:git:git://github.com/npankrat/Genvisis</connection>
-		<developerConnection>scm:git:git@github.com:npankrat/Genvisis</developerConnection>
-		<tag>HEAD</tag>
-		<url>https://github.com/npankrat/Genvisis</url>
-	</scm>
 	<issueManagement>
 		<system>GitHub Issues</system>
-		<url>https://github.com/npankrat/Genvisis/issues</url>
+		<url>https://github.com/PankratzLab/jFlow/issues</url>
 	</issueManagement>
 
 	<ciManagement>
@@ -92,33 +103,18 @@
 	</ciManagement>
 
 	<properties>
-		<!-- By defining version properties here, each component receives the same
-				 version of any given dependency -->
+		<!-- By defining version properties here, each component receives the same 
+			version of any given dependency -->
 
-		<!-- Genvisis versions -
-				 NB: change these to non-SNAPSHOT when releasing -->
-		<meta.version>0.0.1-SNAPSHOT</meta.version>
-		<plab-common.version>0.0.1-SNAPSHOT</plab-common.version>
-		<FileParser.version>0.0.1-SNAPSHOT</FileParser.version>
-		<plab-utils.version>0.0.1-SNAPSHOT</plab-utils.version>
-		<seq.version>0.0.1-SNAPSHOT</seq.version>
-		<plab-utils.version>0.0.1-SNAPSHOT</plab-utils.version>
-		<genvisis.version>0.0.1-SNAPSHOT</genvisis.version>
-		<plab-private.version>0.0.1-SNAPSHOT</plab-private.version>
-		<nrss.version>0.0.1-SNAPSHOT</nrss.version>
-		<phenoprep.version>0.0.1-SNAPSHOT</phenoprep.version>
-		<genv-exp.version>0.0.1-SNAPSHOT</genv-exp.version>
-		<genv-dep.version>0.0.1-SNAPSHOT</genv-dep.version>
+		<!-- Genvisis versions - NB: change these to non-SNAPSHOT when releasing -->
+		<plab-public.version>0.0.1-SNAPSHOT</plab-public.version>
 		<genv-flow.version>0.0.1-SNAPSHOT</genv-flow.version>
-		<assembly.version>0.1.15-SNAPSHOT</assembly.version>
-		<app.version>0.0.1-SNAPSHOT</app.version>
-		<image-annotator.version>0.0.1-SNAPSHOT</image-annotator.version>
 
 		<!-- CFCS -->
-		<cfcs.version>0.0.1-SNAPSHOT</cfcs.version>
+		<cfcs.version>0.0.1</cfcs.version>
 
 		<!-- Logicle -->
-		<logicle.version>0.0.1-SNAPSHOT</logicle.version>
+		<logicle.version>0.0.1</logicle.version>
 
 		<!-- JUnit - http://junit.org/ -->
 		<junit.version>4.11</junit.version>
@@ -156,6 +152,9 @@
 		<!-- Commons-io -->
 		<commons-io.version>2.5</commons-io.version>
 
+		<!-- Commons-codec -->
+		<commons-codec.version>1.11</commons-codec.version>
+
 		<!-- Commons-jexl -->
 		<commons-jexl.version>2.1.1</commons-jexl.version>
 
@@ -189,6 +188,9 @@
 		<!-- HTSJDK -->
 		<htsjdk.version>2.20.1</htsjdk.version>
 
+		<!-- ALGS4 -->
+		<algs4.version>1.0.4</algs4.version>
+
 		<!-- Additional configuration -->
 
 		<!-- NB: Avoid platform encoding warning when copying resources. -->
@@ -209,95 +211,25 @@
 		<jsr305.version>3.0.2</jsr305.version>
 	</properties>
 
-	<!-- Dependencies should only be declared with versions in this parent pom.
-			 In sub-modules, the versions can be omitted (they are automatically
-			 inherited) -->
+	<!-- Dependencies should only be declared with versions in this parent pom. 
+		In sub-modules, the versions can be omitted (they are automatically inherited) -->
 	<dependencyManagement>
 		<dependencies>
+
 			<!-- Genvisis -->
 			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>Genvisis</artifactId>
-				<version>${genvisis.version}</version>
+				<groupId>org.pankratzlab</groupId>
+				<artifactId>PLab-public</artifactId>
+				<version>${plab-public.version}</version>
 			</dependency>
 
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>Meta</artifactId>
-				<version>${meta.version}</version>
-			</dependency>
 
 			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>PLab-common</artifactId>
-				<version>${plab-common.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>FileParser</artifactId>
-				<version>${FileParser.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>PLab-utils</artifactId>
-				<version>${plab-utils.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>SEQ</artifactId>
-				<version>${seq.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>PLab-private</artifactId>
-				<version>${plab-private.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>NRSS</artifactId>
-				<version>${nrss.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>PhenoPrep</artifactId>
-				<version>${phenoprep.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.genvisis</groupId>
+				<groupId>org.genvisis.fcs</groupId>
 				<artifactId>Genv-flow</artifactId>
 				<version>${genv-flow.version}</version>
 			</dependency>
 
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>Genv-experimental</artifactId>
-				<version>${genv-exp.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>Genv-deprecated</artifactId>
-				<version>${genv-dep.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>Assembly</artifactId>
-				<version>${assembly.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.genvisis</groupId>
-				<artifactId>App</artifactId>
-				<version>${app.version}</version>
-			</dependency>
 
 			<!-- CFCS -->
 			<dependency>
@@ -451,6 +383,19 @@
 				<version>${commons-math.version}</version>
 			</dependency>
 
+			<!-- Commons-codec -->
+			<dependency>
+				<groupId>commons-codec</groupId>
+				<artifactId>commons-codec</artifactId>
+				<version>${comons-codec.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>edu.princeton.cs</groupId>
+				<artifactId>algs4</artifactId>
+				<version>${algs4.version}</version>
+			</dependency>
+
 			<!-- FXlauncher -->
 			<dependency>
 				<groupId>no.tornado</groupId>
@@ -485,12 +430,11 @@
 	</dependencyManagement>
 
 	<build>
-		<!-- Make "mvn" with no arguments do something reasonable (compile, test,
-				 package to jar, install to local repository). -->
+		<!-- Make "mvn" with no arguments do something reasonable (compile, test, 
+			package to jar, install to local repository). -->
 		<defaultGoal>install</defaultGoal>
 
-		<!-- The pluginManagement block controls plugin configuration in all
-				 modules -->
+		<!-- The pluginManagement block controls plugin configuration in all modules -->
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -519,11 +463,8 @@
 				</plugin>
 
 
-				<!-- Default configuration to build an uber-jar. Just call the
-						 make-assembly goal:single execution and set params:
-						 * assemblyName
-						 * mainClass
-					-->
+				<!-- Default configuration to build an uber-jar. Just call the make-assembly 
+					goal:single execution and set params: * assemblyName * mainClass -->
 				<plugin>
 					<artifactId>maven-assembly-plugin</artifactId>
 					<version>2.4</version>
@@ -545,15 +486,15 @@
 								<Implementation-Version>${project.version}</Implementation-Version>
 								<Compile-Time>${timestamp}</Compile-Time>
 								<Build-Type>Development</Build-Type>
-								<Copyright>(c)2009-2018 Nathan Pankratz, GNU General Public License, v2</Copyright>
+								<Copyright>(c)2009-2018 Nathan Pankratz, GNU General Public
+									License, v2</Copyright>
 							</manifestEntries>
 						</archive>
 					</configuration>
 				</plugin>
 
-				<!-- Build native app with JavaFX. Reuses configuration from
-						 assembly-plugin to provide consistency between the two.
-					-->
+				<!-- Build native app with JavaFX. Reuses configuration from assembly-plugin 
+					to provide consistency between the two. -->
 				<plugin>
 					<groupId>com.zenjava</groupId>
 					<artifactId>javafx-maven-plugin</artifactId>
@@ -566,8 +507,7 @@
 						<needShortcut>true</needShortcut>
 						<needMenu>true</needMenu>
 						<nativeReleaseVersion>0.0.1</nativeReleaseVersion>
-						<!-- By using the existing jar, we can reuse the manifest
-								 configuration -->
+						<!-- By using the existing jar, we can reuse the manifest configuration -->
 						<updateExistingJar>true</updateExistingJar>
 					</configuration>
 					<executions>
@@ -606,7 +546,8 @@
 								<Implementation-Version>${project.version}</Implementation-Version>
 								<Compile-Time>${timestamp}</Compile-Time>
 								<Build-Type>Development</Build-Type>
-								<Copyright>(c)2009-2018 Nathan Pankratz, GNU General Public License, v2</Copyright>
+								<Copyright>(c)2009-2018 Nathan Pankratz, GNU General Public
+									License, v2</Copyright>
 							</manifestEntries>
 						</archive>
 						<skipIfEmpty>true</skipIfEmpty>
@@ -660,11 +601,8 @@
 					<version>2.21.0</version>
 				</plugin>
 
-				<!--
-				Build Number Maven plugin -
-				http://www.mojohaus.org/buildnumber-maven-plugin/
-				This plugin embeds a build number in the JAR manifest.
-				-->
+				<!-- Build Number Maven plugin - http://www.mojohaus.org/buildnumber-maven-plugin/ 
+					This plugin embeds a build number in the JAR manifest. -->
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>buildnumber-maven-plugin</artifactId>
@@ -684,20 +622,16 @@
 					</configuration>
 				</plugin>
 
-				<!-- Exec Maven plugin -
-				http://www.mojohaus.org/exec-maven-plugin/
-				This plugin launches a Java class using Maven. -->
+				<!-- Exec Maven plugin - http://www.mojohaus.org/exec-maven-plugin/ This 
+					plugin launches a Java class using Maven. -->
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>exec-maven-plugin</artifactId>
 					<version>1.3.1</version>
 				</plugin>
 
-				<!--
-				License Maven plugin -
-				http://www.mojohaus.org/license-maven-plugin/
-				This plugin manages project licenses and source file headers.
-				-->
+				<!-- License Maven plugin - http://www.mojohaus.org/license-maven-plugin/ 
+					This plugin manages project licenses and source file headers. -->
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>license-maven-plugin</artifactId>
@@ -715,12 +649,8 @@
 					</configuration>
 				</plugin>
 
-				<!--
-				Versions Maven plugin -
-				http://www.mojohaus.org/versions-maven-plugin/
-				Check for new plugin versions using
-				"mvn versions:display-plugin-updates"
-				-->
+				<!-- Versions Maven plugin - http://www.mojohaus.org/versions-maven-plugin/ 
+					Check for new plugin versions using "mvn versions:display-plugin-updates" -->
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>versions-maven-plugin</artifactId>
@@ -766,10 +696,8 @@
 				<version>1.4</version>
 			</plugin>
 		</plugins>
-		<!--
-		We use wagon-webdav-jackrabbit 1.0 for deploys, since it is
-		compatible with both Maven 2.2.x and Maven 3.0.x cross-platform.
-		-->
+		<!-- We use wagon-webdav-jackrabbit 1.0 for deploys, since it is compatible 
+			with both Maven 2.2.x and Maven 3.0.x cross-platform. -->
 		<extensions>
 			<extension>
 				<groupId>org.apache.maven.wagon</groupId>

@@ -48,7 +48,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.genvisis.cnv.gui.JAccordionPanel;
+import org.genvisis.common.gui.JAccordionPanel;
 import org.genvisis.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.fcs.FCSDataLoader.LOAD_STATE;

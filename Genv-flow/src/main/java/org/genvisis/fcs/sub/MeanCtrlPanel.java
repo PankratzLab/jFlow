@@ -17,7 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.KeyStroke;
 
-import org.genvisis.cnv.gui.ColorIcon;
+import org.genvisis.common.gui.ColorIcon;
 
 import net.miginfocom.swing.MigLayout;
 

@@ -14,7 +14,7 @@ import javax.imageio.ImageIO;
 import javax.swing.UIManager;
 
 import org.pankratzlab.common.Files;
-import org.pankratzlab.common.Images;
+import org.pankratzlab.common.ImagesPkl;
 
 public class AnnotatedImage {
 
@@ -144,7 +144,7 @@ public class AnnotatedImage {
           }
         } else {
           String[] images = imageFile.split(";");
-          image = new SoftReference<>(Images.stitchImages(images, Color.WHITE, false, false));
+          image = new SoftReference<>(ImagesPkl.stitchImages(images, Color.WHITE, false, false));
         }
       } else {
         if (imageFile == null) {

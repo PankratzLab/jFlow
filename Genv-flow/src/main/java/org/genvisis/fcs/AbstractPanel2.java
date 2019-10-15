@@ -35,11 +35,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
-import org.genvisis.cnv.plots.GenericLine;
-import org.genvisis.cnv.plots.GenericPath;
-import org.genvisis.cnv.plots.GenericRectangle;
-import org.genvisis.cnv.plots.PlotPoint;
-import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.HashVec;
@@ -47,6 +42,11 @@ import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.mining.Distance;
+import org.pankratzlab.common.plots.GenericLine;
+import org.pankratzlab.common.plots.GenericPath;
+import org.pankratzlab.common.plots.GenericRectangle;
+import org.pankratzlab.common.plots.PlotPoint;
+import org.pankratzlab.common.plots.PlotPoint.PointType;
 import org.pankratzlab.common.stats.Maths;
 
 import com.google.common.primitives.Bytes;
