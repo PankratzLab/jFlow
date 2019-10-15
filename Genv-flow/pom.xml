@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.pankratzlab</groupId>
 		<artifactId>pom-jflow</artifactId>
-		<version>0.1-SNAPSHOT</version>
+		<version>0.1</version>
 	</parent>
 
 	<groupId>org.genvisis.fcs</groupId>
 	<artifactId>Genv-flow</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 
 	<name>Genv-flow</name>
 	<description>Genvisis Flow Cytometry Software</description>
