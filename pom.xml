@@ -6,7 +6,7 @@
 
 	<groupId>org.pankratzlab</groupId>
 	<artifactId>pom-jflow</artifactId>
-	<version>0.2</version>
+	<version>0.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Genvisis Projects</name>
@@ -107,8 +107,8 @@
 			version of any given dependency -->
 
 		<!-- Genvisis versions - NB: change these to non-SNAPSHOT when releasing -->
-		<plab-public.version>0.0.1</plab-public.version>
-		<genv-flow.version>0.0.1</genv-flow.version>
+		<plab-public.version>0.0.2-SNAPSHOT</plab-public.version>
+		<genv-flow.version>0.0.2-SNAPSHOT</genv-flow.version>
 
 		<!-- CFCS -->
 		<cfcs.version>0.0.2</cfcs.version>
