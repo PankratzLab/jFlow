@@ -27,18 +27,18 @@ import javax.swing.SwingUtilities;
 import org.genvisis.common.gui.ColorIcon;
 import org.genvisis.fcs.FCSPlot.Classification;
 import org.genvisis.fcs.gating.Gate;
-import org.genvisis.fcs.gating.GateDimension;
 import org.genvisis.fcs.gating.Gate.PolygonGate;
 import org.genvisis.fcs.gating.Gate.RectangleGate;
+import org.genvisis.fcs.gating.GateDimension;
 import org.genvisis.fcs.gating.GateDimension.RectangleGateDimension;
 import org.genvisis.fcs.sub.PolygonGateEditor;
 import org.genvisis.fcs.sub.RectangleGateEditor;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.plots.GenericLine;
 import org.pankratzlab.common.plots.GenericPath;
 import org.pankratzlab.common.plots.GenericRectangle;
@@ -55,6 +55,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
   int dataCount = -1;
   volatile String xCol = null;
+  volatile String yCol = null;
   AXIS_SCALE prevXScale;
   AXIS_SCALE prevYScale;
   double xMed = Double.NaN;
@@ -254,16 +255,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     boolean optionsChanged = false;
     boolean gatesChanged = false;
 
-    // String newX = fcp.getXDataName();
-    // String newY = fcp.getYDataName();
-    // if (xCol == null || !newX.equals(xCol)) {
-    // columnsChangedX = true;
-    // }
-    // if (yCol == null || !newY.equals(yCol)) {
-    // columnsChangedY = true;
-    // }
-    // xCol = newX;
-    // yCol = newY;
+    String newX = fcp.getXDataName();
+    String newY = fcp.getYDataName();
+    if (xCol == null || !newX.equals(xCol)) {
+      columnsChangedX = true;
+    }
+    if (yCol == null || !newY.equals(yCol)) {
+      columnsChangedY = true;
+    }
+    xCol = newX;
+    yCol = newY;
 
     if (prevXScale == null || prevXScale != getXAxis() || prevXScale != fcp.getXScale()) {
       scaleChanged = true;
