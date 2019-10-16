@@ -2,7 +2,6 @@ package org.genvisis.fcs.auto.proc;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.genvisis.fcs.FCSDataLoader;
 import org.genvisis.fcs.gating.GateFileUtils;
@@ -11,29 +10,26 @@ import org.pankratzlab.common.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public abstract class AbstractSampleProcessor implements SampleProcessor {
+public abstract class AbstractLoadingSampleProcessor extends AbstractSampleProcessor {
 
   NodeList popList;
   HashMap<String, Element> popMap = new HashMap<>();
   HashMap<String, Element> gateMap = new HashMap<>();
   FCSDataLoader d;
 
-  static final Map<String, String> dimSwitch = new HashMap<>();
-
-  {
-    dimSwitch.put("Comp-BV 605-A \\(CD95\\)", "Comp-BV605-A \\(CD95\\)");
-    dimSwitch.put("Comp-BV 510-A \\(CD28\\)", "Comp-BV510-A \\(CD28\\)");
-    dimSwitch.put("Comp-BB 515-A \\(CD27\\)", "Comp-BB515-A \\(CD27\\)");
-    dimSwitch.put("Comp-BB515-A \\(CD27\\)", "Comp-FITC-A \\(CD27\\)");
-    dimSwitch.put("Comp-BV 421-A \\(CCR7\\)", "Comp-BV421-A \\(CCR7\\)");
-    dimSwitch.put("Comp-BV 711-A \\(CD45RA\\)", "Comp-BV711-A \\(CD45RA\\)");
-    dimSwitch.put("Comp-BUV 395-A \\(CD8\\)", "Comp-BUV396-A \\(CD8\\)");
-    dimSwitch.put("LIVE/DEAD", "L/D");
-    dimSwitch.put("Comp-PE-Cy7 \\(blue\\)-A \\(CD19\\)", "Comp-PE-Cy7-A \\(CD19\\)");
-    dimSwitch.put("Comp-BUV 737-A \\(IgD\\)", "Comp-BUV737-A \\(IgD\\)");
+  protected AbstractLoadingSampleProcessor() {
+    super();
+    addDimensionNameOverride("Comp-BV 605-A \\(CD95\\)", "Comp-BV605-A \\(CD95\\)");
+    addDimensionNameOverride("Comp-BV 510-A \\(CD28\\)", "Comp-BV510-A \\(CD28\\)");
+    addDimensionNameOverride("Comp-BB 515-A \\(CD27\\)", "Comp-BB515-A \\(CD27\\)");
+    addDimensionNameOverride("Comp-BB515-A \\(CD27\\)", "Comp-FITC-A \\(CD27\\)");
+    addDimensionNameOverride("Comp-BV 421-A \\(CCR7\\)", "Comp-BV421-A \\(CCR7\\)");
+    addDimensionNameOverride("Comp-BV 711-A \\(CD45RA\\)", "Comp-BV711-A \\(CD45RA\\)");
+    addDimensionNameOverride("Comp-BUV 395-A \\(CD8\\)", "Comp-BUV396-A \\(CD8\\)");
+    addDimensionNameOverride("LIVE/DEAD", "L/D");
+    addDimensionNameOverride("Comp-PE-Cy7 \\(blue\\)-A \\(CD19\\)", "Comp-PE-Cy7-A \\(CD19\\)");
+    addDimensionNameOverride("Comp-BUV 737-A \\(IgD\\)", "Comp-BUV737-A \\(IgD\\)");
   }
-
-  protected AbstractSampleProcessor() {}
 
   void loadPopsAndGates(SampleNode sn) {
     popList = sn.sampleNode.getElementsByTagName("Population");

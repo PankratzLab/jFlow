@@ -10,7 +10,11 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 
-class DuplicatorProcessor extends AbstractSampleProcessor {
+class DuplicatorProcessor extends AbstractLoadingSampleProcessor {
+
+  public DuplicatorProcessor() {
+    super();
+  }
 
   @Override
   public void processSample(SampleNode sn, Logger log) throws IOException {

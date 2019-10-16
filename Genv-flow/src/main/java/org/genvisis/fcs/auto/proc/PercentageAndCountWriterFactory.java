@@ -23,6 +23,7 @@ public class PercentageAndCountWriterFactory implements ProcessorFactory<Percent
 
   public PercentageAndCountWriterFactory(String outDir, int panel, String ovvrDir, String ovvrSfx,
                                          String ovvrMatch) {
+    super();
     this.outputDir = outDir;
     this.panel = panel;
     this.ovvrDir = ovvrDir;

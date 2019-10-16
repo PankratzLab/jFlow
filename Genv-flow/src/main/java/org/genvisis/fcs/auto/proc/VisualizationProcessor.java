@@ -11,11 +11,11 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.SwingConstants;
 
-import org.genvisis.fcs.FCSDataLoader;
-import org.genvisis.fcs.FCSPlot;
 import org.genvisis.fcs.AbstractPanel2.PLOT_TYPE;
+import org.genvisis.fcs.FCSDataLoader;
 import org.genvisis.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.fcs.FCSDataLoader.LOAD_STATE;
+import org.genvisis.fcs.FCSPlot;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Workbench.SampleNode;
 import org.genvisis.flowannot.GateTree;
@@ -23,7 +23,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 
-public class VisualizationProcessor implements SampleProcessor {
+public class VisualizationProcessor extends AbstractSampleProcessor {
 
   final String autoDir;
   final String ovvrDir;
@@ -35,6 +35,7 @@ public class VisualizationProcessor implements SampleProcessor {
 
   public VisualizationProcessor(String a, String o, String m, String mS, String mM, String cD,
                                 String cS) {
+    super();
     this.autoDir = a;
     this.outDir = o;
     this.ovvrDir = m;
@@ -42,6 +43,12 @@ public class VisualizationProcessor implements SampleProcessor {
     this.ovvrMatch = mM;
     this.clustDir = cD;
     this.clustSfx = cS;
+    addDimensionNameOverride("Comp-BV 605-A (CD95)", "Comp-BV605-A (CD95)");
+    addDimensionNameOverride("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
+    addDimensionNameOverride("Comp-BB 515-A (CD27)", "Comp-BB515-A (CD27)");
+    addDimensionNameOverride("Comp-BB515-A (CD27)", "Comp-FITC-A (CD27)");
+    addDimensionNameOverride("Comp-BV 421-A (CCR7)", "Comp-BV421-A (CCR7)");
+    addDimensionNameOverride("Comp-BV 711-A (CD45RA)", "Comp-BV711-A (CD45RA)");
   }
 
   private static String[][] hardcodedAddlImages = {{"effector helper Tcells (CCR7/CD45RA)",
@@ -100,7 +107,6 @@ public class VisualizationProcessor implements SampleProcessor {
   }
 
   static final Map<String, List<AddlImage>> addlImgs = new HashMap<>();
-  static final Map<String, String> dimSwitch = new HashMap<>();
   {
     for (String[] addlImg : hardcodedAddlImages) {
       String parent;
@@ -108,13 +114,6 @@ public class VisualizationProcessor implements SampleProcessor {
       addlImgs.put(parent, new ArrayList<AddlImage>());
       addlImgs.get(parent).add(new AddlImage(addlImg[2], addlImg[3], parent, addlImg[0]));
     }
-    dimSwitch.put("Comp-BV 605-A (CD95)", "Comp-BV605-A (CD95)");
-    dimSwitch.put("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
-    dimSwitch.put("Comp-BB 515-A (CD27)", "Comp-BB515-A (CD27)");
-    dimSwitch.put("Comp-BB515-A (CD27)", "Comp-FITC-A (CD27)");
-    dimSwitch.put("Comp-BV 421-A (CCR7)", "Comp-BV421-A (CCR7)");
-    dimSwitch.put("Comp-BV 711-A (CD45RA)", "Comp-BV711-A (CD45RA)");
-
   }
 
   @Override
@@ -443,13 +442,13 @@ public class VisualizationProcessor implements SampleProcessor {
 
         String x = addl.xDim;
         while (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(x)) {
-          x = dimSwitch.get(x);
+          x = replaceName(x);
         }
         fcp.setXDataName(x);
 
         String y = addl.yDim;
         while (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(y)) {
-          y = dimSwitch.get(y);
+          y = replaceName(y);
         }
         fcp.setYDataName(y);
 

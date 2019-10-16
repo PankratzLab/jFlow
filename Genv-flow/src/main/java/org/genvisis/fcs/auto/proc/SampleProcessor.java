@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -26,9 +27,34 @@ import org.pankratzlab.common.filesys.PlainTextExport;
 public interface SampleProcessor {
 
   public void processSample(SampleNode sn, Logger log) throws IOException;
+
 }
 
-class PercentageAndCountWriter extends AbstractSampleProcessor {
+abstract class AbstractSampleProcessor implements SampleProcessor {
+
+  private final Map<String, String> dimSwitch = new HashMap<>();
+
+  protected AbstractSampleProcessor() {}
+
+  public void addDimensionNameOverride(String from, String to) {
+    dimSwitch.put(from, to);
+  }
+
+  public String replaceName(String name) {
+    return dimSwitch.containsKey(name) ? dimSwitch.get(name) : name;
+  }
+
+  public String getReplacedName(String name) {
+    String newName = name;
+    for (Entry<String, String> dim : dimSwitch.entrySet()) {
+      newName = newName.replaceAll(dim.getKey(), dim.getValue());
+    }
+    return newName;
+  }
+
+}
+
+class PercentageAndCountWriter extends AbstractLoadingSampleProcessor {
 
   final Map<String, Map<String, Double>> pctMap;
   final Map<String, Map<String, Integer>> cntMap;
@@ -76,9 +102,7 @@ class PercentageAndCountWriter extends AbstractSampleProcessor {
       int g2 = ArrayUtils.booleanArraySum(parent);
 
       String name = g.getFullNameAndGatingPath();
-      for (Entry<String, String> dim : dimSwitch.entrySet()) {
-        name.replaceAll(dim.getKey(), dim.getValue());
-      }
+      name = getReplacedName(name);
       pcts.put(name, 100 * ((double) g1) / (double) g2);
       cnts.put(name, g1);
     }
@@ -152,7 +176,7 @@ class LeafDataSamplerFactory implements ProcessorFactory<LeafDataSampler> {
   }
 }
 
-class LeafDataSampler extends AbstractSampleProcessor {
+class LeafDataSampler extends AbstractLoadingSampleProcessor {
 
   private static final String FILE_EXT = ".data";
   private int sampleSize = 1000;
@@ -264,7 +288,7 @@ class LeafDataSampler extends AbstractSampleProcessor {
 
   }
 
-  static class GateAssignmentProcessor extends AbstractSampleProcessor {
+  static class GateAssignmentProcessor extends AbstractLoadingSampleProcessor {
 
     Map<String, Integer> gateCoding;
     String outputDir;
