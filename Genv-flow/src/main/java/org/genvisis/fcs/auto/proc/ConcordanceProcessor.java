@@ -5,7 +5,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.genvisis.fcs.auto.FCSProcessingPipeline;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Workbench.SampleNode;
 import org.pankratzlab.common.ArrayUtils;
@@ -13,7 +12,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 
-public class ConcordanceProcessor extends AbstractSampleProcessor {
+public class ConcordanceProcessor extends AbstractLoadingSampleProcessor {
 
   private static final String AUTO_FILE_SUFF = "def.txt.gz";
 
@@ -23,9 +22,15 @@ public class ConcordanceProcessor extends AbstractSampleProcessor {
   private ConcurrentHashMap<String, ConcurrentHashMap<String, String>> results;
   private ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultsTree;
 
+  public static final String[][] MATCH = {{"lymph", "Lymphocytes (SSC-A v FSC-A)"},
+                                          {"Singlets", "Single Cells (FSC-H v FSC-W)"},
+                                          {"PE.A", "Live cells (PE-)"},
+                                          {"CD3.", "Tcells (CD3+ CD19-)"},};
+
   public ConcordanceProcessor(String autoDir,
                               ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap,
                               ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap2) {
+    super();
     this.autoDir = autoDir;
     filesInAutoDir = (new File(autoDir)).list(new FilenameFilter() {
 
@@ -53,7 +58,7 @@ public class ConcordanceProcessor extends AbstractSampleProcessor {
     boolean[][] hand = new boolean[autoData[0].length][d.getCount()];
     String[] gateNames = new String[hand.length];
     for (int i = 0; i < hand.length; i++) {
-      Gate gate = sn.gating.gateMap.get(FCSProcessingPipeline.MATCH[i][1]);
+      Gate gate = sn.gating.gateMap.get(ConcordanceProcessor.MATCH[i][1]);
       hand[i] = gate.gate(d);
       gateNames[i] = gate.getName();
     }

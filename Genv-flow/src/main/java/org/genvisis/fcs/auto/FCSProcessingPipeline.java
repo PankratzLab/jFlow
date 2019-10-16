@@ -12,11 +12,6 @@ import org.pankratzlab.common.ext;
 
 public class FCSProcessingPipeline {
 
-  public static final String[][] MATCH = {{"lymph", "Lymphocytes (SSC-A v FSC-A)"},
-                                          {"Singlets", "Single Cells (FSC-H v FSC-W)"},
-                                          {"PE.A", "Live cells (PE-)"},
-                                          {"CD3.", "Tcells (CD3+ CD19-)"},};
-
   public FCSProcessingPipeline(String fcs, String wsp, String auto, String out, String highP,
                                String lowP, String ovvrDir, String ovvrSuff, String ovvrMatch,
                                String clusterDir, String clusterSuffix) {

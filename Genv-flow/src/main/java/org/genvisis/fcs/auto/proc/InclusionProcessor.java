@@ -6,7 +6,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map.Entry;
 
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Workbench.SampleNode;
@@ -14,7 +13,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 
-public class InclusionProcessor extends AbstractSampleProcessor {
+public class InclusionProcessor extends AbstractLoadingSampleProcessor {
 
   String outDir;
   final String ovvrDir;
@@ -22,6 +21,7 @@ public class InclusionProcessor extends AbstractSampleProcessor {
   final String ovvrMatch;
 
   public InclusionProcessor(String o, String ovvrDir, String ovvrSuff, String ovvrMatch) {
+    super();
     outDir = o;
     this.ovvrDir = ovvrDir;
     this.ovvrSfx = ovvrSuff;
@@ -60,9 +60,7 @@ public class InclusionProcessor extends AbstractSampleProcessor {
       Gate g = gateList.get(i);
       boolean[] gating = g.gate(d);
       String name = g.getFullNameAndGatingPath();
-      for (Entry<String, String> dim : dimSwitch.entrySet()) {
-        name.replaceAll(dim.getKey(), dim.getValue());
-      }
+      name = getReplacedName(name);
       incl.put(name, gating);
     }
 
@@ -73,9 +71,7 @@ public class InclusionProcessor extends AbstractSampleProcessor {
     for (int i = 0; i < gateList.size(); i++) {
       Gate g = gateList.get(i);
       String name = g.getFullNameAndGatingPath();
-      for (Entry<String, String> dim : dimSwitch.entrySet()) {
-        name.replaceAll(dim.getKey(), dim.getValue());
-      }
+      name = getReplacedName(name);
       writer.print("\t" + name);
     }
     writer.println();
@@ -85,9 +81,7 @@ public class InclusionProcessor extends AbstractSampleProcessor {
       for (int gi = 0; gi < gateList.size(); gi++) {
         Gate g = gateList.get(gi);
         String name = g.getFullNameAndGatingPath();
-        for (Entry<String, String> dim : dimSwitch.entrySet()) {
-          name.replaceAll(dim.getKey(), dim.getValue());
-        }
+        name = getReplacedName(name);
         writer.print("\t" + Boolean.toString(incl.get(name)[i]));
       }
       writer.println();
