@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<clusters>
+	<cluster>
+		<gate>parent</gate>
+		<key>effector memory helper Tcells (CCR7- CD45RA-)</key>
+		<key>effector memory helper Tcells (CD95- CD28-)</key>
+		<colorKey>naive helper Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>effector helper Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>central memory helper Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>effector memory helper Tcells (CCR7/CD45RA</colorKey>
+	</cluster>
+	<cluster>
+		<gate>parent</gate>
+		<key>naive helper Tcells (CCR7/CD45RA)</key>
+		<key>effector helper Tcells (CCR7/CD45RA)</key>
+		<key>central memory helper Tcells (CCR7/CD45RA)</key>
+		<key>effector memory helper Tcells (CCR7/CD45RA</key>
+		<colorKey>naive helper Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>effector helper Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>central memory helper Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>effector memory helper Tcells (CCR7/CD45RA</colorKey>
+	</cluster>
+	<cluster>
+		<gate>parent</gate>
+		<key>effector memory cytotoxic Tcells (CCR7- , CD45RA-)</key>
+		<key>effector memory cytotoxic Tcells (CD95- , CD28-)</key>
+		<colorKey>naive cytotoxic Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>effector cytotoxic Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>central memory cytotoxic Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>effector memory cytotoxic Tcells (CCR7/CD45RA)</colorKey>
+	</cluster>
+	<cluster>
+		<gate>parent</gate>
+		<key>naive cytotoxic Tcells (CCR7/CD45RA)</key>
+		<key>effector cytotoxic Tcells (CCR7/CD45RA)</key>
+		<key>central memory cytotoxic Tcells (CCR7/CD45RA)</key>
+		<key>effector memory cytotoxic Tcells (CCR7/CD45RA)</key>
+		<colorKey>naive cytotoxic Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>effector cytotoxic Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>central memory cytotoxic Tcells (CCR7/CD45RA)</colorKey>
+		<colorKey>effector memory cytotoxic Tcells (CCR7/CD45RA)</colorKey>
+	</cluster>
+	<cluster>
+		<gate>parent</gate>
+		<key>Effector_Cytotoxic Tcells (CD28/CD27)</key>
+		<colorKey>pE cytotoxic Tcells (CD95-CD28-,CD27-  CD28-)</colorKey>
+		<colorKey>pE1 cytotoxic Tcells (CD95-CD28-,CD27+  CD28+)</colorKey>
+		<colorKey>pE2 cytotoxic Tcells (CD95-CD28-,CD27+ , CD28-)</colorKey>
+	</cluster>
+	<cluster>
+		<gate>self</gate>
+		<key>pE cytotoxic Tcells (CD95-CD28-,CD27-  CD28-)</key>
+		<key>pE1 cytotoxic Tcells (CD95-CD28-,CD27+  CD28+)</key>
+		<key>pE2 cytotoxic Tcells (CD95-CD28-,CD27+ , CD28-)</key>
+		<colorKey>pE cytotoxic Tcells (CD95-CD28-,CD27-  CD28-)</colorKey>
+		<colorKey>pE1 cytotoxic Tcells (CD95-CD28-,CD27+  CD28+)</colorKey>
+		<colorKey>pE2 cytotoxic Tcells (CD95-CD28-,CD27+ , CD28-)</colorKey>
+	</cluster>
+	<cluster>
+		<gate>parent</gate>
+		<key>Effector_Memory_Cytotoxic Tcells (CD28/CD27)</key>
+		<colorKey>EM4 cytotoxic Tcells (CD27-  CD28+)</colorKey>
+		<colorKey>EM1 cytotoxic Tcells (CD27+  CD28+)</colorKey>
+		<colorKey>EM2 cytotoxic Tcells (CD27+  CD28-)</colorKey>
+		<colorKey>EM3 cytotoxic Tcells (CD27-  CD28-)</colorKey>
+	</cluster>
+	<cluster>
+		<gate>self</gate>
+		<key>EM4 cytotoxic Tcells (CD27-  CD28+)</key>
+		<key>EM1 cytotoxic Tcells (CD27+  CD28+)</key>
+		<key>EM2 cytotoxic Tcells (CD27+  CD28-)</key>
+		<key>EM3 cytotoxic Tcells (CD27-  CD28-)</key>
+		<colorKey>EM4 cytotoxic Tcells (CD27-  CD28+)</colorKey>
+		<colorKey>EM1 cytotoxic Tcells (CD27+  CD28+)</colorKey>
+		<colorKey>EM2 cytotoxic Tcells (CD27+  CD28-)</colorKey>
+		<colorKey>EM3 cytotoxic Tcells (CD27-  CD28-)</colorKey>
+	</cluster>
+</clusters>

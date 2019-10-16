@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -19,7 +22,6 @@ import org.genvisis.fcs.FCSDataLoader.LOAD_STATE;
 import org.genvisis.fcs.FCSPlot;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Workbench.SampleNode;
-import org.genvisis.flowannot.GateTree;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
@@ -42,10 +44,12 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
   final String clustSfx;
 
   private final Multimap<String, AddlImage> addlImgs = HashMultimap.create();
+  private final Map<String, ClusterOverride> clusterOverrides = new HashMap<>();
 
   public VisualizationProcessor(String autoDir, String outDir, String overrideDir,
                                 String overrideSuffix, String overrideMatch, String clusterDir,
-                                String clusterSuffix, String addlImgsFile) {
+                                String clusterSuffix, String addlImgsFile,
+                                String clusterOverrideFile) {
     super();
     this.autoDir = autoDir;
     this.outDir = outDir;
@@ -61,6 +65,7 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
     addDimensionNameOverride("Comp-BV 421-A (CCR7)", "Comp-BV421-A (CCR7)");
     addDimensionNameOverride("Comp-BV 711-A (CD45RA)", "Comp-BV711-A (CD45RA)");
     loadAddlImages(addlImgsFile);
+    loadClusterOverrides(clusterOverrideFile);
   }
 
   private void loadAddlImages(String addlImgsFile) {
@@ -74,11 +79,13 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
       for (int i = 0, count = images.getLength(); i < count; i++) {
         Element imageNode = (Element) images.item(i);
         String parent = imageNode.getElementsByTagName("parent").item(0).getFirstChild()
-                                 .getTextContent();
+                                 .getTextContent().trim();
         String name = imageNode.getElementsByTagName("name").item(0).getFirstChild()
-                               .getTextContent();
-        String x = imageNode.getElementsByTagName("x").item(0).getFirstChild().getTextContent();
-        String y = imageNode.getElementsByTagName("y").item(0).getFirstChild().getTextContent();
+                               .getTextContent().trim();
+        String x = imageNode.getElementsByTagName("x").item(0).getFirstChild().getTextContent()
+                            .trim();
+        String y = imageNode.getElementsByTagName("y").item(0).getFirstChild().getTextContent()
+                            .trim();
         addlImgs.put(parent, new AddlImage(x, y, parent, name));
       }
 
@@ -89,10 +96,63 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
     }
   }
 
-  public void parseAddlImage(String addlImgStr) {
-    String[] addlImg = addlImgStr.split("\t");
-    String parent = addlImg[1];
-    addlImgs.put(parent, new AddlImage(addlImg[2], addlImg[3], parent, addlImg[0]));
+  private void loadClusterOverrides(String file) {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    try {
+      DocumentBuilder builder = factory.newDocumentBuilder();
+      Document doc = builder.parse(new File(file));
+      doc.getDocumentElement().normalize();
+
+      NodeList clusters = doc.getElementsByTagName("cluster");
+      for (int i = 0, count = clusters.getLength(); i < count; i++) {
+        Element clusterNode = (Element) clusters.item(i);
+        // load keys
+        NodeList keys = clusterNode.getElementsByTagName("key");
+        List<String> keyList = new ArrayList<>();
+        for (int k = 0, countK = keys.getLength(); k < countK; k++) {
+          String key = ((Element) keys.item(k)).getTextContent();
+          keyList.add(key);
+        }
+        // load color keys
+        NodeList colorKeys = clusterNode.getElementsByTagName("colorKey");
+        String[] colorKey = new String[colorKeys.getLength()];
+        for (int k = 0, countK = colorKeys.getLength(); k < countK; k++) {
+          colorKey[k] = ((Element) colorKeys.item(k)).getTextContent();
+        }
+        // load which gate to use
+        String type = clusterNode.getElementsByTagName("gate").item(0).getTextContent();
+        boolean parent;
+        switch (type.toLowerCase()) {
+          case "parent":
+            parent = true;
+            break;
+          case "self":
+            parent = false;
+            break;
+          default:
+            parent = true;
+            break;
+        }
+        for (String k : keyList) {
+          clusterOverrides.put(k, new ClusterOverride(colorKey, parent));
+        }
+      }
+
+    } catch (ParserConfigurationException e) {
+      e.printStackTrace();
+    } catch (SAXException | IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  static class ClusterOverride {
+    String[] overrideNames;
+    boolean gateParent;
+
+    public ClusterOverride(String[] clust, boolean gateParent) {
+      this.overrideNames = clust;
+      this.gateParent = gateParent;
+    }
   }
 
   static class AddlImage {
@@ -200,41 +260,28 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
       gateNames.add(s);
 
       fcp.clearClusterAssigns();
-      fcp.gateSelected(g.getParentGate(), false);
-      times[0] = System.nanoTime();
+      if (clusterOverrides.containsKey(g.getName())) {
+        ClusterOverride co = clusterOverrides.get(g.getName());
+        if (co.gateParent) {
+          fcp.gateSelected(g.getParentGate(), false);
+        } else {
+          fcp.gateSelected(g, false);
+        }
+        times[0] = System.nanoTime();
 
-      fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
-      g.setFillGate(false);
-      if (ext.indexOfStr(g.getName(), GateTree.HELPER_SUB_PARENTS) >= 0) {
-        fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
-
-      } else if (ext.indexOfStr(g.getName(), GateTree.CYTOTOXIC_SUB_PARENTS) >= 0) {
-        fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
-
-      } else if (ext.indexOfStr(g.getName(), GateTree.HELPER_SUB_IMGS) >= 0) {
-        fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
-
-      } else if (ext.indexOfStr(g.getName(), GateTree.CYTOTOXIC_SUB_IMGS) >= 0) {
-        fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
-
-      } else if (ext.indexOfStr(g.getName(), GateTree.EFFECTOR_SUB_PARENTS) >= 0) {
-        fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_SUB_IMGS);
-
-      } else if (ext.indexOfStr(g.getName(), GateTree.EFFECTOR_MEM_SUB_PARENTS) >= 0) {
-        fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_MEM_SUB_IMGS);
-
-      } else if (ext.indexOfStr(g.getName(), GateTree.EFFECTOR_SUB_IMGS) >= 0) {
+        fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
         g.setFillGate(false);
-        fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_SUB_IMGS);
-
-      } else if (ext.indexOfStr(g.getName(), GateTree.EFFECTOR_MEM_SUB_IMGS) >= 0) {
-        fcp.gateSelected(g, false);
-        fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_MEM_SUB_IMGS);
-      } else if (fcp.getClusterAssignments() != null) {
-        //
+        fcp.loadOverridesAsClusterColors(loader, co.overrideNames);
       } else {
-        fcp.setPlotType(PLOT_TYPE.HEATMAP);
-        g.setFillGate(true);
+        fcp.gateSelected(g.getParentGate(), false);
+        times[0] = System.nanoTime();
+        if (fcp.getClusterAssignments() != null) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+        } else {
+          fcp.setPlotType(PLOT_TYPE.HEATMAP);
+          g.setFillGate(true);
+        }
       }
 
       g.setColor(1);
@@ -333,30 +380,8 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
 
         fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
         g.setFillGate(false);
-        if (ext.indexOfStr(addl.name, GateTree.HELPER_SUB_PARENTS) >= 0) {
-          fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
-
-        } else if (ext.indexOfStr(addl.name, GateTree.CYTOTOXIC_SUB_PARENTS) >= 0) {
-          fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
-
-        } else if (ext.indexOfStr(addl.name, GateTree.HELPER_SUB_IMGS) >= 0) {
-          fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
-
-        } else if (ext.indexOfStr(addl.name, GateTree.CYTOTOXIC_SUB_IMGS) >= 0) {
-          fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
-
-        } else if (ext.indexOfStr(addl.name, GateTree.EFFECTOR_SUB_PARENTS) >= 0) {
-          fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_SUB_IMGS);
-
-        } else if (ext.indexOfStr(addl.name, GateTree.EFFECTOR_MEM_SUB_PARENTS) >= 0) {
-          fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_MEM_SUB_IMGS);
-
-        } else if (ext.indexOfStr(addl.name, GateTree.EFFECTOR_SUB_IMGS) >= 0) {
-          fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_SUB_IMGS);
-
-        } else if (ext.indexOfStr(addl.name, GateTree.EFFECTOR_MEM_SUB_IMGS) >= 0) {
-          fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_MEM_SUB_IMGS);
-
+        if (clusterOverrides.containsKey(g.getName())) {
+          fcp.loadOverridesAsClusterColors(loader, clusterOverrides.get(g.getName()).overrideNames);
         } else {
           fcp.setPlotType(PLOT_TYPE.HEATMAP);
           g.setFillGate(true);
