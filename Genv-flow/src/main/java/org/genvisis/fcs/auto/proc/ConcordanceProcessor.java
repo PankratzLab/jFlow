@@ -29,8 +29,9 @@ public class ConcordanceProcessor extends AbstractLoadingSampleProcessor {
 
   public ConcordanceProcessor(String autoDir,
                               ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap,
-                              ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap2) {
-    super();
+                              ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap2,
+                              String dimensionOverrideFile) {
+    super(dimensionOverrideFile);
     this.autoDir = autoDir;
     filesInAutoDir = (new File(autoDir)).list(new FilenameFilter() {
 

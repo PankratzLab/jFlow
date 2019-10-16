@@ -20,15 +20,17 @@ public class PercentageAndCountWriterFactory implements ProcessorFactory<Percent
   final String ovvrDir;
   final String ovvrSfx;
   final String ovvrMatch;
+  final String dimOvvrFile;
 
   public PercentageAndCountWriterFactory(String outDir, int panel, String ovvrDir, String ovvrSfx,
-                                         String ovvrMatch) {
+                                         String ovvrMatch, String dimOvvrFile) {
     super();
     this.outputDir = outDir;
     this.panel = panel;
     this.ovvrDir = ovvrDir;
     this.ovvrSfx = ovvrSfx;
     this.ovvrMatch = ovvrMatch;
+    this.dimOvvrFile = dimOvvrFile;
   }
 
   @Override
@@ -47,7 +49,7 @@ public class PercentageAndCountWriterFactory implements ProcessorFactory<Percent
         resultMapCnts.put(owner, map2);
       }
     }
-    return new PercentageAndCountWriter(map, map2, ovvrDir, ovvrSfx, ovvrMatch);
+    return new PercentageAndCountWriter(map, map2, ovvrDir, ovvrSfx, ovvrMatch, dimOvvrFile);
   }
 
   private <T> void writeMap(Map<String, Map<String, T>> resultMap, String fileName) {

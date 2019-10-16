@@ -1,5 +1,6 @@
 package org.genvisis.fcs.auto.proc;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -13,6 +14,10 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Workbench.SampleNode;
 import org.genvisis.fcs.sub.EMInitializer;
@@ -22,6 +27,10 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.PlainTextExport;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 @FunctionalInterface
 public interface SampleProcessor {
@@ -52,6 +61,27 @@ abstract class AbstractSampleProcessor implements SampleProcessor {
     return newName;
   }
 
+  public void loadDimOverrides(String dimOvvrFile) {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    try {
+      DocumentBuilder builder = factory.newDocumentBuilder();
+      Document doc = builder.parse(new File(dimOvvrFile));
+      doc.getDocumentElement().normalize();
+
+      NodeList replacements = doc.getElementsByTagName("replace");
+      for (int i = 0, count = replacements.getLength(); i < count; i++) {
+        Element replaceNode = (Element) replacements.item(i);
+        String from = replaceNode.getElementsByTagName("from").item(0).getTextContent();
+        String to = replaceNode.getElementsByTagName("to").item(0).getTextContent();
+        addDimensionNameOverride(from, to);
+      }
+    } catch (ParserConfigurationException e) {
+      e.printStackTrace();
+    } catch (SAXException | IOException e) {
+      e.printStackTrace();
+    }
+  }
+
 }
 
 class PercentageAndCountWriter extends AbstractLoadingSampleProcessor {
@@ -64,7 +94,8 @@ class PercentageAndCountWriter extends AbstractLoadingSampleProcessor {
 
   public PercentageAndCountWriter(Map<String, Map<String, Double>> pctMap,
                                   Map<String, Map<String, Integer>> cntMap, String ovvrDir,
-                                  String ovvrSfx, String ovvrMatch) {
+                                  String ovvrSfx, String ovvrMatch, String dimOverrideFile) {
+    super(dimOverrideFile);
     this.pctMap = pctMap;
     this.cntMap = cntMap;
     this.ovvrDir = ovvrDir;
@@ -117,16 +148,18 @@ class LeafDataSamplerFactory implements ProcessorFactory<LeafDataSampler> {
   final List<String> params;
   static final int SAMPLING = 500;
   final String outDir;
+  final String dimOvvrFile;
   ConcurrentHashMap<Object, Map<String, PrintWriter>> writers;
   ConcurrentHashMap<Object, Map<String, AtomicInteger>> counts;
   ConcurrentHashMap<Object, String> outRoots;
   Logger log;
 
-  public LeafDataSamplerFactory(String outputDir, Logger log) {
+  public LeafDataSamplerFactory(String outputDir, String dimOvvrFile, Logger log) {
     this.params = new ArrayList<>();
     for (String s : EMInitializer.DATA_COLUMNS) {
       params.add(s);
     }
+    this.dimOvvrFile = dimOvvrFile;
     writers = new ConcurrentHashMap<>();
     counts = new ConcurrentHashMap<>();
     outRoots = new ConcurrentHashMap<>();
@@ -162,7 +195,8 @@ class LeafDataSamplerFactory implements ProcessorFactory<LeafDataSampler> {
       }
     }
 
-    return new LeafDataSampler(SAMPLING, outputFileRoot, gateWriters, writeCounts, params);
+    return new LeafDataSampler(SAMPLING, outputFileRoot, gateWriters, writeCounts, params,
+                               dimOvvrFile);
   }
 
   @Override
@@ -187,7 +221,9 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
 
   public LeafDataSampler(int sampleSize, String outputFileRoot,
                          Map<String, PrintWriter> gateWriters,
-                         Map<String, AtomicInteger> writeCounts, List<String> paramsInOrder) {
+                         Map<String, AtomicInteger> writeCounts, List<String> paramsInOrder,
+                         String dimOvvrFile) {
+    super(dimOvvrFile);
     this.sampleSize = sampleSize;
     this.writers = gateWriters;
     this.writeCounts = writeCounts;
@@ -267,6 +303,12 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
 
     ConcurrentHashMap<Object, ConcurrentHashMap<String, Integer>> ownerMaps = new ConcurrentHashMap<>();
     String outputDir = "/scratch.global/cole0482/FCS/";
+    String dimOvvrFile;
+
+    public GateAssignmentFactory(String outputDir, String dimOverrideFile) {
+      this.outputDir = outputDir;
+      this.dimOvvrFile = dimOverrideFile;
+    }
 
     @Override
     public GateAssignmentProcessor createProcessor(Object owner, int index) {
@@ -278,7 +320,7 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
           ownerMaps.put(owner, map);
         }
       }
-      return new GateAssignmentProcessor(map, outputDir);
+      return new GateAssignmentProcessor(map, outputDir, dimOvvrFile);
     }
 
     @Override
@@ -293,7 +335,9 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
     Map<String, Integer> gateCoding;
     String outputDir;
 
-    public GateAssignmentProcessor(Map<String, Integer> gateCoding, String outputDir) {
+    public GateAssignmentProcessor(Map<String, Integer> gateCoding, String outputDir,
+                                   String dimOvvrFile) {
+      super(dimOvvrFile);
       this.gateCoding = gateCoding;
       this.outputDir = outputDir;
     }
