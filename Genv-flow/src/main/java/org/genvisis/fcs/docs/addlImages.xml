@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<images>
+	<image>
+		<name>effector helper Tcells (CCR7/CD45RA)</name>
+		<parent>effector helper Tcells (CCR7- CD45RA+)</parent>
+		<x>Comp-BV 421-A (CCR7)</x>
+		<y>Comp-BV 711-A (CD45RA)</y>
+	</image>
+	<image>
+		<name>naive helper Tcells (CCR7/CD45RA)</name>
+		<parent>naive helper Tcells (CCR7+ CD45RA+)</parent>
+		<x>Comp-BV 421-A (CCR7)</x>
+		<y>Comp-BV 711-A (CD45RA)</y>
+	</image>
+	<image>
+		<name>effector memory helper Tcells (CCR7/CD45RA)</name>
+		<parent>effector memory helper Tcells (CCR7- CD45RA-)</parent>
+		<x>Comp-BV 421-A (CCR7)</x>
+		<y>Comp-BV 711-A (CD45RA)</y>
+	</image>
+	<image>
+		<name>central memory helper Tcells (CCR7/CD45RA)</name>
+		<parent>central memory helper Tcells (CCR7+ CD45RA-)</parent>
+		<x>Comp-BV 421-A (CCR7)</x>
+		<y>Comp-BV 711-A (CD45RA)</y>
+	</image>
+	<image>
+		<name>effector cytotoxic Tcells (CCR7/CD45RA)</name>
+		<parent>effector cytotoxic Tcells  (CCR7-  CD45RA+)</parent>
+		<x>Comp-BV 421-A (CCR7)</x>
+		<y>Comp-BV 711-A (CD45RA)</y>
+	</image>
+	<image>
+		<name>naive cytotoxic Tcells (CCR7/CD45RA)</name>
+		<parent>naive cytotoxic Tcells (CCR7+ , CD45RA+)</parent>
+		<x>Comp-BV 421-A (CCR7)</x>
+		<y>Comp-BV 711-A (CD45RA)</y>
+	</image>
+	<image>
+		<name>effector memory cytotoxic Tcells (CCR7/CD45RA)</name>
+		<parent>effector memory cytotoxic Tcells (CCR7- , CD45RA-)</parent>
+		<x>Comp-BV 421-A (CCR7)</x>
+		<y>Comp-BV 711-A (CD45RA)</y>
+	</image>
+	<image>
+		<name>central memory cytotoxic Tcells (CCR7/CD45RA)</name>
+		<parent>central memory cytotoxic Tcells (CCR7+ , CD45RA-)</parent>
+		<x>Comp-BV 421-A (CCR7)</x>
+		<y>Comp-BV 711-A (CD45RA)</y>
+	</image>
+	<image>
+		<name>Effector_Cytotoxic Tcells (CD28/CD27)</name>
+		<parent>effector cytotoxic Tcells (CCR7/CD45RA)</parent>
+		<x>Comp-BV 510-A (CD28) </x>
+		<y>Comp-BB 515-A (CD27)</y>
+	</image>
+	<image>
+		<name>Effector_Memory_Cytotoxic Tcells (CD28/CD27)</name>
+		<parent>effector memory cytotoxic Tcells (CCR7/CD45RA)</parent>
+		<x>Comp-BV 510-A (CD28)</x>
+		<y>Comp-BB 515-A (CD27)</y>
+	</image>
+</images>
