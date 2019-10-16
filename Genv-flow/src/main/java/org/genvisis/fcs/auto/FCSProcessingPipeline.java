@@ -14,7 +14,8 @@ public class FCSProcessingPipeline {
 
   public FCSProcessingPipeline(String fcs, String wsp, String auto, String out, String highP,
                                String lowP, String ovvrDir, String ovvrSuff, String ovvrMatch,
-                               String clusterDir, String clusterSuffix, String addlImgs) {
+                               String clusterDir, String clusterSuffix, String addlImgs,
+                               String clustersFile) {
     fcsDir = fcs;
     wspDir = wsp;
     autoDir = auto;
@@ -27,12 +28,13 @@ public class FCSProcessingPipeline {
     this.clustDir = clusterDir;
     this.clustSfx = clusterSuffix;
     this.addlImgsFile = addlImgs;
+    this.clusterOverrideFile = clustersFile;
   }
 
   private String fcsDir, wspDir, autoDir, outDir, highPrioFile, lowPrioFile;
   private String ovvrDir, ovvrSuff, ovvrMatch;
   private String clustDir, clustSfx;
-  private String addlImgsFile;
+  private String addlImgsFile, clusterOverrideFile;
 
   private void run(PIPELINE pipeToRun, int panel) throws IOException {
 
@@ -60,7 +62,8 @@ public class FCSProcessingPipeline {
           @Override
           public SampleProcessor createProcessor(Object owner, int index) {
             return new VisualizationProcessor(autoDir, outDir, ovvrDir, ovvrSuff, ovvrMatch,
-                                              clustDir, clustSfx, addlImgsFile);
+                                              clustDir, clustSfx, addlImgsFile,
+                                              clusterOverrideFile);
           }
         };
         break;
@@ -103,6 +106,7 @@ public class FCSProcessingPipeline {
     String gateOverrideFileSuffix = ".boolMatrix.txt.gz";
     String clusterDir = null;
     String addlImgs = null;
+    String clustersFiles = null;
     String clusterSuffix = "_subFirst_TRUE_normalize_FALSE.IntMatrix.txt.gz";
     int panel = -1;
     PIPELINE pipe = PIPELINE.VIZ;
@@ -144,11 +148,14 @@ public class FCSProcessingPipeline {
       } else if (arg.startsWith("addlImgs=")) {
         addlImgs = arg.split("=")[1];
         numArgs--;
+      } else if (arg.startsWith("clusterOverrides=")) {
+        clustersFiles = arg.split("=")[1];
+        numArgs--;
       }
     }
 
     new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
                               gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile,
-                              clusterDir, clusterSuffix, addlImgs).run(pipe, panel);
+                              clusterDir, clusterSuffix, addlImgs, clustersFiles).run(pipe, panel);
   }
 }
