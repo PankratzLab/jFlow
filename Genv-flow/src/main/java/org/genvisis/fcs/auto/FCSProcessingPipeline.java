@@ -15,7 +15,7 @@ public class FCSProcessingPipeline {
   public FCSProcessingPipeline(String fcs, String wsp, String auto, String out, String highP,
                                String lowP, String ovvrDir, String ovvrSuff, String ovvrMatch,
                                String clusterDir, String clusterSuffix, String addlImgs,
-                               String clustersFile) {
+                               String clustersFile, String dimensionOverrideFile) {
     fcsDir = fcs;
     wspDir = wsp;
     autoDir = auto;
@@ -29,12 +29,13 @@ public class FCSProcessingPipeline {
     this.clustSfx = clusterSuffix;
     this.addlImgsFile = addlImgs;
     this.clusterOverrideFile = clustersFile;
+    this.dimensionOverrideFile = dimensionOverrideFile;
   }
 
   private String fcsDir, wspDir, autoDir, outDir, highPrioFile, lowPrioFile;
   private String ovvrDir, ovvrSuff, ovvrMatch;
   private String clustDir, clustSfx;
-  private String addlImgsFile, clusterOverrideFile;
+  private String addlImgsFile, clusterOverrideFile, dimensionOverrideFile;
 
   private void run(PIPELINE pipeToRun, int panel) throws IOException {
 
@@ -49,7 +50,8 @@ public class FCSProcessingPipeline {
 
           @Override
           public SampleProcessor createProcessor(Object owner, int index) {
-            return new InclusionProcessor(outDir, ovvrDir, ovvrSuff, ovvrMatch);
+            return new InclusionProcessor(outDir, ovvrDir, ovvrSuff, ovvrMatch,
+                                          dimensionOverrideFile);
           }
         };
         break;
@@ -62,13 +64,14 @@ public class FCSProcessingPipeline {
           @Override
           public SampleProcessor createProcessor(Object owner, int index) {
             return new VisualizationProcessor(autoDir, outDir, ovvrDir, ovvrSuff, ovvrMatch,
-                                              clustDir, clustSfx, addlImgsFile,
-                                              clusterOverrideFile);
+                                              clustDir, clustSfx, addlImgsFile, clusterOverrideFile,
+                                              dimensionOverrideFile);
           }
         };
         break;
       case PCTS_CNTS:
-        pf = new PercentageAndCountWriterFactory(outDir, panel, ovvrDir, ovvrSuff, ovvrMatch);
+        pf = new PercentageAndCountWriterFactory(outDir, panel, ovvrDir, ovvrSuff, ovvrMatch,
+                                                 dimensionOverrideFile);
         break;
       default:
         System.err.println("Error - pipeline option " + pipeToRun
@@ -105,9 +108,10 @@ public class FCSProcessingPipeline {
     String gateOverrideMatchFile = null;
     String gateOverrideFileSuffix = ".boolMatrix.txt.gz";
     String clusterDir = null;
+    String clusterSuffix = "_subFirst_TRUE_normalize_FALSE.IntMatrix.txt.gz";
     String addlImgs = null;
     String clustersFiles = null;
-    String clusterSuffix = "_subFirst_TRUE_normalize_FALSE.IntMatrix.txt.gz";
+    String dimensionOverrideFile = null;
     int panel = -1;
     PIPELINE pipe = PIPELINE.VIZ;
 
@@ -151,11 +155,15 @@ public class FCSProcessingPipeline {
       } else if (arg.startsWith("clusterOverrides=")) {
         clustersFiles = arg.split("=")[1];
         numArgs--;
+      } else if (arg.startsWith("dimensionOverrideFile=")) {
+        dimensionOverrideFile = arg.split("=")[1];
+        numArgs--;
       }
     }
 
     new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
                               gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile,
-                              clusterDir, clusterSuffix, addlImgs, clustersFiles).run(pipe, panel);
+                              clusterDir, clusterSuffix, addlImgs, clustersFiles,
+                              dimensionOverrideFile).run(pipe, panel);
   }
 }

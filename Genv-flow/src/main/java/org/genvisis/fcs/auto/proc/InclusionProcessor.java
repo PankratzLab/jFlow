@@ -20,8 +20,9 @@ public class InclusionProcessor extends AbstractLoadingSampleProcessor {
   final String ovvrSfx;
   final String ovvrMatch;
 
-  public InclusionProcessor(String o, String ovvrDir, String ovvrSuff, String ovvrMatch) {
-    super();
+  public InclusionProcessor(String o, String ovvrDir, String ovvrSuff, String ovvrMatch,
+                            String dimensionOverrideFile) {
+    super(dimensionOverrideFile);
     outDir = o;
     this.ovvrDir = ovvrDir;
     this.ovvrSfx = ovvrSuff;

@@ -12,8 +12,8 @@ import org.pankratzlab.common.ext;
 
 class DuplicatorProcessor extends AbstractLoadingSampleProcessor {
 
-  public DuplicatorProcessor() {
-    super();
+  public DuplicatorProcessor(String dimensionOverrideFile) {
+    super(dimensionOverrideFile);
   }
 
   @Override

@@ -17,18 +17,9 @@ public abstract class AbstractLoadingSampleProcessor extends AbstractSampleProce
   HashMap<String, Element> gateMap = new HashMap<>();
   FCSDataLoader d;
 
-  protected AbstractLoadingSampleProcessor() {
+  protected AbstractLoadingSampleProcessor(String dimensionOverrideFile) {
     super();
-    addDimensionNameOverride("Comp-BV 605-A \\(CD95\\)", "Comp-BV605-A \\(CD95\\)");
-    addDimensionNameOverride("Comp-BV 510-A \\(CD28\\)", "Comp-BV510-A \\(CD28\\)");
-    addDimensionNameOverride("Comp-BB 515-A \\(CD27\\)", "Comp-BB515-A \\(CD27\\)");
-    addDimensionNameOverride("Comp-BB515-A \\(CD27\\)", "Comp-FITC-A \\(CD27\\)");
-    addDimensionNameOverride("Comp-BV 421-A \\(CCR7\\)", "Comp-BV421-A \\(CCR7\\)");
-    addDimensionNameOverride("Comp-BV 711-A \\(CD45RA\\)", "Comp-BV711-A \\(CD45RA\\)");
-    addDimensionNameOverride("Comp-BUV 395-A \\(CD8\\)", "Comp-BUV396-A \\(CD8\\)");
-    addDimensionNameOverride("LIVE/DEAD", "L/D");
-    addDimensionNameOverride("Comp-PE-Cy7 \\(blue\\)-A \\(CD19\\)", "Comp-PE-Cy7-A \\(CD19\\)");
-    addDimensionNameOverride("Comp-BUV 737-A \\(IgD\\)", "Comp-BUV737-A \\(IgD\\)");
+    loadDimOverrides(dimensionOverrideFile);
   }
 
   void loadPopsAndGates(SampleNode sn) {

@@ -49,7 +49,7 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
   public VisualizationProcessor(String autoDir, String outDir, String overrideDir,
                                 String overrideSuffix, String overrideMatch, String clusterDir,
                                 String clusterSuffix, String addlImgsFile,
-                                String clusterOverrideFile) {
+                                String clusterOverrideFile, String dimOverrideFile) {
     super();
     this.autoDir = autoDir;
     this.outDir = outDir;
@@ -58,12 +58,7 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
     this.ovvrMatch = overrideMatch;
     this.clustDir = clusterDir;
     this.clustSfx = clusterSuffix;
-    addDimensionNameOverride("Comp-BV 605-A (CD95)", "Comp-BV605-A (CD95)");
-    addDimensionNameOverride("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
-    addDimensionNameOverride("Comp-BB 515-A (CD27)", "Comp-BB515-A (CD27)");
-    addDimensionNameOverride("Comp-BB515-A (CD27)", "Comp-FITC-A (CD27)");
-    addDimensionNameOverride("Comp-BV 421-A (CCR7)", "Comp-BV421-A (CCR7)");
-    addDimensionNameOverride("Comp-BV 711-A (CD45RA)", "Comp-BV711-A (CD45RA)");
+    loadDimOverrides(dimOverrideFile);
     loadAddlImages(addlImgsFile);
     loadClusterOverrides(clusterOverrideFile);
   }
