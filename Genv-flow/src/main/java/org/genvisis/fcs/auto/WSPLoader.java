@@ -5,6 +5,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,8 +29,6 @@ import org.xml.sax.SAXException;
 
 public class WSPLoader {
 
-  private static final String[][] PANELS = {{"panel 1", "p1", "panel one", "panel1"},
-                                            {"panel 2", "p2", "panel two", "panel2"},};
   private static final String WSP_EXT = ".wsp";
   private static final FilenameFilter WSP_FILTER = new FilenameFilter() {
 
@@ -36,10 +38,19 @@ public class WSPLoader {
     }
   };
 
-  private final HashMap<String, SampleNode> panel1Nodes = new HashMap<>();
-  final HashMap<String, SampleNode> panel2Nodes = new HashMap<>();
+  private final Set<Panel> panels = new HashSet<>();
+
+  private final Map<Panel, Map<String, SampleNode>> panelNodeMap = new HashMap<>();
+
   final ArrayList<SampleNode> allSamples = new ArrayList<>();
   final Logger log = new Logger();
+
+  public WSPLoader(Panel... panels) {
+    for (Panel p : panels) {
+      this.panels.add(p);
+      panelNodeMap.put(p, new HashMap<>());
+    }
+  }
 
   public int loadWorkspaces(String wspD) {
     String wspDir = ext.verifyDirFormat(wspD);
@@ -88,23 +99,19 @@ public class WSPLoader {
     doc.getDocumentElement().normalize();
 
     NodeList nList = doc.getElementsByTagName("GroupNode");
-    Element panel1 = null;
-    Element panel2 = null;
+    Map<Panel, Element> panelElements = new HashMap<>();
+
     nodeLoop: for (int i = 0; i < nList.getLength(); i++) {
       Node n = nList.item(i);
       if (n.getNodeType() == Node.ELEMENT_NODE) {
         Element e = (Element) n;
         String name = e.getAttributes().getNamedItem("name").getNodeValue();
-        for (String chk : PANELS[0]) {
-          if (name.equalsIgnoreCase(chk)) {
-            panel1 = e;
-            continue nodeLoop;
-          }
-        }
-        for (String chk : PANELS[1]) {
-          if (name.equalsIgnoreCase(chk)) {
-            panel2 = e;
-            continue nodeLoop;
+        for (Panel p : panels) {
+          for (String chk : p.aliases) {
+            if (name.equalsIgnoreCase(chk)) {
+              panelElements.put(p, e);
+              continue nodeLoop;
+            }
           }
         }
       }
@@ -112,11 +119,11 @@ public class WSPLoader {
 
     // TODO parse template gating
 
-    ArrayList<String> panel1IDs;
-    ArrayList<String> panel2IDs;
-
-    panel1IDs = panel1 != null ? loadSampleList(panel1, file, 1) : new ArrayList<>();
-    panel2IDs = panel2 != null ? loadSampleList(panel2, file, 2) : new ArrayList<>();
+    Map<Panel, List<String>> panelIDs = new HashMap<>();
+    for (Panel p : panels) {
+      panelIDs.put(p, panelElements.containsKey(p) ? loadSampleList(panelElements.get(p), file, p)
+                                                   : new ArrayList<>());
+    }
 
     NodeList samples = doc.getElementsByTagName("Sample");
 
@@ -161,30 +168,23 @@ public class WSPLoader {
       sn.savedTransforms = transformMap;
       sn.wspFile = file;
 
-      if (panel1IDs.isEmpty() && panel2IDs.isEmpty()) {
-        for (String chk : PANELS[0]) {
-          if (sn.fcsFile.toLowerCase().contains(chk)) {
-            panel1Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
-            break;
-          }
-        }
-        for (String chk : PANELS[1]) {
-          if (sn.fcsFile.toLowerCase().contains(chk)) {
-            panel2Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
-            break;
-          }
-        }
-      } else {
-        if (panel1IDs.contains(id)) {
-          System.out.println("Found panel 1 sample; id " + id + ", file "
-                             + ext.removeDirectoryInfo(sn.fcsFile));
-          panel1Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
-        } else if (panel2IDs.contains(id)) {
-          panel2Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
-        } else {
-          System.out.println("Couldn't find id " + id + " in " + panel1IDs.toString());
+      boolean foundID = false;
+      for (Panel p : panels) {
+        if (panelIDs.get(p).contains(id)) {
+          panelNodeMap.get(p).put(ext.removeDirectoryInfo(sn.fcsFile), sn);
+          foundID = true;
         }
       }
+      if (!foundID) {
+        for (Panel p : panels) {
+          for (String a : p.aliases) {
+            if (sn.fcsFile.toLowerCase().contains(a)) {
+              panelNodeMap.get(p).put(ext.removeDirectoryInfo(sn.fcsFile), sn);
+            }
+          }
+        }
+      }
+
       allSamples.add(sn);
     }
 
@@ -236,10 +236,11 @@ public class WSPLoader {
     return map;
   }
 
-  private ArrayList<String> loadSampleList(Element panelNode, String srcFile, int panel) {
+  private ArrayList<String> loadSampleList(Element panelNode, String srcFile, Panel panel) {
     Node node = panelNode.getElementsByTagName("SampleRefs").item(0);
     if (node == null) {
-      System.err.println("No sample list tag for Panel " + panel + " in file: " + srcFile);
+      System.err.println("No sample list tag for Panel " + panel.getName() + " in file: "
+                         + srcFile);
       return new ArrayList<>();
     }
     NodeList nList = ((Element) node).getElementsByTagName("SampleRef");
@@ -250,12 +251,35 @@ public class WSPLoader {
     return sampleRef;
   }
 
-  public HashMap<String, SampleNode> getPanel1Nodes() {
-    return panel1Nodes;
+  public Map<String, SampleNode> getPanelNodes(Panel p) {
+    return panelNodeMap.containsKey(p) ? panelNodeMap.get(p) : new HashMap<>();
   }
 
-  public HashMap<String, SampleNode> getPanel2Nodes() {
-    return panel2Nodes;
+  public static List<Panel> loadPanelsFromFile(String panelDefFile) {
+    List<Panel> panelsFound = new ArrayList<>();
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    try {
+      DocumentBuilder builder = factory.newDocumentBuilder();
+      Document doc = builder.parse(new File(panelDefFile));
+      doc.getDocumentElement().normalize();
+
+      NodeList panels = doc.getElementsByTagName("panel");
+      for (int i = 0, count = panels.getLength(); i < count; i++) {
+        Element panelNode = (Element) panels.item(i);
+        String name = panelNode.getElementsByTagName("name").item(0).getTextContent();
+        NodeList aliasNodes = panelNode.getElementsByTagName("alias");
+        String[] aliases = new String[aliasNodes.getLength()];
+        for (int n = 0, countA = aliasNodes.getLength(); n < countA; n++) {
+          aliases[n] = aliasNodes.item(n).getTextContent();
+        }
+        panelsFound.add(new Panel(name, aliases));
+      }
+    } catch (ParserConfigurationException e) {
+      e.printStackTrace();
+    } catch (SAXException | IOException e) {
+      e.printStackTrace();
+    }
+    return panelsFound;
   }
 
 }

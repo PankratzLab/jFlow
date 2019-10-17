@@ -7,8 +7,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,6 +26,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+
+import com.google.common.collect.HashMultiset;
 
 public class SamplingPipeline {
 
@@ -51,14 +56,23 @@ public class SamplingPipeline {
 
   Logger log = new Logger();
 
-  HashMap<String, AnalysisData> p1d;
-  HashMap<String, AnalysisData> p2d;
-  HashMap<String, String> fileToPathMap1;
-  HashMap<String, String> fileToPathMap2;
-  HashSet<String> outliersP1;
-  HashSet<String> outliersP2;
-  ArrayList<String> p1Sampling;
-  ArrayList<String> p2Sampling;
+  class PanelData {
+    final Panel panel;
+    final Map<String, AnalysisData> data;
+    final Map<String, String> filePathMap;
+    final Set<String> outliers;
+    final List<String> sampling;
+
+    public PanelData(Panel p) {
+      this.panel = p;
+      data = new HashMap<>();
+      filePathMap = new HashMap<>();
+      outliers = new HashSet<>();
+      sampling = new ArrayList<>();
+    }
+  }
+
+  Map<Panel, PanelData> panelData;
 
   boolean analysisLoaded = false;
   boolean wspLoaded = false;
@@ -77,11 +91,12 @@ public class SamplingPipeline {
   final String outDir;
   final HashSet<String> highPriority;
   final HashSet<String> lowPriority;
-  final int panelToRun;
+  final List<Panel> panelsToRun;
   final ProcessorFactory<? extends SampleProcessor> processorFactory;
 
   public SamplingPipeline(double sampPct, String csvDir, String wspDir, String fcsDir,
-                          String outliersFile, String outDir, int panel, String[] priorityFiles,
+                          String outliersFile, String outDir, List<Panel> panels,
+                          String[] priorityFiles,
                           ProcessorFactory<? extends SampleProcessor> processorFactory) {
     this.samplingPct = sampPct;
     this.csvDir = csvDir;
@@ -90,19 +105,15 @@ public class SamplingPipeline {
     this.outliersFile = outliersFile;
     this.outDir = outDir;
     this.processorFactory = processorFactory;
-    this.panelToRun = panel;
+    this.panelsToRun = panels;
     this.highPriority = priorityFiles != null
                         && priorityFiles[0] != null ? HashVec.loadFileToHashSet(priorityFiles[0], false) : null;
     this.lowPriority = priorityFiles != null && priorityFiles.length > 1
                        && priorityFiles[1] != null ? HashVec.loadFileToHashSet(priorityFiles[1], false) : null;
-    p1d = new HashMap<>();
-    p2d = new HashMap<>();
-    fileToPathMap1 = new HashMap<>();
-    fileToPathMap2 = new HashMap<>();
-    outliersP1 = new HashSet<>();
-    outliersP2 = new HashSet<>();
-    p1Sampling = new ArrayList<>();
-    p2Sampling = new ArrayList<>();
+    this.panelData = new HashMap<>();
+    for (Panel p : panels) {
+      this.panelData.put(p, new PanelData(p));
+    }
   }
 
   class AnalysisData {
@@ -121,17 +132,15 @@ public class SamplingPipeline {
     setFinished();
   }
 
-  int checkPanel(String lwr) {
-    int panel = 0;
-    if (lwr.contains("panel 1") || lwr.contains("panel one") || lwr.contains("panel1")) {
-      panel = 1;
-    } else if (lwr.contains("panel 2") || lwr.contains("panel two") || lwr.contains("panel2")) {
-      panel = 2;
+  Panel checkPanel(String lwr) {
+    for (Panel p : panelsToRun) {
+      for (String a : p.aliases) {
+        if (lwr.contains(a)) {
+          return p;
+        }
+      }
     }
-    if (panel > 0 && (panelToRun == -1 || panelToRun == panel)) {
-      return panel;
-    }
-    return 0;
+    return null;
   }
 
   private void loadFCS(File dir) {
@@ -148,13 +157,10 @@ public class SamplingPipeline {
           log.reportError("Can't read file: " + ext.verifyDirFormat(dir.getAbsolutePath()) + s);
           continue;
         }
-        int pnl = checkPanel(s.toLowerCase());
-        if (pnl == 1) {
-          fileToPathMap1.put(s, new File(ext.verifyDirFormat(dir.getAbsolutePath())
-                                         + s).getAbsolutePath());
-        } else if (pnl == 2) {
-          fileToPathMap2.put(s, new File(ext.verifyDirFormat(dir.getAbsolutePath())
-                                         + s).getAbsolutePath());
+        Panel pnl = checkPanel(s.toLowerCase());
+        if (panelData.containsKey(pnl)) {
+          panelData.get(pnl).filePathMap.put(s, new File(ext.verifyDirFormat(dir.getAbsolutePath())
+                                                         + s).getAbsolutePath());
         }
       }
     }
@@ -175,20 +181,20 @@ public class SamplingPipeline {
   public void loadAnalysisData() {
     String[] analysisFiles = csvDir == null ? new String[0] : (new File(csvDir)).list(CSV_FILTER);
 
-    ArrayList<String> p1 = new ArrayList<>();
-    ArrayList<String> p2 = new ArrayList<>();
+    Map<String, Panel> panelMap = new HashMap<>();
 
     for (String s : analysisFiles) {
       String lwr = s.toLowerCase();
-      int pnl = checkPanel(lwr);
-      if (pnl == 1) {
-        p1.add(s);
-      } else if (pnl == 2) {
-        p2.add(s);
+      Panel pnl = checkPanel(lwr);
+      if (pnl != null) {
+        panelMap.put(s, pnl);
+      } else {
+        log.reportTimeWarning("Couldn't identify panel for analysis file " + s);
       }
     }
 
-    for (String f : p1) {
+    HashMultiset<Panel> panelCounts = HashMultiset.create();
+    for (String f : panelMap.keySet()) {
       if (!f.startsWith(csvDir)) {
         f = csvDir + f;
       }
@@ -203,35 +209,29 @@ public class SamplingPipeline {
               ad.data.put(strData[0][j], "".equals(line[j]) ? Double.NaN : Double.valueOf(line[j]));
             }
           }
-          p1d.put(ad.fcsFilename, ad);
-        }
-      }
-    }
-    for (String f : p2) {
-      if (!f.startsWith(csvDir)) {
-        f = csvDir + f;
-      }
-      String[][] strData = HashVec.loadFileToStringMatrix(f, false, null);
-      for (int i = 1; i < strData.length; i++) {
-        String[] line = strData[i];
-        if (!"sd".equalsIgnoreCase(line[0]) && !"mean".equalsIgnoreCase(line[0])) {
-          AnalysisData ad = new AnalysisData();
-          ad.fcsFilename = line[0];
-          for (int j = 1; j < line.length; j++) {
-            ad.data.put(strData[0][j], Double.valueOf(line[j]));
-          }
-          p2d.put(ad.fcsFilename, ad);
+          panelData.get(panelMap.get(f)).data.put(ad.fcsFilename, ad);
+          panelCounts.add(panelMap.get(f));
         }
       }
     }
 
-    log.reportTime("Loaded analysis data for " + p1d.size() + " panel 1 samples and " + p2d.size()
-                   + " panel 2 samples");
+    if (panelCounts.size() > 0) {
+      StringBuilder logMsg = new StringBuilder("Loaded analysis data for ");
+      int count = 1;
+      for (Panel p : panelCounts.elementSet()) {
+        logMsg.append(panelCounts.count(p)).append(" ").append(p.getName()).append(" samples");
+        if (count < panelCounts.elementSet().size() - 1) {
+          logMsg.append(" and ");
+        }
+        count++;
+      }
+      log.reportTime(logMsg.toString());
+    }
     analysisLoaded = true;
   }
 
   public void loadWSPInfo() {
-    wspLoader = new WSPLoader();
+    wspLoader = new WSPLoader(panelsToRun.toArray(new Panel[panelsToRun.size()]));
     int success = wspLoader.loadWorkspaces(wspDir);
     if (success > 0) {
       log.reportTime("Loaded WSP data from " + success + " files.");
@@ -245,11 +245,11 @@ public class SamplingPipeline {
     if (outliersFile != null) {
       String[] out = HashVec.loadFileToStringArray(outliersFile, false, null, false);
       for (String s : out) {
-        int pnl = checkPanel(s.toLowerCase());
-        if (pnl == 1) {
-          outliersP1.add(s);
-        } else if (pnl == 2) {
-          outliersP2.add(s);
+        Panel pnl = checkPanel(s.toLowerCase());
+        if (pnl != null) {
+          panelData.get(pnl).outliers.add(s);
+        } else {
+          log.reportTimeWarning("Couldn't identify panel for outlier " + s);
         }
       }
     }
@@ -273,67 +273,44 @@ public class SamplingPipeline {
       return;
     }
 
-    ArrayList<String> p1 = new ArrayList<>(fileToPathMap1.keySet());
-    ArrayList<String> p2 = new ArrayList<>(fileToPathMap2.keySet());
-    if (!p1d.isEmpty()) {
-      p1.retainAll(p1d.keySet());
-    }
-    if (!p2d.isEmpty()) {
-      p2.retainAll(p2d.keySet());
-    }
-
-    ArrayList<String> p1O = new ArrayList<>(outliersP1);
-    ArrayList<String> p2O = new ArrayList<>(outliersP2);
-    p1O.retainAll(p1);
-    p2O.retainAll(p2);
-
-    p1.removeAll(p1O);
-    p2.removeAll(p2O);
-
-    int p1Cnt = p1.isEmpty() ? 0 : Math.max(1, (int) (p1.size() * samplingPct));
-    int p2Cnt = p2.isEmpty() ? 0 : Math.max(1, (int) (p2.size() * samplingPct));
-
-    log.reportTime("Sampling " + p1Cnt + " panel 1 files and " + p2Cnt + " panel 2 files.");
-    if (samplingPct > .95) {
-      p1Sampling.addAll(p1);
-      p2Sampling.addAll(p2);
-    } else {
-      Random rand = new Random();
-      for (int i = 0; i < p1Cnt; i++) {
-        if (!p1O.isEmpty() && OUTLIER_SAMPLE_EVERY > 0
-            && (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0)) {
-          p1Sampling.add(p1O.get(rand.nextInt(p1O.size())));
-        } else {
-          p1Sampling.add(p1.get(rand.nextInt(p1.size())));
-        }
+    for (Panel p : panelsToRun) {
+      PanelData pd = panelData.get(p);
+      List<String> files = new ArrayList<>(pd.filePathMap.keySet());
+      if (!pd.data.isEmpty()) {
+        files.retainAll(pd.data.keySet());
       }
-      for (int i = 0; i < p2Cnt; i++) {
-        if (!p2O.isEmpty() && OUTLIER_SAMPLE_EVERY > 0
-            && (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0)) {
-          p2Sampling.add(p2O.get(rand.nextInt(p2O.size())));
-        } else {
-          p2Sampling.add(p2.get(rand.nextInt(p2.size())));
+      List<String> outliers = new ArrayList<>(pd.outliers);
+      outliers.retainAll(files);
+      files.removeAll(outliers);
+      int cnt = files.isEmpty() ? 0 : (int) Math.max(1, (int) files.size() * samplingPct);
+      log.reportTime("Sampling " + cnt + " " + p.getName() + " files");
+      if (samplingPct > .95) {
+        pd.sampling.addAll(files);
+      } else {
+        Random rand = new Random();
+        for (int i = 0; i < cnt; i++) {
+          if (!outliers.isEmpty() && OUTLIER_SAMPLE_EVERY > 0
+              && (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0)) {
+            pd.sampling.add(outliers.get(rand.nextInt(outliers.size())));
+          } else {
+            pd.sampling.add(files.get(rand.nextInt(files.size())));
+          }
         }
       }
     }
 
     new File(outDir).mkdirs();
     PrintWriter writer;
-    if (p1Sampling.size() > 0) {
-      writer = Files.getAppropriateWriter(outDir + "p1.files.txt");
-      for (String s : p1Sampling) {
-        writer.println(s);
+    for (Panel p : panelsToRun) {
+      if (panelData.get(p).sampling.size() > 0) {
+        writer = Files.getAppropriateWriter(outDir + ext.replaceWithLinuxSafeCharacters(p.getName())
+                                            + ".files.txt");
+        for (String s : panelData.get(p).sampling) {
+          writer.println(s);
+        }
+        writer.flush();
+        writer.close();
       }
-      writer.flush();
-      writer.close();
-    }
-    if (p2Sampling.size() > 0) {
-      writer = Files.getAppropriateWriter(outDir + "p2.files.txt");
-      for (String s : p2Sampling) {
-        writer.println(s);
-      }
-      writer.flush();
-      writer.close();
     }
 
     filesSampled = true;
@@ -343,151 +320,113 @@ public class SamplingPipeline {
     if (!checkReady() && !filesSampled) {
       return;
     }
-    int proc = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
-    final ThreadPoolExecutor threadPool1 = new ThreadPoolExecutor(proc, proc, 0L,
-                                                                  TimeUnit.MILLISECONDS,
-                                                                  new LinkedBlockingQueue<Runnable>());
-    final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(proc, proc, 0L,
-                                                                  TimeUnit.MILLISECONDS,
-                                                                  new LinkedBlockingQueue<Runnable>());
-    final ConcurrentLinkedQueue<SampleNode> p1Queue = new ConcurrentLinkedQueue<>();
-    final ConcurrentLinkedQueue<SampleNode> p2Queue = new ConcurrentLinkedQueue<>();
 
-    PrintWriter sampWspMatch1 = Files.getAppropriateWriter(outDir + "/matchFile_p1.xln");
-    PrintWriter sampWspMatch2 = Files.getAppropriateWriter(outDir + "/matchFile_p2.xln");
+    final Map<Panel, ConcurrentLinkedQueue<SampleNode>> panelQueues = new HashMap<>();
+    for (Panel p : panelsToRun) {
+      panelQueues.put(p, new ConcurrentLinkedQueue<>());
+    }
+
+    Map<Panel, PrintWriter> sampWspMatch = new HashMap<>();
+    for (Panel p : panelsToRun) {
+      sampWspMatch.put(p,
+                       Files.getAppropriateWriter(outDir + "/matchFile_"
+                                                  + ext.replaceWithLinuxSafeCharacters(p.getName())
+                                                  + ".xln"));
+    }
 
     if (highPriority != null) {
-      for (String s1 : p1Sampling) {
-        if (highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s1)))) {
-          SampleNode sn = wspLoader.getPanel1Nodes().get(s1);
-          if (sn != null) {
-            sn.fcsFile = fileToPathMap1.get(s1);
-            if (p1Queue.contains(sn)) {
-              log.report("Duplicate panel 1 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
-                         + sn.id);
-              continue;
+      for (Panel p : panelsToRun) {
+        for (String s : panelData.get(p).sampling) {
+          if (highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
+            SampleNode sn = wspLoader.getPanelNodes(p).get(s);
+            if (sn != null) {
+              sn.fcsFile = panelData.get(p).filePathMap.get(s);
+              if (panelQueues.get(p).contains(sn)) {
+                log.report("Duplicate " + p.getName() + " sampleNode: " + sn.fcsFile + " | "
+                           + sn.wspFile + " | " + sn.id);
+                continue;
+              }
+              sampWspMatch.get(p).println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
+              panelQueues.get(p).add(sn);
             }
-            sampWspMatch1.println(s1 + "\t" + sn.wspFile + "\t" + sn.fcsFile);
-            p1Queue.add(sn);
+            break;
           }
-          break;
-        }
-      }
-      for (String s1 : p2Sampling) {
-        if (highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s1)))) {
-          SampleNode sn = wspLoader.panel2Nodes.get(s1);
-          if (sn != null) {
-            sn.fcsFile = fileToPathMap2.get(s1);
-            sampWspMatch2.println(s1 + "\t" + sn.wspFile + "\t" + sn.fcsFile);
-            p2Queue.add(sn);
-            if (p2Queue.contains(sn)) {
-              log.report("Duplicate panel 2 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
-                         + sn.id);
-              continue;
-            }
-          }
-          break;
         }
       }
     }
 
-    for (String s : p1Sampling) {
-      if (highPriority != null
-          && highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
-        continue;
-      }
-      if (lowPriority != null
-          && lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
-        continue;
-      }
-      SampleNode sn = wspLoader.getPanel1Nodes().get(s);
-      if (sn != null) {
-        sn.fcsFile = fileToPathMap1.get(s);
-        if (p1Queue.contains(sn)) {
-          log.report("Duplicate panel 1 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
-                     + sn.id);
+    for (Panel p : panelsToRun) {
+      for (String s : panelData.get(p).sampling) {
+        if (highPriority != null
+            && highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
           continue;
         }
-        sampWspMatch1.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
-        p1Queue.add(sn);
-      }
-    }
-    for (String s : p2Sampling) {
-      if (highPriority != null
-          && highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
-        continue;
-      }
-      if (lowPriority != null
-          && lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
-        continue;
-      }
-      SampleNode sn = wspLoader.panel2Nodes.get(s);
-      if (sn != null) {
-        sn.fcsFile = fileToPathMap2.get(s);
-        if (p2Queue.contains(sn)) {
-          log.report("Duplicate panel 2 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
-                     + sn.id);
+        if (lowPriority != null
+            && lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
           continue;
         }
-        sampWspMatch2.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
-        p2Queue.add(sn);
+        SampleNode sn = wspLoader.getPanelNodes(p).get(s);
+        if (sn != null) {
+          sn.fcsFile = panelData.get(p).filePathMap.get(s);
+          if (panelQueues.get(p).contains(sn)) {
+            log.report("Duplicate " + p.getName() + " sampleNode: " + sn.fcsFile + " | "
+                       + sn.wspFile + " | " + sn.id);
+            continue;
+          }
+          sampWspMatch.get(p).println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
+          panelQueues.get(p).add(sn);
+        }
       }
     }
 
     if (lowPriority != null) {
-      for (String s : p1Sampling) {
-        if (lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
-          SampleNode sn = wspLoader.getPanel1Nodes().get(s);
-          if (sn != null) {
-            sn.fcsFile = fileToPathMap1.get(s);
-            if (p1Queue.contains(sn)) {
-              log.report("Duplicate panel 1 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
-                         + sn.id);
-              continue;
+      for (Panel p : panelsToRun) {
+        for (String s : panelData.get(p).sampling) {
+          if (lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
+            SampleNode sn = wspLoader.getPanelNodes(p).get(s);
+            if (sn != null) {
+              sn.fcsFile = panelData.get(p).filePathMap.get(s);
+              if (panelQueues.get(p).contains(sn)) {
+                log.report("Duplicate " + p.getName() + " sampleNode: " + sn.fcsFile + " | "
+                           + sn.wspFile + " | " + sn.id);
+                continue;
+              }
+              sampWspMatch.get(p).println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
+              panelQueues.get(p).add(sn);
             }
-            sampWspMatch1.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
-            p1Queue.add(sn);
-          }
-        }
-      }
-      for (String s : p2Sampling) {
-        if (lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
-          SampleNode sn = wspLoader.panel2Nodes.get(s);
-          if (sn != null) {
-            sn.fcsFile = fileToPathMap2.get(s);
-            if (p1Queue.contains(sn)) {
-              log.report("Duplicate panel 2 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
-                         + sn.id);
-              continue;
-            }
-            sampWspMatch2.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
-            p2Queue.add(sn);
           }
         }
       }
     }
 
-    sampWspMatch1.close();
-    sampWspMatch2.close();
+    for (PrintWriter pw : sampWspMatch.values()) {
+      pw.close();
+    }
 
     log.reportTime("Finished matching sample files to workspace files.");
 
-    AbstractPipelineRunnable p1Run = new AbstractPipelineRunnable(threadPool1, processorFactory,
-                                                                  p1Queue, log);
-    AbstractPipelineRunnable p2Run = new AbstractPipelineRunnable(threadPool2, processorFactory,
-                                                                  p2Queue, log);
-
-    ExecutorService serve = Executors.newFixedThreadPool(2);
-    serve.submit(p1Run);
-    serve.submit(p2Run);
-
+    ExecutorService serve = Executors.newFixedThreadPool(panelsToRun.size());
+    int proc = Math.max(1, Runtime.getRuntime().availableProcessors() / panelsToRun.size());
+    List<Runnable> runn = new ArrayList<>();
+    for (Panel p : panelsToRun) {
+      final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(proc, proc, 0L,
+                                                                   TimeUnit.MILLISECONDS,
+                                                                   new LinkedBlockingQueue<Runnable>());
+      AbstractPipelineRunnable run = new AbstractPipelineRunnable(threadPool, processorFactory,
+                                                                  panelQueues.get(p), log);
+      runn.add(run);
+    }
+    for (Runnable run : runn) {
+      serve.submit(run);
+    }
     serve.shutdown();
     try {
       serve.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
     } catch (InterruptedException e) {}
 
-    processorFactory.cleanup(p1Run);
-    processorFactory.cleanup(p2Run);
+    for (Runnable run : runn) {
+      processorFactory.cleanup(run);
+    }
   }
 }
 

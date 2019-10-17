@@ -1,6 +1,7 @@
 package org.genvisis.fcs.auto;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.genvisis.fcs.auto.proc.InclusionProcessor;
 import org.genvisis.fcs.auto.proc.PercentageAndCountWriterFactory;
@@ -37,7 +38,7 @@ public class FCSProcessingPipeline {
   private String clustDir, clustSfx;
   private String addlImgsFile, clusterOverrideFile, dimensionOverrideFile;
 
-  private void run(PIPELINE pipeToRun, int panel) throws IOException {
+  private void run(PIPELINE pipeToRun, List<Panel> panels) throws IOException {
 
     ProcessorFactory<? extends SampleProcessor> pf = null;
 
@@ -70,7 +71,7 @@ public class FCSProcessingPipeline {
         };
         break;
       case PCTS_CNTS:
-        pf = new PercentageAndCountWriterFactory(outDir, panel, ovvrDir, ovvrSuff, ovvrMatch,
+        pf = new PercentageAndCountWriterFactory(outDir, ovvrDir, ovvrSuff, ovvrMatch,
                                                  dimensionOverrideFile);
         break;
       default:
@@ -80,7 +81,7 @@ public class FCSProcessingPipeline {
         return;
     }
 
-    SamplingPipeline sp = new SamplingPipeline(1, null, wspDir, fcsDir, null, outDir, panel,
+    SamplingPipeline sp = new SamplingPipeline(1, null, wspDir, fcsDir, null, outDir, panels,
                                                new String[] {highPrioFile, lowPrioFile}, pf);
 
     sp.run();
@@ -112,7 +113,7 @@ public class FCSProcessingPipeline {
     String addlImgs = null;
     String clustersFiles = null;
     String dimensionOverrideFile = null;
-    int panel = -1;
+    String panelDefFile = null;
     PIPELINE pipe = PIPELINE.VIZ;
 
     for (String arg : args) {
@@ -128,8 +129,8 @@ public class FCSProcessingPipeline {
       } else if (arg.startsWith("out=")) {
         out = ext.parseStringArg(arg);
         numArgs--;
-      } else if (arg.startsWith("panel=")) {
-        panel = ext.parseIntArg(arg);
+      } else if (arg.startsWith("panelDefFile=")) {
+        panelDefFile = ext.parseStringArg(arg);
         numArgs--;
       } else if (arg.startsWith("priority=")) {
         highPriorityFile = ext.parseStringArg(arg);
@@ -161,9 +162,11 @@ public class FCSProcessingPipeline {
       }
     }
 
+    List<Panel> panels = WSPLoader.loadPanelsFromFile(panelDefFile);
+
     new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
                               gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile,
                               clusterDir, clusterSuffix, addlImgs, clustersFiles,
-                              dimensionOverrideFile).run(pipe, panel);
+                              dimensionOverrideFile).run(pipe, panels);
   }
 }
