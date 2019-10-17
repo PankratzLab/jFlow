@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fluorochromes>
 	<replace>
-		<from>Comp-BV 605-A \\(CD95\\)</from>
-		<to>Comp-BV605-A \\(CD95\\)</to>
+		<from>Comp-BV 605-A (CD95)</from>
+		<to>Comp-BV605-A (CD95)</to>
 	</replace>
     <replace>
-		<from>Comp-BV 510-A \\(CD28\\)</from>
-		<to>Comp-BV510-A \\(CD28\\)</to>
+		<from>Comp-BV 510-A (CD28)</from>
+		<to>Comp-BV510-A (CD28)</to>
 	</replace>
     <replace>
-		<from>Comp-BB 515-A \\(CD27\\)</from>
-		<to>Comp-BB515-A \\(CD27\\)</to>
+		<from>Comp-BB 515-A (CD27)</from>
+		<to>Comp-BB515-A (CD27)</to>
 	</replace>
     <replace>
-		<from>Comp-BB515-A \\(CD27\\)</from>
-		<to>Comp-FITC-A \\(CD27\\)</to>
+		<from>Comp-BB515-A (CD27)</from>
+		<to>Comp-FITC-A (CD27)</to>
 	</replace>
     <replace>
-		<from>Comp-BV 421-A \\(CCR7\\)</from>
-		<to>Comp-BV421-A \\(CCR7\\)</to>
+		<from>Comp-BV 421-A (CCR7)</from>
+		<to>Comp-BV421-A (CCR7)</to>
 	</replace>
     <replace>
-		<from>Comp-BV 711-A \\(CD45RA\\)</from>
-		<to>Comp-BV711-A \\(CD45RA\\)</to>
+		<from>Comp-BV 711-A (CD45RA)</from>
+		<to>Comp-BV711-A (CD45RA)</to>
 	</replace>
     <replace>
-		<from>Comp-BUV 395-A \\(CD8\\)</from>
-		<to>Comp-BUV396-A \\(CD8\\)</to>
+		<from>Comp-BUV 395-A (CD8)</from>
+		<to>Comp-BUV396-A (CD8)</to>
 	</replace>
     <replace>
 		<from>LIVE/DEAD</from>
 		<to>L/D</to>
 	</replace>
     <replace>
-		<from>Comp-PE-Cy7 \\(blue\\)-A \\(CD19\\)</from>
-		<to>Comp-PE-Cy7-A \\(CD19\\)</to>
+		<from>Comp-PE-Cy7 (blue)-A (CD19)</from>
+		<to>Comp-PE-Cy7-A (CD19)</to>
 	</replace>
     <replace>
-		<from>Comp-BUV 737-A \\(IgD\\)</from>
-		<to>Comp-BUV737-A \\(IgD\\)</to>
+		<from>Comp-BUV 737-A (IgD)</from>
+		<to>Comp-BUV737-A (IgD)</to>
 	</replace>
 </fluorochromes>
