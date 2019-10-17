@@ -56,7 +56,9 @@ abstract class AbstractSampleProcessor implements SampleProcessor {
   public String getReplacedName(String name) {
     String newName = name;
     for (Entry<String, String> dim : dimSwitch.entrySet()) {
-      newName = newName.replaceAll(dim.getKey(), dim.getValue());
+      String newName1 = newName.replace(dim.getKey(), dim.getKey());
+      if (newName.equals(newName1)) break;
+      newName = newName1;
     }
     return newName;
   }
