@@ -35,7 +35,6 @@ import com.google.common.collect.Multimap;
 
 public class VisualizationProcessor extends AbstractSampleProcessor {
 
-  final String autoDir;
   final String ovvrDir;
   final String ovvrSfx;
   final String ovvrMatch;
@@ -46,24 +45,33 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
   private final Multimap<String, AddlImage> addlImgs = HashMultimap.create();
   private final Map<String, ClusterOverride> clusterOverrides = new HashMap<>();
 
-  public VisualizationProcessor(String autoDir, String outDir, String overrideDir,
-                                String overrideSuffix, String overrideMatch, String clusterDir,
-                                String clusterSuffix, String addlImgsFile,
-                                String clusterOverrideFile, String dimOverrideFile) {
+  public VisualizationProcessor(String outDir, String overrideDir, String overrideSuffix,
+                                String overrideMatch, String clusterDir, String clusterSuffix,
+                                String addlImgsFile, String clusterOverrideFile,
+                                String dimOverrideFile) {
     super();
-    this.autoDir = autoDir;
     this.outDir = outDir;
     this.ovvrDir = overrideDir;
     this.ovvrSfx = overrideSuffix;
     this.ovvrMatch = overrideMatch;
     this.clustDir = clusterDir;
     this.clustSfx = clusterSuffix;
-    loadDimOverrides(dimOverrideFile);
-    loadAddlImages(addlImgsFile);
-    loadClusterOverrides(clusterOverrideFile);
+    if (dimOverrideFile != null) {
+      loadDimOverrides(dimOverrideFile);
+    }
+    if (addlImgsFile != null) {
+      loadAddlImages(addlImgsFile);
+    }
+    if (clusterOverrideFile != null) {
+      loadClusterOverrides(clusterOverrideFile);
+    }
   }
 
   private void loadAddlImages(String addlImgsFile) {
+    if (!Files.exists(addlImgsFile)) {
+      System.err.println("Error - Couldn't find specified additional images file: " + addlImgsFile);
+      return;
+    }
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     try {
       DocumentBuilder builder = factory.newDocumentBuilder();
@@ -92,6 +100,10 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
   }
 
   private void loadClusterOverrides(String file) {
+    if (!Files.exists(file)) {
+      System.err.println("Error - Couldn't find specified cluster override file: " + file);
+      return;
+    }
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     try {
       DocumentBuilder builder = factory.newDocumentBuilder();

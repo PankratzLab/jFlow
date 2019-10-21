@@ -1,6 +1,5 @@
 package org.genvisis.fcs;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -13,13 +12,20 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.genvisis.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.jfcs.FCSKeywords;
 import org.genvisis.jfcs.FCSReader;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class FCSDataLoader {
 
@@ -44,7 +50,6 @@ public class FCSDataLoader {
   int eventCount = -1;
   int loadedCount = 0;
   String[] presetGating;
-  private long startLoadTime;
   private String loadedFile = null;
   int paramsCount = -1;
   Date lastModified;
@@ -194,7 +199,6 @@ public class FCSDataLoader {
     // }
     loadedFile = fcsFilename;
 
-    startLoadTime = System.nanoTime();
     FCSReader reader = FCSReader.open(fcsFilename);
 
     FCSKeywords keys = reader.getKeywords();
@@ -466,23 +470,25 @@ public class FCSDataLoader {
     }
 
     gateOverrideMatch = new HashMap<>();
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     try {
-      BufferedReader reader = Files.getAppropriateReader(match);
-      String l = null;
-      while ((l = reader.readLine()) != null) {
-        if (l.trim().equals("")) continue;
-        String[] pts = l.trim().split("\t");
-        String key = pts[0].trim();
-        if (key.contains("(")) {
-          key = key.substring(0, key.indexOf('(')).trim();
-        }
-        gateOverrideMatch.put(key, new ArrayList<>());
-        for (int i = 1; i < pts.length; i++) {
-          gateOverrideMatch.get(key).add(pts[i]);
+      DocumentBuilder builder = factory.newDocumentBuilder();
+      Document doc = builder.parse(new File(match));
+      doc.getDocumentElement().normalize();
+
+      NodeList overrides = doc.getElementsByTagName("override");
+      for (int i = 0, counter = overrides.getLength(); i < counter; i++) {
+        Element override = (Element) overrides.item(i);
+        String gate = override.getElementsByTagName("gate").item(0).getTextContent();
+        NodeList assigns = override.getElementsByTagName("assign");
+        gateOverrideMatch.put(gate, new ArrayList<>());
+        for (int j = 0, countA = assigns.getLength(); j < countA; j++) {
+          gateOverrideMatch.get(gate).add(assigns.item(j).getTextContent());
         }
       }
-      reader.close();
-    } catch (IOException e) {
+    } catch (ParserConfigurationException e) {
+      e.printStackTrace();
+    } catch (SAXException | IOException e) {
       e.printStackTrace();
     }
   }

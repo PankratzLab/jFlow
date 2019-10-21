@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<overrides>
+	<override>
+		<gate>cytotoxic Tcells-CD8+</gate>
+		<assign>CYTO_T</assign>
+	</override>
+	<override>
+		<gate>Helper Tcells-CD4+</gate>
+		<assign>HELPER_T</assign>
+	</override>
+	<override>
+		<gate>naive helper Tcells (CD95- CD28+)</gate>
+		<assign>HELPER_T</assign>
+		<assign>naive</assign>
+	</override>
+	<override>
+		<gate>central memory helper Tcells (CD95+ CD28+)</gate>
+		<assign>HELPER_T</assign>
+		<assign>central memory</assign>
+	</override>
+	<override>
+		<gate>effector memory helper Tcells (CD95- CD28-)</gate>
+		<assign>HELPER_T</assign>
+		<assign>effector memory</assign>
+	</override>
+	<override>
+		<gate>naive helper Tcells (CCR7+ CD45RA+)</gate>
+		<assign>HELPER_T</assign>
+		<assign>naive</assign>
+	</override>
+	<override>
+		<gate>effector helper Tcells (CCR7- CD45RA+)</gate>
+		<assign>HELPER_T</assign>
+		<assign>effector</assign>
+	</override>
+	<override>
+		<gate>central memory helper Tcells (CCR7+ CD45RA-)</gate>
+		<assign>HELPER_T</assign>
+		<assign>central memory</assign>
+	</override>
+	<override>
+		<gate>effector memory helper Tcells (CCR7- CD45RA-)</gate>
+		<assign>HELPER_T</assign>
+		<assign>effector memory</assign>
+	</override>
+	<override>
+		<gate>naive cytotoxic Tcells (CD95- , CD28+)</gate>
+		<assign>CYTO_T</assign>
+		<assign>naive</assign>
+	</override>
+	<override>
+		<gate>central memory cytotoxic Tcells (CD95+ , CD28+)</gate>
+		<assign>CYTO_T</assign>
+		<assign>central memory</assign>
+	</override>
+	<override>
+		<gate>effector memory cytotoxic Tcells (CD95- , CD28-)</gate>
+		<assign>CYTO_T</assign>
+		<assign>effector memory</assign>
+	</override>
+	<override>
+		<gate>effector cytotoxic Tcells  (CCR7-  CD45RA+</gate>
+		<assign>CYTO_T</assign>
+		<assign>effector</assign>
+	</override>
+	<override>
+		<gate>naive cytotoxic Tcells (CCR7+ , CD45RA+)</gate>
+		<assign>CYTO_T</assign>
+		<assign>naive</assign>
+	</override>
+	<override>
+		<gate>central memory cytotoxic Tcells (CCR7+ , CD45RA-)</gate>
+		<assign>CYTO_T</assign>
+		<assign>central memory</assign>
+	</override>
+	<override>
+		<gate>effector memory cytotoxic Tcells (CCR7- , CD45RA-)</gate>
+		<assign>CYTO_T</assign>
+		<assign>effector memory</assign>
+	</override>
+</overrides>
