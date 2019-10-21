@@ -64,6 +64,10 @@ abstract class AbstractSampleProcessor implements SampleProcessor {
   }
 
   public void loadDimOverrides(String dimOvvrFile) {
+    if (!Files.exists(dimOvvrFile)) {
+      System.err.println("Error - Couldn't find specified dimension override file: " + dimOvvrFile);
+      return;
+    }
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     try {
       DocumentBuilder builder = factory.newDocumentBuilder();
