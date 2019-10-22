@@ -59,7 +59,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
   public static final long serialVersionUID = 1L;
 
-  public static final boolean DEBUGGING = true;
+  public static final boolean DEBUGGING = false;
 
   public static final int HEAD_BUFFER = 25;
   public static final int HEIGHT_X_AXIS = 80;// 105;
