@@ -59,7 +59,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
   public static final long serialVersionUID = 1L;
 
-  public static final boolean DEBUGGING = false;
+  public static final boolean DEBUGGING = true;
 
   public static final int HEAD_BUFFER = 25;
   public static final int HEIGHT_X_AXIS = 80;// 105;
@@ -818,8 +818,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
       canvasSectionMinimumY = axisXHeight;// HEIGHT_X_AXIS;
       canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
       plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
-      // System.out.println("Whole: " + yAxisWholeNumbers + " | Min: " + minimumObservedRawY + " |
-      // Max: " + maximumObservedRawY + " | pmms: " + Array.toStr(plotMinMaxStep));
+
       if (yAxisWholeNumbers) {
         if (plotMinMaxStep[2] < 1) {
           plotMinMaxStep[2] = 1;
@@ -1579,12 +1578,17 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                        getHeight() - (canvasSectionMaximumY - TICK_LENGTH - fontHgt));
           g.drawString("" + exp, xPix + (strWid / 2) + 1,
                        getHeight() - (canvasSectionMaximumY - TICK_LENGTH - fontHgt + 5));
-          for (double xPow = -Math.pow(10, exp); xPow > -1 * Math.pow(10, exp + 1)
-                                                 && xPow >= min; xPow -= Math.pow(10, exp)) {
-            Grafik.drawThickLine(g, getXPixel(xPow), getHeight() - canvasSectionMaximumY,
-                                 getXPixel(xPow),
-                                 getHeight() - (canvasSectionMaximumY - (TICK_LENGTH / 3 * 2)),
-                                 TICK_THICKNESS, Color.BLACK);
+
+          for (double xPow = -Math.pow(10,
+                                       exp), pix = getXPixel(xPow); xPow > -1
+                                                                           * Math.pow(10, exp + 1)
+                                                                    && xPow >= min; xPow -= Math.pow(10,
+                                                                                                     exp), pix = getXPixel(xPow)) {
+            if (pix >= canvasSectionMinimumX) {
+              Grafik.drawThickLine(g, (int) pix, getHeight() - canvasSectionMaximumY, (int) pix,
+                                   getHeight() - (canvasSectionMaximumY - (TICK_LENGTH / 3 * 2)),
+                                   TICK_THICKNESS, Color.BLACK);
+            }
           }
         } else if (lbls[i] == 0) {
           str = "0";
@@ -1602,7 +1606,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
               for (double xPow = -Math.pow(10,
                                            e), pix = getXPixel(xPow); xPow > -Math.pow(10, e + 1)
                                                                       && xPow <= plotXmax; xPow -= Math.pow(10,
-                                                                                                            e)) {
+                                                                                                            e), pix = getXPixel(xPow)) {
                 if (pix >= canvasSectionMinimumX) {
                   Grafik.drawThickLine(g, (int) pix, getHeight() - canvasSectionMaximumY, (int) pix,
                                        getHeight() - (canvasSectionMaximumY
@@ -2414,21 +2418,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
       }
     }
 
-    // plotMin = plotMax = 0;
-    // while (max - plotMax > DOUBLE_INACCURACY_HEDGE) {
-    // plotMax += plotStep;
-    // }
-    // while (min - plotMin < -1*DOUBLE_INACCURACY_HEDGE) { // double check this, untested
-    // plotMin -= plotStep;
-    // }
-    // // if (min >= 0 && plotMin < 0) {
-    // // plotMin = 0;
-    // // }
-    //
-    // // System.out.println(Float.parseFloat(ext.formDeci(plotMin,
-    // sf))+"\t"+Float.parseFloat(ext.formDeci(plotMax,
-    // sf))+"\t"+Float.parseFloat(ext.formDeci(plotStep, sf)));
-    //
     if (zoomable) {
       dist = plotMax - plotMin;
       zoomMin = plotMin + zoomSubsets[xAxis ? 0 : 1][0] * dist;

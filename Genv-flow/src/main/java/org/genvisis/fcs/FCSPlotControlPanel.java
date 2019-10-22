@@ -65,7 +65,7 @@ public class FCSPlotControlPanel extends JPanel {
   */
   private static final long serialVersionUID = 1L;
 
-  private FCSPlot plot;
+  private JFlow plot;
 
   private JComboBox<PLOT_TYPE> cbType;
   private JComboBox<String> cbYData;
@@ -106,7 +106,7 @@ public class FCSPlotControlPanel extends JPanel {
   /**
    * Create the panel.
    */
-  public FCSPlotControlPanel(final FCSPlot plot) {
+  public FCSPlotControlPanel(final JFlow plot) {
     this.plot = plot;
 
     setLayout(new MigLayout("ins 0", "[grow]", "[grow][]"));
@@ -150,7 +150,7 @@ public class FCSPlotControlPanel extends JPanel {
       @Override
       public void itemStateChanged(ItemEvent arg0) {
         if (arg0.getStateChange() == ItemEvent.SELECTED) {
-          if (FCSPlot.HISTOGRAM_COL.equals(arg0.getItem().toString())) {
+          if (JFlow.HISTOGRAM_COL.equals(arg0.getItem().toString())) {
             plot.setPlotType(PLOT_TYPE.HISTOGRAM);
           } else {
             if (plot.getPlotType() == PLOT_TYPE.HISTOGRAM) {

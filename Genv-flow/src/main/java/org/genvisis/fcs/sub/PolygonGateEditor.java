@@ -27,7 +27,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import org.genvisis.fcs.FCSPlot;
+import org.genvisis.fcs.JFlow;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.GateDimension;
 import org.genvisis.fcs.gating.Gate.PolygonGate;
@@ -40,7 +40,7 @@ public class PolygonGateEditor extends JDialog {
   * 
   */
   private static final long serialVersionUID = 1L;
-  private final FCSPlot plot;
+  private final JFlow plot;
   private final Gate gate;
   private final JPanel contentPanel = new JPanel();
   private JTextField txtName;
@@ -57,7 +57,7 @@ public class PolygonGateEditor extends JDialog {
   /**
    * Create the dialog.
    */
-  public PolygonGateEditor(FCSPlot plot, PolygonGate gate) {
+  public PolygonGateEditor(JFlow plot, PolygonGate gate) {
     this.plot = plot;
     this.gate = gate;
     setTitle("Edit Gate");

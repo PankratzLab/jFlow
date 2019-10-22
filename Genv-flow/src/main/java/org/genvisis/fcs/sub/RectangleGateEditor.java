@@ -28,7 +28,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
-import org.genvisis.fcs.FCSPlot;
+import org.genvisis.fcs.JFlow;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Gate.RectangleGate;
 import org.genvisis.fcs.gating.GateDimension.RectangleGateDimension;
@@ -41,7 +41,7 @@ public class RectangleGateEditor extends JDialog {
   * 
   */
   private static final long serialVersionUID = 1L;
-  private FCSPlot plot;
+  private JFlow plot;
   private Gate gate;
   private final JPanel contentPanel = new JPanel();
   private JFormattedTextField txtXMin;
@@ -256,7 +256,7 @@ public class RectangleGateEditor extends JDialog {
     }
   }
 
-  public void setGate(FCSPlot plot, RectangleGate gate) {
+  public void setGate(JFlow plot, RectangleGate gate) {
     this.plot = plot;
     this.gate = gate;
     lblID.setText(gate.getID());

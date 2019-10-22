@@ -32,7 +32,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import org.genvisis.common.gui.JAccordionPanel;
-import org.genvisis.fcs.FCSPlot;
+import org.genvisis.fcs.JFlow;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Gating;
 import org.pankratzlab.common.Files;
@@ -49,7 +49,7 @@ public class DataExportGUI extends JDialog {
   private final JTree tree;
   private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<>();
   private Gating gating;
-  private final FCSPlot plot;
+  private final JFlow plot;
   private ArrayList<JCheckBox> boxes;
   private volatile boolean cancelled = true;
   private final JTextField outputField;
@@ -57,7 +57,7 @@ public class DataExportGUI extends JDialog {
   private final JRadioButton btnPcts;
   private final JButton btnExport;
 
-  public DataExportGUI(FCSPlot fcsPlot) {
+  public DataExportGUI(JFlow fcsPlot) {
     super(SwingUtilities.getWindowAncestor(fcsPlot), "Select a set of files and gates to export",
           ModalityType.APPLICATION_MODAL);
     plot = fcsPlot;

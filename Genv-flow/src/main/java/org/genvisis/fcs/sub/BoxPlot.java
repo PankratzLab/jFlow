@@ -36,7 +36,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import org.genvisis.fcs.AbstractPanel2;
-import org.genvisis.fcs.FCSPlot;
+import org.genvisis.fcs.JFlow;
 import org.genvisis.fcs.sub.OneDPanel.PLOT_TYPE;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.HashVec;
@@ -83,7 +83,7 @@ public class BoxPlot extends JFrame {
   public BoxPlot() {
     super(TITLE_STR);
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH, FCSPlot.START_HEIGHT);
+    setBounds(JFlow.START_X, JFlow.START_Y, JFlow.START_WIDTH, JFlow.START_HEIGHT);
 
     JPanel contentPane = new JPanel(new BorderLayout());
     setContentPane(contentPane);

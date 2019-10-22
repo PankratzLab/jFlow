@@ -38,7 +38,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-import org.genvisis.fcs.FCSPlot;
+import org.genvisis.fcs.JFlow;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -52,7 +52,7 @@ public class GateTreePanel extends JPanel {
   private final JTree tree;
   private final JPanel topPanel;
   private final JScrollPane scrollPane;
-  private final FCSPlot plot;
+  private final JFlow plot;
   private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<>();
   private final HashMap<Gate, DefaultMutableTreeNode> nodeMap = new HashMap<>();
   private volatile boolean showing = false;
@@ -60,7 +60,7 @@ public class GateTreePanel extends JPanel {
   /**
    * Create the panel.
    */
-  public GateTreePanel(FCSPlot plot) {
+  public GateTreePanel(JFlow plot) {
     setLayout(new BorderLayout(0, 0));
 
     this.plot = plot;
