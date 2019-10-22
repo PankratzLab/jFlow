@@ -69,7 +69,7 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
 import org.xml.sax.SAXException;
 
-public class FCSPlot extends JPanel implements WindowListener, PropertyChangeListener {
+public class JFlow extends JPanel implements WindowListener, PropertyChangeListener {
 
   public static final String HISTOGRAM_COL = "Histogram";
 
@@ -167,11 +167,11 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     }
   }
 
-  public FCSPlot() {
+  public JFlow() {
     this(null);
   }
 
-  private FCSPlot(String[] fileExts) {
+  private JFlow(String[] fileExts) {
     log = new Logger();
 
     validExts = new HashSet<>();
@@ -219,7 +219,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, fcsControls, layeredPane);
     splitPane.setBackground(Color.WHITE);
     splitPane.setOneTouchExpandable(true);
-    splitPane.setDividerLocation(250);
+    splitPane.setDividerLocation(270);
 
     add(splitPane, BorderLayout.CENTER);
 
@@ -330,7 +330,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 
   private void saveImage() {
     JFileChooser fileChooser = new JFileChooser(".");
-    int fileOpenActionSelected = fileChooser.showSaveDialog(FCSPlot.this);
+    int fileOpenActionSelected = fileChooser.showSaveDialog(JFlow.this);
     if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
       File fileToOpen = fileChooser.getSelectedFile();
       screencap(fileToOpen.toString() + ".png");
@@ -404,7 +404,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
   }
 
   private Component getParentComponent() {
-    Component c = FCSPlot.this.getParent();
+    Component c = JFlow.this.getParent();
     while (!(c instanceof JFrame)) {
       c = c.getParent();
     }
@@ -859,7 +859,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     ArrayList<Gate> children = parentGate == null ? getGatingStrategy().getRootGates()
                                                   : parentGate.getChildGates();
     for (Gate g : children) {
-      boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
+      boolean y = getYDataName().equals(JFlow.HISTOGRAM_COL) ? true : false;
       if (g.getYDimension() == null || y) {
         if (y && g.getXDimension().getParam().equals(getXDataName())) {
           gateList.add(g);
@@ -903,12 +903,12 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
    * @param fileExts allowed file extensions for files (null for all files)
    * @return
    */
-  public static FCSPlot createGUI(boolean show) {
+  public static JFlow createGUI(boolean show) {
     JFrame frame = new JFrame(TITLE_STR);
     frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
     // Create and set up the content pane.
-    FCSPlot twoDPlot = new FCSPlot();
+    JFlow twoDPlot = new JFlow();
     frame.setJMenuBar(twoDPlot.menuBar());
     twoDPlot.setOpaque(true); // content panes must be opaque
     twoDPlot.setParent(frame);
@@ -1100,8 +1100,8 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
   }
 
   private void loadAutoGUI() {
-    FileChooserPkl fc = new FileChooserPkl(this, "", false, true, "Select Auto-gated result directory",
-                                     new Logger());
+    FileChooserPkl fc = new FileChooserPkl(this, "", false, true,
+                                           "Select Auto-gated result directory", new Logger());
     if (!fc.isSelected()) return;
     File autoDir = fc.getSelectedFile();
     String file = discoverFNumFile(autoDir.getAbsolutePath());

@@ -1,7 +1,7 @@
 package org.genvisis.fcs.auto;
 
 import org.genvisis.fcs.FCSDataLoader;
-import org.genvisis.fcs.FCSPlot;
+import org.genvisis.fcs.JFlow;
 import org.genvisis.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.fcs.gating.Gate;
 import org.pankratzlab.common.ext;
@@ -19,7 +19,7 @@ public class FCPTest {
 
   public static void main(String[] args) {
 
-    FCSPlot fcp = new FCSPlot();
+    JFlow fcp = new JFlow();
     fcp.loadFile(FCS, true);
     FCSDataLoader loader = fcp.getDataLoader(FCS);
 

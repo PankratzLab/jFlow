@@ -25,7 +25,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
 import org.genvisis.common.gui.ColorIcon;
-import org.genvisis.fcs.FCSPlot.Classification;
+import org.genvisis.fcs.JFlow.Classification;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Gate.PolygonGate;
 import org.genvisis.fcs.gating.Gate.RectangleGate;
@@ -51,7 +51,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   public static final int LOOKUP_RESOLUTION = 20;
   private static final byte POINT_SIZE = 1;
 
-  protected FCSPlot fcp;
+  protected JFlow fcp;
 
   int dataCount = -1;
   volatile String xCol = null;
@@ -97,7 +97,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   private ArrayList<PolygonGate> draggingPolys = new ArrayList<>();
   private final ArrayList<Integer> draggingPolyInds = new ArrayList<>();
 
-  public FCSPanel(FCSPlot fcsPlot) {
+  public FCSPanel(JFlow fcsPlot) {
     super();
     setDoubleBuffered(false);
     createLookup(false);
@@ -169,7 +169,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   }
 
   private boolean isHistogram() {
-    return fcp.getYDataName() != null && fcp.getYDataName().equals(FCSPlot.HISTOGRAM_COL);
+    return fcp.getYDataName() != null && fcp.getYDataName().equals(JFlow.HISTOGRAM_COL);
   }
 
   private boolean isHeatmap() {

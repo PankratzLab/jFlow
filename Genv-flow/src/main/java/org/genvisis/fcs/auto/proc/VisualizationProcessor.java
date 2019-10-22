@@ -19,7 +19,7 @@ import org.genvisis.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.fcs.FCSDataLoader;
 import org.genvisis.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.fcs.FCSDataLoader.LOAD_STATE;
-import org.genvisis.fcs.FCSPlot;
+import org.genvisis.fcs.JFlow;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Workbench.SampleNode;
 import org.pankratzlab.common.Files;
@@ -180,7 +180,7 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
   @Override
   public void processSample(SampleNode sn, Logger log) throws IOException {
     System.gc();
-    final FCSPlot fcp = new FCSPlot();
+    final JFlow fcp = new JFlow();
     fcp.getPanel().getColorScheme()[2] = new Color(128, 128, 128, 64);
     fcp.getPanel().allowSkip = false;
 
@@ -370,7 +370,7 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
     System.out.println(sb.toString());
   }
 
-  private void createAddlImgs(final FCSPlot fcp, FCSDataLoader loader, Gate g, String gateName,
+  private void createAddlImgs(final JFlow fcp, FCSDataLoader loader, Gate g, String gateName,
                               String cleanedName) {
     if (addlImgs.containsKey(gateName)) {
       fcp.getPanel().forceSkip = true;

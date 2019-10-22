@@ -71,7 +71,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.genvisis.common.gui.IncludeExcludeGUI;
 import org.genvisis.fcs.AbstractPanel2;
 import org.genvisis.fcs.FCSDataLoader;
-import org.genvisis.fcs.FCSPlot;
+import org.genvisis.fcs.JFlow;
 import org.genvisis.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.fcs.gating.Gate;
@@ -389,7 +389,7 @@ public class RainbowTestGUI extends JFrame {
       }
     };
 
-    final FCSPlot fcp = FCSPlot.createGUI(false);
+    final JFlow fcp = JFlow.createGUI(false);
 
     table.addMouseListener(new MouseAdapter() {
 
@@ -695,8 +695,8 @@ public class RainbowTestGUI extends JFrame {
       }
     };
     meanCtrlPanel.setChangeListener(prevLst);
-    meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH,
-                        FCSPlot.START_HEIGHT);
+    meanFrame.setBounds(JFlow.START_X, JFlow.START_Y, JFlow.START_WIDTH,
+                        JFlow.START_HEIGHT);
     // meanPanel.setPlotType(OneDPanel.PLOT_TYPE.BOX_PLOT);
     meanPanel.setPlotType(OneDPanel.PLOT_TYPE.DOT_LINE_PLOT);
     meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 5);

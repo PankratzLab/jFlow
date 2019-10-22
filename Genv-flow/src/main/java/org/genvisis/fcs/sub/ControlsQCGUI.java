@@ -68,7 +68,7 @@ import javax.swing.table.TableColumnModel;
 
 import org.genvisis.common.gui.IncludeExcludeGUI;
 import org.genvisis.fcs.AbstractPanel2;
-import org.genvisis.fcs.FCSPlot;
+import org.genvisis.fcs.JFlow;
 import org.genvisis.fcs.sub.MeanCtrlPanel.LabelPresenter;
 import org.genvisis.fcs.sub.OneDPanel.PLOT_TYPE;
 import org.pankratzlab.common.ArrayUtils;
@@ -585,8 +585,8 @@ public class ControlsQCGUI extends JFrame {
       }
     });
     meanCtrlPanel.link(meanPanel);
-    meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH,
-                        FCSPlot.START_HEIGHT);
+    meanFrame.setBounds(JFlow.START_X, JFlow.START_Y, JFlow.START_WIDTH,
+                        JFlow.START_HEIGHT);
 
     meanFrame.setJMenuBar(createMenuBar());
 
