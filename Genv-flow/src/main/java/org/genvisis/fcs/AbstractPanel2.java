@@ -1352,8 +1352,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
           if (i > 0) {
             int next = getExp((int) lbls[i + 1]);
             for (int e = 0; e < next; e++) {
-              for (double yPow = -Math.pow(10, e); yPow > -Math.pow(10, e + 1)
-                                                   && yPow <= plotXmax; yPow -= Math.pow(10, e)) {
+              for (double yPow = -Math.pow(10, e); yPow > -Math.pow(10,
+                                                                    e + 1); yPow -= Math.pow(10,
+                                                                                             e)) {
                 if (getYPixel(yPow) <= pixMax && getYPixel(yPow) > canvasSectionMinimumY) {
                   Grafik.drawThickLine(g,
                                        canvasSectionMaximumX
@@ -1393,7 +1394,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             for (int e = 0; e < next; e++) {
               double inc = Math.pow(10, e);
               double pix;
-              for (double yPow = inc; yPow < Math.pow(10, e + 1) && yPow <= plotXmax; yPow += inc) {
+              for (double yPow = inc; yPow < Math.pow(10, e + 1); yPow += inc) {
                 pix = getYPixel(yPow);
                 if (pix < pixMax) {
                   Grafik.drawThickLine(g,
@@ -1416,11 +1417,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             g.drawString("" + (exp), canvasSectionMaximumX - TICK_LENGTH - strWid + 4,
                          yPix + fontMetrics.getHeight() / 2 - 5);
           }
-          double pix;
-          for (double yPow = Math.pow(10, exp); yPow < Math.pow(10, exp + 1)
-                                                && yPow <= plotYmax; yPow += Math.pow(10, exp)) {
-            pix = getYPixel(yPow);
-            if (pix < pixMax) {
+          for (double yPow = Math.pow(10,
+                                      exp), pix = getYPixel(yPow); yPow < Math.pow(10,
+                                                                                   exp + 1); yPow += Math.pow(10,
+                                                                                                              exp), pix = getYPixel(yPow)) {
+            if (pix < pixMax && pix > canvasSectionMinimumY) {
               Grafik.drawThickLine(g, canvasSectionMaximumX - (TICK_LENGTH / 3 * 2), (int) pix,
                                    canvasSectionMaximumX, (int) pix, TICK_THICKNESS, Color.BLACK);
             }
@@ -1604,9 +1605,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             int next = getExp((int) lbls[i + 1]);
             for (int e = 0; e < next; e++) {
               for (double xPow = -Math.pow(10,
-                                           e), pix = getXPixel(xPow); xPow > -Math.pow(10, e + 1)
-                                                                      && xPow <= plotXmax; xPow -= Math.pow(10,
-                                                                                                            e), pix = getXPixel(xPow)) {
+                                           e), pix = getXPixel(xPow); xPow > -Math.pow(10,
+                                                                                       e + 1); xPow -= Math.pow(10,
+                                                                                                                e), pix = getXPixel(xPow)) {
                 if (pix >= canvasSectionMinimumX) {
                   Grafik.drawThickLine(g, (int) pix, getHeight() - canvasSectionMaximumY, (int) pix,
                                        getHeight() - (canvasSectionMaximumY
@@ -1642,16 +1643,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
           if (i < lbls.length - 1) {
             int next = getExp((int) lbls[i + 1]);
             for (int e = exp; e < next; e++) {
-              // Too crowded to draw labels
-              // if (e > exp) {
-              // g.drawString("10", getXPixel(Math.pow(10, e)) - strWid / 2, getHeight() -
-              // (canvasSectionMaximumY - TICK_LENGTH - fontHgt));
-              // g.drawString("" + (int) e, getXPixel(Math.pow(10, e)) + (strWid / 2) + 1,
-              // getHeight() - (canvasSectionMaximumY - TICK_LENGTH - fontHgt + 5));
-              // }
               double inc = Math.pow(10, e);
-              for (double xPow = inc, max = Math.pow(10, e + 1); xPow < max
-                                                                 && xPow <= plotXmax; xPow += inc) {
+              for (double xPow = inc, max = Math.pow(10, e + 1); xPow < max; xPow += inc) {
                 if (getXPixel(xPow) >= canvasSectionMinimumX) {
                   Grafik.drawThickLine(g, getXPixel(xPow), getHeight() - canvasSectionMaximumY,
                                        getXPixel(xPow),
@@ -1675,11 +1668,12 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             g.drawString("" + exp, xPix + (strWid / 2) + 1,
                          getHeight() - (canvasSectionMaximumY - TICK_LENGTH - fontHgt + 5));
           }
-          for (double xPow = Math.pow(10, exp); xPow < Math.pow(10, exp + 1)
-                                                && xPow <= plotXmax; xPow += Math.pow(10, exp)) {
-            if (getXPixel(xPow) >= canvasSectionMinimumX) {
-              Grafik.drawThickLine(g, getXPixel(xPow), getHeight() - canvasSectionMaximumY,
-                                   getXPixel(xPow),
+          for (double xPow = Math.pow(10,
+                                      exp), pix = getXPixel(xPow); xPow < Math.pow(10,
+                                                                                   exp + 1); xPow += Math.pow(10,
+                                                                                                              exp), pix = getXPixel(xPow)) {
+            if (pix >= canvasSectionMinimumX && pix < canvasSectionMaximumX) {
+              Grafik.drawThickLine(g, (int) pix, getHeight() - canvasSectionMaximumY, (int) pix,
                                    getHeight() - (canvasSectionMaximumY - (TICK_LENGTH / 3 * 2)),
                                    TICK_THICKNESS, Color.BLACK);
             }
