@@ -471,6 +471,10 @@ public class CLI {
    *           parsed.
    */
   public void parse(Logger log, String... args) throws ParseException {
+    if (options.getRequiredOptions().size() > 0 && args.length == 0) {
+      printHelp(log, commandName, "", options);
+      throw new ParseException("");
+    }
     formatArgs(args);
 
     try {
