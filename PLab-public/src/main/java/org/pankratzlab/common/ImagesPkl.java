@@ -39,7 +39,6 @@ public class ImagesPkl {
         maxWid = Math.max(maxWid, img.getWidth());
         images.put(imageFile, img);
       } catch (IOException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
     }
