@@ -144,7 +144,7 @@ public class AnnotatedImage {
           }
         } else {
           String[] images = imageFile.split(";");
-          image = new SoftReference<>(ImagesPkl.stitchImages(images, Color.WHITE, false, false));
+          image = new SoftReference<>(ImagesPkl.stitchImages(images, 0, Color.WHITE, false, false));
         }
       } else {
         if (imageFile == null) {

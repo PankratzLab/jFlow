@@ -11,18 +11,20 @@ import javax.imageio.ImageIO;
 
 public class ImagesPkl {
 
-  public static void stitchImages(String dir, String listFile, String outFile, Color bgColor,
-                                  boolean drawInnerBorder,
+  public static void stitchImages(String dir, String listFile, String outFile, int numImagesPerRow,
+                                  Color bgColor, boolean drawInnerBorder,
                                   boolean drawOuterBorder/* , boolean pack */) {
     System.out.print("Loading input file...");
-    String[] imageFiles = HashVec.loadFileToStringArray(dir + listFile, false, new int[] {0},
-                                                        false);
+    String list = Files.isRelativePath(listFile) ? dir + listFile : listFile;
+    String[] imageFiles = HashVec.loadFileToStringArray(list, false, new int[] {0}, false);
     System.out.println("Complete!");
-    stitchImages(dir, imageFiles, outFile, bgColor, drawInnerBorder, drawOuterBorder);
+    stitchImages(dir, imageFiles, outFile, numImagesPerRow, bgColor, drawInnerBorder,
+                 drawOuterBorder);
   }
 
-  public static BufferedImage stitchImages(String[] imageFilesWithPaths, Color bgColor,
-                                           boolean drawInnerBorder, boolean drawOuterBorder) {
+  public static BufferedImage stitchImages(String[] imageFilesWithPaths, int numImagesPerRow,
+                                           Color bgColor, boolean drawInnerBorder,
+                                           boolean drawOuterBorder) {
     int maxWid = 0;
     int maxHgt = 0;
 
@@ -45,9 +47,11 @@ public class ImagesPkl {
 
     BufferedImage finalImage;
 
-    int arrSzCols = (int) Math.ceil(Math.sqrt(imageFilesWithPaths.length));
+    int arrSzCols = numImagesPerRow > 0 ? numImagesPerRow
+                                        : (int) Math.ceil(Math.sqrt(imageFilesWithPaths.length));
     int arrSzRows = (int) Math.ceil(imageFilesWithPaths.length
-                                    / Math.ceil(Math.sqrt(imageFilesWithPaths.length)));
+                                    / (numImagesPerRow > 0 ? numImagesPerRow
+                                                           : Math.ceil(Math.sqrt(imageFilesWithPaths.length))));
     int BUFFER_SZ = 3;
     int bufferCols = (arrSzCols + 1) * BUFFER_SZ;
     int bufferRows = (arrSzRows + 1) * BUFFER_SZ;
@@ -78,17 +82,18 @@ public class ImagesPkl {
     return finalImage;
   }
 
-  public static void stitchImages(String dir, String[] imageFiles, String outFile, Color bgColor,
-                                  boolean drawInnerBorder,
+  public static void stitchImages(String dir, String[] imageFiles, String outFile,
+                                  int numImagesPerRow, Color bgColor, boolean drawInnerBorder,
                                   boolean drawOuterBorder/* , boolean pack */) {
     String[] imageFilesWithPaths = new String[imageFiles.length];
     for (int i = 0; i < imageFiles.length; i++) {
-      imageFilesWithPaths[i] = dir + imageFiles[i];
+      imageFilesWithPaths[i] = Files.isRelativePath(imageFiles[i]) ? dir + imageFiles[i]
+                                                                   : imageFiles[i];
     }
-    BufferedImage finalImage = stitchImages(imageFilesWithPaths, bgColor, drawInnerBorder,
-                                            drawOuterBorder);
+    BufferedImage finalImage = stitchImages(imageFilesWithPaths, numImagesPerRow, bgColor,
+                                            drawInnerBorder, drawOuterBorder);
     System.out.print(">\nWriting final file...");
-    File outputFile = new File(dir + outFile);
+    File outputFile = new File(Files.isRelativePath(outFile) ? dir + outFile : outFile);
     // TODO check file is writeable
     try {
       ImageIO.write(finalImage, "png", outputFile);
