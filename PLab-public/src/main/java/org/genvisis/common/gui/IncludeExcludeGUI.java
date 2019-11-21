@@ -10,8 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,26 +82,7 @@ public class IncludeExcludeGUI extends JDialog {
       JScrollPane pane = new JScrollPane();
       list = new JList<>();
       list.setCellRenderer(new JCheckBoxListCellRenderer(getFont()));
-      list.addMouseListener(new MouseAdapter() {
-
-        int prevIndex = -1;
-
-        public void mousePressed(MouseEvent e) {
-          int index = list.locationToIndex(e.getPoint());
-          if (index != -1) {
-            JCheckBox checkbox = (JCheckBox) list.getModel().getElementAt(index);
-            if (checkbox.isEnabled()) {
-              boolean cl = e.getClickCount() >= 2;
-              boolean li = prevIndex != -1 && index == prevIndex;
-              if (cl || li) {
-                checkbox.setSelected(!checkbox.isSelected());
-              }
-              prevIndex = index;
-            }
-            repaint();
-          }
-        }
-      });
+      JCheckBoxListCellRenderer.setupList(list);
       list.addKeyListener(new KeyAdapter() {
         @Override
         public void keyPressed(KeyEvent e) {
@@ -133,27 +112,25 @@ public class IncludeExcludeGUI extends JDialog {
     }
     {
       textField = new JTextField();
-      textField.addKeyListener(
-          new KeyAdapter() {
+      textField.addKeyListener(new KeyAdapter() {
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-              super.keyTyped(e);
-              SwingUtilities.invokeLater(
-                  () -> {
-                    String txt = textField.getText();
-                    final DefaultListModel<JCheckBox> newMod = new DefaultListModel<>();
-                    for (String opt : opts) {
-                      if (new RabinKarp(txt).search(opt) < opt.length()) {
-                        newMod.addElement(optChks.get(opt));
-                      }
-                    }
-                    list.setModel(newMod);
-                    list.revalidate();
-                    repaint();
-                  });
+        @Override
+        public void keyReleased(KeyEvent e) {
+          super.keyTyped(e);
+          SwingUtilities.invokeLater(() -> {
+            String txt = textField.getText();
+            final DefaultListModel<JCheckBox> newMod = new DefaultListModel<>();
+            for (String opt : opts) {
+              if (new RabinKarp(txt).search(opt) < opt.length()) {
+                newMod.addElement(optChks.get(opt));
+              }
             }
+            list.setModel(newMod);
+            list.revalidate();
+            repaint();
           });
+        }
+      });
       contentPanel.add(textField, "cell 0 3,growx");
       textField.setColumns(10);
     }
