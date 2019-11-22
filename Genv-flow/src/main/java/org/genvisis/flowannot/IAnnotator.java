@@ -3,31 +3,15 @@ package org.genvisis.flowannot;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
+import org.genvisis.fcs.auto.Panel;
 
 public interface IAnnotator {
 
-  public static enum PANEL {
-    PANEL_1() {
+  void loadImgDir(String dir, List<Panel> panels);
 
-      @Override
-      public boolean isPanel(String p) {
-        return p.toLowerCase().contains("panel 1") || p.toLowerCase().contains("panel_1");
-      }
-    },
-    PANEL_2() {
-
-      @Override
-      public boolean isPanel(String p) {
-        return p.toLowerCase().contains("panel 2") || p.toLowerCase().contains("panel_2");
-      }
-    };
-
-    public abstract boolean isPanel(String p);
-  }
-
-  void loadImgDir(String dir);
-
-  void loadAnnotations(String annotFile) throws IOException;
+  void loadAnnotations(String annotFile, List<Panel> panels) throws IOException;
 
   void saveAnnotations(String annotFile);
 
@@ -43,7 +27,7 @@ public interface IAnnotator {
 
   ArrayList<String> getFCSKeys();
 
-  ArrayList<String> getFCSKeys(PANEL panel);
+  ArrayList<String> getFCSKeys(Panel panel);
 
   ArrayList<AnnotatedImage.Annotation> getAnnotations();
 

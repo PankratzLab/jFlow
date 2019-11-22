@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<panels>
+	<panel>
+		<name>Panel 1</name>
+		<alias>P1</alias>
+		<alias>panel1</alias>
+		<alias>panel 1</alias>
+		<alias>panel_1</alias>
+		<alias>panel one</alias>
+		<gateTree>
+			<node name="boundary" />
+			<node name="nonDebris" parent="boundary" />
+			<node name="Lymphocytes (SSC-A v FSC-A)" parent="nonDebris" />
+			<node name="FSC-W+" parent="Lymphocytes (SSC-A v FSC-A)" />
+			<node name="Single Cells (FSC-H v FSC-W)" parent="Lymphocytes (SSC-A v FSC-A)" />
+			<node name="PE-A+" parent="Single Cells (FSC-H v FSC-W)" />
+			<node name="Live cells (PE-)" parent="Single Cells (FSC-H v FSC-W)" />
+			<node name="Tcells (CD3+ CD19-)" parent="Live cells (PE-)" />
+			<node name="Helper Tcells-CD4+" parent="Tcells (CD3+ CD19-)" />
+			<node name="Helper T Subsets" parent="Helper Tcells-CD4+" />
+			<node name="cytotoxic Tcells-CD8+" parent="Tcells (CD3+ CD19-)" />
+			<node name="Cytotoxic T Subsets" parent="cytotoxic Tcells-CD8+" />
+			<node name="Cytotoxic Effector Subsets" parent="Cytotoxic T Subsets" />
+			<node name="Cytotoxic Effector Memory Subsets" parent="Cytotoxic T Subsets" />
+			<node name="CD3-" parent="Live cells (PE-)" />
+			<node name="B cells (CD3- CD19+)" parent="CD3-" />
+			<node name="IgDgate" parent="B cells (CD3- CD19+)" />
+			<node name="CD27gate" parent="B cells (CD3- CD19+)" />
+			<node name="IgD-CD27-" parent="B cells (CD3- CD19+)" />
+			<node name="naive Bcells (CD27- IgD+)" parent="B cells (CD3- CD19+)" />
+			<node name="IgD- memory Bcells (CD27+)" parent="B cells (CD3- CD19+)" />
+			<node name="IgD+ memory Bcells (CD27+)" parent="B cells (CD3- CD19+)" />
+		</gateTree>
+		<specials>
+			<special>
+				<key>Helper T Subsets</key>
+				<value>effector memory helper Tcells (CCR7- CD45RA-)</value>
+				<value>effector memory helper Tcells (CD95- CD28-)</value>
+				<value>naive helper Tcells (CCR7/CD45RA)</value>
+				<value>effector helper Tcells (CCR7/CD45RA)</value>
+				<value>central memory helper Tcells (CCR7/CD45RA)</value>
+				<value>effector memory helper Tcells (CCR7/CD45RA)</value>
+			</special>
+			<special>
+				<key>Cytotoxic T Subsets</key>
+				<value>effector memory cytotoxic Tcells (CCR7- , CD45RA-)</value>
+				<value>effector memory cytotoxic Tcells (CD95- , CD28-)</value>
+				<value>naive cytotoxic Tcells (CCR7/CD45RA)</value>
+				<value>effector cytotoxic Tcells (CCR7/CD45RA)</value>
+				<value>central memory cytotoxic Tcells (CCR7/CD45RA)</value>
+				<value>effector memory cytotoxic Tcells (CCR7/CD45RA)</value>
+			</special>
+			<special>
+				<key>Cytotoxic Effector Subsets</key>
+				<value>Effector_Cytotoxic Tcells (CD28/CD27)</value>
+				<value>pE cytotoxic Tcells (CD95-CD28-,CD27-  CD28-)</value>
+				<value>pE1 cytotoxic Tcells (CD95-CD28-,CD27+  CD28+)</value>
+				<value>pE2 cytotoxic Tcells (CD95-CD28-,CD27+ , CD28-)</value>
+			</special>
+			<special>
+				<key>Cytotoxic Effector Memory Subsets</key>
+				<value>Effector_Memory_Cytotoxic Tcells (CD28/CD27)</value>
+				<value>EM1 cytotoxic Tcells (CD27+  CD28+)</value>
+				<value>EM2 cytotoxic Tcells (CD27+  CD28-)</value>
+				<value>EM3 cytotoxic Tcells (CD27-  CD28-)</value>
+				<value>EM4 cytotoxic Tcells (CD27-  CD28+)</value>
+			</special>
+		</specials>
+	</panel>
+	<panel>
+		<name>Panel 2</name>
+		<alias>P2</alias>
+		<alias>panel2</alias>
+		<alias>panel 2</alias>
+		<alias>panel_2</alias>
+		<alias>panel two</alias>
+		<gateTree>
+			<node name="boundary" />
+			<node name="CD45-" parent="boundary" />
+			<node name="CD45+" parent="boundary" />
+			<node name="PE-A+" parent="CD45+" />
+			<node name="Live immune cells (CD45+ PE-)" parent="CD45+" />
+			<node name="FSC-H+" parent="Live immune cells (CD45+ PE-)" />
+			<node name="SingletsH" parent="Live immune cells (CD45+ PE-)" />
+			<node name="FSC-W+" parent="Live immune cells (CD45+ PE-)" />
+			<node name="SingletsW" parent="Live immune cells (CD45+ PE-)" />
+			<node name="Live Single immune cells(FSC-H_FSC-W)" parent="Live immune cells (CD45+ PE-)" />
+			<node name="nonDebris" parent="Live Single immune cells(FSC-H_FSC-W)" />
+			<node name="Live Single PBMCs (SSC-A_FSC-A)" parent="nonDebris" />
+			<node name="CD19+" parent="Live Single PBMCs (SSC-A_FSC-A)" />
+			<node name="CD19-" parent="Live Single PBMCs (SSC-A_FSC-A)" />
+			<node name="CD3+" parent="Live Single PBMCs (SSC-A_FSC-A)" />
+			<node name="CD3-" parent="Live Single PBMCs (SSC-A_FSC-A)" />
+			<node name="DC NK MONOCYTES (CD3- CD19-)" parent="Live Single PBMCs (SSC-A_FSC-A)" />
+			<node name="MONOCYTES (CD14+)" parent="DC NK MONOCYTES (CD3- CD19-)" />
+			<node name="Non classical monocytes (CD16+ CD14+)" parent="MONOCYTES (CD14+)" />
+			<node name="Classical monocytes (CD16- CD14+)" parent="MONOCYTES (CD14+)" />
+			<node name="CD14-" parent="DC NK MONOCYTES (CD3- CD19-)" />
+			<node name="DC NK (CD20- CD14-)" parent="CD14-" />
+			<node name="HLA-DR+" parent="DC NK (CD20- CD14-)" />
+			<node name="DC (HLA-DR+)" parent="DC NK (CD20- CD14-)" />
+			<node name="BB515-A-BV 711-A+" parent="DC (HLA-DR+)" />
+			<node name="BB515-A+BV 711-A+" parent="DC (HLA-DR+)" />
+			<node name="Myeloid DC (CD11c+ CD123-)" parent="DC (HLA-DR+)" />
+			<node name="Plasmacytoid DC (CD11c- CD123+)" parent="DC (HLA-DR+)" />
+			<node name="CD56+" parent="DC NK (CD20- CD14-)" />
+			<node name="NK (CD16+)" parent="DC NK (CD20- CD14-)" />
+			<node name="CD16-CD56-" parent="DC NK (CD20- CD14-)" />
+			<node name="CD16+CD56-" parent="DC NK (CD20- CD14-)" />
+			<node name="CD16-CD56+" parent="DC NK (CD20- CD14-)" />
+			<node name="NK CD56LO" parent="DC NK (CD20- CD14-)" />
+			<node name="NK CD56HI" parent="NK CD56LO" />
+		</gateTree>
+	</panel>
+</panels>
