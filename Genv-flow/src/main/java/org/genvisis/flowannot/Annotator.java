@@ -17,8 +17,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.genvisis.fcs.auto.Panel;
+import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ImagesPkl;
 import org.pankratzlab.common.ext;
 
 public class Annotator implements IAnnotator {
@@ -77,29 +81,43 @@ public class Annotator implements IAnnotator {
     }
   }
 
-  @Override
-  public void loadImgDir(String dir, List<Panel> panels) {
-    File dFil = new File(dir);
-    File[] subDirs = dFil.listFiles(new FileFilter() {
-
-      @Override
-      public boolean accept(File pathname) {
-        return pathname.isDirectory();
-      }
-    });
-    for (File d : subDirs) {
-      String fcsFilename = d.getName();
-      fcsKeys.add(fcsFilename);
-      HashMap<String, AnnotatedImage> fcsImgs = new HashMap<>();
-      imageMap.put(fcsFilename, fcsImgs);
-      String[] imgFiles = d.list(new FilenameFilter() {
-
-        @Override
-        public boolean accept(File dir, String name) {
-          return name.startsWith(fcsFilename) && (name.endsWith(".png") || name.endsWith(".jpg"));
+  private void loadFromTAR(String tar, List<Panel> panels) throws IOException {
+    TarArchiveInputStream tarStream = (TarArchiveInputStream) ImagesPkl.getTarInputStream(tar);
+    if (tarStream == null) return;
+    TarArchiveEntry entry;
+    String dirName = null;
+    List<String> dirFiles = new ArrayList<>();
+    while ((entry = tarStream.getNextTarEntry()) != null) {
+      if (entry.isDirectory()) {
+        if (dirName != null && !dirFiles.isEmpty()) {
+          checkSpecials(panels, tar + File.separatorChar + dirName, dirName,
+                        dirFiles.toArray(new String[0]));
         }
-      });
-      for (String img : imgFiles) {
+        String name = entry.getName();
+        if (name.endsWith("/")) {
+          name = name.substring(0, name.length() - 1);
+        }
+        dirName = name;
+        dirFiles = new ArrayList<>();
+        fcsKeys.add(name);
+        HashMap<String, AnnotatedImage> fcsImgs = new HashMap<>();
+        imageMap.put(name, fcsImgs);
+      } else {
+        String fcsName = null;
+        String image = entry.getName();
+        dirFiles.add(image.substring(dirName.length() + 1));
+        int index;
+        if ((index = image.lastIndexOf('/')) >= 0) {
+          fcsName = image.substring(0, index);
+          image = image.substring(index + 1);
+        } else if ((index = image.lastIndexOf('\\')) >= 0) {
+          fcsName = image.substring(0, index);
+          image = image.substring(index + 1);
+        } else if (image.startsWith(dirName)) {
+          image = image.substring(dirName.length() + 1);
+        }
+        if (fcsName == null) continue;
+        final String img = image;
         Optional<Panel> panel = panels.stream().filter(p -> p.isPanel(img)).findFirst();
         if (!panel.isPresent()) {
           System.err.println("Couldn't identify panel for file: " + img);
@@ -108,7 +126,7 @@ public class Annotator implements IAnnotator {
         String[][] gateTree = panel.get().getGateTree();
 
         int gateInd = -1;
-        String name = img.substring(fcsFilename.length() + 1, img.length() - 4);
+        String name = img.substring(fcsName.length() + 1, img.length() - 4);
         for (int i = 0; i < gateTree.length; i++) {
           if (gateTree[i][0].equals(name)
               || ext.replaceWithLinuxSafeCharacters(gateTree[i][0]).equals(name)) {
@@ -118,47 +136,105 @@ public class Annotator implements IAnnotator {
         }
         if (gateInd >= 0) {
           AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
-          ai.setImageFile(ext.verifyDirFormat(d.getAbsolutePath()) + img);
+          ai.setImageFile(tar + File.separatorChar + entry.getName());
           ai.setGateName(gateTree[gateInd][0]);
-          fcsImgs.put(gateTree[gateInd][0], ai);
+          imageMap.get(fcsName).put(gateTree[gateInd][0], ai);
         }
       }
-      for (Panel panel : panels) {
-        if (panel.hasSpecials()) {
-          String[][] gateTree = panel.getGateTree();
-          Map<String, List<String>> specials = panel.getSpecials();
-          for (Entry<String, List<String>> special : specials.entrySet()) {
-            int gateInd = -1;
-            for (int i = 0; i < gateTree.length; i++) {
-              if (gateTree[i][0].equals(special.getKey())) {
-                gateInd = i;
-                break;
+    }
+  }
+
+  @Override
+  public void loadImgDir(String dir, List<Panel> panels) {
+    if (dir.endsWith(".tar") || dir.endsWith(".tar.gz") || dir.endsWith(".tgz")) {
+      try {
+        loadFromTAR(dir, panels);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      return;
+    }
+    File dFil = new File(dir);
+    File[] subDirs = dFil.listFiles(new FileFilter() {
+
+      @Override
+      public boolean accept(File pathname) {
+        return pathname.isDirectory();
+      }
+    });
+    for (File d : subDirs) {
+      loadSubDir(d, panels);
+    }
+  }
+
+  private void loadSubDir(File d, List<Panel> panels) {
+    String fcsFilename = d.getName();
+    fcsKeys.add(fcsFilename);
+    HashMap<String, AnnotatedImage> fcsImgs = new HashMap<>();
+    imageMap.put(fcsFilename, fcsImgs);
+    String[] imgFiles = d.list(new FilenameFilter() {
+
+      @Override
+      public boolean accept(File dir, String name) {
+        return name.startsWith(fcsFilename) && (name.endsWith(".png") || name.endsWith(".jpg"));
+      }
+    });
+    for (String img : imgFiles) {
+      Optional<Panel> panel = panels.stream().filter(p -> p.isPanel(img)).findFirst();
+      if (!panel.isPresent()) {
+        System.err.println("Couldn't identify panel for file: " + img);
+        continue;
+      }
+      String[][] gateTree = panel.get().getGateTree();
+
+      int gateInd = -1;
+      String name = img.substring(fcsFilename.length() + 1, img.length() - 4);
+      for (int i = 0; i < gateTree.length; i++) {
+        if (gateTree[i][0].equals(name)
+            || ext.replaceWithLinuxSafeCharacters(gateTree[i][0]).equals(name)) {
+          gateInd = i;
+          break;
+        }
+      }
+      if (gateInd >= 0) {
+        AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
+        ai.setImageFile(ext.verifyDirFormat(d.getAbsolutePath()) + img);
+        ai.setGateName(gateTree[gateInd][0]);
+        fcsImgs.put(gateTree[gateInd][0], ai);
+      }
+    }
+    checkSpecials(panels, ext.verifyDirFormat(d.getAbsolutePath()), fcsFilename, imgFiles);
+  }
+
+  private void checkSpecials(List<Panel> panels, String dir, String fcsFilename,
+                             String[] imgFiles) {
+    for (Panel panel : panels) {
+      if (panel.hasSpecials()) {
+        String[][] gateTree = panel.getGateTree();
+        String[] treeKeys = ArrayUtils.extract(gateTree, 0);
+        Map<String, List<String>> specials = panel.getSpecials();
+        for (Entry<String, List<String>> special : specials.entrySet()) {
+          int gateInd = ext.indexOfStr(special.getKey(), treeKeys);
+          if (gateInd >= 0) {
+            AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
+            StringBuilder allImgs = new StringBuilder();
+            for (String sub : special.getValue()) {
+              String subImg = null;
+              for (String img : imgFiles) {
+                String name = img.substring(fcsFilename.length() + 1, img.length() - 4);
+                if (sub.equals(name) || ext.replaceWithLinuxSafeCharacters(sub).equals(name)) {
+                  subImg = img;
+                  break;
+                }
+              }
+              if (subImg != null) {
+                allImgs.append((allImgs.length() > 0 ? ";" : "") + dir + File.separatorChar
+                               + subImg);
               }
             }
-            if (gateInd >= 0) {
-              AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
-              StringBuilder allImgs = new StringBuilder();
-              for (String sub : special.getValue()) {
-                String subImg = null;
-                for (String img : imgFiles) {
-                  String name = img.substring(fcsFilename.length() + 1, img.length() - 4);
-                  if (sub.equals(name) || ext.replaceWithLinuxSafeCharacters(sub).equals(name)) {
-                    subImg = img;
-                    break;
-                  }
-                }
-                if (subImg != null) {
-                  allImgs.append(allImgs.length() > 0 ? ";"
-                                                        + ext.verifyDirFormat(d.getAbsolutePath())
-                                                        + subImg
-                                                      : ext.verifyDirFormat(d.getAbsolutePath())
-                                                        + subImg);
-                }
-              }
-              ai.setImageFile(allImgs.toString());
-              ai.setGateName(gateTree[gateInd][0]);
-              fcsImgs.put(gateTree[gateInd][0], ai);
-            }
+            ai.setImageFile(allImgs.toString());
+            ai.setGateName(gateTree[gateInd][0]);
+            imageMap.get(fcsFilename).put(gateTree[gateInd][0], ai);
           }
         }
       }
