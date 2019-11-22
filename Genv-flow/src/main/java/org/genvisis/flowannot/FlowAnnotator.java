@@ -54,6 +54,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -732,12 +733,28 @@ public class FlowAnnotator {
 
   private void loadImageFiles() {
     JFileChooser jfc = new JFileChooser(getLastUsedImageDir());
-    jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    jfc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+    jfc.setFileFilter(new FileFilter() {
+
+      @Override
+      public String getDescription() {
+        return "Directories or Tar Archives";
+      }
+
+      @Override
+      public boolean accept(File f) {
+        return f.isDirectory() || f.getName().endsWith(".tar") || f.getName().endsWith(".tar.gz")
+               || f.getName().endsWith(".tgz");
+      }
+    });
     jfc.setDialogTitle("Open Directory");
     int opt = jfc.showOpenDialog(frmFlowannotator);
     if (opt == JFileChooser.APPROVE_OPTION) {
       File f = jfc.getSelectedFile();
-      String fS = ext.verifyDirFormat(f.getAbsolutePath());
+      String fS = f.getAbsolutePath();
+      if (f.isDirectory()) {
+        fS = ext.verifyDirFormat(f.getAbsolutePath());
+      }
       setLastUsedImageDir(fS);
       annotator.loadImgDir(fS, panels);
       setAnnotationsChanged();

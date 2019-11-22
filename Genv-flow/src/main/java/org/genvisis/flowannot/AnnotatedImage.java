@@ -4,13 +4,15 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 import javax.swing.UIManager;
 
 import org.pankratzlab.common.Files;
@@ -137,14 +139,23 @@ public class AnnotatedImage {
       if (imageFile != null) {
         if (!imageFile.contains(";")) {
           try {
-            image = new SoftReference<>(ImageIO.read(new File(imageFile)));
+            image = new SoftReference<>(ImageIO.read(ImagesPkl.getImageInputStream(imageFile)));
           } catch (IOException e) {
             e.printStackTrace();
             image = new SoftReference<>(createIOExceptionImage(e));
           }
         } else {
           String[] images = imageFile.split(";");
-          image = new SoftReference<>(ImagesPkl.stitchImages(images, 0, Color.WHITE, false, false));
+          ImageInputStream[] streams = Arrays.stream(images).map(t -> {
+            try {
+              return ImagesPkl.getImageInputStream(t);
+            } catch (IOException e) {
+              e.printStackTrace();
+              return null;
+            }
+          }).collect(Collectors.toList()).toArray(new ImageInputStream[images.length]);
+          image = new SoftReference<>(ImagesPkl.stitchImages(streams, 0, Color.WHITE, false,
+                                                             false));
         }
       } else {
         if (imageFile == null) {

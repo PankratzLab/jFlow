@@ -11,10 +11,6 @@ public class Panel {
   String[][] gatingTree;
   Map<String, List<String>> specials;
 
-  public Panel(String name, String[][] gatingTree, String... possibleAliases) {
-    this(name, gatingTree, null, possibleAliases);
-  }
-
   public Panel(String name, String[][] gatingTree, Map<String, List<String>> specials,
                String... possibleAliases) {
     this.name = name;
