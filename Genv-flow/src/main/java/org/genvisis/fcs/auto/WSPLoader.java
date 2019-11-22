@@ -255,12 +255,12 @@ public class WSPLoader {
     return panelNodeMap.containsKey(p) ? panelNodeMap.get(p) : new HashMap<>();
   }
 
-  public static List<Panel> loadPanelsFromFile(String panelDefFile) {
+  public static List<Panel> loadPanelsFromFile(File panelDefFile) {
     List<Panel> panelsFound = new ArrayList<>();
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     try {
       DocumentBuilder builder = factory.newDocumentBuilder();
-      Document doc = builder.parse(new File(panelDefFile));
+      Document doc = builder.parse(panelDefFile);
       doc.getDocumentElement().normalize();
 
       NodeList panels = doc.getElementsByTagName("panel");
@@ -272,7 +272,48 @@ public class WSPLoader {
         for (int n = 0, countA = aliasNodes.getLength(); n < countA; n++) {
           aliases[n] = aliasNodes.item(n).getTextContent();
         }
-        panelsFound.add(new Panel(name, aliases));
+        String[][] gateTree = null;
+        Map<String, List<String>> specials = null;
+
+        NodeList gateTreeNodes = panelNode.getElementsByTagName("gateTree");
+        if (gateTreeNodes.getLength() > 0) {
+          if (gateTreeNodes.getLength() > 1) {
+            // TODO error
+          }
+          List<String[]> treeNodeList = new ArrayList<>();
+          Element gateTreeNode = (Element) gateTreeNodes.item(0);
+          NodeList treeNodes = gateTreeNode.getElementsByTagName("node");
+          for (int iT = 0, countT = treeNodes.getLength(); iT < countT; iT++) {
+            Element node = (Element) treeNodes.item(iT);
+            String n = node.getAttribute("name");
+            String p = node.getAttribute("parent");
+            String[] value = p.isEmpty() ? new String[] {n} : new String[] {n, p};
+            treeNodeList.add(value);
+          }
+          gateTree = treeNodeList.toArray(new String[treeNodeList.size()][]);
+        }
+
+        NodeList specialNodes = panelNode.getElementsByTagName("specials");
+        if (specialNodes.getLength() > 0) {
+          if (specialNodes.getLength() > 1) {
+            // TODO error
+          }
+          specials = new HashMap<>();
+          Element specialsNode = (Element) specialNodes.item(0);
+          NodeList specialNodeList = specialsNode.getElementsByTagName("special");
+          for (int iS = 0, countS = specialNodeList.getLength(); iS < countS; iS++) {
+            Element specialNode = (Element) specialNodeList.item(iS);
+            String key = specialNode.getElementsByTagName("key").item(0).getTextContent();
+            List<String> values = new ArrayList<>();
+            NodeList valueNodes = specialNode.getElementsByTagName("value");
+            for (int iV = 0, countV = valueNodes.getLength(); iV < countV; iV++) {
+              values.add(valueNodes.item(iV).getTextContent());
+            }
+            specials.put(key, values);
+          }
+        }
+
+        panelsFound.add(new Panel(name, gateTree, specials, aliases));
       }
     } catch (ParserConfigurationException e) {
       e.printStackTrace();

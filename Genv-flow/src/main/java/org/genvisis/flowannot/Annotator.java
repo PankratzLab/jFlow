@@ -11,9 +11,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.genvisis.fcs.auto.Panel;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 
@@ -23,14 +27,11 @@ public class Annotator implements IAnnotator {
   private HashMap<String, HashMap<String, AnnotatedImage>> imageMap = new HashMap<>();
   private ArrayList<AnnotatedImage.Annotation> annotations = new ArrayList<>();
 
-  // TODO add to this:
-  private HashMap<AnnotatedImage.Annotation, ArrayList<AnnotatedImage>> annotMap = new HashMap<>();
-
   public ArrayList<String> getFCSKeys() {
     return getFCSKeys(null);
   }
 
-  public ArrayList<String> getFCSKeys(PANEL panel) {
+  public ArrayList<String> getFCSKeys(Panel panel) {
     ArrayList<String> keys = fcsKeys;
     if (panel != null) {
       keys = new ArrayList<>(fcsKeys.stream().filter(p -> panel.isPanel(p))
@@ -77,7 +78,7 @@ public class Annotator implements IAnnotator {
   }
 
   @Override
-  public void loadImgDir(String dir) {
+  public void loadImgDir(String dir, List<Panel> panels) {
     File dFil = new File(dir);
     File[] subDirs = dFil.listFiles(new FileFilter() {
 
@@ -88,7 +89,6 @@ public class Annotator implements IAnnotator {
     });
     for (File d : subDirs) {
       String fcsFilename = d.getName();
-      boolean p1 = PANEL.PANEL_1.isPanel(fcsFilename);
       fcsKeys.add(fcsFilename);
       HashMap<String, AnnotatedImage> fcsImgs = new HashMap<>();
       imageMap.put(fcsFilename, fcsImgs);
@@ -100,8 +100,13 @@ public class Annotator implements IAnnotator {
         }
       });
       for (String img : imgFiles) {
-        String[][] gateTree = PANEL.PANEL_1.isPanel(img) ? GateTree.GATE_TREE_PANEL_1
-                                                         : GateTree.GATE_TREE_PANEL_2;
+        Optional<Panel> panel = panels.stream().filter(p -> p.isPanel(img)).findFirst();
+        if (!panel.isPresent()) {
+          System.err.println("Couldn't identify panel for file: " + img);
+          continue;
+        }
+        String[][] gateTree = panel.get().getGateTree();
+
         int gateInd = -1;
         String name = img.substring(fcsFilename.length() + 1, img.length() - 4);
         for (int i = 0; i < gateTree.length; i++) {
@@ -114,43 +119,46 @@ public class Annotator implements IAnnotator {
         if (gateInd >= 0) {
           AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
           ai.setImageFile(ext.verifyDirFormat(d.getAbsolutePath()) + img);
-          // name = ArrayUtils.toStr(GateTree.GATE_DIMS[gateInd], " v ");
           ai.setGateName(gateTree[gateInd][0]);
           fcsImgs.put(gateTree[gateInd][0], ai);
         }
       }
-      if (p1) {
-        String[][] gateTree = GateTree.GATE_TREE_PANEL_1;
-        for (Entry<String, List<String>> special : GateTree.GATE_TREE_PANEL_1_STITCH.entrySet()) {
-          int gateInd = -1;
-          for (int i = 0; i < gateTree.length; i++) {
-            if (gateTree[i][0].equals(special.getKey())) {
-              gateInd = i;
-              break;
+      for (Panel panel : panels) {
+        if (panel.hasSpecials()) {
+          String[][] gateTree = panel.getGateTree();
+          Map<String, List<String>> specials = panel.getSpecials();
+          for (Entry<String, List<String>> special : specials.entrySet()) {
+            int gateInd = -1;
+            for (int i = 0; i < gateTree.length; i++) {
+              if (gateTree[i][0].equals(special.getKey())) {
+                gateInd = i;
+                break;
+              }
             }
-          }
-          if (gateInd >= 0) {
-            AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
-            StringBuilder allImgs = new StringBuilder();
-            for (String sub : special.getValue()) {
-              String subImg = null;
-              for (String img : imgFiles) {
-                String name = img.substring(fcsFilename.length() + 1, img.length() - 4);
-                if (sub.equals(name) || ext.replaceWithLinuxSafeCharacters(sub).equals(name)) {
-                  subImg = img;
-                  break;
+            if (gateInd >= 0) {
+              AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
+              StringBuilder allImgs = new StringBuilder();
+              for (String sub : special.getValue()) {
+                String subImg = null;
+                for (String img : imgFiles) {
+                  String name = img.substring(fcsFilename.length() + 1, img.length() - 4);
+                  if (sub.equals(name) || ext.replaceWithLinuxSafeCharacters(sub).equals(name)) {
+                    subImg = img;
+                    break;
+                  }
+                }
+                if (subImg != null) {
+                  allImgs.append(allImgs.length() > 0 ? ";"
+                                                        + ext.verifyDirFormat(d.getAbsolutePath())
+                                                        + subImg
+                                                      : ext.verifyDirFormat(d.getAbsolutePath())
+                                                        + subImg);
                 }
               }
-              if (subImg != null) {
-                allImgs.append(allImgs.length() > 0 ? ";" + ext.verifyDirFormat(d.getAbsolutePath())
-                                                      + subImg
-                                                    : ext.verifyDirFormat(d.getAbsolutePath())
-                                                      + subImg);
-              }
+              ai.setImageFile(allImgs.toString());
+              ai.setGateName(gateTree[gateInd][0]);
+              fcsImgs.put(gateTree[gateInd][0], ai);
             }
-            ai.setImageFile(allImgs.toString());
-            ai.setGateName(gateTree[gateInd][0]);
-            fcsImgs.put(gateTree[gateInd][0], ai);
           }
         }
       }
@@ -161,9 +169,12 @@ public class Annotator implements IAnnotator {
   private static final String IMAGE_TOKEN = "@IMAGE";
 
   @Override
-  public void loadAnnotations(String annotFile) throws IOException {
+  public void loadAnnotations(String annotFile, List<Panel> panels) throws IOException {
     BufferedReader reader = Files.getAppropriateReader(annotFile);
     String line = null;
+
+    Set<String> rootIdents = panels.stream().map(Panel::getGateTree).map(g -> g[0][0])
+                                   .collect(Collectors.toSet());
 
     while ((line = reader.readLine()) != null) {
       if ("".equals(line)) continue;
@@ -173,9 +184,7 @@ public class Annotator implements IAnnotator {
         this.annotations.add(a);
       } else if (line.startsWith(IMAGE_TOKEN)) {
         String[] pts = line.split("\t")[1].split("\\|", -1);
-        AnnotatedImage ai = new AnnotatedImage(pts[0],
-                                               GateTree.GATE_TREE_PANEL_1[0][0].equals(pts[0])
-                                                       || GateTree.GATE_TREE_PANEL_2[0][0].equals(pts[0]));
+        AnnotatedImage ai = new AnnotatedImage(pts[0], rootIdents.contains(pts[0]));
         String imgFile = pts[1].equals("") ? null : pts[1];
         ai.setImageFile(imgFile);
         ai.setMissing(imgFile == null || (!imgFile.contains(";") && !Files.exists(imgFile)));

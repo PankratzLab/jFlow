@@ -57,11 +57,15 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
+import org.genvisis.fcs.auto.Panel;
+import org.genvisis.fcs.auto.WSPLoader;
 import org.genvisis.flowannot.AnnotatedImage.Annotation;
-import org.genvisis.flowannot.IAnnotator.PANEL;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Bundled;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 
@@ -88,7 +92,9 @@ public class FlowAnnotator {
   private JRadioButtonMenuItem jrbTravAnn;
   private JRadioButtonMenuItem jrbTravNon;
   private ButtonGroup travGrp;
+  private JMenu mnSaveAnn;
   private HashMap<Annotation, JRadioButtonMenuItem> annTravMap = new HashMap<>();
+  private HashMap<JRadioButton, Panel> panelBtnMap = new HashMap<>();
 
   private static final String PROP_FILE = ".flowannotator.properties";
   private static final String KEY_LAST_DIR_IMG = "LAST_DIR_IMG";
@@ -112,6 +118,7 @@ public class FlowAnnotator {
   private static final String BACKUP_DIR = ".backup./";
   private static final String BACKUP_FILE = BACKUP_DIR + "backup.annotations";
   private volatile boolean annotationsChanged = false;
+  private List<Panel> panels;
 
   private void setAnnotationsChanged() {
     annotationsChanged = true;
@@ -127,11 +134,21 @@ public class FlowAnnotator {
    * Launch the application.
    */
   public static void main(String[] args) {
+    String wspFile = null;
+    if (args.length > 0) {
+      CLI cli = new CLI(FlowAnnotator.class);
+      cli.addArg("panels", "XML file with panel definitions", true);
+      cli.parseWithExit(args);
+      wspFile = cli.get("panels");
+    }
+    List<Panel> panels = WSPLoader.loadPanelsFromFile(wspFile == null ? Bundled.getFile("docs/panels.xml")
+                                                                      : new File(wspFile));
+
     EventQueue.invokeLater(new Runnable() {
 
       public void run() {
         try {
-          FlowAnnotator window = new FlowAnnotator();
+          FlowAnnotator window = new FlowAnnotator(panels);
           window.frmFlowannotator.setVisible(true);
         } catch (Exception e) {
           e.printStackTrace();
@@ -142,8 +159,10 @@ public class FlowAnnotator {
 
   /**
    * Create the application.
+   * @param panels
    */
-  public FlowAnnotator() {
+  public FlowAnnotator(List<Panel> panels) {
+    this.panels = panels;
     loadProperties();
     initialize();
   }
@@ -269,6 +288,8 @@ public class FlowAnnotator {
 
     imagePanel = new JPanel() {
 
+      private static final long serialVersionUID = 1L;
+
       @Override
       protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -316,12 +337,16 @@ public class FlowAnnotator {
 
     constructingTree = true;
     ButtonGroup panelButtons = new ButtonGroup();
-    rdBtnPanel1 = new JRadioButton();
-    rdBtnPanel1.addItemListener(panelListener);
-    rdBtnPanel1.setText("Panel 1");
-    controlPanel.add(rdBtnPanel1, "flowx,cell 0 0,alignx center");
-    rdBtnPanel1.setSelected(true);
-    panelButtons.add(rdBtnPanel1);
+    for (int i = 0; i < panels.size(); i++) {
+      Panel panel = panels.get(i);
+      JRadioButton panelButton = new JRadioButton();
+      panelButton.addItemListener(panelListener);
+      panelButton.setText(panel.getName());
+      panelButtons.add(panelButton);
+      controlPanel.add(panelButton, "flowx, cell 0 0, alignx center");
+      if (i == 0) panelButton.setSelected(true);
+      panelBtnMap.put(panelButton, panel);
+    }
     fcsCombo.setFocusable(false);
     controlPanel.add(fcsCombo, "flowx,cell 0 1,growx");
 
@@ -330,15 +355,12 @@ public class FlowAnnotator {
 
     tree = new JTree();
     scrollPane_1.setViewportView(tree);
-    constructTree(PANEL.PANEL_1);
+    constructTree(panels.get(0));
 
-    rdBtnPanel2 = new JRadioButton();
-    rdBtnPanel2.addItemListener(panelListener);
-    rdBtnPanel2.setText("Panel 2");
-    controlPanel.add(rdBtnPanel2, "cell 0 0,alignx center");
-    panelButtons.add(rdBtnPanel2);
     im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
     am.put("enter", new AbstractAction() {
+
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent arg0) {
@@ -354,12 +376,19 @@ public class FlowAnnotator {
     startAutoSaveThread();
   }
 
+  private Panel getSelectedPanel() {
+    for (JRadioButton btn : panelBtnMap.keySet()) {
+      if (btn.isSelected()) return panelBtnMap.get(btn);
+    }
+    return null;
+  }
+
   private ItemListener panelListener = new ItemListener() {
 
     @Override
     public void itemStateChanged(ItemEvent e) {
       if (e.getStateChange() == ItemEvent.SELECTED) {
-        PANEL panel = e.getSource() == rdBtnPanel1 ? PANEL.PANEL_1 : PANEL.PANEL_2;
+        Panel panel = getSelectedPanel();
         if (!constructingTree) {
           constructingTree = true;
           constructTree(panel);
@@ -372,9 +401,28 @@ public class FlowAnnotator {
     }
   };
 
-  private void constructTree(PANEL panel) {
+  private MutableTreeNode constructGateTree(Panel panel) {
+    String[][] tree = panel.getGateTree();
+    DefaultMutableTreeNode rootNode = null;
+    HashMap<String, DefaultMutableTreeNode> map = new HashMap<>();
+    for (String[] node : tree) {
+      if (node.length == 1) {
+        AnnotatedImage ai = new AnnotatedImage(node[0], true);
+        rootNode = new DefaultMutableTreeNode(ai);
+        map.put(node[0], rootNode);
+      } else {
+        AnnotatedImage ai = new AnnotatedImage(node[0], false);
+        DefaultMutableTreeNode tn = new DefaultMutableTreeNode(ai);
+        map.get(node[1]).add(tn);
+        map.put(node[0], tn);
+      }
+    }
+    return rootNode;
+  }
+
+  private void constructTree(Panel panel) {
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-    rootNode.add(GateTree.constructTree(panel));
+    rootNode.add(constructGateTree(panel));
     DefaultTreeModel dtm = new DefaultTreeModel(rootNode);
     tree.setModel(dtm);
     tree.setShowsRootHandles(true);
@@ -501,6 +549,8 @@ public class FlowAnnotator {
     JMenuItem mntmExit = new JMenuItem();
     mntmExit.setAction(new AbstractAction() {
 
+      private static final long serialVersionUID = 1L;
+
       @Override
       public void actionPerformed(ActionEvent e) {
         close();
@@ -545,16 +595,15 @@ public class FlowAnnotator {
 
     JMenuItem mntmNavFind = new JMenuItem();
     mntmNavFind.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        PANEL p = FlowAnnotator.this.rdBtnPanel1.isSelected() ? PANEL.PANEL_1 : PANEL.PANEL_2;
+        Panel p = getSelectedPanel();
         List<String> fcs = annotator.getFCSKeys(p);
         if (fcs.isEmpty()) {
           JOptionPane.showMessageDialog(FlowAnnotator.this.frmFlowannotator,
-                                        "No files to search in panel " + (p == PANEL.PANEL_1 ? "1"
-                                                                                             : "2")
-                                                                             + "!");
+                                        "No files to search in panel " + p.getName() + "!");
           return;
         }
         String[] v = fcs.toArray(new String[fcs.size()]);
@@ -570,6 +619,7 @@ public class FlowAnnotator {
 
     JCheckBoxMenuItem mntmNavKeepGate = new JCheckBoxMenuItem();
     mntmNavKeepGate.setAction(new AbstractAction() {
+      private static final long serialVersionUID = 1L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -596,6 +646,11 @@ public class FlowAnnotator {
   }
 
   private AbstractAction saveAnnotationAction = new AbstractAction() {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -647,6 +702,7 @@ public class FlowAnnotator {
       for (String s : recentAnnotFiles) {
         JMenuItem mnRecent = new JMenuItem();
         mnRecent.setAction(new AbstractAction() {
+          private static final long serialVersionUID = 1L;
 
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -683,7 +739,7 @@ public class FlowAnnotator {
       File f = jfc.getSelectedFile();
       String fS = ext.verifyDirFormat(f.getAbsolutePath());
       setLastUsedImageDir(fS);
-      annotator.loadImgDir(fS);
+      annotator.loadImgDir(fS, panels);
       setAnnotationsChanged();
       reloadControls();
       saveProperties();
@@ -691,28 +747,8 @@ public class FlowAnnotator {
   }
 
   private void reloadControls() {
-    int panels = 0;
-    if (rdBtnPanel1.isSelected()) {
-      panels = 1;
-    } else if (rdBtnPanel2.isSelected()) {
-      panels = 2;
-    }
-    String[] fcsKeys;
-    switch (panels) {
-      case 0:
-        fcsKeys = new String[0];
-        break;
-      case 1:
-        fcsKeys = annotator.getFCSKeys(PANEL.PANEL_1).toArray(new String[0]);
-        break;
-      case 2:
-        fcsKeys = annotator.getFCSKeys(PANEL.PANEL_2).toArray(new String[0]);
-        break;
-      case 3:
-      default:
-        fcsKeys = annotator.getFCSKeys().toArray(new String[0]);
-        break;
-    }
+    Panel p = getSelectedPanel();
+    String[] fcsKeys = annotator.getFCSKeys(p).toArray(new String[0]);
     DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<>(fcsKeys);
     fcsCombo.setModel(dcbm);
     if (fcsCombo.getModel().getSize() > 0) {
@@ -743,6 +779,8 @@ public class FlowAnnotator {
       final AnnotatedImage ai1 = ai;
       final int ind = i;
       AbstractAction mnemAct = new AbstractAction() {
+
+        private static final long serialVersionUID = 1L;
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -1162,7 +1200,7 @@ public class FlowAnnotator {
   private void loadAnnotationFile(String annFile) {
     try {
       annotator = new Annotator();
-      annotator.loadAnnotations(annFile);
+      annotator.loadAnnotations(annFile, panels);
       setLastSavedAnnotationFile(annFile);
       setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile)));
       recentAnnotFiles.add(annFile);
@@ -1206,6 +1244,11 @@ public class FlowAnnotator {
 
   private final Action loadAction = new AbstractAction() {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public void actionPerformed(ActionEvent e) {
       loadImageFiles();
@@ -1214,6 +1257,11 @@ public class FlowAnnotator {
 
   private final Action existAction = new AbstractAction() {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public void actionPerformed(ActionEvent e) {
       loadAnnotations();
@@ -1221,6 +1269,11 @@ public class FlowAnnotator {
   };
 
   private final Action exportAction = new AbstractAction() {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -1232,6 +1285,11 @@ public class FlowAnnotator {
 
   private final Action saveAsAction = new AbstractAction() {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public void actionPerformed(ActionEvent e) {
       saveAnnotations(true);
@@ -1239,13 +1297,15 @@ public class FlowAnnotator {
   };
   private final Action saveAction = new AbstractAction() {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public void actionPerformed(ActionEvent e) {
       saveAnnotations(false);
     }
   };
-  private JMenu mnSaveAnn;
-  private JRadioButton rdBtnPanel1;
-  private JRadioButton rdBtnPanel2;
 
 }

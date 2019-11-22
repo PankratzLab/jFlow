@@ -1,22 +1,52 @@
 package org.genvisis.fcs.auto;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Panel {
   String name;
   Set<String> aliases;
+  String[][] gatingTree;
+  Map<String, List<String>> specials;
 
-  public Panel(String name, String... possibleAliases) {
+  public Panel(String name, String[][] gatingTree, String... possibleAliases) {
+    this(name, gatingTree, null, possibleAliases);
+  }
+
+  public Panel(String name, String[][] gatingTree, Map<String, List<String>> specials,
+               String... possibleAliases) {
     this.name = name;
     this.aliases = new HashSet<>();
     for (String s : possibleAliases) {
       aliases.add(s);
     }
+    this.gatingTree = gatingTree;
+    this.specials = specials;
   }
 
   public String getName() {
     return name;
+  }
+
+  public boolean isPanel(String fileName) {
+    for (String alias : aliases) {
+      if (fileName.toLowerCase().contains(alias.toLowerCase())) return true;
+    }
+    return false;
+  }
+
+  public String[][] getGateTree() {
+    return gatingTree;
+  }
+
+  public boolean hasSpecials() {
+    return specials != null;
+  }
+
+  public Map<String, List<String>> getSpecials() {
+    return specials;
   }
 
   @Override
