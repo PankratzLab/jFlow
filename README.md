@@ -7,9 +7,11 @@ jFlow is a robust software package that provides a one-stop solution for visuali
 
 Three main software packages are provided: jFlow, FCSProcessingPipeline, and FlowAnnotator:
 
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jFlow - interactive visualization program for reviewing and editing gating  
-| FCSProcessingPipeline - batch processing pipeline for creating images en-masse, or calculating counts and percentages  
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FlowAnnotator - program for reviewing the images created by FCSProcessingPipeline, allowing for fast and efficient review of relevant cell populations  
+Package        			|  description  
+------------------------|--------------  
+jFlow					|  interactive visualization program for reviewing and editing gating   
+FCSProcessingPipeline 	|  batch processing pipeline for creating images en-masse, or calculating counts and percentages  
+FlowAnnotator			|  program for reviewing the images created by FCSProcessingPipeline, allowing for fast and efficient review of relevant cell populations  
 
 
 Running jFlow
@@ -20,7 +22,7 @@ The main classes for each of the main applications are the following:
 | '-- for the `FCSProcessingPipeline` application, it's `org.genvisis.fcs.auto.FCSProcessingPipeline`  
 | '-- for the `FlowAnnotator` application, it's `org.genvisis.flowannot.FlowAnnotator`  
 
-The requirements for each main class can be found in the [FileDefs](https://github.com/PankratzLab/jFlow/readme/FileDefs.md) document.
+The requirements for each main class can be found in the [FileDefs](https://github.com/PankratzLab/jFlow/blob/master/readme/FileDefs.md) document.
 
 
 Building with Maven
