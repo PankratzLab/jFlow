@@ -198,7 +198,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<!-- Each product can define its own main class -->
-		<mainClass>org.genvisis.cnv.Launch</mainClass>
+		<mainClass>org.genvisis.fcs.JFlow</mainClass>
 
 		<!-- NB: Specify formatting of the maven.build.timestamp property. -->
 		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
