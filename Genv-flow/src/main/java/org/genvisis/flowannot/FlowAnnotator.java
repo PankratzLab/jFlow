@@ -14,6 +14,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -142,20 +144,25 @@ public class FlowAnnotator {
       cli.parseWithExit(args);
       wspFile = cli.get("panels");
     }
-    List<Panel> panels = WSPLoader.loadPanelsFromFile(wspFile == null ? Bundled.getFile("docs/panels.xml")
-                                                                      : new File(wspFile));
+    List<Panel> panels;
+    try {
+      panels = WSPLoader.loadPanelsFromFile(wspFile == null ? Bundled.getStream("docs/panels.xml")
+                                                            : new FileInputStream(wspFile));
+      EventQueue.invokeLater(new Runnable() {
 
-    EventQueue.invokeLater(new Runnable() {
-
-      public void run() {
-        try {
-          FlowAnnotator window = new FlowAnnotator(panels);
-          window.frmFlowannotator.setVisible(true);
-        } catch (Exception e) {
-          e.printStackTrace();
+        public void run() {
+          try {
+            FlowAnnotator window = new FlowAnnotator(panels);
+            window.frmFlowannotator.setVisible(true);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
-      }
-    });
+      });
+    } catch (FileNotFoundException e1) {
+      e1.printStackTrace();
+    }
+
   }
 
   /**

@@ -25,7 +25,7 @@
 
 	<properties>
 		<assemblyName>genvflow</assemblyName>
-		<mainClass>org.genvisis.clinFlow.DeidentifierGUI</mainClass>
+		<mainClass>org.genvisis.flowannot.FlowAnnotator</mainClass>
 		<resourcesDir>${project.basedir}/buildRsrc</resourcesDir>
 		<genvisis.jvm.version>1.8</genvisis.jvm.version>
 		<skipTests>true</skipTests>

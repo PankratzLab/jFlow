@@ -3,6 +3,7 @@ package org.genvisis.fcs.auto;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -255,7 +256,7 @@ public class WSPLoader {
     return panelNodeMap.containsKey(p) ? panelNodeMap.get(p) : new HashMap<>();
   }
 
-  public static List<Panel> loadPanelsFromFile(File panelDefFile) {
+  public static List<Panel> loadPanelsFromFile(InputStream panelDefFile) {
     List<Panel> panelsFound = new ArrayList<>();
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     try {

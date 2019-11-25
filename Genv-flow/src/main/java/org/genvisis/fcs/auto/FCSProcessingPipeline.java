@@ -1,6 +1,6 @@
 package org.genvisis.fcs.auto;
 
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -162,7 +162,7 @@ public class FCSProcessingPipeline {
     String clusterDir = cli.has("clusterDir") ? cli.get("clusterDir") : null;
     String clusterSfx = cli.has("clusterSfx") ? cli.get("clusterSfx") : null;
 
-    List<Panel> panels = WSPLoader.loadPanelsFromFile(new File(panelDefFile));
+    List<Panel> panels = WSPLoader.loadPanelsFromFile(new FileInputStream(panelDefFile));
 
     new FCSProcessingPipeline(fcs, wsp, out, highPriorityFile, lowPriorityFile, gateOverrideDir,
                               gateOverrideSfx, gateOverrideMatch, clusterDir, clusterSfx, addlImgs,
