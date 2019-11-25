@@ -111,7 +111,7 @@ public class FCSProcessingPipeline {
                                                   .collect(Collectors.joining(", ")),
                true);
 
-    cli.addArg("panelDefs", "XML file with panel definitions", true);
+    cli.addArg("panels", "XML file with panel definitions", true);
 
     cli.addArg("addlImgs", "XML file with additional image definitions", false);
     cli.addArg("dimensionOverrides", "XML file with fluorochrome name overrides", false);

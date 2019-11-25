@@ -77,8 +77,8 @@ abstract class AbstractSampleProcessor implements SampleProcessor {
       NodeList replacements = doc.getElementsByTagName("replace");
       for (int i = 0, count = replacements.getLength(); i < count; i++) {
         Element replaceNode = (Element) replacements.item(i);
-        String from = replaceNode.getElementsByTagName("from").item(0).getTextContent();
-        String to = replaceNode.getElementsByTagName("to").item(0).getTextContent();
+        String from = replaceNode.getAttribute("from");
+        String to = replaceNode.getAttribute("to");
         addDimensionNameOverride(from, to);
       }
     } catch (ParserConfigurationException e) {
