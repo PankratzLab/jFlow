@@ -1387,8 +1387,6 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
   }
 
   public void loadOverridesAsClusterColors(FCSDataLoader loader, String[] clusterGateNames) {
-    boolean test = true;
-    if (test) return;
     int cS = 3;
     fullClusterAssigns = new int[loader.getCount()];
     for (int g = 0; g < clusterGateNames.length; g++) {
