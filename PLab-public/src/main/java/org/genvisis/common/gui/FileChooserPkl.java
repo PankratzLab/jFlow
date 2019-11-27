@@ -25,7 +25,7 @@ public class FileChooserPkl extends JFileChooser {
    * @param log
    */
   public FileChooserPkl(Component parent, String startDir, boolean multipleSelect,
-                     boolean directoryChooser, String title, Logger log) {
+                        boolean directoryChooser, String title, Logger log) {
     super();
     selected = false;
     setMultiSelectionEnabled(multipleSelect);

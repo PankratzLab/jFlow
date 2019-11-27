@@ -585,8 +585,7 @@ public class ControlsQCGUI extends JFrame {
       }
     });
     meanCtrlPanel.link(meanPanel);
-    meanFrame.setBounds(JFlow.START_X, JFlow.START_Y, JFlow.START_WIDTH,
-                        JFlow.START_HEIGHT);
+    meanFrame.setBounds(JFlow.START_X, JFlow.START_Y, JFlow.START_WIDTH, JFlow.START_HEIGHT);
 
     meanFrame.setJMenuBar(createMenuBar());
 

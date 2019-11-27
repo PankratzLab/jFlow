@@ -209,7 +209,7 @@ public class DeidentifierGUI extends JDialog {
 
   private void selectOut() {
     FileChooserPkl fc = new FileChooserPkl(this, "", false, true, "Select Output Directory",
-                                     new Logger());
+                                           new Logger());
     if (!fc.isSelected()) return;
     final String dir = fc.getSelectedFile().getAbsolutePath();
     rootOutFld.setText(ext.verifyDirFormat(dir));
@@ -217,7 +217,7 @@ public class DeidentifierGUI extends JDialog {
 
   private void selectIn() {
     FileChooserPkl fc = new FileChooserPkl(this, "", false, true, "Select Source Directory",
-                                     new Logger());
+                                           new Logger());
     if (!fc.isSelected()) return;
     final String dir = fc.getSelectedFile().getAbsolutePath();
     rootInFld.setText(ext.verifyDirFormat(dir));
@@ -225,7 +225,7 @@ public class DeidentifierGUI extends JDialog {
 
   private void selectLink() {
     FileChooserPkl fc = new FileChooserPkl(this, "", false, true, "Select Link File Directory",
-                                     new Logger());
+                                           new Logger());
     if (!fc.isSelected()) return;
     final String dir = fc.getSelectedFile().getAbsolutePath();
     linkFld.setText(ext.verifyDirFormat(dir));

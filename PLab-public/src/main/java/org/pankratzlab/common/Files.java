@@ -994,67 +994,26 @@ public class Files {
     writer.close();
   }
 
-  public static void combine(
-      String[] keys,
-      String[] fileParameters,
-      String unit,
-      String outputFilename,
-      Logger log,
-      boolean ignoreCase) {
-    combine(
-        keys,
-        fileParameters,
-        new String[fileParameters.length][],
-        unit,
-        ".",
-        outputFilename,
-        log,
-        ignoreCase,
-        true,
-        false,
-        null);
+  public static void combine(String[] keys, String[] fileParameters, String unit,
+                             String outputFilename, Logger log, boolean ignoreCase) {
+    combine(keys, fileParameters, new String[fileParameters.length][], unit, ".", outputFilename,
+            log, ignoreCase, true, false, null);
   }
 
-  public static void combine(
-      String[] keys,
-      String[] fileParameters,
-      String[][] headers,
-      String unit,
-      String missingValue,
-      String outputFilename,
-      Logger log,
-      boolean ignoreCase,
-      boolean finalHeader,
-      boolean hideIndex) {
-    combine(
-        keys,
-        fileParameters,
-        headers,
-        unit,
-        missingValue,
-        outputFilename,
-        log,
-        ignoreCase,
-        finalHeader,
-        hideIndex,
-        null);
+  public static void combine(String[] keys, String[] fileParameters, String[][] headers,
+                             String unit, String missingValue, String outputFilename, Logger log,
+                             boolean ignoreCase, boolean finalHeader, boolean hideIndex) {
+    combine(keys, fileParameters, headers, unit, missingValue, outputFilename, log, ignoreCase,
+            finalHeader, hideIndex, null);
   }
 
   /**
    * @param altHeaderMap Map containing keys as filename_headerInFile and values of header in output
    */
-  public static void combine(
-      String[] keys,
-      String[] fileParameters,
-      String[][] headers,
-      String unit,
-      String missingValue,
-      String outputFilename,
-      Logger log,
-      boolean ignoreCase,
-      boolean finalHeader,
-      boolean hideIndex,
-      Hashtable<String, Hashtable<String, String>> altHeaderMap) {
+  public static void combine(String[] keys, String[] fileParameters, String[][] headers,
+                             String unit, String missingValue, String outputFilename, Logger log,
+                             boolean ignoreCase, boolean finalHeader, boolean hideIndex,
+                             Hashtable<String, Hashtable<String, String>> altHeaderMap) {
     PrintWriter writer;
     String[] line, colNames;
     Hashtable<String, String> hash;
@@ -1116,8 +1075,7 @@ public class Files {
           } else {
             sHash = null;
           }
-          if (headers != null
-              && headers[i] != null
+          if (headers != null && headers[i] != null
               && !ext.checkHeader(parser.getOriginalColumnNames(), headers[i], true, log, false)) {
             log.reportError("Error - unexpected header for file " + line[0]);
             System.exit(1);
@@ -1184,12 +1142,11 @@ public class Files {
                   tmp[j] = data[i][keys.length][j];
                 }
               }
-              writer.print(
-                  (hideIndex && i == 0 ? "" : delimiter) + ArrayUtils.toStr(tmp, delimiter));
+              writer.print((hideIndex && i == 0 ? "" : delimiter)
+                           + ArrayUtils.toStr(tmp, delimiter));
             } else {
-              writer.print(
-                  (hideIndex && i == 0 ? "" : delimiter)
-                      + ArrayUtils.toStr(data[i][keys.length], delimiter));
+              writer.print((hideIndex && i == 0 ? "" : delimiter)
+                           + ArrayUtils.toStr(data[i][keys.length], delimiter));
             }
           } catch (Exception e) {
             e.printStackTrace();
@@ -1202,8 +1159,8 @@ public class Files {
           writer.print(keys[j]);
         }
         for (int i = 0; i < data.length; i++) {
-          writer.print(
-              (hideIndex && i == 0 ? "" : delimiter) + ArrayUtils.toStr(data[i][j], delimiter));
+          writer.print((hideIndex && i == 0 ? "" : delimiter)
+                       + ArrayUtils.toStr(data[i][j], delimiter));
         }
         writer.println();
       }
@@ -1221,10 +1178,11 @@ public class Files {
    * usage scale with the number of files being used, rather than the size of those files.
    *
    * @param keys Lines in the output - sorted keys for desired lines of each file, and ordering in
-   *     output
+   *          output
    * @param filesToCombine List of files to join together. Each file name is concatenated with the
-   *     indices of the key column, and then output columns. Files are assumed to be sorted in the
-   *     same order as keys. Files are assumed not to have headers (instead using the headers array)
+   *          indices of the key column, and then output columns. Files are assumed to be sorted in
+   *          the same order as keys. Files are assumed not to have headers (instead using the
+   *          headers array)
    * @param headers Headers for each file
    * @param indexColumn The column we'll use to report our keys
    * @param missingValue
@@ -1236,18 +1194,11 @@ public class Files {
    * @param altHeaderMap Map containing keys as filename_headerInFile and values of header in output
    * @throws IOException
    */
-  public static void combineStreaming(
-      @Nonnull String[] keys,
-      @Nonnull String[] filesToCombine,
-      @Nonnull String[][] headers,
-      @Nonnull String indexColumn,
-      String missingValue,
-      @Nonnull String outputFilename,
-      Logger log,
-      boolean ignoreCase,
-      boolean printHeader,
-      boolean hideIndexColumn)
-      throws IOException {
+  public static void combineStreaming(@Nonnull String[] keys, @Nonnull String[] filesToCombine,
+                                      @Nonnull String[][] headers, @Nonnull String indexColumn,
+                                      String missingValue, @Nonnull String outputFilename,
+                                      Logger log, boolean ignoreCase, boolean printHeader,
+                                      boolean hideIndexColumn) throws IOException {
     Set<String> validKeys = new HashSet<>();
     PrintWriter writer = null;
     int[][] columnsOfInterestByFile;
@@ -1272,15 +1223,13 @@ public class Files {
       columnsOfInterestByFile = new int[filesToCombine.length][];
       writer = openAppropriateWriter(outputFilename);
       for (int fileIndex = 0; fileIndex < filesToCombine.length; fileIndex++) {
-        String[] fileNamesWithCols =
-            filesToCombine[fileIndex].trim().split(PSF.Regex.GREEDY_WHITESPACE);
+        String[] fileNamesWithCols = filesToCombine[fileIndex].trim()
+                                                              .split(PSF.Regex.GREEDY_WHITESPACE);
         fileNames[fileIndex] = fileNamesWithCols[0];
         columnsOfInterestByFile[fileIndex] = new int[fileNamesWithCols.length - 1];
-        for (int columnIndex = 0;
-            columnIndex < columnsOfInterestByFile[fileIndex].length;
-            columnIndex++) {
-          columnsOfInterestByFile[fileIndex][columnIndex] =
-              Integer.parseInt(fileNamesWithCols[columnIndex + 1]);
+        for (int columnIndex = 0; columnIndex < columnsOfInterestByFile[fileIndex].length; columnIndex++) {
+          columnsOfInterestByFile[fileIndex][columnIndex] = Integer.parseInt(fileNamesWithCols[columnIndex
+                                                                                               + 1]);
         }
 
         if (!Files.exists(fileNames[fileIndex])) {
@@ -1347,8 +1296,8 @@ public class Files {
           String[] line = currentLinesByFile[fileIndex];
           int[] columnsOfInterest = columnsOfInterestByFile[fileIndex];
           String keyForReader = line[columnsOfInterest[0]];
-          String[] data =
-              ArrayUtils.stringArray(columnsOfInterestByFile[fileIndex].length - 1, missingValue);
+          String[] data = ArrayUtils.stringArray(columnsOfInterestByFile[fileIndex].length - 1,
+                                                 missingValue);
 
           if (keyForReader.equals(keyForLine)) {
             // Populate the data
@@ -1391,18 +1340,11 @@ public class Files {
     }
   }
 
-  public static void combineWithLessMemory(
-      String[] keys,
-      String[] fileParameters,
-      String[][] headers,
-      String unit,
-      String missingValue,
-      String outputFilename,
-      Logger log,
-      boolean ignoreCase,
-      boolean finalHeader,
-      boolean hideIndex,
-      boolean keepIntermediateFiles) {
+  public static void combineWithLessMemory(String[] keys, String[] fileParameters,
+                                           String[][] headers, String unit, String missingValue,
+                                           String outputFilename, Logger log, boolean ignoreCase,
+                                           boolean finalHeader, boolean hideIndex,
+                                           boolean keepIntermediateFiles) {
     BufferedReader[] readers;
     PrintWriter writer;
     String[] line, colNames;
@@ -1470,8 +1412,7 @@ public class Files {
           } else {
             sHash = null;
           }
-          if (headers != null
-              && headers[i] != null
+          if (headers != null && headers[i] != null
               && !ext.checkHeader(parser.getOriginalColumnNames(), headers[i], true, log, false)) {
             log.reportError("Error - unexpected header for file " + line[0]);
             System.exit(1);
@@ -1515,10 +1456,9 @@ public class Files {
           Files.writeMatrix(data, "file." + (i + 1) + ".temp", delimiter);
         }
       } catch (OutOfMemoryError oome) {
-        log.reportError(
-            "Uh oh! Ran out of memory parsing file '"
-                + fileParameters[i].trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]
-                + "' at line:");
+        log.reportError("Uh oh! Ran out of memory parsing file '"
+                        + fileParameters[i].trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]
+                        + "' at line:");
         log.reportError(ArrayUtils.toStr(line, "/"));
       } catch (Exception e) {
         log.reportException(e);
@@ -1571,7 +1511,7 @@ public class Files {
    * Looks up the values for a set of keys in memory
    *
    * @param keys - the keys to lookup (if they contain tabs, then they will be matched on the first
-   *     N set of columns in the lookup values)
+   *          N set of columns in the lookup values)
    * @param lookupValues - Matrix of String with the lookup values
    * @param missingValue - the String to use if the key is not present in the lookup values
    * @param ignoreCase - ignore case when matching keys to values
@@ -1580,14 +1520,9 @@ public class Files {
    * @return
    * @throws Elision
    */
-  public static String[][] combineInMemory(
-      String[] keys,
-      String[][] lookupSource,
-      String missingValue,
-      boolean ignoreCase,
-      boolean hideIndex,
-      Logger log)
-      throws Elision {
+  public static String[][] combineInMemory(String[] keys, String[][] lookupSource,
+                                           String missingValue, boolean ignoreCase,
+                                           boolean hideIndex, Logger log) throws Elision {
     Hashtable<String, Integer> hash;
     int numColsInKey, numColsInValues;
     String[][] data;
@@ -1598,10 +1533,8 @@ public class Files {
     numColsInValues = lookupSource[0].length;
 
     if (numColsInKey > 1) {
-      log.report(
-          "The keys contain tabs, so the lookup will be performed on the first "
-              + numColsInKey
-              + " columns in the lookup source data");
+      log.report("The keys contain tabs, so the lookup will be performed on the first "
+                 + numColsInKey + " columns in the lookup source data");
     }
 
     count = 0;
@@ -1609,25 +1542,14 @@ public class Files {
     for (int i = 0; i < lookupSource.length; i++) {
       if (lookupSource[i].length > 0) {
         if (lookupSource[i].length < numColsInKey + 1) {
-          throw new Elision(
-              "The lookup values require at least "
-                  + (numColsInKey + 1)
-                  + " columns ("
-                  + numColsInKey
-                  + " for the key and at least one value"
-                  + "), but row "
-                  + (i + 1)
-                  + " has only "
-                  + lookupSource[i].length);
+          throw new Elision("The lookup values require at least " + (numColsInKey + 1)
+                            + " columns (" + numColsInKey + " for the key and at least one value"
+                            + "), but row " + (i + 1) + " has only " + lookupSource[i].length);
         }
         if (lookupSource[i].length != numColsInValues) {
-          throw new Elision(
-              "The first row of the lookup values had "
-                  + numColsInValues
-                  + " columns while row "
-                  + (i + 1)
-                  + " has "
-                  + keys[i].split("\t", -1).length);
+          throw new Elision("The first row of the lookup values had " + numColsInValues
+                            + " columns while row " + (i + 1) + " has "
+                            + keys[i].split("\t", -1).length);
         }
 
         key = lookupSource[i][0];
@@ -1640,10 +1562,8 @@ public class Files {
 
         if (hash.containsKey(key)) {
           if (count < 5 && log.getLevel() > 8) {
-            log.reportError(
-                "Warning duplicate key in lookup values ('"
-                    + key
-                    + "'); only the first value will be used:");
+            log.reportError("Warning duplicate key in lookup values ('" + key
+                            + "'); only the first value will be used:");
             log.reportError(ArrayUtils.toStr(lookupSource[hash.get(key)]));
             log.reportError("...and not this one:");
             log.reportError(ArrayUtils.toStr(lookupSource[i]));
@@ -1670,26 +1590,17 @@ public class Files {
       for (int i = 0; i < keys.length; i++) {
         key = ignoreCase ? keys[i].toLowerCase().trim() : keys[i].trim();
         if (key.split("\t", -1).length != numColsInKey) {
-          throw new Elision(
-              "The first row of the keys had "
-                  + numColsInKey
-                  + " column"
-                  + (numColsInKey == 1 ? "" : "s")
-                  + " while row "
-                  + (i + 1)
-                  + " has "
-                  + keys[i].split("\t", -1).length);
+          throw new Elision("The first row of the keys had " + numColsInKey + " column"
+                            + (numColsInKey == 1 ? "" : "s") + " while row " + (i + 1) + " has "
+                            + keys[i].split("\t", -1).length);
         }
 
         if (hash.containsKey(key)) {
-          data[i] =
-              hideIndex
-                  ? ArrayUtils.subArray(lookupSource[hash.get(key)], 1)
-                  : lookupSource[hash.get(key)];
+          data[i] = hideIndex ? ArrayUtils.subArray(lookupSource[hash.get(key)], 1)
+                              : lookupSource[hash.get(key)];
         } else {
-          data[i] =
-              ArrayUtils.stringArray(
-                  hideIndex ? numColsInValues - 1 : numColsInValues, missingValue);
+          data[i] = ArrayUtils.stringArray(hideIndex ? numColsInValues - 1 : numColsInValues,
+                                           missingValue);
           count++;
         }
       }
@@ -1702,14 +1613,8 @@ public class Files {
     }
 
     if (count > 0 && log.getLevel() > 8) {
-      log.report(
-          "\nOf the "
-              + data.length
-              + " keys, "
-              + count
-              + " "
-              + (count == 1 ? "was" : "were")
-              + " not found among the lookup values\n");
+      log.report("\nOf the " + data.length + " keys, " + count + " " + (count == 1 ? "was" : "were")
+                 + " not found among the lookup values\n");
 
       if (data.length == count) {
         log.report("The first few keys were: ");
@@ -4543,8 +4448,8 @@ public class Files {
       } else if (idfile != null) {
         swapIDs(filename, idfile, outfile, log);
       } else if (filename != null) {
-        QsubWriter.makeQsub(
-            new File(filename).getAbsolutePath(), multiple, start, stop, separate, patterns, cwd);
+        QsubWriter.makeQsub(new File(filename).getAbsolutePath(), multiple, start, stop, separate,
+                            patterns, cwd);
       } else if (dir != null) {
         summarizeAllFilesInDirectory(dir);
       } else {
