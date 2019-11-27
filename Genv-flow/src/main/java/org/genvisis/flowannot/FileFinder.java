@@ -55,27 +55,25 @@ public class FileFinder extends JDialog {
     }
     {
       textField = new JTextField();
-      textField.addKeyListener(
-          new KeyAdapter() {
+      textField.addKeyListener(new KeyAdapter() {
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-              super.keyTyped(e);
-              SwingUtilities.invokeLater(
-                  () -> {
-                    String txt = textField.getText();
-                    final DefaultListModel<String> newMod = new DefaultListModel<>();
-                    for (String opt : fullOptions) {
-                      if (new RabinKarp(txt).search(opt) < opt.length()) {
-                        newMod.addElement(opt);
-                      }
-                    }
-                    list.setModel(newMod);
-                    list.revalidate();
-                    repaint();
-                  });
+        @Override
+        public void keyReleased(KeyEvent e) {
+          super.keyTyped(e);
+          SwingUtilities.invokeLater(() -> {
+            String txt = textField.getText();
+            final DefaultListModel<String> newMod = new DefaultListModel<>();
+            for (String opt : fullOptions) {
+              if (new RabinKarp(txt).search(opt) < opt.length()) {
+                newMod.addElement(opt);
+              }
             }
+            list.setModel(newMod);
+            list.revalidate();
+            repaint();
           });
+        }
+      });
       contentPanel.add(textField, "cell 0 1,growx");
       textField.setColumns(10);
     }

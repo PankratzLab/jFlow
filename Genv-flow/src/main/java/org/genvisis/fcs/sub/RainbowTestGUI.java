@@ -695,8 +695,7 @@ public class RainbowTestGUI extends JFrame {
       }
     };
     meanCtrlPanel.setChangeListener(prevLst);
-    meanFrame.setBounds(JFlow.START_X, JFlow.START_Y, JFlow.START_WIDTH,
-                        JFlow.START_HEIGHT);
+    meanFrame.setBounds(JFlow.START_X, JFlow.START_Y, JFlow.START_WIDTH, JFlow.START_HEIGHT);
     // meanPanel.setPlotType(OneDPanel.PLOT_TYPE.BOX_PLOT);
     meanPanel.setPlotType(OneDPanel.PLOT_TYPE.DOT_LINE_PLOT);
     meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 5);
