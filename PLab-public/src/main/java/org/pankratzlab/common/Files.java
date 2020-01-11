@@ -4027,13 +4027,17 @@ public class Files {
   // }
 
   public static String getNextAvailableFilename(String pattern) {
+    return getNextAvailableFilename(pattern, "#");
+  }
+
+  public static String getNextAvailableFilename(String pattern, String token) {
     String filename;
     int count;
 
     count = 0;
     do {
       count++;
-      filename = ext.replaceAllWith(pattern, "#", count + "");
+      filename = ext.replaceAllWith(pattern, token, count + "");
     } while (exists(filename));
 
     return filename;
