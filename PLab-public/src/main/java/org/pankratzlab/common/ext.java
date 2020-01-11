@@ -1815,6 +1815,17 @@ public class ext {
     }
   }
 
+  public static <H extends Enum<H>> H parseEnumArg(Class<H> enumType, String arg) {
+    try {
+      return Enum.valueOf(enumType, arg);
+    } catch (NumberFormatException nfe) {
+      System.err.println("Error - invalid " + arg.split("=")[0] + "= argument: "
+                         + arg.split("=")[1].trim());
+      System.exit(1);
+      return null;
+    }
+  }
+
   /**
    * Parse a string array argument;
    *
