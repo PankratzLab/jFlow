@@ -4506,4 +4506,13 @@ public class Files {
     }
   }
 
+  public static void deleteAll(String directory, String suffix) {
+    String dir = ext.verifyDirFormat(directory);
+    Arrays.stream(new File(dir).list((dir1, name) -> {
+      return name.endsWith(suffix);
+    })).map(s -> dir + s).map(File::new).forEach(f -> {
+      f.delete();
+    });
+  }
+
 }
