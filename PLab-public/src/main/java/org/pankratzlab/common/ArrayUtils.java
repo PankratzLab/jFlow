@@ -3339,6 +3339,8 @@ public class ArrayUtils {
       System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
                          + ") and the boolean subset (n=" + use.length + ")");
       return null;
+    } else if (array.length == 0) {
+      return array;
     }
 
     count = 0;
