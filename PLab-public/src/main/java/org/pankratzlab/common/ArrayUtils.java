@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -26,6 +27,7 @@ import org.pankratzlab.common.stats.Maths;
 import org.pankratzlab.common.stats.ProbDist;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
@@ -5629,6 +5631,11 @@ public class ArrayUtils {
       scores[i] = (regionMedianValues[i] - mean) / sd;
     }
     return scores;
+  }
+
+  public static String[] removeEmpty(String[] unique) {
+    return Arrays.stream(unique).filter(Predicates.not(String::isEmpty))
+                 .collect(Collectors.toList()).toArray(new String[0]);
   }
 
 }
