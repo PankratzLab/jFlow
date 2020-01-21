@@ -1977,6 +1977,11 @@ public class ext {
            && Integer.parseInt(str) <= Byte.MAX_VALUE;
   }
 
+  public static boolean isValidBoolean(String value) {
+    if (value == null || value.isEmpty()) return false;
+    return "true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value);
+  }
+
   public static float parseFloatArg(String arg) {
     try {
       return Float.parseFloat(arg.split("=")[1].trim());
