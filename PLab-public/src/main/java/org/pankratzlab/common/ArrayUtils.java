@@ -3098,6 +3098,10 @@ public class ArrayUtils {
     return Lists.newArrayList(array);
   }
 
+  public static List<Integer> toList(int[] array) {
+    return Arrays.stream(array).boxed().collect(Collectors.toList());
+  }
+
   /**
    * Returns an array of the unique Strings
    *
