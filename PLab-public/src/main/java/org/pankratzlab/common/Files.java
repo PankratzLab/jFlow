@@ -2547,6 +2547,25 @@ public class Files {
     return count;
   }
 
+  public static int countExpected(String directory, String ext, Set<String> expectedFileRoots) {
+    int count = 0;
+    final AtomicInteger num = new AtomicInteger(0);
+    try {
+      java.nio.file.Files.newDirectoryStream(new File(directory).toPath()).forEach(x -> {
+        Path p = x.getFileName();
+        String r = org.pankratzlab.common.ext.rootOf(p.toString());
+        if ((ext == null || x.toString().endsWith(ext)) && expectedFileRoots == null
+            || expectedFileRoots.contains(r)) {
+          num.incrementAndGet();
+        }
+      });
+      count = num.get();
+    } catch (IOException e) {
+      count = Files.list(directory, ext).length;
+    }
+    return count;
+  }
+
   public static String[] listFullPaths(String directory, final String suffix) {
     return list(directory, null, suffix, false, true);
   }

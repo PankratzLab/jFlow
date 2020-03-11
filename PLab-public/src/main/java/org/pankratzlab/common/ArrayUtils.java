@@ -30,6 +30,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
@@ -3096,6 +3097,10 @@ public class ArrayUtils {
 
   public static <T> List<T> toList(T[] array) {
     return Lists.newArrayList(array);
+  }
+
+  public static <T> Set<T> toSet(T[] array) {
+    return Sets.newHashSet(array);
   }
 
   public static List<Integer> toList(int[] array) {
