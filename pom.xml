@@ -173,6 +173,9 @@
 		<!-- Java-SemVer -->
 		<java-semver.version>0.9.0</java-semver.version>
 
+		<!-- Java-Image-Scaling-->
+		<java-image-scaling.version>0.8.5</java-image-scaling.version>
+
 		<!-- MigLayout - http://www.miglayout.com/ -->
 		<miglayout.version>5.0</miglayout.version>
 
@@ -415,6 +418,13 @@
 				<groupId>com.github.zafarkhaja</groupId>
 				<artifactId>java-semver</artifactId>
 				<version>${java-semver.version}</version>
+			</dependency>
+
+			<!-- Java Image Scaling -->
+			<dependency>
+				<groupId>com.mortennobel</groupId>
+				<artifactId>java-image-scaling</artifactId>
+				<version>${java-image-scaling.version}</version>
 			</dependency>
 
 			<!-- Test scope dependencies - not included in .jars built with Maven -->

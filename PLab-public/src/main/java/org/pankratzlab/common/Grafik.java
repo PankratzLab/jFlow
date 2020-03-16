@@ -5,6 +5,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
@@ -17,6 +18,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
+
+import com.mortennobel.imagescaling.MultiStepRescaleOp;
 
 public class Grafik {
 
@@ -198,6 +201,11 @@ public class Grafik {
     }
 
     return iicon;
+  }
+
+  public static BufferedImage scale(BufferedImage image, int w, int h) {
+    return new MultiStepRescaleOp(w, h, RenderingHints.VALUE_INTERPOLATION_BILINEAR).filter(image,
+                                                                                            null);
   }
 
   public static BufferedImage rotateImage(BufferedImage image, boolean leftNotRight) {
