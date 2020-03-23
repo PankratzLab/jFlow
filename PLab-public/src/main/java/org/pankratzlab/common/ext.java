@@ -1892,6 +1892,7 @@ public class ext {
   }
 
   public static boolean isMissingValue(String str) {
+    if (str == null) return true;
     for (String element : MISSING_VALUES) {
       if (str.trim().equalsIgnoreCase(element)) {
         return true;
