@@ -377,7 +377,7 @@ public class Files {
       outputChannel.close();
       copy = true;
     } catch (FileNotFoundException e) {
-      log.reportFileNotFound(source.getPath());
+      log.reportFileNotFound(Files.exists(source.getPath()) ? dest.getPath() : source.getPath());
       log.reportException(e);
       e.printStackTrace();
     } catch (IOException e) {
