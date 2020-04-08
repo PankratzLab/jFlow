@@ -363,9 +363,12 @@ public class Files {
    * @param source source file
    * @param dest destination file
    * @param log
-   * @return if the copy was a success
+   * @return if the copy was a success; also returns true if source.equals(dest)
    */
   public static boolean copyFileUsingFileChannels(File source, File dest, Logger log) {
+    if (source.equals(dest)) {
+      return true;
+    }
     FileChannel inputChannel = null;
     FileChannel outputChannel = null;
     boolean copy = false;
