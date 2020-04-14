@@ -5502,36 +5502,38 @@ public class ArrayUtils {
     return sorted;
   }
 
-  public static String[] sortedCopyAlphanum(String[] array) {
-    String[] sorted = Arrays.copyOf(array, array.length);
-    Arrays.sort(sorted, new Comparator<String>() {
+  public static final Comparator<String> ALPHANUM_COMPARATOR = new Comparator<String>() {
 
-      final Pattern p = Pattern.compile("^\\d+");
+    final Pattern p = Pattern.compile("^\\d+");
 
-      @Override
-      public int compare(String object1, String object2) {
-        Matcher m = p.matcher(object1);
-        Integer number1 = null;
+    @Override
+    public int compare(String object1, String object2) {
+      Matcher m = p.matcher(object1);
+      Integer number1 = null;
+      if (!m.find()) {
+        return object1.compareToIgnoreCase(object2);
+      } else {
+        Integer number2 = null;
+        number1 = Integer.parseInt(m.group());
+        m = p.matcher(object2);
         if (!m.find()) {
           return object1.compareToIgnoreCase(object2);
         } else {
-          Integer number2 = null;
-          number1 = Integer.parseInt(m.group());
-          m = p.matcher(object2);
-          if (!m.find()) {
-            return object1.compareToIgnoreCase(object2);
+          number2 = Integer.parseInt(m.group());
+          int comparison = number1.compareTo(number2);
+          if (comparison != 0) {
+            return comparison;
           } else {
-            number2 = Integer.parseInt(m.group());
-            int comparison = number1.compareTo(number2);
-            if (comparison != 0) {
-              return comparison;
-            } else {
-              return object1.compareToIgnoreCase(object2);
-            }
+            return object1.compareToIgnoreCase(object2);
           }
         }
       }
-    });
+    }
+  };
+
+  public static String[] sortedCopyAlphanum(String[] array) {
+    String[] sorted = Arrays.copyOf(array, array.length);
+    Arrays.sort(sorted, ALPHANUM_COMPARATOR);
     return sorted;
   }
 
