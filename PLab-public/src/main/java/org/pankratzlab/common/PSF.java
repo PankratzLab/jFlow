@@ -34,6 +34,12 @@ public class PSF {
     }
   }
 
+  public static final void checkInterrupt() throws InterruptedException {
+    if (Thread.currentThread().isInterrupted()) {
+      throw new InterruptedException();
+    }
+  }
+
   /**
    * Stores colors rather than recreating them for each use.<br />
    * Names and hue designations are from http://www.color-blindness.com/color-name-hue/<br />
