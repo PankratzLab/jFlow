@@ -98,7 +98,7 @@ public class Files {
         return "~/" + PSF.Java.GENVISIS;
       }
     }
-    return "";
+    return "~/" + PSF.Java.GENVISIS;
   }
 
   /**
