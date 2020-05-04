@@ -59,21 +59,21 @@ public class Logger implements Serializable {
   }
 
   public void reportTime(String str) {
-    report(ext.getTime() + " - " + str, true, true);
+    report(ext.getTime() + "]\t" + str, true, true);
   }
 
   /**
    * @param str report this string with a time stamp and info message
    */
   public void reportTimeInfo(String str) {
-    report(ext.getTime() + " Info - " + str, true, true);
+    report(ext.getTime() + "]\t Info - " + str, true, true);
   }
 
   /**
    * @param str report this string with a time stamp and info message
    */
   public void reportTimeInfo(String str, int level) {
-    report(ext.getTime() + " Info - " + str, true, true, level);
+    report(ext.getTime() + "]\t Info - " + str, true, true, level);
   }
 
   /**
@@ -107,7 +107,7 @@ public class Logger implements Serializable {
    * @param str report this string with a time stamp and warning message
    */
   public void reportTimeWarning(String str) {
-    report(ext.getTime() + " Warning - " + str, true, true);
+    report(ext.getTime() + "]\t Warning - " + str, true, true);
   }
 
   private static String getVersion() {
