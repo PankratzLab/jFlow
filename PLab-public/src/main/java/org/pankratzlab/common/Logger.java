@@ -108,7 +108,7 @@ public class Logger implements Serializable {
    * @param str report this string with a time stamp and warning message
    */
   public void reportTimeWarning(String str) {
-    report(ext.getTime() + "]\t Warning - " + str, true, true);
+    report(ext.getTime() + "]\tWarning - " + str, true, true);
   }
 
   private static String getVersion() {
@@ -183,7 +183,7 @@ public class Logger implements Serializable {
 
     if (level >= levelRequiredToReport && logging) {
       try {
-        writer = Files.openAppropriateWriter(filename, true);
+        writer = Files.openAppropriateWriter(getFilename(), true);
         if (line) {
           writer.println(str);
         } else {
@@ -191,7 +191,7 @@ public class Logger implements Serializable {
         }
         writer.close();
       } catch (Exception e) {
-        System.err.println("Error writing to " + filename);
+        System.err.println("Error writing to " + getFilename());
         e.printStackTrace();
       }
     }
@@ -265,7 +265,7 @@ public class Logger implements Serializable {
 
     if (level >= levelRequiredToReport && logging) {
       try {
-        writer = Files.openAppropriateWriter(filename, true);
+        writer = Files.openAppropriateWriter(getFilename(), true);
         if (line) {
           writer.println(msg);
         } else {
@@ -273,7 +273,7 @@ public class Logger implements Serializable {
         }
         writer.close();
       } catch (Exception e) {
-        System.err.println("Error writing to " + filename);
+        System.err.println("Error writing to " + getFilename());
         e.printStackTrace();
       }
     }
@@ -292,12 +292,12 @@ public class Logger implements Serializable {
     if (level >= levelRequiredToReport && logging) {
       e.printStackTrace();
       try {
-        writer = Files.openAppropriateWriter(filename, true);
+        writer = Files.openAppropriateWriter(getFilename(), true);
         writer.println(msg);
         e.printStackTrace(writer);
         writer.close();
       } catch (Exception e2) {
-        System.err.println("Error writing to " + filename);
+        System.err.println("Error writing to " + getFilename());
         e2.printStackTrace();
       }
     }
