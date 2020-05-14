@@ -14,6 +14,7 @@ public class Logger implements Serializable {
 
   private static final long serialVersionUID = 1L;
   public static final int LEVEL_ONE = 1;
+  public static final int DEFAULT_LOG_LEVEL = 10;
 
   private final String filename;
   private final boolean logging;
@@ -29,7 +30,7 @@ public class Logger implements Serializable {
   }
 
   public Logger(String filename, boolean append) {
-    this(filename, append, 10);
+    this(filename, append, DEFAULT_LOG_LEVEL);
   }
 
   public Logger(String filename, boolean append, int level) {
