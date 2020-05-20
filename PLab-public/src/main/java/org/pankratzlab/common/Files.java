@@ -2685,10 +2685,14 @@ public class Files {
   // These variables need to be final in order to work in the FilenameFilter
   // The only illegal character in all operating systems is the colon :
   // so this was chosen to signify NOT
-  public static String[] list(String directory, final String prefix, final String suffix,
+  public static String[] list(String dir, final String prefix, final String suffix,
                               final boolean caseSensitive, final boolean fullPath) {
+    String directory = dir;
     if (directory == null || directory.length() == 0) {
       directory = "./";
+    }
+    if (!directory.endsWith(File.separator)) {
+      directory += File.separator;
     }
 
     String[] files;
