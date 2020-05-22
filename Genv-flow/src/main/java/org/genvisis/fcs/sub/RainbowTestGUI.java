@@ -68,7 +68,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.genvisis.common.gui.IncludeExcludeGUI;
 import org.genvisis.fcs.AbstractPanel2;
 import org.genvisis.fcs.FCSDataLoader;
 import org.genvisis.fcs.JFlow;
@@ -81,6 +80,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.utils.gui.IncludeExcludeGUI;
 import org.xml.sax.SAXException;
 
 import com.google.common.primitives.Doubles;

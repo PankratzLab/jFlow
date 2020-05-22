@@ -66,7 +66,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-import org.genvisis.common.gui.IncludeExcludeGUI;
 import org.genvisis.fcs.AbstractPanel2;
 import org.genvisis.fcs.JFlow;
 import org.genvisis.fcs.sub.MeanCtrlPanel.LabelPresenter;
@@ -76,6 +75,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.utils.gui.IncludeExcludeGUI;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;

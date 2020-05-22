@@ -27,10 +27,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
-import org.genvisis.common.gui.FileChooserPkl;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.gui.FileChooserPkl;
 
 import net.miginfocom.swing.MigLayout;
 

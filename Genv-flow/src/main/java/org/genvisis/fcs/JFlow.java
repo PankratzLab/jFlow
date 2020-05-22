@@ -45,8 +45,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.genvisis.common.gui.FileChooserPkl;
-import org.genvisis.common.gui.GuiManager;
 import org.genvisis.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.fcs.FCSDataLoader.DATA_SET;
@@ -67,6 +65,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.gui.FileChooserPkl;
+import org.pankratzlab.common.gui.GuiManager;
 import org.xml.sax.SAXException;
 
 public class JFlow extends JPanel implements WindowListener, PropertyChangeListener {

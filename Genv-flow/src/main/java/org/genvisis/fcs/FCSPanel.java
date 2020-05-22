@@ -24,7 +24,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
-import org.genvisis.common.gui.ColorIcon;
 import org.genvisis.fcs.JFlow.Classification;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Gate.PolygonGate;
@@ -38,6 +37,7 @@ import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.gui.ColorIcon;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.plots.GenericLine;
 import org.pankratzlab.common.plots.GenericPath;

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fluorochromes>
+	<replace from="Comp-BV 605-A (CD95)" to="Comp-BV605-A (CD95)" />
+    <replace from="Comp-BV 510-A (CD28)" to="Comp-BV510-A (CD28)" />
+    <replace from="Comp-BB 515-A (CD27)" to="Comp-BB515-A (CD27)" />
+    <replace from="Comp-BB515-A (CD27)" to="Comp-FITC-A (CD27)" />
+    <replace from="Comp-BV 421-A (CCR7)" to="Comp-BV421-A (CCR7)" />
+    <replace from="Comp-BV 711-A (CD45RA)" to="Comp-BV711-A (CD45RA)" />
+    <replace from="Comp-BUV 395-A (CD8)" to="Comp-BUV396-A (CD8)" />
+    <replace from="LIVE/DEAD" to="L/D" />
+    <replace from="Comp-PE-Cy7 (blue)-A (CD19)" to="Comp-PE-Cy7-A (CD19)" />
+    <replace from="Comp-BUV 737-A (IgD)" to="Comp-BUV737-A (IgD)" />
+</fluorochromes>

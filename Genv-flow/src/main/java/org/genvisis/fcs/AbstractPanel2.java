@@ -36,7 +36,6 @@ import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Sort;
@@ -48,6 +47,7 @@ import org.pankratzlab.common.plots.GenericRectangle;
 import org.pankratzlab.common.plots.PlotPoint;
 import org.pankratzlab.common.plots.PlotPoint.PointType;
 import org.pankratzlab.common.stats.Maths;
+import org.pankratzlab.utils.Grafik;
 
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;

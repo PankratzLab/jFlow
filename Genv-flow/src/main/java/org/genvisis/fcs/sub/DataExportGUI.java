@@ -31,11 +31,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import org.genvisis.common.gui.JAccordionPanel;
 import org.genvisis.fcs.JFlow;
 import org.genvisis.fcs.gating.Gate;
 import org.genvisis.fcs.gating.Gating;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.gui.JAccordionPanel;
 
 import net.miginfocom.swing.MigLayout;
 
