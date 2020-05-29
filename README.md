@@ -36,10 +36,7 @@ Genvisis uses [Maven](https://maven.apache.org/) to manage its dependencies, bui
 Genvisis is structured as a [multi-module](https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Aggregation) Maven project with the following structure:
 
 | pom-jflow  
-| '-- Logicle  
-| '-- CFCS  
 | '-- Genvflow  
-| '-- PLab-public  
 
 The key things to know about this structure are:
 
