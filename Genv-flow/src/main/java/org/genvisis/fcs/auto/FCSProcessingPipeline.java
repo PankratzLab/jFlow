@@ -141,7 +141,7 @@ public class FCSProcessingPipeline {
 
     cli.parseWithExit(args);
 
-    String panelDefFile = cli.get("panelDefs");
+    String panelDefFile = cli.get("panels");
     String fcs = cli.get("fcs");
     String wsp = cli.get("wsp");
     String out = cli.get("out");
