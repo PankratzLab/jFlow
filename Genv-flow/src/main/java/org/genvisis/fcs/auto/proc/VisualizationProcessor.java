@@ -188,12 +188,14 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
     fcp.loadWorkspaceFile(sn.wspFile);
     Set<String> sampeIds = fcp.getWorkbench().getAllSamples();
     String id = sampeIds.toArray(new String[1])[0];
-    if (fcp.getWorkbench().getSample(id).fcsFile.equals(sn.fcsFile)) {
+    final String fcsFile = fcp.getWorkbench().getSample(id).fcsFile;
+    if (fcsFile.equals(sn.fcsFile)) {
       fcp.setCurrentSampleInWSP(sn.fcsFile);
-    } else if (fcp.getWorkbench().getSample(id).fcsFile.equals(ext.rootOf(sn.fcsFile, true))) {
+    } else if (fcsFile.equals(ext.rootOf(sn.fcsFile, true))) {
       fcp.setCurrentSampleInWSP(ext.rootOf(sn.fcsFile, true));
+    } else {
+      fcp.setCurrentSampleInWSP(id);
     }
-    fcp.setCurrentSampleInWSP(id);
 
     long time2 = System.nanoTime();
     fcp.loadFile(sn.fcsFile, true);

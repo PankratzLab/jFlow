@@ -93,8 +93,15 @@ public class Workbench {
         return sn.id;
       }
       try {
-        String f1 = URLDecoder.decode(new File(sn.fcsFile).getCanonicalPath(), "UTF-8");
-        String f2 = URLDecoder.decode(new File(filename).getCanonicalPath(), "UTF-8");
+        String f1;
+        String f2;
+        f1 = URLDecoder.decode(new File(sn.fcsFile).getCanonicalPath(), "UTF-8");
+        f2 = URLDecoder.decode(new File(filename).getCanonicalPath(), "UTF-8");
+        if (f1.equals(f2)) {
+          return sn.id;
+        }
+        f1 = URLDecoder.decode(new File(sn.fcsFile).getName(), "UTF-8");
+        f2 = URLDecoder.decode(new File(filename).getName(), "UTF-8");
         if (f1.equals(f2)) {
           return sn.id;
         }
