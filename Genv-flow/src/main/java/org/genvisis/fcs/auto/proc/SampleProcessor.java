@@ -308,7 +308,7 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
   static class GateAssignmentFactory implements ProcessorFactory<GateAssignmentProcessor> {
 
     ConcurrentHashMap<Object, ConcurrentHashMap<String, Integer>> ownerMaps = new ConcurrentHashMap<>();
-    String outputDir = "/scratch.global/cole0482/FCS/";
+    String outputDir = "./";
     String dimOvvrFile;
 
     public GateAssignmentFactory(String outputDir, String dimOverrideFile) {
