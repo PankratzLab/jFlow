@@ -29,38 +29,6 @@
 		<tag>HEAD</tag>
 		<url>https://github.com/PankratzLab/jFlow</url>
 	</scm>
-	<developers>
-		<developer>
-			<id>npankrat</id>
-			<name>Nathan Pankratz</name>
-			<url></url>
-		</developer>
-		<developer>
-			<id>jlanej</id>
-			<name>John Lane</name>
-			<url></url>
-		</developer>
-		<developer>
-			<id>stkelley</id>
-			<name>Spencer Kelley</name>
-			<url></url>
-		</developer>
-		<developer>
-			<id>hinerm</id>
-			<name>Mark Hiner</name>
-			<url></url>
-		</developer>
-		<developer>
-			<id>rcoleb</id>
-			<name>Ben Cole</name>
-			<url></url>
-		</developer>
-		<developer>
-			<id>mstim</id>
-			<name>Mary Rachel Stimson</name>
-			<url></url>
-		</developer>
-	</developers>
 
 	<!-- Genvisis is structured as a multi-module maven project. By defining 
 		the bulk of configuration in this parent pom.xml, each individual component 
