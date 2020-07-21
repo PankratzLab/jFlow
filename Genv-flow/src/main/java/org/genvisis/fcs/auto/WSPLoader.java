@@ -130,7 +130,18 @@ public class WSPLoader {
 
     for (int i = 0, count = samples.getLength(); i < count; i++) {
       Element e = (Element) samples.item(i);
-      String fcsFile = ((Element) e.getElementsByTagName("DataSet").item(0)).getAttribute("uri");
+      Element dataSet = ((Element) e.getElementsByTagName("DataSet").item(0));
+      String fcsFile = dataSet.getAttribute("uri");
+      if (!fcsFile.endsWith(".fcs")) {
+        NodeList keywords = ((Element) e.getElementsByTagName("Keywords")
+                                        .item(0)).getElementsByTagName("Keyword");
+        for (int k = 0; k < keywords.getLength(); k++) {
+          if (((Element) keywords.item(k)).getAttribute("name").equals("$FIL")) {
+            fcsFile = ((Element) keywords.item(k)).getAttribute("value");
+            break;
+          }
+        }
+      }
 
       Element transforms = (Element) e.getElementsByTagName("Transformations").item(0);
       HashMap<String, AxisTransform> transformMap = parseTransforms(transforms);
@@ -178,10 +189,8 @@ public class WSPLoader {
       }
       if (!foundID) {
         for (Panel p : panels) {
-          for (String a : p.aliases) {
-            if (sn.fcsFile.toLowerCase().contains(a)) {
-              panelNodeMap.get(p).put(ext.removeDirectoryInfo(sn.fcsFile), sn);
-            }
+          if (p.isPanel(ext.removeDirectoryInfo(sn.fcsFile))) {
+            panelNodeMap.get(p).put(ext.removeDirectoryInfo(sn.fcsFile), sn);
           }
         }
       }
