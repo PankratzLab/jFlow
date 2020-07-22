@@ -149,7 +149,7 @@ public class WSPLoader {
       Element sampleNode = (Element) e.getElementsByTagName("SampleNode").item(0);
       String id = sampleNode.getAttribute("sampleID");
       SampleNode sn = new SampleNode();
-      sn.id = id;
+      // sn.id = id;
       if (fcsFile.startsWith("file:\\")) {
         fcsFile = fcsFile.substring("file:\\".length());
       } else if (fcsFile.startsWith("file:/")) {
@@ -159,11 +159,13 @@ public class WSPLoader {
       // sn.fcsFile = URLDecoder.decode(fcsFile, "utf-8");
       // } catch (UnsupportedEncodingException e2) {
       // log.reportError(e2.getMessage());
+
       sn.fcsFile = fcsFile;
       if (sn.fcsFile.contains("%20")) {
         sn.fcsFile = sn.fcsFile.replaceAll("%20", " ");
       }
       // }
+      sn.id = fcsFile;
       sn.sampleNode = sampleNode;
       sn.doc = doc;
       Gating gs = new Gating();

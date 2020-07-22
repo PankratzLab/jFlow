@@ -9,9 +9,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.genvisis.fcs.FCSDataLoader;
 import org.genvisis.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.fcs.AbstractPanel2.AxisTransform;
+import org.genvisis.fcs.FCSDataLoader;
 import org.genvisis.fcs.gating.Gate.BooleanGate;
 import org.genvisis.fcs.gating.Gate.EllipsoidGate;
 import org.genvisis.fcs.gating.Gate.PolygonGate;
@@ -69,7 +69,18 @@ public class GateFileReader {
 
     for (int i = 0, count = samples.getLength(); i < count; i++) {
       Element e = (Element) samples.item(i);
-      String fcsFile = ((Element) e.getElementsByTagName("DataSet").item(0)).getAttribute("uri");
+      Element dataSet = ((Element) e.getElementsByTagName("DataSet").item(0));
+      String fcsFile = dataSet.getAttribute("uri");
+      if (!fcsFile.endsWith(".fcs")) {
+        NodeList keywords = ((Element) e.getElementsByTagName("Keywords")
+                                        .item(0)).getElementsByTagName("Keyword");
+        for (int k = 0; k < keywords.getLength(); k++) {
+          if (((Element) keywords.item(k)).getAttribute("name").equals("$FIL")) {
+            fcsFile = ((Element) keywords.item(k)).getAttribute("value");
+            break;
+          }
+        }
+      }
 
       Element transforms = ((Element) e.getElementsByTagName("Transformations").item(0));
       if (dataLoader != null) {
@@ -84,7 +95,7 @@ public class GateFileReader {
       } else if (fcsFile.startsWith("file:/")) {
         fcsFile = fcsFile.substring(6);
       }
-      sn.id = sampleNode.getAttribute("name");
+      sn.id = fcsFile;
       sn.fcsFile = fcsFile;
       sn.sampleNode = sampleNode;
       sn.doc = doc;

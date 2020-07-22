@@ -375,6 +375,8 @@ public class SamplingPipeline {
           }
           sampWspMatch.get(p).println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
           panelQueues.get(p).add(sn);
+        } else {
+          log.reportTimeWarning("Couldn't find WSP match for sample: " + s);
         }
       }
     }
