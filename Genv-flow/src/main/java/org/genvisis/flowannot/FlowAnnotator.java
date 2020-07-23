@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -57,6 +59,7 @@ import javax.swing.border.BevelBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.plaf.FileChooserUI;
 import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -409,15 +412,16 @@ public class FlowAnnotator {
     }
   };
 
-  private MutableTreeNode constructGateTree(Panel panel) {
+  private MutableTreeNode[] constructGateTree(Panel panel) {
     String[][] tree = panel.getGateTree();
-    DefaultMutableTreeNode rootNode = null;
+    List<DefaultMutableTreeNode> rootNodes = new ArrayList<>();
     HashMap<String, DefaultMutableTreeNode> map = new HashMap<>();
     for (String[] node : tree) {
       if (node.length == 1) {
         AnnotatedImage ai = new AnnotatedImage(node[0], true);
-        rootNode = new DefaultMutableTreeNode(ai);
-        map.put(node[0], rootNode);
+        DefaultMutableTreeNode tn = new DefaultMutableTreeNode(ai);
+        rootNodes.add(tn);
+        map.put(node[0], tn);
       } else {
         AnnotatedImage ai = new AnnotatedImage(node[0], false);
         DefaultMutableTreeNode tn = new DefaultMutableTreeNode(ai);
@@ -425,12 +429,15 @@ public class FlowAnnotator {
         map.put(node[0], tn);
       }
     }
-    return rootNode;
+    return rootNodes.toArray(new DefaultMutableTreeNode[rootNodes.size()]);
   }
 
   private void constructTree(Panel panel) {
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-    rootNode.add(constructGateTree(panel));
+    MutableTreeNode[] rootNodes = constructGateTree(panel);
+    for (MutableTreeNode rn : rootNodes) {
+      rootNode.add(rn);
+    }
     DefaultTreeModel dtm = new DefaultTreeModel(rootNode);
     tree.setModel(dtm);
     tree.setShowsRootHandles(true);
@@ -755,6 +762,16 @@ public class FlowAnnotator {
       }
     });
     jfc.setDialogTitle("Open Directory");
+    FileChooserUI fcUi = jfc.getUI();
+    Class<? extends FileChooserUI> fcClass = fcUi.getClass();
+    Method setFileName;
+    try {
+      setFileName = fcClass.getMethod("setFileName", String.class);
+      setFileName.invoke(fcUi, "./");
+    } catch (NoSuchMethodException | SecurityException | IllegalAccessException
+             | IllegalArgumentException | InvocationTargetException e) {
+      e.printStackTrace();
+    }
     int opt = jfc.showOpenDialog(frmFlowannotator);
     if (opt == JFileChooser.APPROVE_OPTION) {
       File f = jfc.getSelectedFile();
@@ -1119,9 +1136,11 @@ public class FlowAnnotator {
     HashMap<String, HashMap<String, AnnotatedImage>> map = annotator.getAnnotationMap();
     String fcsFile = (String) fcsCombo.getSelectedItem();
     HashMap<String, AnnotatedImage> ann = map.get(fcsFile);
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode) ((DefaultMutableTreeNode) tree.getModel()
-                                                                                         .getRoot()).getChildAt(0);
-    updateNode(root, ann);
+    DefaultMutableTreeNode root = ((DefaultMutableTreeNode) tree.getModel().getRoot());
+    for (int i = 0; i < root.getChildCount(); i++) {
+      DefaultMutableTreeNode rootChild = (DefaultMutableTreeNode) root.getChildAt(i);
+      updateNode(rootChild, ann);
+    }
     ((DefaultTreeModel) tree.getModel()).reload();
     expandAllNodes(tree);
     updateTreeKeys(tree);

@@ -197,7 +197,7 @@ public class Annotator implements IAnnotator {
         }
       }
       if (gateInd >= 0) {
-        AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
+        AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateTree[gateInd].length == 1);
         ai.setImageFile(ext.verifyDirFormat(d.getAbsolutePath()) + img);
         ai.setGateName(gateTree[gateInd][0]);
         fcsImgs.put(gateTree[gateInd][0], ai);
