@@ -66,12 +66,12 @@ public class WSPLoader {
     for (String f : wspFiles) {
       File sub = new File(wspDir + f);
       if (!sub.canRead()) {
-        System.err.println("Error - cannot access workspace file: " + wspDir + f);
+        log.reportError("cannot access workspace file: " + wspDir + f);
         continue;
       }
       if (!sub.isDirectory()) {
         try {
-          loadSampleGating(wspDir + f);
+          loadWorkspaceGating(wspDir + f);
           numLoaded++;
         } catch (ParserConfigurationException | SAXException | IOException e) {
           log.reportException(e);
@@ -92,8 +92,8 @@ public class WSPLoader {
     return numLoaded;
   }
 
-  private void loadSampleGating(String file) throws ParserConfigurationException, SAXException,
-                                             IOException {
+  public void loadWorkspaceGating(String file) throws ParserConfigurationException, SAXException,
+                                               IOException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
     Document doc = builder.parse(new File(file));
@@ -165,7 +165,7 @@ public class WSPLoader {
         sn.fcsFile = sn.fcsFile.replaceAll("%20", " ");
       }
       // }
-      sn.id = fcsFile;
+      sn.id = id;
       sn.sampleNode = sampleNode;
       sn.doc = doc;
       Gating gs = new Gating();
@@ -251,8 +251,8 @@ public class WSPLoader {
   private ArrayList<String> loadSampleList(Element panelNode, String srcFile, Panel panel) {
     Node node = panelNode.getElementsByTagName("SampleRefs").item(0);
     if (node == null) {
-      System.err.println("No sample list tag for Panel " + panel.getName() + " in file: "
-                         + srcFile);
+      log.reportTimeWarning("No sample list tag for Panel " + panel.getName() + " in file: "
+                            + srcFile);
       return new ArrayList<>();
     }
     NodeList nList = ((Element) node).getElementsByTagName("SampleRef");
@@ -333,6 +333,10 @@ public class WSPLoader {
       e.printStackTrace();
     }
     return panelsFound;
+  }
+
+  public List<SampleNode> getAllSamples() {
+    return allSamples;
   }
 
 }

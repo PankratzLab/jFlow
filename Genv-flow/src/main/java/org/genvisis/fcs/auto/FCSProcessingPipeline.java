@@ -92,6 +92,8 @@ public class FCSProcessingPipeline {
       Thread.yield();
     }
 
+    System.out.println("Done!");
+
   }
 
   private static enum PIPELINE {

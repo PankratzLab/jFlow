@@ -191,8 +191,8 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
     final String fcsFile = fcp.getWorkbench().getSample(id).fcsFile;
     if (fcsFile.equals(sn.fcsFile)) {
       fcp.setCurrentSampleInWSP(sn.fcsFile);
-    } else if (fcsFile.equals(ext.rootOf(sn.fcsFile, true))) {
-      fcp.setCurrentSampleInWSP(ext.rootOf(sn.fcsFile, true));
+    } else if (fcsFile.equals(ext.removeDirectoryInfo(sn.fcsFile))) {
+      fcp.setCurrentSampleInWSP(ext.removeDirectoryInfo(sn.fcsFile));
     } else {
       fcp.setCurrentSampleInWSP(id);
     }

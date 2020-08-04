@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.genvisis.fcs.AbstractPanel2.AxisTransform;
-import org.pankratzlab.common.ext;
 
 public class Workbench {
 
@@ -25,18 +27,47 @@ public class Workbench {
     public Gating getGating() {
       return gating;
     }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((fcsFile == null) ? 0 : fcsFile.hashCode());
+      result = prime * result + ((id == null) ? 0 : id.hashCode());
+      result = prime * result + ((wspFile == null) ? 0 : wspFile.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (obj == null) return false;
+      if (getClass() != obj.getClass()) return false;
+      SampleNode other = (SampleNode) obj;
+      if (fcsFile == null) {
+        if (other.fcsFile != null) return false;
+      } else if (!fcsFile.equals(other.fcsFile)) return false;
+      if (id == null) {
+        if (other.id != null) return false;
+      } else if (!id.equals(other.id)) return false;
+      if (wspFile == null) {
+        if (other.wspFile != null) return false;
+      } else if (!wspFile.equals(other.wspFile)) return false;
+      return true;
+    }
+
   }
 
   Gating templateGating;
-  HashMap<String, SampleNode> samples;
+  Set<SampleNode> samples;
 
   public Workbench() {
     templateGating = new Gating();
-    samples = new HashMap<>();
+    samples = new HashSet<>();
   }
 
   public Set<String> getAllSamples() {
-    return this.samples.keySet();
+    return this.samples.stream().map(sn -> sn.id).collect(Collectors.toSet());
   }
 
   public String addNewSample(String fcsFile, boolean applyTemplate) {
@@ -47,13 +78,14 @@ public class Workbench {
       System.err.println("Error - " + e.getMessage());
       sn.fcsFile = fcsFile;
     }
-    sn.id = ext.removeDirectoryInfo(sn.fcsFile);// getNewSampleID();
+    // sn.id = ext.removeDirectoryInfo(sn.fcsFile);// getNewSampleID();
+    sn.id = getNewSampleID();
     if (applyTemplate) {
       sn.gating = templateGating.copy(fcsFile);
     } else {
       sn.gating = new Gating();
     }
-    samples.put(sn.id, sn);
+    samples.add(sn);
     return sn.id;
   }
 
@@ -61,7 +93,7 @@ public class Workbench {
     int id = samples.size() + 1;
     boolean done = false;
     while (!done) {
-      if (samples.containsKey(Integer.toString(id))) {
+      if (getSample(Integer.toString(id)) != null) {
         id++;
         continue;
       }
@@ -71,7 +103,11 @@ public class Workbench {
   }
 
   public SampleNode getSample(String currentSampleID) {
-    return samples.get(currentSampleID);
+    Optional<SampleNode> samp = samples.stream()
+                                       .filter(sn -> sn.id.equals(currentSampleID)
+                                                     || sn.fcsFile.equals(currentSampleID))
+                                       .findFirst();
+    return samp.get();
   }
 
   public void clearGating(String currentSampleID) {
@@ -80,7 +116,7 @@ public class Workbench {
   }
 
   public void setGatingForSample(String currentSampleID, Gating gateStrat) {
-    samples.get(currentSampleID).gating = gateStrat;
+    getSample(currentSampleID).gating = gateStrat;
   }
 
   public boolean containsSampleFile(String filename) {
@@ -88,7 +124,7 @@ public class Workbench {
   }
 
   public String getSampleID(String filename) {
-    for (SampleNode sn : samples.values()) {
+    for (SampleNode sn : samples) {
       if (sn.fcsFile.equals(filename)) {
         return sn.id;
       }

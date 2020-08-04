@@ -40,7 +40,7 @@ public class GateFileReader {
   }
 
   public static void updateWorkbench(Workbench bench, FCSDataLoader newDataLoader) {
-    for (SampleNode sn : bench.samples.values()) {
+    for (SampleNode sn : bench.samples) {
       if (newDataLoader != null) {
         GateFileUtils.updateGateParams(newDataLoader, sn.gating.gateRoots);
       }
@@ -95,7 +95,7 @@ public class GateFileReader {
       } else if (fcsFile.startsWith("file:/")) {
         fcsFile = fcsFile.substring(6);
       }
-      sn.id = fcsFile;
+      sn.id = id;
       sn.fcsFile = fcsFile;
       sn.sampleNode = sampleNode;
       sn.doc = doc;
@@ -113,7 +113,7 @@ public class GateFileReader {
       }
       sn.gating = gs;
 
-      wb.samples.put(sn.id, sn);
+      wb.samples.add(sn);
     }
 
     return wb;
