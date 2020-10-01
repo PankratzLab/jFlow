@@ -107,7 +107,7 @@ public class Workbench {
                                        .filter(sn -> sn.id.equals(currentSampleID)
                                                      || sn.fcsFile.equals(currentSampleID))
                                        .findFirst();
-    return samp.get();
+    return samp.orElse(null);
   }
 
   public void clearGating(String currentSampleID) {

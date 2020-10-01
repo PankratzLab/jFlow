@@ -212,6 +212,9 @@ public class CBCApplicator implements Runnable {
     } catch (FileNotFoundException e) {
       log.reportError("Data file " + file + " not found!");
       return;
+    } catch (IOException e) {
+      log.reportException(e);
+      return;
     }
     outFile = getOutFile(file);
     if (Files.exists(outFile)) {
@@ -331,6 +334,9 @@ public class CBCApplicator implements Runnable {
       reader = Files.getAppropriateReader(dataDir + file);
     } catch (FileNotFoundException e) {
       log.reportError("Data file " + file + " not found!");
+      return;
+    } catch (IOException e) {
+      log.reportException(e);
       return;
     }
     outFile = getOutFile(file);
