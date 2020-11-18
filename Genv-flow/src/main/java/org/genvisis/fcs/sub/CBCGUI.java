@@ -167,16 +167,13 @@ public class CBCGUI {
         cbcA.setOutputDirectory(txtOutDir.getText());
         Logger log = new Logger() {
 
-          /**
-           *
-           */
           private static final long serialVersionUID = 1L;
 
           @Override
           public void reportError(String str) {
             // override to show message dialog and remove genvisis version number from log output
             // super.reportTimeError(str);
-            reportError(ext.getTime() + "]\t Error - " + str, true, true);
+            reportError(ext.getTime() + "]\t Error - " + str, true);
             JOptionPane.showMessageDialog(frmCbcApplicator, str, "Error!",
                                           JOptionPane.ERROR_MESSAGE);
             throw new RuntimeException(str);
