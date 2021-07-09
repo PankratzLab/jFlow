@@ -189,7 +189,7 @@ public class SamplingPipeline {
       if (pnl != null) {
         panelMap.put(s, pnl);
       } else {
-        log.reportTimeWarning("Couldn't identify panel for analysis file " + s);
+        log.reportWarning("Couldn't identify panel for analysis file " + s);
       }
     }
 
@@ -249,7 +249,7 @@ public class SamplingPipeline {
         if (pnl != null) {
           panelData.get(pnl).outliers.add(s);
         } else {
-          log.reportTimeWarning("Couldn't identify panel for outlier " + s);
+          log.reportWarning("Couldn't identify panel for outlier " + s);
         }
       }
     }
@@ -376,7 +376,7 @@ public class SamplingPipeline {
           sampWspMatch.get(p).println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
           panelQueues.get(p).add(sn);
         } else {
-          log.reportTimeWarning("Couldn't find WSP match for sample: " + s);
+          log.reportWarning("Couldn't find WSP match for sample: " + s);
         }
       }
     }

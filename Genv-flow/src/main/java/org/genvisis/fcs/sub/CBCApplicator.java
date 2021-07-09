@@ -268,7 +268,7 @@ public class CBCApplicator implements Runnable {
         id = idParts[idParts.length - 2]; // id is always second to last token
         cbcData = idMap.get(id);
         if (cbcData == null) {
-          log.reportTimeWarning("CBC data not found for ID: " + id);
+          log.reportWarning("CBC data not found for ID: " + id);
           continue;
         }
         cbcCnt = cbcData[panel1DataColumn];
@@ -398,7 +398,7 @@ public class CBCApplicator implements Runnable {
         id = idParts[idParts.length - 2]; // id is always second to last token
         cbcData = idMap.get(id);
         if (cbcData == null) {
-          log.reportTimeWarning("id not found: " + id);
+          log.reportWarning("id not found: " + id);
           continue;
         }
         cbcCnt = getCBCCountPanel2(cbcData);

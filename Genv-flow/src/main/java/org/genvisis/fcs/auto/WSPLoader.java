@@ -251,7 +251,7 @@ public class WSPLoader {
   private ArrayList<String> loadSampleList(Element panelNode, String srcFile, Panel panel) {
     Node node = panelNode.getElementsByTagName("SampleRefs").item(0);
     if (node == null) {
-      log.reportTimeWarning("No sample list tag for Panel " + panel.getName() + " in file: "
+      log.reportWarning("No sample list tag for Panel " + panel.getName() + " in file: "
                             + srcFile);
       return new ArrayList<>();
     }
