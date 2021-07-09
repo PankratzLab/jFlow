@@ -894,7 +894,7 @@ public class ControlsQCGUI extends JFrame {
       cfmd.file = filename;
       String[] pts = ext.rootOf(filename, true).split("_");
       if (pts.length != 6) {
-        log.reportError("Error - file " + filename + " is an unexpected format!");
+        log.reportError("file " + filename + " is an unexpected format!");
         return null;
       }
       if (pts.length > 0) {
@@ -905,7 +905,7 @@ public class ControlsQCGUI extends JFrame {
                                                 Integer.parseInt(dtPts[1]) - 1,
                                                 Integer.parseInt(dtPts[2])).getTime();
         } catch (NumberFormatException e) {
-          log.reportError("Error - filename " + filename
+          log.reportError("filename " + filename
                           + " does not contain a date (YYYY-MM-DD format) as the first token!");
           return null;
         }
@@ -1168,7 +1168,7 @@ public class ControlsQCGUI extends JFrame {
         ArrayList<CtrlFileMetaData> metaData = df.getMetaDataFor(currCtrl, currPanel);
         for (int i = 0; i < metaData.size(); i++) {
           if (allData.containsKey(metaData.get(i))) {
-            log.reportError("Error - duplicate data entry found: " + metaData.toString()
+            log.reportError("duplicate data entry found: " + metaData.toString()
                             + " in files: " + df.fileName + " || "
                             + metaMap.get(metaData.get(i)).fileName);
           }
@@ -1223,7 +1223,7 @@ public class ControlsQCGUI extends JFrame {
         sourceLines.add(sourceLine.toArray(new String[sourceLine.size()]));
         sourceData.add(dataLines.toArray(new float[dataLines.size()][]));
       } else {
-        log.reportError("Error - no data found for CtrlGroup " + currCtrl + " and Panel "
+        log.reportError("no data found for CtrlGroup " + currCtrl + " and Panel "
                         + currPanel);
       }
 
