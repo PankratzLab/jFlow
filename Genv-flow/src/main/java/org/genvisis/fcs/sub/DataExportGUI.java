@@ -41,10 +41,9 @@ import net.miginfocom.swing.MigLayout;
 
 public class DataExportGUI extends JDialog {
 
-  /**
-  * 
-  */
+  /** */
   private static final long serialVersionUID = 1L;
+
   private final JPanel contentPane;
   private final JTree tree;
   private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<>();
@@ -58,8 +57,10 @@ public class DataExportGUI extends JDialog {
   private final JButton btnExport;
 
   public DataExportGUI(JFlow fcsPlot) {
-    super(SwingUtilities.getWindowAncestor(fcsPlot), "Select a set of files and gates to export",
-          ModalityType.APPLICATION_MODAL);
+    super(
+        SwingUtilities.getWindowAncestor(fcsPlot),
+        "Select a set of files and gates to export",
+        ModalityType.APPLICATION_MODAL);
     plot = fcsPlot;
     setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     setBounds(100, 100, 650, 600);
@@ -124,13 +125,14 @@ public class DataExportGUI extends JDialog {
       boxes = new ArrayList<>();
       for (int i = 0; i < files.size(); i++) {
         JCheckBox box = new JCheckBox(files.get(i));
-        box.addActionListener(new ActionListener() {
+        box.addActionListener(
+            new ActionListener() {
 
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            updateValidity();
-          }
-        });
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                updateValidity();
+              }
+            });
         if (curr == null || !files.get(i).equals(curr)) {
           box.setFont(box.getFont().deriveFont(Font.PLAIN));
         }
@@ -143,18 +145,20 @@ public class DataExportGUI extends JDialog {
     pnl.setLayout(new MigLayout("", "[grow]", ""));
 
     tree = new JTree(new DefaultTreeModel(null));
-    tree.addTreeSelectionListener(new TreeSelectionListener() {
+    tree.addTreeSelectionListener(
+        new TreeSelectionListener() {
 
-      @Override
-      public void valueChanged(TreeSelectionEvent arg0) {
-        updateValidity();
-      }
-    });
+          @Override
+          public void valueChanged(TreeSelectionEvent arg0) {
+            updateValidity();
+          }
+        });
     tree.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
     tree.setRootVisible(false);
     tree.setShowsRootHandles(true);
 
-    lbl = new JLabel("(Hold Ctrl to select multiple gates | Hold Shift to select a range of gates)");
+    lbl =
+        new JLabel("(Hold Ctrl to select multiple gates | Hold Shift to select a range of gates)");
     lbl.setFont(lblFont);
     pnl.add(lbl, "cell 0 0");
     pnl.add(tree, "cell 0 1, grow");
@@ -184,29 +188,31 @@ public class DataExportGUI extends JDialog {
     pnl.add(lblOutputFilename, "cell 0 2");
 
     outputField = new JTextField();
-    outputField.addCaretListener(new CaretListener() {
+    outputField.addCaretListener(
+        new CaretListener() {
 
-      @Override
-      public void caretUpdate(CaretEvent arg0) {
-        updateValidity();
-      }
-    });
+          @Override
+          public void caretUpdate(CaretEvent arg0) {
+            updateValidity();
+          }
+        });
     pnl.add(outputField, "cell 0 3 3 1,growx");
 
     JButton btnFileSelect = new JButton(">");
-    btnFileSelect.addActionListener(new ActionListener() {
+    btnFileSelect.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        JFileChooser jfc = new JFileChooser();
-        jfc.setMultiSelectionEnabled(false);
-        int code = jfc.showSaveDialog(DataExportGUI.this);
-        if (code == JFileChooser.APPROVE_OPTION) {
-          outputField.setText(jfc.getSelectedFile().getAbsolutePath());
-        }
-        updateValidity();
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            JFileChooser jfc = new JFileChooser();
+            jfc.setMultiSelectionEnabled(false);
+            int code = jfc.showSaveDialog(DataExportGUI.this);
+            if (code == JFileChooser.APPROVE_OPTION) {
+              outputField.setText(jfc.getSelectedFile().getAbsolutePath());
+            }
+            updateValidity();
+          }
+        });
     pnl.add(btnFileSelect, "cell 3 3");
 
     JPanel panel = new JPanel();
@@ -214,26 +220,28 @@ public class DataExportGUI extends JDialog {
     panel.setLayout(new MigLayout("ins 5 0 0 0", "[grow][][]", "[]"));
 
     btnExport = new JButton("Export");
-    btnExport.addActionListener(new ActionListener() {
+    btnExport.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        cancelled = false;
-        setVisible(false);
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            cancelled = false;
+            setVisible(false);
+          }
+        });
     btnExport.setEnabled(false);
     panel.add(btnExport, "cell 1 0");
 
     JButton btnCancel = new JButton("Cancel");
-    btnCancel.addActionListener(new ActionListener() {
+    btnCancel.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        setVisible(false);
-        dispose();
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            setVisible(false);
+            dispose();
+          }
+        });
     panel.add(btnCancel, "cell 2 0");
   }
 
@@ -280,10 +288,9 @@ public class DataExportGUI extends JDialog {
   }
 
   private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
-    DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName() == null
-                                                              || "".equals(g.getName()) ? g.getID()
-                                                                                        : g.getName(),
-                                                              true);
+    DefaultMutableTreeNode child =
+        new DefaultMutableTreeNode(
+            g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName(), true);
     gateMap.put(child, g);
     root.add(child);
     for (Gate childGate : g.getChildGates()) {

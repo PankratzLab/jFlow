@@ -31,13 +31,14 @@ import org.xml.sax.SAXException;
 public class WSPLoader {
 
   private static final String WSP_EXT = ".wsp";
-  private static final FilenameFilter WSP_FILTER = new FilenameFilter() {
+  private static final FilenameFilter WSP_FILTER =
+      new FilenameFilter() {
 
-    @Override
-    public boolean accept(File dir, String name) {
-      return name.endsWith(WSP_EXT);
-    }
-  };
+        @Override
+        public boolean accept(File dir, String name) {
+          return name.endsWith(WSP_EXT);
+        }
+      };
 
   private final Set<Panel> panels = new HashSet<>();
 
@@ -92,8 +93,8 @@ public class WSPLoader {
     return numLoaded;
   }
 
-  public void loadWorkspaceGating(String file) throws ParserConfigurationException, SAXException,
-                                               IOException {
+  public void loadWorkspaceGating(String file)
+      throws ParserConfigurationException, SAXException, IOException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
     Document doc = builder.parse(new File(file));
@@ -102,7 +103,8 @@ public class WSPLoader {
     NodeList nList = doc.getElementsByTagName("GroupNode");
     Map<Panel, Element> panelElements = new HashMap<>();
 
-    nodeLoop: for (int i = 0; i < nList.getLength(); i++) {
+    nodeLoop:
+    for (int i = 0; i < nList.getLength(); i++) {
       Node n = nList.item(i);
       if (n.getNodeType() == Node.ELEMENT_NODE) {
         Element e = (Element) n;
@@ -122,8 +124,11 @@ public class WSPLoader {
 
     Map<Panel, List<String>> panelIDs = new HashMap<>();
     for (Panel p : panels) {
-      panelIDs.put(p, panelElements.containsKey(p) ? loadSampleList(panelElements.get(p), file, p)
-                                                   : new ArrayList<>());
+      panelIDs.put(
+          p,
+          panelElements.containsKey(p)
+              ? loadSampleList(panelElements.get(p), file, p)
+              : new ArrayList<>());
     }
 
     NodeList samples = doc.getElementsByTagName("Sample");
@@ -133,8 +138,8 @@ public class WSPLoader {
       Element dataSet = ((Element) e.getElementsByTagName("DataSet").item(0));
       String fcsFile = dataSet.getAttribute("uri");
       if (!fcsFile.endsWith(".fcs")) {
-        NodeList keywords = ((Element) e.getElementsByTagName("Keywords")
-                                        .item(0)).getElementsByTagName("Keyword");
+        NodeList keywords =
+            ((Element) e.getElementsByTagName("Keywords").item(0)).getElementsByTagName("Keyword");
         for (int k = 0; k < keywords.getLength(); k++) {
           if (((Element) keywords.item(k)).getAttribute("name").equals("$FIL")) {
             fcsFile = ((Element) keywords.item(k)).getAttribute("value");
@@ -176,7 +181,7 @@ public class WSPLoader {
       gs.paramGateMap = GateFileUtils.parameterizeGates(gs.gateMap);
       for (Gate g : gs.gateMap.values()) {
         gs.getAllGateNames()
-          .add(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
+            .add(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
       }
       sn.gating = gs;
       sn.savedTransforms = transformMap;
@@ -199,7 +204,6 @@ public class WSPLoader {
 
       allSamples.add(sn);
     }
-
   }
 
   private HashMap<String, AxisTransform> parseTransforms(Element transforms) {
@@ -211,8 +215,9 @@ public class WSPLoader {
         continue;
       }
 
-      String param = ((Element) ((Element) n).getElementsByTagName("data-type:parameter")
-                                             .item(0)).getAttribute("data-type:name");
+      String param =
+          ((Element) ((Element) n).getElementsByTagName("data-type:parameter").item(0))
+              .getAttribute("data-type:name");
       AxisTransform at = null;
       if (n.getNodeName().endsWith("linear")) {
         String min = ((Element) n).getAttribute("transforms:minRange");
@@ -251,8 +256,7 @@ public class WSPLoader {
   private ArrayList<String> loadSampleList(Element panelNode, String srcFile, Panel panel) {
     Node node = panelNode.getElementsByTagName("SampleRefs").item(0);
     if (node == null) {
-      log.reportWarning("No sample list tag for Panel " + panel.getName() + " in file: "
-                            + srcFile);
+      log.reportWarning("No sample list tag for Panel " + panel.getName() + " in file: " + srcFile);
       return new ArrayList<>();
     }
     NodeList nList = ((Element) node).getElementsByTagName("SampleRef");
@@ -338,5 +342,4 @@ public class WSPLoader {
   public List<SampleNode> getAllSamples() {
     return allSamples;
   }
-
 }

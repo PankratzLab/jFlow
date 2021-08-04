@@ -43,5 +43,4 @@ public abstract class AbstractLoadingSampleProcessor extends AbstractSampleProce
     GateFileUtils.updateGateParams(d, sn.gating.gateRoots);
     sn.gating.paramGateMap = GateFileUtils.parameterizeGates(sn.gating.gateMap);
   }
-
 }

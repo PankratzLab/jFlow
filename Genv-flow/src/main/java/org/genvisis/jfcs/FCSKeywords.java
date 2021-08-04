@@ -45,15 +45,16 @@ public class FCSKeywords {
       scal[i] = 1;
       try {
         scal[i] = Double.parseDouble(getKeyword(FCS_KEYWORD.PnG.getKey(i + 1)));
-      } catch (Exception e) {}
+      } catch (Exception e) {
+      }
     }
     return scal;
   }
 
   public int getEventCount() {
     return getKeywordInt(FCS_KEYWORD.TOT.keyword)
-           - (hasKeyword(FCS_KEYWORD.ABRT.keyword) ? getKeywordInt(FCS_KEYWORD.ABRT.keyword) : 0)
-           - (hasKeyword(FCS_KEYWORD.LOST.keyword) ? getKeywordInt(FCS_KEYWORD.LOST.keyword) : 0);
+        - (hasKeyword(FCS_KEYWORD.ABRT.keyword) ? getKeywordInt(FCS_KEYWORD.ABRT.keyword) : 0)
+        - (hasKeyword(FCS_KEYWORD.LOST.keyword) ? getKeywordInt(FCS_KEYWORD.LOST.keyword) : 0);
   }
 
   public ByteOrder getEndianness() {
@@ -183,11 +184,11 @@ public class FCSKeywords {
     parameterNamesLong = new String[paramNames.size()];
     for (int i = 1; i < getParameterNames().length + 1; i++) {
       getParameterNames()[i - 1] = paramNames.get(FCS_KEYWORD.PnN.getKey(i));
-      parameterNamesLong[i
-                         - 1] = hasKeyword(FCS_KEYWORD.PnS.getKey(i)) ? getKeyword(FCS_KEYWORD.PnS.getKey(i))
-                                                                      : getParameterNames()[i - 1];
+      parameterNamesLong[i - 1] =
+          hasKeyword(FCS_KEYWORD.PnS.getKey(i))
+              ? getKeyword(FCS_KEYWORD.PnS.getKey(i))
+              : getParameterNames()[i - 1];
     }
-
   }
 
   String[] getParameterNames() {
@@ -197,5 +198,4 @@ public class FCSKeywords {
   void setParameterNames(String[] parameterNames) {
     this.parameterNames = parameterNames;
   }
-
 }

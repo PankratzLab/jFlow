@@ -84,10 +84,9 @@ import net.miginfocom.swing.MigLayout;
 
 public class ControlsQCGUI extends JFrame {
 
-  /**
-  * 
-  */
+  /** */
   private static final long serialVersionUID = 1L;
+
   private JPanel contentPane;
   private JTextField txtFldBaseFile;
   private JButton btnBaseFileSelect;
@@ -117,7 +116,7 @@ public class ControlsQCGUI extends JFrame {
 
   CompData compData;
   DataFile baseData;
-  private final static String[] EXCLUDED_ROW_HEADERS = {"mean", "average", "sd", "cv", "cv (%)"};
+  private static final String[] EXCLUDED_ROW_HEADERS = {"mean", "average", "sd", "cv", "cv (%)"};
   private JPanel panel_1;
   private JComboBox<String> comboControl;
   private JSeparator separator;
@@ -164,9 +163,7 @@ public class ControlsQCGUI extends JFrame {
     reCalcTableData();
   }
 
-  /**
-   * Create the frame.
-   */
+  /** Create the frame. */
   public ControlsQCGUI() {
     super("Controls QC");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -192,28 +189,29 @@ public class ControlsQCGUI extends JFrame {
     btnBaseFileSelect = new JButton(">");
     btnBaseFileSelect.setMargin(btnInsets);
     btnBaseFileSelect.setMnemonic(KeyEvent.VK_B);
-    btnBaseFileSelect.addActionListener(new ActionListener() {
+    btnBaseFileSelect.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        String curr = txtFldBaseFile.getText();
-        if (curr.equals("")) {
-          curr = "./";
-        }
-        JFileChooser jfc = new JFileChooser(curr);
-        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        jfc.setDialogTitle("Select Baseline File");
-        jfc.setMultiSelectionEnabled(false);
-        jfc.setFileFilter(new FileNameExtensionFilter("CSV Files", "csv"));
-        int resp = jfc.showOpenDialog(ControlsQCGUI.this);
-        if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = jfc.getSelectedFile().getAbsolutePath();
-          txtFldBaseFile.setText(newPath);
-          loadBaseline(newPath);
-          saveProps();
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            String curr = txtFldBaseFile.getText();
+            if (curr.equals("")) {
+              curr = "./";
+            }
+            JFileChooser jfc = new JFileChooser(curr);
+            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            jfc.setDialogTitle("Select Baseline File");
+            jfc.setMultiSelectionEnabled(false);
+            jfc.setFileFilter(new FileNameExtensionFilter("CSV Files", "csv"));
+            int resp = jfc.showOpenDialog(ControlsQCGUI.this);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+              String newPath = jfc.getSelectedFile().getAbsolutePath();
+              txtFldBaseFile.setText(newPath);
+              loadBaseline(newPath);
+              saveProps();
+            }
+          }
+        });
     contentPane.add(btnBaseFileSelect, "cell 2 0,growx");
 
     lblCompareFiles = new JLabel("<html>Compare <u>D</u>ir/Files:</html>");
@@ -227,89 +225,92 @@ public class ControlsQCGUI extends JFrame {
     btnAddComp = new JButton("+");
     btnAddComp.setMnemonic(KeyEvent.VK_O);
     btnAddComp.setMargin(new Insets(0, 6, 0, 6));
-    btnAddComp.addActionListener(new ActionListener() {
+    btnAddComp.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        String curr = txtFldCompDir.getText();
-        if (curr.equals("")) {
-          curr = txtFldBaseFile.getText();
-          if (!"".equals(curr)) {
-            curr = ext.parseDirectoryOfFile(curr);
-          } else {
-            curr = "./";
-          }
-        } else {
-          String[] pts = curr.split(";");
-          curr = ext.parseDirectoryOfFile(pts[pts.length - 1]);
-        }
-        JFileChooser jfc = new JFileChooser(curr);
-        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        jfc.setDialogTitle("Select Additional Compare Files");
-        jfc.setMultiSelectionEnabled(true);
-        int resp = jfc.showOpenDialog(ControlsQCGUI.this);
-        if (resp == JFileChooser.APPROVE_OPTION) {
-          File[] addlFiles = jfc.getSelectedFiles();
-          curr = txtFldCompDir.getText();
-          if (!"".equals(curr) && addlFiles.length > 0) {
-            curr += ";";
-          } else if (addlFiles.length == 0) {
-            return;
-          }
-          StringBuilder path = new StringBuilder(curr);
-          for (int i = 0; i < addlFiles.length; i++) {
-            String pt = addlFiles[i].getAbsolutePath();
-            pt = ext.verifyDirFormat(ext.parseDirectoryOfFile(pt)) + ext.removeDirectoryInfo(pt);
-            path.append(pt);
-            if (i < addlFiles.length - 1) {
-              path.append(";");
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            String curr = txtFldCompDir.getText();
+            if (curr.equals("")) {
+              curr = txtFldBaseFile.getText();
+              if (!"".equals(curr)) {
+                curr = ext.parseDirectoryOfFile(curr);
+              } else {
+                curr = "./";
+              }
+            } else {
+              String[] pts = curr.split(";");
+              curr = ext.parseDirectoryOfFile(pts[pts.length - 1]);
+            }
+            JFileChooser jfc = new JFileChooser(curr);
+            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            jfc.setDialogTitle("Select Additional Compare Files");
+            jfc.setMultiSelectionEnabled(true);
+            int resp = jfc.showOpenDialog(ControlsQCGUI.this);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+              File[] addlFiles = jfc.getSelectedFiles();
+              curr = txtFldCompDir.getText();
+              if (!"".equals(curr) && addlFiles.length > 0) {
+                curr += ";";
+              } else if (addlFiles.length == 0) {
+                return;
+              }
+              StringBuilder path = new StringBuilder(curr);
+              for (int i = 0; i < addlFiles.length; i++) {
+                String pt = addlFiles[i].getAbsolutePath();
+                pt =
+                    ext.verifyDirFormat(ext.parseDirectoryOfFile(pt)) + ext.removeDirectoryInfo(pt);
+                path.append(pt);
+                if (i < addlFiles.length - 1) {
+                  path.append(";");
+                }
+              }
+              txtFldCompDir.setText(path.toString());
+              loadCompare(path.toString().split(";")); // TODO replace split call
+              saveProps();
             }
           }
-          txtFldCompDir.setText(path.toString());
-          loadCompare(path.toString().split(";")); // TODO replace split call
-          saveProps();
-        }
-      }
-    });
+        });
 
     btnRemoveComp = new JButton("-");
     btnRemoveComp.setMnemonic(KeyEvent.VK_O);
     btnRemoveComp.setMargin(new Insets(0, 6, 0, 6));
-    btnRemoveComp.addActionListener(new ActionListener() {
+    btnRemoveComp.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        String curr = txtFldCompDir.getText();
-        String[] pts;
-        if (curr.equals("")) {
-          return;
-        } else {
-          pts = curr.split(";");
-        }
-        IncludeExcludeGUI dialog = new IncludeExcludeGUI(ControlsQCGUI.this, pts,
-                                                         ArrayUtils.booleanArray(pts.length, true));
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.pack();
-        dialog.setVisible(true);
-        int code = dialog.getCloseCode();
-        if (code == JOptionPane.OK_OPTION) {
-          StringBuilder sb = new StringBuilder();
-          boolean[] inc = dialog.getSelected();
-          for (int i = 0; i < pts.length; i++) {
-            if (inc[i]) {
-              sb.append(pts[i]).append(";");
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            String curr = txtFldCompDir.getText();
+            String[] pts;
+            if (curr.equals("")) {
+              return;
+            } else {
+              pts = curr.split(";");
+            }
+            IncludeExcludeGUI dialog =
+                new IncludeExcludeGUI(
+                    ControlsQCGUI.this, pts, ArrayUtils.booleanArray(pts.length, true));
+            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dialog.pack();
+            dialog.setVisible(true);
+            int code = dialog.getCloseCode();
+            if (code == JOptionPane.OK_OPTION) {
+              StringBuilder sb = new StringBuilder();
+              boolean[] inc = dialog.getSelected();
+              for (int i = 0; i < pts.length; i++) {
+                if (inc[i]) {
+                  sb.append(pts[i]).append(";");
+                }
+              }
+              if (sb.length() > 0) {
+                sb.deleteCharAt(sb.length() - 1); // remove trailing semicolon
+              }
+              txtFldCompDir.setText(sb.toString());
+              loadCompare(sb.toString().split(";")); // TODO replace split call
+              saveProps();
             }
           }
-          if (sb.length() > 0) {
-            sb.deleteCharAt(sb.length() - 1); // remove trailing semicolon
-          }
-          txtFldCompDir.setText(sb.toString());
-          loadCompare(sb.toString().split(";")); // TODO replace split call
-          saveProps();
-        }
-
-      }
-    });
+        });
     contentPane.add(btnRemoveComp, "cell 2 1");
 
     contentPane.add(btnAddComp, "flowx,cell 2 1");
@@ -320,108 +321,116 @@ public class ControlsQCGUI extends JFrame {
     scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
     contentPane.add(scrollPane, "cell 0 2 3 1,grow");
 
-    table = new JTable() {
+    table =
+        new JTable() {
 
-      /**
-      * 
-      */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-        Component c = super.prepareRenderer(renderer, row, column);
+          @Override
+          public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+            Component c = super.prepareRenderer(renderer, row, column);
 
-        if (/* column == 0 && */ boldRows.contains(row)) {
-          c.setFont(c.getFont().deriveFont(Font.BOLD));
-        }
-        if (isCellSelected(row, column)) {
-          return c;
-        }
+            if (
+            /* column == 0 && */ boldRows.contains(row)) {
+              c.setFont(c.getFont().deriveFont(Font.BOLD));
+            }
+            if (isCellSelected(row, column)) {
+              return c;
+            }
 
-        Color col = Color.WHITE;
-        if (column > 0 && !statRows.contains(row)) {
-          Object val = table.getModel().getValueAt(table.convertRowIndexToModel(row),
-                                                   table.convertColumnIndexToModel(column));
-          if (val != null) {
-            if (val instanceof Number) {
-              String colNm = (String) table.getModel()
-                                           .getValueAt(0, table.convertColumnIndexToModel(column));
-              double value = ((Number) val).doubleValue();
-              if (paramMeans.containsKey(colNm)) {
-                if (value > (paramMeans.get(colNm) + paramSDs.get(colNm))
-                    || value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
-                  col = SD1_COLOR;
-                }
-                if (value > (paramMeans.get(colNm) + 2 * paramSDs.get(colNm))
-                    || value < (paramMeans.get(colNm) - 2 * paramSDs.get(colNm))) {
-                  col = SD2_COLOR;
+            Color col = Color.WHITE;
+            if (column > 0 && !statRows.contains(row)) {
+              Object val =
+                  table
+                      .getModel()
+                      .getValueAt(
+                          table.convertRowIndexToModel(row),
+                          table.convertColumnIndexToModel(column));
+              if (val != null) {
+                if (val instanceof Number) {
+                  String colNm =
+                      (String)
+                          table.getModel().getValueAt(0, table.convertColumnIndexToModel(column));
+                  double value = ((Number) val).doubleValue();
+                  if (paramMeans.containsKey(colNm)) {
+                    if (value > (paramMeans.get(colNm) + paramSDs.get(colNm))
+                        || value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
+                      col = SD1_COLOR;
+                    }
+                    if (value > (paramMeans.get(colNm) + 2 * paramSDs.get(colNm))
+                        || value < (paramMeans.get(colNm) - 2 * paramSDs.get(colNm))) {
+                      col = SD2_COLOR;
+                    }
+                  }
                 }
               }
             }
-          }
-        }
-        c.setBackground(col);
+            c.setBackground(col);
 
-        return c;
-      }
-    };
-
-    table.addMouseListener(new MouseAdapter() {
-
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() == 2) {
-          JTable target = (JTable) e.getSource();
-          int row = target.getSelectedRow();
-          int column = target.getSelectedColumn();
-          if (column == 0) {
-            return;
+            return c;
           }
-          if (row != 0 && boldRows.contains(row)) {
-            return;
-          }
-          Object o1 = target.getValueAt(row, column);
-          if (o1 == null) {
-            return;
-          }
+        };
 
-          final String col = (String) target.getValueAt(0, column);
-          if (row == 0) {
-            ControlsQCGUI.this.showMeanPanel(col);
-          }
-        }
-      }
-    });
-    table.getTableHeader().addMouseListener(new MouseAdapter() {
+    table.addMouseListener(
+        new MouseAdapter() {
 
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() == 2) {
-          int colInd = table.columnAtPoint(e.getPoint());
-          String col = (String) table.getValueAt(0, colInd);
-          ControlsQCGUI.this.showMeanPanel(col);
-        }
-      }
-    });
+          @Override
+          public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 2) {
+              JTable target = (JTable) e.getSource();
+              int row = target.getSelectedRow();
+              int column = target.getSelectedColumn();
+              if (column == 0) {
+                return;
+              }
+              if (row != 0 && boldRows.contains(row)) {
+                return;
+              }
+              Object o1 = target.getValueAt(row, column);
+              if (o1 == null) {
+                return;
+              }
+
+              final String col = (String) target.getValueAt(0, column);
+              if (row == 0) {
+                ControlsQCGUI.this.showMeanPanel(col);
+              }
+            }
+          }
+        });
+    table
+        .getTableHeader()
+        .addMouseListener(
+            new MouseAdapter() {
+
+              @Override
+              public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                  int colInd = table.columnAtPoint(e.getPoint());
+                  String col = (String) table.getValueAt(0, colInd);
+                  ControlsQCGUI.this.showMeanPanel(col);
+                }
+              }
+            });
     table.setShowVerticalLines(false);
     table.setShowHorizontalLines(false);
     scrollPane.setViewportView(table);
     // table.setCellSelectionEnabled(false);
-    table.setColumnModel(new DefaultTableColumnModel() {
+    table.setColumnModel(
+        new DefaultTableColumnModel() {
 
-      /**
-      * 
-      */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void moveColumn(int columnIndex, int newIndex) {
-        if (columnIndex == 0 || newIndex == 0) {
-          return;
-        }
-        super.moveColumn(columnIndex, newIndex);
-      }
-    });
+          @Override
+          public void moveColumn(int columnIndex, int newIndex) {
+            if (columnIndex == 0 || newIndex == 0) {
+              return;
+            }
+            super.moveColumn(columnIndex, newIndex);
+          }
+        });
     table.setRowSelectionAllowed(true);
     table.setColumnSelectionAllowed(true);
 
@@ -442,17 +451,18 @@ public class ControlsQCGUI extends JFrame {
     lblControlGroup = new JLabel("Control:");
     panel_1.add(lblControlGroup, "cell 2 0,alignx trailing");
 
-    ActionListener reCalcListener = new ActionListener() {
+    ActionListener reCalcListener =
+        new ActionListener() {
 
-      @SuppressWarnings("unchecked")
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        if (((JComboBox<String>) arg0.getSource()).isPopupVisible()) {
-          saveProps();
-        }
-        reCalcTableData();
-      }
-    };
+          @SuppressWarnings("unchecked")
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            if (((JComboBox<String>) arg0.getSource()).isPopupVisible()) {
+              saveProps();
+            }
+            reCalcTableData();
+          }
+        };
 
     comboControl = new JComboBox<>();
     comboControl.addActionListener(reCalcListener);
@@ -478,13 +488,14 @@ public class ControlsQCGUI extends JFrame {
 
     spinner = new JSpinner();
     spinner.setModel(new SpinnerNumberModel(new Integer(0), new Integer(0), null, new Integer(1)));
-    spinner.addChangeListener(new ChangeListener() {
+    spinner.addChangeListener(
+        new ChangeListener() {
 
-      @Override
-      public void stateChanged(ChangeEvent arg0) {
-        reCalcTableData();
-      }
-    });
+          @Override
+          public void stateChanged(ChangeEvent arg0) {
+            reCalcTableData();
+          }
+        });
     panel_1.add(spinner, "cell 9 0");
 
     separator_4 = new JSeparator();
@@ -498,92 +509,99 @@ public class ControlsQCGUI extends JFrame {
     btnMore.setVisible(false);
     panel_1.add(btnMore, "cell 11 0,alignx right");
 
-    btnHideshowColumns.addActionListener(new ActionListener() {
+    btnHideshowColumns.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        if (baseData == null) {
-          return;
-        }
-        String[] opts = new String[baseData.getAllParams().size()];
-        boolean[] incl = new boolean[baseData.getAllParams().size()];
-        int ind = 0;
-        for (String p : baseData.getAllParams()) {
-          opts[ind] = p;
-          incl[ind] = !hiddenCols.contains(p);
-          ind++;
-        }
-        IncludeExcludeGUI dialog = new IncludeExcludeGUI(ControlsQCGUI.this, opts, incl);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.pack();
-        dialog.setVisible(true);
-        int code = dialog.getCloseCode();
-        if (code == JOptionPane.OK_OPTION) {
-          boolean[] inc = dialog.getSelected();
-          hiddenCols.clear();
-          for (int i = 0; i < opts.length; i++) {
-            if (!inc[i]) {
-              hiddenCols.add(opts[i]);
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            if (baseData == null) {
+              return;
+            }
+            String[] opts = new String[baseData.getAllParams().size()];
+            boolean[] incl = new boolean[baseData.getAllParams().size()];
+            int ind = 0;
+            for (String p : baseData.getAllParams()) {
+              opts[ind] = p;
+              incl[ind] = !hiddenCols.contains(p);
+              ind++;
+            }
+            IncludeExcludeGUI dialog = new IncludeExcludeGUI(ControlsQCGUI.this, opts, incl);
+            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dialog.pack();
+            dialog.setVisible(true);
+            int code = dialog.getCloseCode();
+            if (code == JOptionPane.OK_OPTION) {
+              boolean[] inc = dialog.getSelected();
+              hiddenCols.clear();
+              for (int i = 0; i < opts.length; i++) {
+                if (!inc[i]) {
+                  hiddenCols.add(opts[i]);
+                }
+              }
+              saveProps();
+              reCalcTableData();
             }
           }
-          saveProps();
-          reCalcTableData();
-        }
-      }
-    });
+        });
 
     meanPanel.setOpaque(true);
     meanFrame.getContentPane().add(meanPanel, BorderLayout.CENTER);
     meanFrame.getContentPane().add(meanCtrlPanel, BorderLayout.SOUTH);
-    ActionListener prevLst = new ActionListener() {
+    ActionListener prevLst =
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        String newCol = arg0.getActionCommand();
-        showMeanPanel(newCol);
-      }
-    };
-    ActionListener plotLst = new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            String newCol = arg0.getActionCommand();
+            showMeanPanel(newCol);
+          }
+        };
+    ActionListener plotLst =
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        String newCol = arg0.getActionCommand();
-        if ("DOT".equalsIgnoreCase(newCol)) {
-          meanPanel.setOpaque(true);
-          meanPanel.setPlotType(OneDPanel.PLOT_TYPE.DOT_LINE_PLOT);
-          meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 5);
-          meanPanel.setXAxisLabel("File by Date");
-        } else if ("BOX".equalsIgnoreCase(newCol)) {
-          meanPanel.setPlotType(PLOT_TYPE.BOX_PLOT);
-          meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
-          meanPanel.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
-          meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
-          String[] lbls = meanPanel.plotLabel.split("\\|")[0].split("/");
-          String gateName = "Freq. of "
-                            + (lbls.length > 1 ? lbls[lbls.length - 2].trim() : " Parent");
-          meanPanel.setYAxisLabel(gateName);
-        }
-        meanPanel.invalidate();
-        meanPanel.paintAgain();
-        // showMeanPanel(newCol);
-      }
-    };
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            String newCol = arg0.getActionCommand();
+            if ("DOT".equalsIgnoreCase(newCol)) {
+              meanPanel.setOpaque(true);
+              meanPanel.setPlotType(OneDPanel.PLOT_TYPE.DOT_LINE_PLOT);
+              meanPanel.setAxisXHeight(
+                  AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 5);
+              meanPanel.setXAxisLabel("File by Date");
+            } else if ("BOX".equalsIgnoreCase(newCol)) {
+              meanPanel.setPlotType(PLOT_TYPE.BOX_PLOT);
+              meanPanel.setAxisXHeight(
+                  AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
+              meanPanel.setAxisYWidth(
+                  AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
+              meanPanel.setXAxisLabel(""); // pts[0].trim().replaceAll("/", " /\n");
+              String[] lbls = meanPanel.plotLabel.split("\\|")[0].split("/");
+              String gateName =
+                  "Freq. of " + (lbls.length > 1 ? lbls[lbls.length - 2].trim() : " Parent");
+              meanPanel.setYAxisLabel(gateName);
+            }
+            meanPanel.invalidate();
+            meanPanel.paintAgain();
+            // showMeanPanel(newCol);
+          }
+        };
     meanCtrlPanel.setChangeListener(prevLst);
     meanCtrlPanel.setPlotChangeListener(plotLst);
     meanPanel.setPlotType(PLOT_TYPE.BOX_PLOT);
     meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
     meanPanel.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 4);
-    meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
+    meanPanel.setXAxisLabel(""); // pts[0].trim().replaceAll("/", " /\n");
     // meanPanel.setYAxisLabel(meanPanel.plotLabel.split("\\|")[1].trim());
-    meanCtrlPanel.setLabelPresenter(new LabelPresenter() {
+    meanCtrlPanel.setLabelPresenter(
+        new LabelPresenter() {
 
-      @Override
-      public String getPresentationView(String label) {
-        String[] pts = label.split("\\|")[0].trim().split("/");
-        String col = pts[pts.length - 1];
-        return col;
-      }
-    });
+          @Override
+          public String getPresentationView(String label) {
+            String[] pts = label.split("\\|")[0].trim().split("/");
+            String col = pts[pts.length - 1];
+            return col;
+          }
+        });
     meanCtrlPanel.link(meanPanel);
     meanFrame.setBounds(JFlow.START_X, JFlow.START_Y, JFlow.START_WIDTH, JFlow.START_HEIGHT);
 
@@ -594,13 +612,15 @@ public class ControlsQCGUI extends JFrame {
     meanPanel.setShowMean15Line(false);
     meanPanel.setShowRegressionLine(true);
 
-    meanPanel.addPropertyChangeListener("REGRESSION", new PropertyChangeListener() {
+    meanPanel.addPropertyChangeListener(
+        "REGRESSION",
+        new PropertyChangeListener() {
 
-      @Override
-      public void propertyChange(PropertyChangeEvent evt) {
-        saveProps();
-      }
-    });
+          @Override
+          public void propertyChange(PropertyChangeEvent evt) {
+            saveProps();
+          }
+        });
 
     loadProps();
     pack();
@@ -611,18 +631,19 @@ public class ControlsQCGUI extends JFrame {
 
     JMenu actMenu = new JMenu("Actions");
     JMenuItem screenshotItem = new JMenuItem("Screenshot");
-    screenshotItem.addActionListener(new ActionListener() {
+    screenshotItem.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JFileChooser fileChooser = new JFileChooser(".");
-        int fileOpenActionSelected = fileChooser.showSaveDialog(ControlsQCGUI.this);
-        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
-          File fileToOpen = fileChooser.getSelectedFile();
-          meanPanel.screenCapture(fileToOpen.toString() + ".png");
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            JFileChooser fileChooser = new JFileChooser(".");
+            int fileOpenActionSelected = fileChooser.showSaveDialog(ControlsQCGUI.this);
+            if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
+              File fileToOpen = fileChooser.getSelectedFile();
+              meanPanel.screenCapture(fileToOpen.toString() + ".png");
+            }
+          }
+        });
 
     actMenu.add(screenshotItem);
     menuBar.add(actMenu);
@@ -688,24 +709,26 @@ public class ControlsQCGUI extends JFrame {
 
     meanCtrlPanel.setColumns(cols, ind - 2);
 
-    meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
+    meanPanel.setXAxisLabel(""); // pts[0].trim().replaceAll("/", " /\n");
     String[] lbls = col.split("\\|")[0].split("/");
     String gateName = "Freq. of " + (lbls.length > 1 ? lbls[lbls.length - 2].trim() : " Parent");
     meanPanel.setYAxisLabel(gateName);
-    meanPanel.setData(gateName,
-                      new String[][] {baseLbls, compLbls.toArray(new String[compLbls.size()])},
-                      new double[][] {yDataBase, Doubles.toArray(compDbls)});
+    meanPanel.setData(
+        gateName,
+        new String[][] {baseLbls, compLbls.toArray(new String[compLbls.size()])},
+        new double[][] {yDataBase, Doubles.toArray(compDbls)});
     // meanPanel.paintAgain();
-    meanFrame.setTitle("jFlow - Control QC - Overall Mean/SD - " + lbls[lbls.length - 1] + " | "
-                       + gateName);
-    SwingUtilities.invokeLater(new Runnable() {
+    meanFrame.setTitle(
+        "jFlow - Control QC - Overall Mean/SD - " + lbls[lbls.length - 1] + " | " + gateName);
+    SwingUtilities.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        meanFrame.setVisible(true);
-        meanPanel.paintAgain();
-      }
-    });
+          @Override
+          public void run() {
+            meanFrame.setVisible(true);
+            meanPanel.paintAgain();
+          }
+        });
   }
 
   private static final String PROP_FILE = "controlsQC.properties";
@@ -852,8 +875,9 @@ public class ControlsQCGUI extends JFrame {
     final TableColumnModel columnModel = table.getColumnModel();
     FontMetrics fm = table.getFontMetrics(table.getFont());
     for (int column = 0; column < table.getColumnCount(); column++) {
-      int width = fm.stringWidth(columnModel.getColumn(column).getHeaderValue().toString()) + 20; // Min
-                                                                                                  // width
+      int width =
+          fm.stringWidth(columnModel.getColumn(column).getHeaderValue().toString()) + 20; // Min
+      // width
       for (int row = 1; row < table.getRowCount(); row++) {
         TableCellRenderer renderer = table.getCellRenderer(row, column);
         Component comp = table.prepareRenderer(renderer, row, column);
@@ -874,18 +898,19 @@ public class ControlsQCGUI extends JFrame {
     private String initials;
     private String number;
 
-    public static final Comparator<CtrlFileMetaData> COMPARATOR = new Comparator<CtrlFileMetaData>() {
+    public static final Comparator<CtrlFileMetaData> COMPARATOR =
+        new Comparator<CtrlFileMetaData>() {
 
-      @Override
-      public int compare(CtrlFileMetaData o1, CtrlFileMetaData o2) {
-        int comp;
-        comp = o1.fileDate.compareTo(o2.fileDate);
-        if (comp == 0) {
-          comp = o1.number.compareTo(o2.number);
-        }
-        return comp;
-      }
-    };
+          @Override
+          public int compare(CtrlFileMetaData o1, CtrlFileMetaData o2) {
+            int comp;
+            comp = o1.fileDate.compareTo(o2.fileDate);
+            if (comp == 0) {
+              comp = o1.number.compareTo(o2.number);
+            }
+            return comp;
+          }
+        };
 
     private CtrlFileMetaData() {}
 
@@ -901,12 +926,17 @@ public class ControlsQCGUI extends JFrame {
         cfmd.fileDateStr = pts[0];
         String[] dtPts = pts[0].split("-");
         try {
-          cfmd.fileDate = new GregorianCalendar(Integer.parseInt(dtPts[0]),
-                                                Integer.parseInt(dtPts[1]) - 1,
-                                                Integer.parseInt(dtPts[2])).getTime();
+          cfmd.fileDate =
+              new GregorianCalendar(
+                      Integer.parseInt(dtPts[0]),
+                      Integer.parseInt(dtPts[1]) - 1,
+                      Integer.parseInt(dtPts[2]))
+                  .getTime();
         } catch (NumberFormatException e) {
-          log.reportError("filename " + filename
-                          + " does not contain a date (YYYY-MM-DD format) as the first token!");
+          log.reportError(
+              "filename "
+                  + filename
+                  + " does not contain a date (YYYY-MM-DD format) as the first token!");
           return null;
         }
       }
@@ -1015,12 +1045,10 @@ public class ControlsQCGUI extends JFrame {
         int rowInd = fileInd.get(df.internalFiles.get(f));
         float[] arr = new float[df.allParams.size()];
         for (int i = 0; i < df.allParams.size(); i++) {
-          arr[i] = "".equals(data[rowInd][i
-                                          + 1]) ? Float.NaN
-                                                : Float.parseFloat(data[rowInd][i + 1]
-                                                                                      .replace("%",
-                                                                                               "")
-                                                                                      .trim());
+          arr[i] =
+              "".equals(data[rowInd][i + 1])
+                  ? Float.NaN
+                  : Float.parseFloat(data[rowInd][i + 1].replace("%", "").trim());
         }
         df.fileData[f] = arr;
       }
@@ -1062,9 +1090,9 @@ public class ControlsQCGUI extends JFrame {
           boolean[] incl = new boolean[internalFiles.size()];
           for (int i = 0; i < incl.length; i++) {
             CtrlFileMetaData cfmd = internalMetaData.get(internalFiles.get(i));
-            incl[i] = (ctrl == null || cfmd.isControlGroup(ctrl))
-                      && (panel == null || cfmd.isPanel(panel));
-
+            incl[i] =
+                (ctrl == null || cfmd.isControlGroup(ctrl))
+                    && (panel == null || cfmd.isPanel(panel));
           }
           retArr = ArrayUtils.subArray(retArr, incl);
           paramDataCache.put(param + "\t" + ctrl + "\t" + panel, retArr);
@@ -1093,7 +1121,6 @@ public class ControlsQCGUI extends JFrame {
     public ArrayList<String> getAllFiles() {
       return (ArrayList<String>) internalFiles.clone();
     }
-
   }
 
   static class CompData {
@@ -1160,17 +1187,25 @@ public class ControlsQCGUI extends JFrame {
     float[][][] data;
     HashMap<String, DataFile> files;
 
-    public void fetchRecentData(List<String> params, String currCtrl, String currPanel,
-                                int numOfMostRecentToAdd, Logger log) {
+    public void fetchRecentData(
+        List<String> params,
+        String currCtrl,
+        String currPanel,
+        int numOfMostRecentToAdd,
+        Logger log) {
       HashMap<CtrlFileMetaData, DataFile> metaMap = new HashMap<>();
       HashMap<CtrlFileMetaData, float[]> allData = new HashMap<>();
       for (DataFile df : files.values()) {
         ArrayList<CtrlFileMetaData> metaData = df.getMetaDataFor(currCtrl, currPanel);
         for (int i = 0; i < metaData.size(); i++) {
           if (allData.containsKey(metaData.get(i))) {
-            log.reportError("duplicate data entry found: " + metaData.toString()
-                            + " in files: " + df.fileName + " || "
-                            + metaMap.get(metaData.get(i)).fileName);
+            log.reportError(
+                "duplicate data entry found: "
+                    + metaData.toString()
+                    + " in files: "
+                    + df.fileName
+                    + " || "
+                    + metaMap.get(metaData.get(i)).fileName);
           }
           allData.put(metaData.get(i), df.getFileData(metaData.get(i).file));
           metaMap.put(metaData.get(i), df);
@@ -1184,9 +1219,13 @@ public class ControlsQCGUI extends JFrame {
       String prevSrc = null;
       ArrayList<String> sourceLine = null;
       ArrayList<float[]> dataLines = null;
-      for (int c = 0, count = (numOfMostRecentToAdd == 0 ? sorted.size()
-                                                         : Math.min(sorted.size(),
-                                                                    numOfMostRecentToAdd)); c < count; c++) {
+      for (int c = 0,
+              count =
+                  (numOfMostRecentToAdd == 0
+                      ? sorted.size()
+                      : Math.min(sorted.size(), numOfMostRecentToAdd));
+          c < count;
+          c++) {
         CtrlFileMetaData cfmd = sorted.get(c);
         String src = metaMap.get(cfmd).fileName;
         if (sourceLine == null) {
@@ -1213,8 +1252,9 @@ public class ControlsQCGUI extends JFrame {
         float[] fileData = allData.get(cfmd);
         float[] lineData = new float[params.size()];
         for (int i = 0; i < lineData.length; i++) {
-          int paramInd = dataParams.indexOf(params.get(i).trim().toUpperCase()
-                                                  .replaceAll("\\(%\\)", "").trim());
+          int paramInd =
+              dataParams.indexOf(
+                  params.get(i).trim().toUpperCase().replaceAll("\\(%\\)", "").trim());
           lineData[i] = paramInd == -1 ? Float.NaN : fileData[paramInd];
         }
         dataLines.add(lineData);
@@ -1223,8 +1263,7 @@ public class ControlsQCGUI extends JFrame {
         sourceLines.add(sourceLine.toArray(new String[sourceLine.size()]));
         sourceData.add(dataLines.toArray(new float[dataLines.size()][]));
       } else {
-        log.reportError("no data found for CtrlGroup " + currCtrl + " and Panel "
-                        + currPanel);
+        log.reportError("no data found for CtrlGroup " + currCtrl + " and Panel " + currPanel);
       }
 
       source = sourceLines.toArray(new String[sourceLines.size()][]);
@@ -1238,7 +1277,6 @@ public class ControlsQCGUI extends JFrame {
     public float[][][] getRecentData() {
       return data;
     }
-
   }
 
   private void reCalcTableData() {
@@ -1264,18 +1302,17 @@ public class ControlsQCGUI extends JFrame {
       paramMeanLists.put(p, new ArrayList<Float>());
     }
 
-    dtmMean = new DefaultTableModel(colNames, 0) {
+    dtmMean =
+        new DefaultTableModel(colNames, 0) {
 
-      /**
-      * 
-      */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public boolean isCellEditable(int row, int column) {
-        return false;
-      }
-    };
+          @Override
+          public boolean isCellEditable(int row, int column) {
+            return false;
+          }
+        };
 
     boldRows.clear();
 
@@ -1376,7 +1413,7 @@ public class ControlsQCGUI extends JFrame {
   private static final int TREND_ABOVE_1SD_THRESH = 5;
   private static final int TREND_ABOVE_2SD_THRESH = 2;
   private static final double PCT_OF_EVENTS_DEV_TREND = 0.25; // 1-quarter of events outside of 1SD
-                                                              // will result in file being reported
+  // will result in file being reported
   private JButton btnMore;
 
   private void checkWarnings() {
@@ -1415,7 +1452,6 @@ public class ControlsQCGUI extends JFrame {
               trendAbove1 = 0;
               trendAbove2 = 0;
             }
-
           }
         }
       }
@@ -1432,8 +1468,11 @@ public class ControlsQCGUI extends JFrame {
       if (!paramTrendsAbove1.isEmpty()) {
         for (String s : paramTrendsAbove1.keySet()) {
           String[] p = s.split("\\|")[0].trim().split("/");
-          String warn = paramTrendsAbove1.get(s) + "-count trend in parameter " + p[p.length - 1]
-                        + " greater than 1SD from the mean.";
+          String warn =
+              paramTrendsAbove1.get(s)
+                  + "-count trend in parameter "
+                  + p[p.length - 1]
+                  + " greater than 1SD from the mean.";
           warnings.add(warn);
           if (paramTrendsAbove1.get(s) == max) {
             maxWarn = warn;
@@ -1444,8 +1483,11 @@ public class ControlsQCGUI extends JFrame {
       if (!paramTrendsAbove2.isEmpty()) {
         for (String s : paramTrendsAbove2.keySet()) {
           String[] p = s.split("\\|")[0].trim().split("/");
-          String warn = paramTrendsAbove2.get(s) + "-count trend in parameter " + p[p.length - 1]
-                        + " greater than 2SD from the mean.";
+          String warn =
+              paramTrendsAbove2.get(s)
+                  + "-count trend in parameter "
+                  + p[p.length - 1]
+                  + " greater than 2SD from the mean.";
           warnings.add(warn);
           if (paramTrendsAbove2.get(s) == max) {
             maxWarn = warn;
@@ -1469,10 +1511,13 @@ public class ControlsQCGUI extends JFrame {
           }
 
           if (cnt >= params.size() * PCT_OF_EVENTS_DEV_TREND) {
-            warnings.add("Source " + srcs[i][s] + " has " + cnt
-                         + " events greater than 1SD from parameter means.");
+            warnings.add(
+                "Source "
+                    + srcs[i][s]
+                    + " has "
+                    + cnt
+                    + " events greater than 1SD from parameter means.");
           }
-
         }
       }
 
@@ -1480,49 +1525,50 @@ public class ControlsQCGUI extends JFrame {
         lblWarning.setIcon(UIManager.getIcon("OptionPane.warningIcon"));
         lblWarning.setText(maxWarn);
         final String finalMaxWarnParam = maxWarnParam;
-        lblWarning.addMouseListener(new MouseAdapter() {
+        lblWarning.addMouseListener(
+            new MouseAdapter() {
 
-          @Override
-          public void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() == 2) {
-              showMeanPanel(finalMaxWarnParam);
-            }
-          }
-        });
+              @Override
+              public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                  showMeanPanel(finalMaxWarnParam);
+                }
+              }
+            });
 
         if (warnings.size() > 1) {
           btnMore.setVisible(true);
-          btnMore.setAction(new AbstractAction() {
+          btnMore.setAction(
+              new AbstractAction() {
 
-            /**
-            * 
-            */
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              final JPanel msgPane = new JPanel(new MigLayout("", "", ""));
-              JScrollPane scroll = new JScrollPane(msgPane);
-              for (int i = 0; i < warnings.size(); i++) {
-                msgPane.add(new JLabel("" + warnings.get(i)), "cell 0 " + i);
-              }
-              msgPane.addHierarchyListener(new HierarchyListener() {
+                /** */
+                private static final long serialVersionUID = 1L;
 
                 @Override
-                public void hierarchyChanged(HierarchyEvent e) {
-                  Window window = SwingUtilities.getWindowAncestor(msgPane);
-                  if (window instanceof Dialog) {
-                    Dialog dialog = (Dialog) window;
-                    if (!dialog.isResizable()) {
-                      dialog.setResizable(true);
-                    }
+                public void actionPerformed(ActionEvent e) {
+                  final JPanel msgPane = new JPanel(new MigLayout("", "", ""));
+                  JScrollPane scroll = new JScrollPane(msgPane);
+                  for (int i = 0; i < warnings.size(); i++) {
+                    msgPane.add(new JLabel("" + warnings.get(i)), "cell 0 " + i);
                   }
+                  msgPane.addHierarchyListener(
+                      new HierarchyListener() {
+
+                        @Override
+                        public void hierarchyChanged(HierarchyEvent e) {
+                          Window window = SwingUtilities.getWindowAncestor(msgPane);
+                          if (window instanceof Dialog) {
+                            Dialog dialog = (Dialog) window;
+                            if (!dialog.isResizable()) {
+                              dialog.setResizable(true);
+                            }
+                          }
+                        }
+                      });
+                  JOptionPane.showMessageDialog(
+                      ControlsQCGUI.this, scroll, "Trend Warnings", JOptionPane.WARNING_MESSAGE);
                 }
               });
-              JOptionPane.showMessageDialog(ControlsQCGUI.this, scroll, "Trend Warnings",
-                                            JOptionPane.WARNING_MESSAGE);
-            }
-          });
           btnMore.setText("All");
         }
       }
@@ -1583,7 +1629,7 @@ public class ControlsQCGUI extends JFrame {
       for (int f = 1; f < fileSourceAndInternals.length; f++) {
         rowDataM = new Object[params.size() + 2];
         rowDataM[0] = null; // TODO check-boxes for inclusion (should be in model/view, not
-                            // underlying data structure [i.e., this class, not the data classes])
+        // underlying data structure [i.e., this class, not the data classes])
         rowDataM[1] = fileSourceAndInternals[f];
         for (int p = 0; p < pData[i][f].length; p++) {
           rowDataM[p + 2] = pData[i][f][p];
@@ -1593,22 +1639,20 @@ public class ControlsQCGUI extends JFrame {
     }
   }
 
-  /**
-   * Launch the application.
-   */
+  /** Launch the application. */
   public static void main(String[] args) {
-    EventQueue.invokeLater(new Runnable() {
+    EventQueue.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        try {
-          ControlsQCGUI frame = new ControlsQCGUI();
-          frame.setVisible(true);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    });
+          @Override
+          public void run() {
+            try {
+              ControlsQCGUI frame = new ControlsQCGUI();
+              frame.setVisible(true);
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+        });
   }
-
 }

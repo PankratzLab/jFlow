@@ -45,7 +45,7 @@ public class Gating {
   /**
    * Create a deep-copy of this Gating where gates are same params, values, and names, but have
    * different IDs
-   * 
+   *
    * @param newFileName an FCS file to attach the copied Gating to.
    * @return a deep copy of this Gating
    */
@@ -177,5 +177,4 @@ public class Gating {
     }
     return leafs;
   }
-
 }

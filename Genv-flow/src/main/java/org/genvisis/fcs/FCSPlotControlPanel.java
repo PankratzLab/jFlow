@@ -60,9 +60,7 @@ import net.miginfocom.swing.MigLayout;
 
 public class FCSPlotControlPanel extends JPanel {
 
-  /**
-  * 
-  */
+  /** */
   private static final long serialVersionUID = 1L;
 
   private JFlow plot;
@@ -103,9 +101,7 @@ public class FCSPlotControlPanel extends JPanel {
   private String prevGateDir;
   private String prevFCSDir;
 
-  /**
-   * Create the panel.
-   */
+  /** Create the panel. */
   public FCSPlotControlPanel(final JFlow plot) {
     this.plot = plot;
 
@@ -145,23 +141,24 @@ public class FCSPlotControlPanel extends JPanel {
 
     cbYData = new JComboBox<>();
     panel.add(cbYData, "cell 1 2 3 1,growx");
-    cbYData.addItemListener(new ItemListener() {
+    cbYData.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        if (arg0.getStateChange() == ItemEvent.SELECTED) {
-          if (JFlow.HISTOGRAM_COL.equals(arg0.getItem().toString())) {
-            plot.setPlotType(PLOT_TYPE.HISTOGRAM);
-          } else {
-            if (plot.getPlotType() == PLOT_TYPE.HISTOGRAM) {
-              plot.setPlotType(PLOT_TYPE.DOT_PLOT);
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            if (arg0.getStateChange() == ItemEvent.SELECTED) {
+              if (JFlow.HISTOGRAM_COL.equals(arg0.getItem().toString())) {
+                plot.setPlotType(PLOT_TYPE.HISTOGRAM);
+              } else {
+                if (plot.getPlotType() == PLOT_TYPE.HISTOGRAM) {
+                  plot.setPlotType(PLOT_TYPE.DOT_PLOT);
+                }
+                plot.setYDataName(arg0.getItem().toString());
+              }
+              plot.updateGUI();
             }
-            plot.setYDataName(arg0.getItem().toString());
           }
-          plot.updateGUI();
-        }
-      }
-    });
+        });
     cbYData.setMaximumRowCount(15);
 
     JLabel lblScale = new JLabel("Scale:");
@@ -170,16 +167,17 @@ public class FCSPlotControlPanel extends JPanel {
 
     cbYScale = new JComboBox<>(AXIS_SCALE.values());
     panel.add(cbYScale, "cell 2 3 2 1,growx");
-    cbYScale.addItemListener(new ItemListener() {
+    cbYScale.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        if (arg0.getStateChange() == ItemEvent.SELECTED) {
-          plot.setYScale((AXIS_SCALE) arg0.getItem());
-          plot.updateGUI();
-        }
-      }
-    });
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            if (arg0.getStateChange() == ItemEvent.SELECTED) {
+              plot.setYScale((AXIS_SCALE) arg0.getItem());
+              plot.updateGUI();
+            }
+          }
+        });
 
     chckbxShowMedianY = new JCheckBox("Show Median", plot.showMedian(true));
     panel.add(chckbxShowMedianY, "cell 0 4 3 1,alignx trailing");
@@ -214,16 +212,17 @@ public class FCSPlotControlPanel extends JPanel {
 
     cbXData = new JComboBox<>();
     panel.add(cbXData, "cell 1 7 3 1,growx");
-    cbXData.addItemListener(new ItemListener() {
+    cbXData.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        if (arg0.getStateChange() == ItemEvent.SELECTED) {
-          plot.setXDataName(arg0.getItem().toString());
-          plot.updateGUI();
-        }
-      }
-    });
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            if (arg0.getStateChange() == ItemEvent.SELECTED) {
+              plot.setXDataName(arg0.getItem().toString());
+              plot.updateGUI();
+            }
+          }
+        });
     cbXData.setMaximumRowCount(15);
 
     JLabel lblScale_1 = new JLabel("Scale:");
@@ -258,62 +257,68 @@ public class FCSPlotControlPanel extends JPanel {
     xBndsMax.setColumns(10);
     xBndsMax.setEditable(false);
 
-    chckbxShowSdX.addItemListener(new ItemListener() {
+    chckbxShowSdX.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
-        plot.setSDVisible(show, false);
-        plot.updateGUI();
-      }
-    });
-    chckbxShowMedianX.addItemListener(new ItemListener() {
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
+            plot.setSDVisible(show, false);
+            plot.updateGUI();
+          }
+        });
+    chckbxShowMedianX.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
-        plot.setMedianVisible(show, false);
-        plot.updateGUI();
-      }
-    });
-    cbXScale.addItemListener(new ItemListener() {
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
+            plot.setMedianVisible(show, false);
+            plot.updateGUI();
+          }
+        });
+    cbXScale.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        if (arg0.getStateChange() == ItemEvent.SELECTED) {
-          plot.setXScale((AXIS_SCALE) arg0.getItem());
-          plot.updateGUI();
-        }
-      }
-    });
-    chckbxShowSdY.addItemListener(new ItemListener() {
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            if (arg0.getStateChange() == ItemEvent.SELECTED) {
+              plot.setXScale((AXIS_SCALE) arg0.getItem());
+              plot.updateGUI();
+            }
+          }
+        });
+    chckbxShowSdY.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
-        plot.setSDVisible(show, true);
-        plot.updateGUI();
-      }
-    });
-    chckbxShowMedianY.addItemListener(new ItemListener() {
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
+            plot.setSDVisible(show, true);
+            plot.updateGUI();
+          }
+        });
+    chckbxShowMedianY.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
-        plot.setMedianVisible(show, true);
-        plot.updateGUI();
-      }
-    });
-    cbType.addItemListener(new ItemListener() {
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
+            plot.setMedianVisible(show, true);
+            plot.updateGUI();
+          }
+        });
+    cbType.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        if (arg0.getStateChange() == ItemEvent.SELECTED) {
-          plot.setPlotType((PLOT_TYPE) arg0.getItem());
-          plot.updateGUI();
-        }
-      }
-    });
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            if (arg0.getStateChange() == ItemEvent.SELECTED) {
+              plot.setPlotType((PLOT_TYPE) arg0.getItem());
+              plot.updateGUI();
+            }
+          }
+        });
 
     gateControlPanel = new JAccordionPanel();
     panel_1.add(gateControlPanel, "cell 0 1,grow");
@@ -328,8 +333,8 @@ public class FCSPlotControlPanel extends JPanel {
     gateControlPanel.topPanel.add(mnemLabel, "cell 1 0, alignx right");
 
     JPanel gatePanel = gateControlPanel.contentPanel;
-    gatePanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow][]0px[]",
-                                      "0px[]0px[]0px[grow]0px[]0px[]0px"));
+    gatePanel.setLayout(
+        new MigLayout("hidemode 3,ins 0", "[grow][]0px[]", "0px[]0px[]0px[grow]0px[]0px[]0px"));
 
     JLabel dirLbl1 = new JLabel("Select Gating File:");
     dirLbl1.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -370,64 +375,69 @@ public class FCSPlotControlPanel extends JPanel {
       gateTypes[i] = GATING_TOOL.values()[i].getDisplayName();
     }
     JComboBox<String> gateTypeCmb = new JComboBox<>(gateTypes);
-    gateTypeCmb.addItemListener(new ItemListener() {
+    gateTypeCmb.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent e) {
-        if (e.getStateChange() == ItemEvent.SELECTED) {
-          String displayName = (String) e.getItem();
-          plot.setGateTool(GATING_TOOL.getGatingToolByDisplayName(displayName));
-        }
-      }
-    });
+          @Override
+          public void itemStateChanged(ItemEvent e) {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+              String displayName = (String) e.getItem();
+              plot.setGateTool(GATING_TOOL.getGatingToolByDisplayName(displayName));
+            }
+          }
+        });
     panel.add(gateTypeCmb, "cell 0 4, growx");
 
     JCheckBox chkDrawPolysBinned = new JCheckBox("Bin Polygons (FlowJo)");
-    chkDrawPolysBinned.addItemListener(new ItemListener() {
+    chkDrawPolysBinned.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        plot.setDrawPolysAsFlowJo(arg0.getStateChange() == ItemEvent.SELECTED);
-        // TODO display warning that existing gates won't be altered?
-        // TODO or rather, display confirm dialog asking if all gates should be changed?
-      }
-    });
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            plot.setDrawPolysAsFlowJo(arg0.getStateChange() == ItemEvent.SELECTED);
+            // TODO display warning that existing gates won't be altered?
+            // TODO or rather, display confirm dialog asking if all gates should be changed?
+          }
+        });
     chkDrawPolysBinned.setHorizontalAlignment(SwingConstants.CENTER);
     panel.add(chkDrawPolysBinned, "cell 0 5, grow");
 
     JRadioButton chkRegGate = new JRadioButton("Standard", true);
-    chkRegGate.addItemListener(new ItemListener() {
+    chkRegGate.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        plot.setLeafgating(arg0.getStateChange() != ItemEvent.SELECTED);
-        plot.setBackgating(arg0.getStateChange() != ItemEvent.SELECTED);
-      }
-    });
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            plot.setLeafgating(arg0.getStateChange() != ItemEvent.SELECTED);
+            plot.setBackgating(arg0.getStateChange() != ItemEvent.SELECTED);
+          }
+        });
     chkRegGate.setHorizontalAlignment(SwingConstants.CENTER);
     panel.add(chkRegGate, "cell 0 6, grow");
 
     JRadioButton chkLeafgate = new JRadioButton("Leafgate");
-    chkLeafgate.addItemListener(new ItemListener() {
+    chkLeafgate.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        plot.setLeafgating(arg0.getStateChange() == ItemEvent.SELECTED);
-        plot.setBackgating(arg0.getStateChange() != ItemEvent.SELECTED);
-      }
-    });
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            plot.setLeafgating(arg0.getStateChange() == ItemEvent.SELECTED);
+            plot.setBackgating(arg0.getStateChange() != ItemEvent.SELECTED);
+          }
+        });
     chkLeafgate.setHorizontalAlignment(SwingConstants.CENTER);
     panel.add(chkLeafgate, "cell 0 7, grow");
 
     JRadioButton chkBackgate = new JRadioButton("Backgate");
-    chkBackgate.addItemListener(new ItemListener() {
+    chkBackgate.addItemListener(
+        new ItemListener() {
 
-      @Override
-      public void itemStateChanged(ItemEvent arg0) {
-        plot.setBackgating(arg0.getStateChange() == ItemEvent.SELECTED);
-        plot.setLeafgating(arg0.getStateChange() != ItemEvent.SELECTED);
-      }
-    });
+          @Override
+          public void itemStateChanged(ItemEvent arg0) {
+            plot.setBackgating(arg0.getStateChange() == ItemEvent.SELECTED);
+            plot.setLeafgating(arg0.getStateChange() != ItemEvent.SELECTED);
+          }
+        });
     chkBackgate.setHorizontalAlignment(SwingConstants.CENTER);
     panel.add(chkBackgate, "cell 0 8, grow");
 
@@ -454,8 +464,8 @@ public class FCSPlotControlPanel extends JPanel {
     dataControlsPanel.topPanel.add(mnemLabel, "cell 1 0, alignx right");
 
     JPanel dataPanel = dataControlsPanel.contentPanel;
-    dataPanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow][]",
-                                      "0px[]0px[]0px[grow]0px[]0px[]0px"));
+    dataPanel.setLayout(
+        new MigLayout("hidemode 3,ins 0", "[grow][]", "0px[]0px[]0px[grow]0px[]0px[]0px"));
 
     JLabel dirLbl = new JLabel("Add File(s):");
     dirLbl.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -485,56 +495,56 @@ public class FCSPlotControlPanel extends JPanel {
     im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.ALT_DOWN_MASK), "up_ctrl");
     im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK), "down_ctrl");
 
-    am.put("up", new AbstractAction() {
+    am.put(
+        "up",
+        new AbstractAction() {
 
-      /**
-      * 
-      */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        int sel = -1;
-        for (int i = 0; i < filePanels.size(); i++) {
-          if (filePanels.get(i).isSelected()) {
-            sel = i;
-            break;
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            int sel = -1;
+            for (int i = 0; i < filePanels.size(); i++) {
+              if (filePanels.get(i).isSelected()) {
+                sel = i;
+                break;
+              }
+            }
+            if (sel == -1 || sel == 0) {
+              return;
+            }
+            filePanels.get(sel).setSelected(false);
+            filePanels.get(sel - 1).setSelected(true);
+            dataScrollPane.getViewport().scrollRectToVisible(filePanels.get(sel - 1).getBounds());
           }
-        }
-        if (sel == -1 || sel == 0) {
-          return;
-        }
-        filePanels.get(sel).setSelected(false);
-        filePanels.get(sel - 1).setSelected(true);
-        dataScrollPane.getViewport().scrollRectToVisible(filePanels.get(sel - 1).getBounds());
-      }
-    });
-    am.put("down", new AbstractAction() {
+        });
+    am.put(
+        "down",
+        new AbstractAction() {
 
-      /**
-      * 
-      */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        int sel = -1;
-        for (int i = 0; i < filePanels.size(); i++) {
-          if (filePanels.get(i).isSelected()) {
-            sel = i;
-            break;
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            int sel = -1;
+            for (int i = 0; i < filePanels.size(); i++) {
+              if (filePanels.get(i).isSelected()) {
+                sel = i;
+                break;
+              }
+            }
+            if (sel == filePanels.size() - 1) {
+              return;
+            }
+            if (sel > -1) {
+              filePanels.get(sel).setSelected(false);
+            }
+            filePanels.get(sel + 1).setSelected(true);
+            dataScrollPane.getViewport().scrollRectToVisible(filePanels.get(sel + 1).getBounds());
           }
-        }
-        if (sel == filePanels.size() - 1) {
-          return;
-        }
-        if (sel > -1) {
-          filePanels.get(sel).setSelected(false);
-        }
-        filePanels.get(sel + 1).setSelected(true);
-        dataScrollPane.getViewport().scrollRectToVisible(filePanels.get(sel + 1).getBounds());
-      }
-    });
+        });
     // am.put("up_ctrl", arg1);
     // am.put("down_ctrl", arg1);
 
@@ -563,9 +573,7 @@ public class FCSPlotControlPanel extends JPanel {
 
   public class ScrollablePanel extends JPanel implements Scrollable {
 
-    /**
-    * 
-    */
+    /** */
     private static final long serialVersionUID = 1L;
 
     public ScrollablePanel(LayoutManager layout) {
@@ -585,7 +593,7 @@ public class FCSPlotControlPanel extends JPanel {
     @Override
     public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
       return ((orientation == SwingConstants.VERTICAL) ? visibleRect.height : visibleRect.width)
-             - 10;
+          - 10;
     }
 
     @Override
@@ -624,22 +632,23 @@ public class FCSPlotControlPanel extends JPanel {
       String sz = Files.getSizeScaledString(f);
       String dt = "";
       final DataControlPanel dcp = new DataControlPanel(f, sz, dt, dataListener);
-      dcp.addMouseListener(new MouseAdapter() {
+      dcp.addMouseListener(
+          new MouseAdapter() {
 
-        @Override
-        public void mouseClicked(MouseEvent e) {
-          super.mouseClicked(e);
-          for (int i = 0; i < filePanels.size(); i++) {
-            if (filePanels.get(i) == dcp) {
-              filePanels.get(i).setSelected(true);
-              dcp.requestFocusInWindow();
-              dataScrollPane.getViewport().scrollRectToVisible(dcp.getBounds());
-            } else {
-              filePanels.get(i).setSelected(false);
+            @Override
+            public void mouseClicked(MouseEvent e) {
+              super.mouseClicked(e);
+              for (int i = 0; i < filePanels.size(); i++) {
+                if (filePanels.get(i) == dcp) {
+                  filePanels.get(i).setSelected(true);
+                  dcp.requestFocusInWindow();
+                  dataScrollPane.getViewport().scrollRectToVisible(dcp.getBounds());
+                } else {
+                  filePanels.get(i).setSelected(false);
+                }
+              }
             }
-          }
-        }
-      });
+          });
       filePanels.add(dcp);
     }
 
@@ -656,157 +665,174 @@ public class FCSPlotControlPanel extends JPanel {
   }
 
   private void addFilePanels() {
-    SwingUtilities.invokeLater(new Runnable() {
+    SwingUtilities.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        int index = 0;
-        actualDataPanel.removeAll();
-        actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
-        for (DataControlPanel dcp : filePanels) {
-          actualDataPanel.add(dcp, "cell 0 " + (index++));
-          actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
-        }
-        actualDataPanel.revalidate();
-        dataControlsPanel.contentPanel.revalidate();
-        dataScrollPane.revalidate();
+          @Override
+          public void run() {
+            int index = 0;
+            actualDataPanel.removeAll();
+            actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
+            for (DataControlPanel dcp : filePanels) {
+              actualDataPanel.add(dcp, "cell 0 " + (index++));
+              actualDataPanel.add(
+                  new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
+            }
+            actualDataPanel.revalidate();
+            dataControlsPanel.contentPanel.revalidate();
+            dataScrollPane.revalidate();
 
-        revalidate();
-        repaint();
-      }
-    });
+            revalidate();
+            repaint();
+          }
+        });
   }
 
-  ActionListener dataListener = new ActionListener() {
+  ActionListener dataListener =
+      new ActionListener() {
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      DataControlPanel dcp = (DataControlPanel) e.getSource();
-      String cmd = e.getActionCommand();
-      // String file = cmd.split("::")[0];
-      cmd = cmd.split("::")[1];
-      int ind = -1;
-      for (int i = 0; i < filePanels.size(); i++) {
-        if (filePanels.get(i) == dcp) {
-          ind = i;
-        } else {
-          filePanels.get(i).setSelected(false);
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          DataControlPanel dcp = (DataControlPanel) e.getSource();
+          String cmd = e.getActionCommand();
+          // String file = cmd.split("::")[0];
+          cmd = cmd.split("::")[1];
+          int ind = -1;
+          for (int i = 0; i < filePanels.size(); i++) {
+            if (filePanels.get(i) == dcp) {
+              ind = i;
+            } else {
+              filePanels.get(i).setSelected(false);
+            }
+          }
+          if (ind == -1) {
+            // TODO error!
+            System.err.println("Error - couldn't find DataControlPanel!");
+            return;
+          }
+          dcp.setSelected(true);
+          if (cmd.equals(DataControlPanel.ACTION_DELETE)) {
+            boolean remove = true;
+            if (plot.isFileLoaded(dcp.file)) {
+              int opt =
+                  JOptionPane.showConfirmDialog(
+                      plot,
+                      "This will unload file data from memory - are you sure you wish to continue?",
+                      "Unload Data?",
+                      JOptionPane.YES_NO_OPTION,
+                      JOptionPane.WARNING_MESSAGE);
+              if (opt == JOptionPane.YES_OPTION) {
+                plot.unloadFile(dcp.file);
+              } else {
+                remove = false;
+              }
+            }
+            if (remove) {
+              filePanels.remove(ind);
+              addFilePanels();
+              plot.saveProps();
+            }
+          } else if (cmd.equals(DataControlPanel.ACTION_MOVE_UP)) {
+            if (ind == 0) {
+              return;
+            }
+            Collections.swap(filePanels, ind, ind - 1);
+            addFilePanels();
+            plot.saveProps();
+          } else if (cmd.equals(DataControlPanel.ACTION_MOVE_DOWN)) {
+            if (ind == filePanels.size() - 1) {
+              return;
+            }
+            Collections.swap(filePanels, ind, ind + 1);
+            addFilePanels();
+            plot.saveProps();
+          } else if (cmd.equals(DataControlPanel.ACTION_INFO)) {
+            // TODO build info GUI for files
+          } else if (cmd.equals(DataControlPanel.ACTION_LOAD)) {
+            // TODO check memory available before loading, show YELLOW warning if nearing max, show
+            // RED
+            // warning if not enough memory
+            if (plot.isFileLoaded(dcp.file)) {
+              int opt =
+                  JOptionPane.showConfirmDialog(
+                      plot,
+                      "This will unload file data from memory - are you sure you wish to continue?",
+                      "Unload Data?",
+                      JOptionPane.YES_NO_OPTION,
+                      JOptionPane.WARNING_MESSAGE);
+              if (opt == JOptionPane.YES_OPTION) {
+                plot.unloadFile(dcp.file);
+                dcp.setLoaded(false);
+              }
+            } else {
+              dcp.setLoaded(true);
+              plot.loadFile(dcp.file, false);
+            }
+          } else if (cmd.equals(DataControlPanel.ACTION_USE)) {
+            boolean disp = true;
+            if (!plot.isFileLoaded(dcp.file)) {
+              int opt =
+                  JOptionPane.showConfirmDialog(
+                      plot,
+                      "Data file not loaded - would you like to load this data?",
+                      "Confirm Load",
+                      JOptionPane.YES_NO_OPTION,
+                      JOptionPane.INFORMATION_MESSAGE);
+              if (opt == JOptionPane.NO_OPTION) {
+                disp = false;
+              }
+            }
+            if (disp) {
+              dcp.setLoaded(true);
+              plot.loadFile(dcp.file, true);
+            }
+          }
+          // apply action to file
         }
-      }
-      if (ind == -1) {
-        // TODO error!
-        System.err.println("Error - couldn't find DataControlPanel!");
-        return;
-      }
-      dcp.setSelected(true);
-      if (cmd.equals(DataControlPanel.ACTION_DELETE)) {
-        boolean remove = true;
-        if (plot.isFileLoaded(dcp.file)) {
-          int opt = JOptionPane.showConfirmDialog(plot,
-                                                  "This will unload file data from memory - are you sure you wish to continue?",
-                                                  "Unload Data?", JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.WARNING_MESSAGE);
-          if (opt == JOptionPane.YES_OPTION) {
-            plot.unloadFile(dcp.file);
-          } else {
-            remove = false;
+      };
+
+  ActionListener gateSaveListener =
+      new ActionListener() {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          plot.saveGating();
+        }
+      };
+
+  ActionListener gateSelectListener =
+      new ActionListener() {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          JFileChooser jfc = new JFileChooser(prevGateDir);
+          jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+          jfc.setMultiSelectionEnabled(false);
+          jfc.addChoosableFileFilter(new FileNameExtensionFilter("Gating-ML File", "xml"));
+          jfc.addChoosableFileFilter(
+              new FileNameExtensionFilter(
+                  "FlowJo Workspace or WorkspaceTemplate File", "wsp", "wspt"));
+          jfc.setDialogTitle("Select Gating File");
+          int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
+          if (resp == JFileChooser.APPROVE_OPTION) {
+            File newFile = jfc.getSelectedFile();
+            loadGatingFile(newFile.getAbsolutePath());
           }
         }
-        if (remove) {
-          filePanels.remove(ind);
-          addFilePanels();
-          plot.saveProps();
-        }
-      } else if (cmd.equals(DataControlPanel.ACTION_MOVE_UP)) {
-        if (ind == 0) {
-          return;
-        }
-        Collections.swap(filePanels, ind, ind - 1);
-        addFilePanels();
-        plot.saveProps();
-      } else if (cmd.equals(DataControlPanel.ACTION_MOVE_DOWN)) {
-        if (ind == filePanels.size() - 1) {
-          return;
-        }
-        Collections.swap(filePanels, ind, ind + 1);
-        addFilePanels();
-        plot.saveProps();
-      } else if (cmd.equals(DataControlPanel.ACTION_INFO)) {
-        // TODO build info GUI for files
-      } else if (cmd.equals(DataControlPanel.ACTION_LOAD)) {
-        // TODO check memory available before loading, show YELLOW warning if nearing max, show RED
-        // warning if not enough memory
-        if (plot.isFileLoaded(dcp.file)) {
-          int opt = JOptionPane.showConfirmDialog(plot,
-                                                  "This will unload file data from memory - are you sure you wish to continue?",
-                                                  "Unload Data?", JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.WARNING_MESSAGE);
-          if (opt == JOptionPane.YES_OPTION) {
-            plot.unloadFile(dcp.file);
-            dcp.setLoaded(false);
-          }
-        } else {
-          dcp.setLoaded(true);
-          plot.loadFile(dcp.file, false);
-        }
-      } else if (cmd.equals(DataControlPanel.ACTION_USE)) {
-        boolean disp = true;
-        if (!plot.isFileLoaded(dcp.file)) {
-          int opt = JOptionPane.showConfirmDialog(plot,
-                                                  "Data file not loaded - would you like to load this data?",
-                                                  "Confirm Load", JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.INFORMATION_MESSAGE);
-          if (opt == JOptionPane.NO_OPTION) {
-            disp = false;
-          }
-        }
-        if (disp) {
-          dcp.setLoaded(true);
-          plot.loadFile(dcp.file, true);
-        }
-      }
-      // apply action to file
-    }
-  };
+      };
 
-  ActionListener gateSaveListener = new ActionListener() {
+  ActionListener gateClearListener =
+      new ActionListener() {
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      plot.saveGating();
-    }
-  };
-
-  ActionListener gateSelectListener = new ActionListener() {
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      JFileChooser jfc = new JFileChooser(prevGateDir);
-      jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      jfc.setMultiSelectionEnabled(false);
-      jfc.addChoosableFileFilter(new FileNameExtensionFilter("Gating-ML File", "xml"));
-      jfc.addChoosableFileFilter(new FileNameExtensionFilter("FlowJo Workspace or WorkspaceTemplate File",
-                                                             "wsp", "wspt"));
-      jfc.setDialogTitle("Select Gating File");
-      int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
-      if (resp == JFileChooser.APPROVE_OPTION) {
-        File newFile = jfc.getSelectedFile();
-        loadGatingFile(newFile.getAbsolutePath());
-      }
-    }
-  };
-
-  ActionListener gateClearListener = new ActionListener() {
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      plot.clearGating();
-      gateFileLabel.setVisible(false);
-      gateFileTitle.setVisible(false);
-      gateFileSep.setVisible(false);
-      plot.updateGUI();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          plot.clearGating();
+          gateFileLabel.setVisible(false);
+          gateFileTitle.setVisible(false);
+          gateFileSep.setVisible(false);
+          plot.updateGUI();
+        }
+      };
 
   protected void loadGatingFile(String newFile) {
     prevGateDir = ext.parseDirectoryOfFile(newFile);
@@ -817,57 +843,60 @@ public class FCSPlotControlPanel extends JPanel {
     gateFileSep.setVisible(true);
   }
 
-  ActionListener dirSelectListener = new ActionListener() {
+  ActionListener dirSelectListener =
+      new ActionListener() {
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      JFileChooser jfc = new JFileChooser(prevFCSDir);
-      jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      jfc.setMultiSelectionEnabled(true);
-      jfc.setFileFilter(new FileNameExtensionFilter("FCS Files", "fcs"));
-      jfc.setDialogTitle("Select FCS File(s)");
-      int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
-      if (resp == JFileChooser.APPROVE_OPTION) {
-        File[] newFiles = jfc.getSelectedFiles();
-        String[] f = new String[newFiles.length];
-        for (int i = 0; i < f.length; i++) {
-          f[i] = newFiles[i].getAbsolutePath();
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          JFileChooser jfc = new JFileChooser(prevFCSDir);
+          jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+          jfc.setMultiSelectionEnabled(true);
+          jfc.setFileFilter(new FileNameExtensionFilter("FCS Files", "fcs"));
+          jfc.setDialogTitle("Select FCS File(s)");
+          int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
+          if (resp == JFileChooser.APPROVE_OPTION) {
+            File[] newFiles = jfc.getSelectedFiles();
+            String[] f = new String[newFiles.length];
+            for (int i = 0; i < f.length; i++) {
+              f[i] = newFiles[i].getAbsolutePath();
+            }
+            addFCSFiles(f);
+          }
         }
-        addFCSFiles(f);
-      }
-    }
-  };
+      };
 
-  PropertyChangeListener pcl = new PropertyChangeListener() {
+  PropertyChangeListener pcl =
+      new PropertyChangeListener() {
 
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-      if (evt == null || plot == null || progSet) {
-        return;
-      }
-      JFormattedTextField jftf = (JFormattedTextField) evt.getSource();
-      String prop = evt.getPropertyName();
-      if (jftf == xBndsMin) {
-        prop = AbstractPanel2.X_MIN;
-      } else if (jftf == xBndsMax) {
-        prop = AbstractPanel2.X_MAX;
-      } else if (jftf == yBndsMin) {
-        prop = AbstractPanel2.Y_MIN;
-      } else if (jftf == yBndsMax) {
-        prop = AbstractPanel2.Y_MAX;
-      }
-      Object oldV = evt.getOldValue();
-      Object newV = evt.getNewValue();
-      Double oldV2 = oldV == null ? null : ((Number) oldV).doubleValue();
-      Double newV2 = newV == null ? null : ((Number) newV).doubleValue();
-      /* FCSPlotControlPanel.this. */firePropertyChange(prop, oldV2, newV2);
-      // plot.firePropertyChange(prop, oldV2, newV2);
-      // PropertyChangeEvent pce = new PropertyChangeEvent(FCSPlotControlPanel.this, prop, oldV2,
-      // newV2);
-      // plot.propertyChange(pce);
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+          if (evt == null || plot == null || progSet) {
+            return;
+          }
+          JFormattedTextField jftf = (JFormattedTextField) evt.getSource();
+          String prop = evt.getPropertyName();
+          if (jftf == xBndsMin) {
+            prop = AbstractPanel2.X_MIN;
+          } else if (jftf == xBndsMax) {
+            prop = AbstractPanel2.X_MAX;
+          } else if (jftf == yBndsMin) {
+            prop = AbstractPanel2.Y_MIN;
+          } else if (jftf == yBndsMax) {
+            prop = AbstractPanel2.Y_MAX;
+          }
+          Object oldV = evt.getOldValue();
+          Object newV = evt.getNewValue();
+          Double oldV2 = oldV == null ? null : ((Number) oldV).doubleValue();
+          Double newV2 = newV == null ? null : ((Number) newV).doubleValue();
+          /* FCSPlotControlPanel.this. */ firePropertyChange(prop, oldV2, newV2);
+          // plot.firePropertyChange(prop, oldV2, newV2);
+          // PropertyChangeEvent pce = new PropertyChangeEvent(FCSPlotControlPanel.this, prop,
+          // oldV2,
+          // newV2);
+          // plot.propertyChange(pce);
 
-    }
-  };
+        }
+      };
 
   private JPanel dataMsgPanel;
 
@@ -917,13 +946,14 @@ public class FCSPlotControlPanel extends JPanel {
   }
 
   private void resetProgSet() {
-    SwingUtilities.invokeLater(new Runnable() {
+    SwingUtilities.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        progSet = false;
-      }
-    });
+          @Override
+          public void run() {
+            progSet = false;
+          }
+        });
   }
 
   public void setXMin(double xMin) {
@@ -956,70 +986,73 @@ public class FCSPlotControlPanel extends JPanel {
   // }
 
   public void startFileLoading(final FCSDataLoader newDataLoader) {
-    new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        LOAD_STATE state = null;
-        while ((state = newDataLoader.getLoadState()) != LOAD_STATE.LOADED) {
-          final LOAD_STATE finalState = state;
-          try {
-            SwingUtilities.invokeAndWait(new Runnable() {
+    new Thread(
+            new Runnable() {
 
               @Override
               public void run() {
-                switch (finalState) {
-                  case LOADED:
-                    progressBar.setStringPainted(false);
-                    progressBar.setString(null);
-                    progressBar.setIndeterminate(false);
-                    // hide or set to complete or reset
-                    break;
-                  case LOADING:
-                    progressBar.setIndeterminate(true);
-                    progressBar.setStringPainted(true);
-                    progressBar.setString("Loading File...");
-                    progressBar.setVisible(true);
-                    // set to indeterminate
-                    break;
-                  case PARTIALLY_LOADED:
-                  case LOADING_REMAINDER:
-                    progressBar.setIndeterminate(false);
-                    progressBar.setStringPainted(true);
-                    int[] stat = newDataLoader.getLoadedStatus();
-                    // System.out.println(stat[0] + " - " + stat[1]);
-                    progressBar.setMinimum(0);
-                    progressBar.setValue(stat[0]);
-                    progressBar.setMaximum(stat[1]);
-                    progressBar.setString(null);
-                    // progressBar.setString("Loading File: " + stat[0] + "/" + stat[1]);
-                    progressBar.setVisible(true);
-                    // set to determinate, wait for updates
-                    break;
-                  case UNLOADED:
-                    // what??
-                    break;
-                  default:
-                    // what??
-                    break;
-                }
-              }
-            });
-          } catch (InvocationTargetException e) {
-            e.printStackTrace();
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          }
-          // Thread.yield();
-        }
-        progressBar.setStringPainted(false);
-        progressBar.setString(null);
-        progressBar.setIndeterminate(false);
-        progressBar.setMinimum(0);
-        progressBar.setMaximum(0);
-        progressBar.setValue(0);
-      }
-    }).start();
-  }
+                LOAD_STATE state = null;
+                while ((state = newDataLoader.getLoadState()) != LOAD_STATE.LOADED) {
+                  final LOAD_STATE finalState = state;
+                  try {
+                    SwingUtilities.invokeAndWait(
+                        new Runnable() {
 
+                          @Override
+                          public void run() {
+                            switch (finalState) {
+                              case LOADED:
+                                progressBar.setStringPainted(false);
+                                progressBar.setString(null);
+                                progressBar.setIndeterminate(false);
+                                // hide or set to complete or reset
+                                break;
+                              case LOADING:
+                                progressBar.setIndeterminate(true);
+                                progressBar.setStringPainted(true);
+                                progressBar.setString("Loading File...");
+                                progressBar.setVisible(true);
+                                // set to indeterminate
+                                break;
+                              case PARTIALLY_LOADED:
+                              case LOADING_REMAINDER:
+                                progressBar.setIndeterminate(false);
+                                progressBar.setStringPainted(true);
+                                int[] stat = newDataLoader.getLoadedStatus();
+                                // System.out.println(stat[0] + " - " + stat[1]);
+                                progressBar.setMinimum(0);
+                                progressBar.setValue(stat[0]);
+                                progressBar.setMaximum(stat[1]);
+                                progressBar.setString(null);
+                                // progressBar.setString("Loading File: " + stat[0] + "/" +
+                                // stat[1]);
+                                progressBar.setVisible(true);
+                                // set to determinate, wait for updates
+                                break;
+                              case UNLOADED:
+                                // what??
+                                break;
+                              default:
+                                // what??
+                                break;
+                            }
+                          }
+                        });
+                  } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                  } catch (InterruptedException e) {
+                    e.printStackTrace();
+                  }
+                  // Thread.yield();
+                }
+                progressBar.setStringPainted(false);
+                progressBar.setString(null);
+                progressBar.setIndeterminate(false);
+                progressBar.setMinimum(0);
+                progressBar.setMaximum(0);
+                progressBar.setValue(0);
+              }
+            })
+        .start();
+  }
 }

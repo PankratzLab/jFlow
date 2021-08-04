@@ -23,18 +23,15 @@ import net.miginfocom.swing.MigLayout;
 
 public class MeanCtrlPanel extends JPanel {
 
-  /**
-   *
-   */
+  /** */
   private static final long serialVersionUID = 1L;
+
   private final JButton btnPrev;
   private final JButton btnNext;
   private final JLabel lblNext;
   private final JLabel lblPrev;
 
-  /**
-   * Create the panel.
-   */
+  /** Create the panel. */
   public MeanCtrlPanel() {
     setBackground(Color.WHITE);
     setLayout(new MigLayout("", "[][][grow][][][75px][][75px][]", "[][]"));
@@ -113,82 +110,83 @@ public class MeanCtrlPanel extends JPanel {
     im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "prev");
     im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "next");
 
-    am.put("prev", new AbstractAction() {
+    am.put(
+        "prev",
+        new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        btnPrev.doClick();
-      }
-    });
-    am.put("next", new AbstractAction() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            btnPrev.doClick();
+          }
+        });
+    am.put(
+        "next",
+        new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        btnNext.doClick();
-      }
-    });
-
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            btnNext.doClick();
+          }
+        });
   }
 
-  ActionListener plotChange = new ActionListener() {
+  ActionListener plotChange =
+      new ActionListener() {
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      if (e.getSource() == rdbtnBox) {
-        plot.actionPerformed(new ActionEvent(rdbtnBox, ActionEvent.ACTION_FIRST, "BOX"));
-      } else if (e.getSource() == rdbtnDotline) {
-        plot.actionPerformed(new ActionEvent(rdbtnDotline, ActionEvent.ACTION_LAST, "DOT"));
-      }
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          if (e.getSource() == rdbtnBox) {
+            plot.actionPerformed(new ActionEvent(rdbtnBox, ActionEvent.ACTION_FIRST, "BOX"));
+          } else if (e.getSource() == rdbtnDotline) {
+            plot.actionPerformed(new ActionEvent(rdbtnDotline, ActionEvent.ACTION_LAST, "DOT"));
+          }
+        }
+      };
 
-  ActionListener list = new ActionListener() {
+  ActionListener list =
+      new ActionListener() {
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      if (e.getSource() == btnPrev) {
-        if (ind == 0) {
-          return;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          if (e.getSource() == btnPrev) {
+            if (ind == 0) {
+              return;
+            }
+            int newInd = ind - 1;
+            String newCol = cols.get(newInd);
+            if (newInd == 0) {
+              btnPrev.setEnabled(false);
+            }
+            if (newInd < cols.size() - 1) {
+              btnNext.setEnabled(true);
+            }
+            lblPrev.setText(newInd > 0 ? getColumnLabel(newInd - 1) : "---");
+            lblNext.setText(newInd < cols.size() - 1 ? getColumnLabel(newInd + 1) : "---");
+            change.actionPerformed(new ActionEvent(btnPrev, ActionEvent.ACTION_FIRST, newCol));
+          } else if (e.getSource() == btnNext) {
+            if (ind == cols.size() - 1) {
+              return;
+            }
+            int newInd = ind + 1;
+            String newCol = cols.get(newInd);
+            if (newInd == cols.size() - 1) {
+              btnNext.setEnabled(false);
+            }
+            if (ind > 0) {
+              btnPrev.setEnabled(true);
+            }
+            lblPrev.setText(newInd > 0 ? getColumnLabel(newInd - 1) : "---");
+            lblNext.setText(newInd < cols.size() - 1 ? getColumnLabel(newInd + 1) : "---");
+            change.actionPerformed(new ActionEvent(btnNext, ActionEvent.ACTION_LAST, newCol));
+          }
         }
-        int newInd = ind - 1;
-        String newCol = cols.get(newInd);
-        if (newInd == 0) {
-          btnPrev.setEnabled(false);
-        }
-        if (newInd < cols.size() - 1) {
-          btnNext.setEnabled(true);
-        }
-        lblPrev.setText(newInd > 0 ? getColumnLabel(newInd - 1) : "---");
-        lblNext.setText(newInd < cols.size() - 1 ? getColumnLabel(newInd + 1) : "---");
-        change.actionPerformed(new ActionEvent(btnPrev, ActionEvent.ACTION_FIRST, newCol));
-      } else if (e.getSource() == btnNext) {
-        if (ind == cols.size() - 1) {
-          return;
-        }
-        int newInd = ind + 1;
-        String newCol = cols.get(newInd);
-        if (newInd == cols.size() - 1) {
-          btnNext.setEnabled(false);
-        }
-        if (ind > 0) {
-          btnPrev.setEnabled(true);
-        }
-        lblPrev.setText(newInd > 0 ? getColumnLabel(newInd - 1) : "---");
-        lblNext.setText(newInd < cols.size() - 1 ? getColumnLabel(newInd + 1) : "---");
-        change.actionPerformed(new ActionEvent(btnNext, ActionEvent.ACTION_LAST, newCol));
-      }
-    }
-  };
+      };
 
   List<String> cols;
   int ind;
@@ -208,7 +206,7 @@ public class MeanCtrlPanel extends JPanel {
   private final JLabel lblSd_1;
   private final JLabel lblMean;
 
-  static abstract class LabelPresenter {
+  abstract static class LabelPresenter {
 
     public abstract String getPresentationView(String label);
   }
@@ -250,58 +248,54 @@ public class MeanCtrlPanel extends JPanel {
     chk15.setSelected(linkedPanel.isShowMean15Line());
     chkReg.setSelected(linkedPanel.isShowRegressionLine());
 
-    chk1Sd.setAction(new AbstractAction() {
+    chk1Sd.setAction(
+        new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        linkedPanel.setShow1SDLines(chk1Sd.isSelected());
-        linkedPanel.paintAgain();
-      }
-    });
-    chk2Sd.setAction(new AbstractAction() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            linkedPanel.setShow1SDLines(chk1Sd.isSelected());
+            linkedPanel.paintAgain();
+          }
+        });
+    chk2Sd.setAction(
+        new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        linkedPanel.setShow2SDLines(chk2Sd.isSelected());
-        linkedPanel.paintAgain();
-      }
-    });
-    chk15.setAction(new AbstractAction() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            linkedPanel.setShow2SDLines(chk2Sd.isSelected());
+            linkedPanel.paintAgain();
+          }
+        });
+    chk15.setAction(
+        new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        linkedPanel.setShowMean15Line(chk15.isSelected());
-        linkedPanel.paintAgain();
-      }
-    });
-    chkReg.setAction(new AbstractAction() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            linkedPanel.setShowMean15Line(chk15.isSelected());
+            linkedPanel.paintAgain();
+          }
+        });
+    chkReg.setAction(
+        new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        linkedPanel.setShowRegressionLine(chkReg.isSelected());
-        linkedPanel.paintAgain();
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            linkedPanel.setShowRegressionLine(chkReg.isSelected());
+            linkedPanel.paintAgain();
+          }
+        });
 
     chk1Sd.setText("+/- 1 SD");
     chk2Sd.setText("+/- 2 SD");
@@ -310,8 +304,7 @@ public class MeanCtrlPanel extends JPanel {
 
     lblSd.setIcon(new ColorIcon(12, 12, linkedPanel.getColorScheme()[linkedPanel.get1SDColor()]));
     lblSd_1.setIcon(new ColorIcon(12, 12, linkedPanel.getColorScheme()[linkedPanel.get2SDColor()]));
-    lblMean.setIcon(new ColorIcon(12, 12,
-                                  linkedPanel.getColorScheme()[linkedPanel.getMeanColor()]));
+    lblMean.setIcon(
+        new ColorIcon(12, 12, linkedPanel.getColorScheme()[linkedPanel.getMeanColor()]));
   }
-
 }

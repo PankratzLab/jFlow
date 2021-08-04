@@ -34,7 +34,11 @@ public class FCSDataLoader {
   static final String GATING_KEY = "GATING";
 
   public static enum LOAD_STATE {
-    LOADED, LOADING, PARTIALLY_LOADED, LOADING_REMAINDER, UNLOADED;
+    LOADED,
+    LOADING,
+    PARTIALLY_LOADED,
+    LOADING_REMAINDER,
+    UNLOADED;
   }
 
   private volatile LOAD_STATE state = LOAD_STATE.UNLOADED;
@@ -60,7 +64,9 @@ public class FCSDataLoader {
   private FCSReader reader;
 
   public enum DATA_SET {
-    ALL, COMPENSATED, UNCOMPENSATED;
+    ALL,
+    COMPENSATED,
+    UNCOMPENSATED;
   }
 
   public FCSDataLoader() {
@@ -157,13 +163,16 @@ public class FCSDataLoader {
     String dVal = null, eVal = null, bVal = null;
     try {
       dVal = keys.getKeyword(dKey);
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
     try {
       bVal = keys.getKeyword(bKey);
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
     try {
       eVal = keys.getKeyword(eKey);
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
 
     SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MMM-yyyy");
     SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm:ss");
@@ -207,7 +216,7 @@ public class FCSDataLoader {
 
     loadTimeData(keys);
 
-    lastModified = null;// keys.getLastModified();
+    lastModified = null; // keys.getLastModified();
     if (lastModified == null) {
       lastModified = new Date(new File(fcsFilename).lastModified());
     }
@@ -231,10 +240,12 @@ public class FCSDataLoader {
       String shortName = null;
       try {
         name = keys.getParameterLongName(i);
-      } catch (Exception e) {}
+      } catch (Exception e) {
+      }
       try {
         shortName = keys.getParameterShortName(i);
-      } catch (Exception e) {}
+      } catch (Exception e) {
+      }
       // if (name == null) {
       // // TODO Error, no name set (included in spillover matrix?) -- will this scenario ever
       // happen?
@@ -272,8 +283,10 @@ public class FCSDataLoader {
       try {
         rng = keys.getKeywordInt(rangeKeyword);
       } catch (Exception e) {
-        System.err.println("Warning - no parameter range value for parameter "
-                           + paramNamesInOrder.get(i) + "; assuming standard of 262144");
+        System.err.println(
+            "Warning - no parameter range value for parameter "
+                + paramNamesInOrder.get(i)
+                + "; assuming standard of 262144");
         rng = 262144;
       }
       ranges.add(rng);
@@ -284,8 +297,9 @@ public class FCSDataLoader {
       compensatedNames.add(names.get(arr[i]));
       compensatedIndices.put(names.get(arr[i]), i);
       paramScales.put(COMPENSATED_PREPEND + names.get(arr[i]), getScaleForParam(names.get(arr[i])));
-      paramTransforms.put(COMPENSATED_PREPEND + names.get(arr[i]),
-                          getDefaultTransform(getScaleForParam(names.get(arr[i]))));
+      paramTransforms.put(
+          COMPENSATED_PREPEND + names.get(arr[i]),
+          getDefaultTransform(getScaleForParam(names.get(arr[i]))));
     }
 
     this.reader = reader;
@@ -325,17 +339,25 @@ public class FCSDataLoader {
 
   public double[] getData(String colName, boolean waitIfNecessary) {
     boolean compensated = false;
-    String columnName = (compensated = colName.startsWith(COMPENSATED_PREPEND)) ? COMPENSATED_PREPEND
-                                                                                  + getInternalParamName(colName.substring(COMP_LEN))
-                                                                                : getInternalParamName(colName);
+    String columnName =
+        (compensated = colName.startsWith(COMPENSATED_PREPEND))
+            ? COMPENSATED_PREPEND + getInternalParamName(colName.substring(COMP_LEN))
+            : getInternalParamName(colName);
     LOAD_STATE currState = getLoadState();
     double[] data;
     if (currState == LOAD_STATE.LOADED) {
-      int index = paramNamesInOrder.indexOf(compensated ? columnName.substring(COMP_LEN)
-                                                        : columnName);
+      int index =
+          paramNamesInOrder.indexOf(compensated ? columnName.substring(COMP_LEN) : columnName);
       if (index < 0) {
-        System.err.println("Error - gate index was " + index + " for " + colName + " | "
-                           + columnName + " -- gates: " + getAllDisplayableNames(DATA_SET.ALL));
+        System.err.println(
+            "Error - gate index was "
+                + index
+                + " for "
+                + colName
+                + " | "
+                + columnName
+                + " -- gates: "
+                + getAllDisplayableNames(DATA_SET.ALL));
       }
       data = reader.getParamAsDoubles(paramShortNamesInOrder.get(index), compensated);
     } else {
@@ -362,11 +384,13 @@ public class FCSDataLoader {
     if (ind != -1) {
       return prepend ? COMPENSATED_PREPEND + nm : nm;
     } else if ((ind = paramShortNamesInOrder.indexOf(nm)) != -1) {
-      return prepend ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind)
-                     : paramNamesInOrder.get(ind);
+      return prepend
+          ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind)
+          : paramNamesInOrder.get(ind);
     } else if ((ind = paramLongNamesInOrder.indexOf(nm)) != -1) {
-      return prepend ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind)
-                     : paramNamesInOrder.get(ind);
+      return prepend
+          ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind)
+          : paramNamesInOrder.get(ind);
     }
     return prepend ? COMPENSATED_PREPEND + nm : nm;
   }
@@ -406,7 +430,8 @@ public class FCSDataLoader {
       nm = paramName.substring(COMP_LEN);
     }
     return (compensatedNames.contains(nm) || paramNamesInOrder.contains(nm))
-           || paramShortNamesInOrder.contains(nm) || paramLongNamesInOrder.contains(nm);
+        || paramShortNamesInOrder.contains(nm)
+        || paramLongNamesInOrder.contains(nm);
   }
 
   public ArrayList<String> getAllDisplayableNames(DATA_SET set) {
@@ -494,8 +519,8 @@ public class FCSDataLoader {
   }
 
   public boolean[] getOverrideGating(String gateName) {
-    String key = gateName.contains("(") ? gateName.substring(0, gateName.indexOf('(')).trim()
-                                        : gateName;
+    String key =
+        gateName.contains("(") ? gateName.substring(0, gateName.indexOf('(')).trim() : gateName;
     if (gateOverrideMatch.containsKey(key)) {
       List<String> ovvr = gateOverrideMatch.get(key);
       boolean[] start = Arrays.copyOf(gateOverride.get(ovvr.get(0)), getCount());
@@ -507,8 +532,6 @@ public class FCSDataLoader {
       return start;
     } else if (gateOverride.containsKey(key)) {
       return gateOverride.get(key);
-    } else
-      return null;
+    } else return null;
   }
-
 }

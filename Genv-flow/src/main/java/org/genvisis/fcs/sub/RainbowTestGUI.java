@@ -89,10 +89,9 @@ import net.miginfocom.swing.MigLayout;
 
 public class RainbowTestGUI extends JFrame {
 
-  /**
-   *
-   */
+  /** */
   private static final long serialVersionUID = 1L;
+
   private JPanel contentPane;
   private JTextField txtFldBaseDir;
   private JTextField txtFldGatingFile;
@@ -167,30 +166,29 @@ public class RainbowTestGUI extends JFrame {
   Color ABOVE_3_CV_COLOR = Color.CYAN;
   Color ABOVE_5_CV_COLOR = Color.CYAN.darker();
 
-  /**
-   * Create the frame.
-   */
+  /** Create the frame. */
   public RainbowTestGUI() {
     super("Rainbow Bead Testing");
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setBounds(50, 50, 850, 400);
 
-    addWindowListener(new WindowAdapter() {
+    addWindowListener(
+        new WindowAdapter() {
 
-      @Override
-      public void windowClosing(WindowEvent e) {
-        RainbowTestGUI.this.setVisible(false);
-        RainbowTestGUI.this.saveCache();
-        RainbowTestGUI.this.dispose();
-        System.exit(0);
-      }
-    });
+          @Override
+          public void windowClosing(WindowEvent e) {
+            RainbowTestGUI.this.setVisible(false);
+            RainbowTestGUI.this.saveCache();
+            RainbowTestGUI.this.dispose();
+            System.exit(0);
+          }
+        });
 
     contentPane = new JPanel();
     contentPane.setBorder(null);
     setContentPane(contentPane);
-    contentPane.setLayout(new MigLayout("ins 7 7 3 7,hidemode 3", "[][grow][]",
-                                        "[][][][grow][][]"));
+    contentPane.setLayout(
+        new MigLayout("ins 7 7 3 7,hidemode 3", "[][grow][]", "[][][][grow][][]"));
 
     JLabel lblFileDir = new JLabel("<html><u>B</u>aseline FCS Dir:</html>");
     contentPane.add(lblFileDir, "cell 0 0,alignx trailing");
@@ -205,27 +203,28 @@ public class RainbowTestGUI extends JFrame {
     btnBaseDirSelect = new JButton(">");
     btnBaseDirSelect.setMargin(btnInsets);
     btnBaseDirSelect.setMnemonic(KeyEvent.VK_B);
-    btnBaseDirSelect.addActionListener(new ActionListener() {
+    btnBaseDirSelect.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        String curr = txtFldBaseDir.getText();
-        if (curr.equals("")) {
-          curr = "./";
-        }
-        JFileChooser jfc = new JFileChooser(curr);
-        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        jfc.setDialogTitle("Select FCS File Directory");
-        jfc.setMultiSelectionEnabled(false);
-        int resp = jfc.showOpenDialog(RainbowTestGUI.this);
-        if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
-          txtFldBaseDir.setText(newPath);
-          loadFCSDir(newPath, true);
-          saveProps();
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            String curr = txtFldBaseDir.getText();
+            if (curr.equals("")) {
+              curr = "./";
+            }
+            JFileChooser jfc = new JFileChooser(curr);
+            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            jfc.setDialogTitle("Select FCS File Directory");
+            jfc.setMultiSelectionEnabled(false);
+            int resp = jfc.showOpenDialog(RainbowTestGUI.this);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+              String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
+              txtFldBaseDir.setText(newPath);
+              loadFCSDir(newPath, true);
+              saveProps();
+            }
+          }
+        });
     contentPane.add(btnBaseDirSelect, "cell 2 0");
 
     lblCompareFcsDir = new JLabel("<html>Compare FCS <u>D</u>ir:</html>");
@@ -239,27 +238,28 @@ public class RainbowTestGUI extends JFrame {
     btnCompDirSelect = new JButton(">");
     btnCompDirSelect.setMargin(new Insets(0, 14, 0, 14));
     btnCompDirSelect.setMnemonic(KeyEvent.VK_D);
-    btnCompDirSelect.addActionListener(new ActionListener() {
+    btnCompDirSelect.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        String curr = txtFldCompDir.getText();
-        if (curr.equals("")) {
-          curr = "./";
-        }
-        JFileChooser jfc = new JFileChooser(curr);
-        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        jfc.setDialogTitle("Select FCS File Directory");
-        jfc.setMultiSelectionEnabled(false);
-        int resp = jfc.showOpenDialog(RainbowTestGUI.this);
-        if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
-          txtFldCompDir.setText(newPath);
-          loadFCSDir(newPath, false);
-          saveProps();
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            String curr = txtFldCompDir.getText();
+            if (curr.equals("")) {
+              curr = "./";
+            }
+            JFileChooser jfc = new JFileChooser(curr);
+            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            jfc.setDialogTitle("Select FCS File Directory");
+            jfc.setMultiSelectionEnabled(false);
+            int resp = jfc.showOpenDialog(RainbowTestGUI.this);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+              String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
+              txtFldCompDir.setText(newPath);
+              loadFCSDir(newPath, false);
+              saveProps();
+            }
+          }
+        });
     contentPane.add(btnCompDirSelect, "cell 2 1");
 
     JLabel lblGatingFile = new JLabel("<html><u>G</u>ating File:</html>");
@@ -273,28 +273,29 @@ public class RainbowTestGUI extends JFrame {
     btnGatingFileSelect = new JButton(">");
     btnGatingFileSelect.setMargin(new Insets(0, 3, 0, 3));
     btnGatingFileSelect.setMnemonic(KeyEvent.VK_G);
-    btnGatingFileSelect.addActionListener(new ActionListener() {
+    btnGatingFileSelect.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        String curr = txtFldBaseDir.getText();
-        if (curr.equals("")) {
-          curr = "./";
-        }
-        JFileChooser jfc = new JFileChooser(curr);
-        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        jfc.setFileFilter(new FileNameExtensionFilter("Gating-ML Files", gateFileExts));
-        jfc.setDialogTitle("Select Gating-ML File");
-        jfc.setMultiSelectionEnabled(false);
-        int resp = jfc.showOpenDialog(RainbowTestGUI.this);
-        if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = jfc.getSelectedFile().getAbsolutePath();
-          txtFldGatingFile.setText(newPath);
-          setGateFile(newPath);
-          saveProps();
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            String curr = txtFldBaseDir.getText();
+            if (curr.equals("")) {
+              curr = "./";
+            }
+            JFileChooser jfc = new JFileChooser(curr);
+            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            jfc.setFileFilter(new FileNameExtensionFilter("Gating-ML Files", gateFileExts));
+            jfc.setDialogTitle("Select Gating-ML File");
+            jfc.setMultiSelectionEnabled(false);
+            int resp = jfc.showOpenDialog(RainbowTestGUI.this);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+              String newPath = jfc.getSelectedFile().getAbsolutePath();
+              txtFldGatingFile.setText(newPath);
+              setGateFile(newPath);
+              saveProps();
+            }
+          }
+        });
     contentPane.add(btnGatingFileSelect, "flowx,cell 2 2");
 
     scrollPane = new JScrollPane();
@@ -305,8 +306,9 @@ public class RainbowTestGUI extends JFrame {
     final HashSet<String> lessThan4CV = new HashSet<>();
     final HashSet<String> lessThan6CV = new HashSet<>();
 
-    String[] lessThan4 = {"BB515", "PE", "PE-CF594", "PE-Cy7", "BV 421", "BV 510", "BV 605",
-                          "BV 711"};
+    String[] lessThan4 = {
+      "BB515", "PE", "PE-CF594", "PE-Cy7", "BV 421", "BV 510", "BV 605", "BV 711"
+    };
     String[] lessThan6 = {"BUV 395", "BUV 737", "APC", "APC-Cy7"};
     for (String s : lessThan4) {
       lessThan4CV.add(s);
@@ -319,216 +321,223 @@ public class RainbowTestGUI extends JFrame {
       lessThan6CV.add("Comp-" + s);
     }
 
-    table = new JTable() {
+    table =
+        new JTable() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-        Component c = super.prepareRenderer(renderer, row, column);
+          @Override
+          public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+            Component c = super.prepareRenderer(renderer, row, column);
 
-        if (column == 0 && boldRows.contains(row)) {
-          c.setFont(c.getFont().deriveFont(Font.BOLD));
-        }
-        if (isCellSelected(row, column)) {
-          return c;
-        }
+            if (column == 0 && boldRows.contains(row)) {
+              c.setFont(c.getFont().deriveFont(Font.BOLD));
+            }
+            if (isCellSelected(row, column)) {
+              return c;
+            }
 
-        Color col = Color.WHITE;
-        if (column > 0 && !statRows.contains(row)) {
-          Object val = table.getModel().getValueAt(table.convertRowIndexToModel(row),
-                                                   table.convertColumnIndexToModel(column));
-          if (val != null) {
-            if (val instanceof Number) {
-              String colNm = table.getModel()
-                                  .getColumnName(table.convertColumnIndexToModel(column));
-              double value = ((Number) val).doubleValue();
-              if (rdbtnMean.isSelected()) {
-                if (paramMeans.containsKey(colNm)) {
-                  double mn = paramMeans.get(colNm);
-                  if (value > (mn + .15 * mn) || value < (mn - .15 * mn)) {
-                    col = SD2_COLOR;
-                  }
-                  // if (value > (paramMeans.get(colNm) + paramSDs.get(colNm)) || value <
-                  // (paramMeans.get(colNm) - paramSDs.get(colNm))) {
-                  // col = SD1_COLOR;
-                  // }
-                  // if (value > (paramMeans.get(colNm) + 2*paramSDs.get(colNm)) || value <
-                  // (paramMeans.get(colNm) - 2*paramSDs.get(colNm))) {
-                  // col = SD2_COLOR;
-                  // }
-                }
-              } else if (rdbtnSd.isSelected()) {
+            Color col = Color.WHITE;
+            if (column > 0 && !statRows.contains(row)) {
+              Object val =
+                  table
+                      .getModel()
+                      .getValueAt(
+                          table.convertRowIndexToModel(row),
+                          table.convertColumnIndexToModel(column));
+              if (val != null) {
+                if (val instanceof Number) {
+                  String colNm =
+                      table.getModel().getColumnName(table.convertColumnIndexToModel(column));
+                  double value = ((Number) val).doubleValue();
+                  if (rdbtnMean.isSelected()) {
+                    if (paramMeans.containsKey(colNm)) {
+                      double mn = paramMeans.get(colNm);
+                      if (value > (mn + .15 * mn) || value < (mn - .15 * mn)) {
+                        col = SD2_COLOR;
+                      }
+                      // if (value > (paramMeans.get(colNm) + paramSDs.get(colNm)) || value <
+                      // (paramMeans.get(colNm) - paramSDs.get(colNm))) {
+                      // col = SD1_COLOR;
+                      // }
+                      // if (value > (paramMeans.get(colNm) + 2*paramSDs.get(colNm)) || value <
+                      // (paramMeans.get(colNm) - 2*paramSDs.get(colNm))) {
+                      // col = SD2_COLOR;
+                      // }
+                    }
+                  } else if (rdbtnSd.isSelected()) {
 
-              } else if (rdbtnCv.isSelected()) {
-                // <4% :
-                // BLue laser: BB515, PE, PE-CF594 and PE-Cy7
-                // Violet laser: BV421, BV510, BV605 and BV711
-                //
-                // <6%
-                // UV laser: BUV395 and BUV737
-                // Red laser: APC and APC-Cy7
-                if (paramCVs.containsKey(colNm)) {
-                  if (value > 3 && lessThan4CV.contains(colNm)) {
-                    col = ABOVE_3_CV_COLOR;
-                  }
-                  if (value > 5 && lessThan6CV.contains(colNm)) {
-                    col = ABOVE_5_CV_COLOR;
+                  } else if (rdbtnCv.isSelected()) {
+                    // <4% :
+                    // BLue laser: BB515, PE, PE-CF594 and PE-Cy7
+                    // Violet laser: BV421, BV510, BV605 and BV711
+                    //
+                    // <6%
+                    // UV laser: BUV395 and BUV737
+                    // Red laser: APC and APC-Cy7
+                    if (paramCVs.containsKey(colNm)) {
+                      if (value > 3 && lessThan4CV.contains(colNm)) {
+                        col = ABOVE_3_CV_COLOR;
+                      }
+                      if (value > 5 && lessThan6CV.contains(colNm)) {
+                        col = ABOVE_5_CV_COLOR;
+                      }
+                    }
                   }
                 }
               }
             }
-          }
-        }
-        c.setBackground(col);
+            c.setBackground(col);
 
-        return c;
-      }
-    };
+            return c;
+          }
+        };
 
     final JFlow fcp = JFlow.createGUI(false);
 
-    table.addMouseListener(new MouseAdapter() {
+    table.addMouseListener(
+        new MouseAdapter() {
 
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() == 2) {
-          JTable target = (JTable) e.getSource();
-          int row = target.getSelectedRow();
-          int column = target.getSelectedColumn();
-          if (column == 0) {
-            return;
-          }
-          if (row != 0 && boldRows.contains(row)) {
-            return;
-          }
-          Object o1 = target.getValueAt(row, column);
-          if (o1 == null) {
-            return;
-          }
-
-          final String col = (String) target.getValueAt(0, column);
-          if (row == 0) {
-            RainbowTestGUI.this.showMeanPanel(col);
-          }
-          String file = (String) target.getValueAt(row, 0) + ".fcs";
-          FCSDataLoader loader = null;
-          if (baseFiles.containsKey(file)) {
-            loader = baseFiles.get(file);
-          } else {
-            for (String f : compFiles.keySet()) {
-              if (f.endsWith(file)) { // TODO warning, will break if duplicate files exist
-                loader = compFiles.get(f);
-                break;
+          @Override
+          public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 2) {
+              JTable target = (JTable) e.getSource();
+              int row = target.getSelectedRow();
+              int column = target.getSelectedColumn();
+              if (column == 0) {
+                return;
               }
+              if (row != 0 && boldRows.contains(row)) {
+                return;
+              }
+              Object o1 = target.getValueAt(row, column);
+              if (o1 == null) {
+                return;
+              }
+
+              final String col = (String) target.getValueAt(0, column);
+              if (row == 0) {
+                RainbowTestGUI.this.showMeanPanel(col);
+              }
+              String file = (String) target.getValueAt(row, 0) + ".fcs";
+              FCSDataLoader loader = null;
+              if (baseFiles.containsKey(file)) {
+                loader = baseFiles.get(file);
+              } else {
+                for (String f : compFiles.keySet()) {
+                  if (f.endsWith(file)) { // TODO warning, will break if duplicate files exist
+                    loader = compFiles.get(f);
+                    break;
+                  }
+                }
+              }
+              if (loader == null) {
+                return;
+              }
+              fcp.setData(loader);
+              if (gateStrat != null) {
+                fcp.setGating(gateStrat);
+              }
+              SwingUtilities.invokeLater(
+                  new Runnable() {
+
+                    @Override
+                    public void run() {
+                      fcp.setXDataName(col);
+                      fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
+                      SwingUtilities.getWindowAncestor(fcp).setVisible(true);
+                    }
+                  });
             }
           }
-          if (loader == null) {
-            return;
-          }
-          fcp.setData(loader);
-          if (gateStrat != null) {
-            fcp.setGating(gateStrat);
-          }
-          SwingUtilities.invokeLater(new Runnable() {
+        });
+    table
+        .getTableHeader()
+        .addMouseListener(
+            new MouseAdapter() {
 
-            @Override
-            public void run() {
-              fcp.setXDataName(col);
-              fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
-              SwingUtilities.getWindowAncestor(fcp).setVisible(true);
-            }
-          });
-        }
-      }
-    });
-    table.getTableHeader().addMouseListener(new MouseAdapter() {
-
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() == 2) {
-          int colInd = table.columnAtPoint(e.getPoint());
-          String col = (String) table.getValueAt(0, colInd);
-          RainbowTestGUI.this.showMeanPanel(col);
-        }
-      }
-    });
+              @Override
+              public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                  int colInd = table.columnAtPoint(e.getPoint());
+                  String col = (String) table.getValueAt(0, colInd);
+                  RainbowTestGUI.this.showMeanPanel(col);
+                }
+              }
+            });
     table.setShowVerticalLines(false);
     table.setShowHorizontalLines(false);
     scrollPane.setViewportView(table);
     // table.setCellSelectionEnabled(false);
-    table.setColumnModel(new DefaultTableColumnModel() {
+    table.setColumnModel(
+        new DefaultTableColumnModel() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void moveColumn(int columnIndex, int newIndex) {
-        if (columnIndex == 0 || newIndex == 0) {
-          return;
-        }
-        super.moveColumn(columnIndex, newIndex);
-      }
-    });
+          @Override
+          public void moveColumn(int columnIndex, int newIndex) {
+            if (columnIndex == 0 || newIndex == 0) {
+              return;
+            }
+            super.moveColumn(columnIndex, newIndex);
+          }
+        });
     table.setRowSelectionAllowed(true);
     table.setColumnSelectionAllowed(true);
 
     table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
     btnHideshowColumns = new JButton("Hide/Show Columns");
-    btnHideshowColumns.addActionListener(new ActionListener() {
+    btnHideshowColumns.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        String[] opts = new String[paramNames.size()];
-        boolean[] incl = new boolean[paramNames.size()];
-        int ind = 0;
-        for (String p : paramNames) {
-          opts[ind] = p;
-          incl[ind] = !hiddenCols.contains(p);
-          ind++;
-        }
-        IncludeExcludeGUI dialog = new IncludeExcludeGUI(RainbowTestGUI.this, opts, incl);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.pack();
-        dialog.setVisible(true);
-        int code = dialog.getCloseCode();
-        if (code == JOptionPane.OK_OPTION) {
-          boolean[] inc = dialog.getSelected();
-          hiddenCols.clear();
-          for (int i = 0; i < opts.length; i++) {
-            if (!inc[i]) {
-              hiddenCols.add(opts[i]);
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            String[] opts = new String[paramNames.size()];
+            boolean[] incl = new boolean[paramNames.size()];
+            int ind = 0;
+            for (String p : paramNames) {
+              opts[ind] = p;
+              incl[ind] = !hiddenCols.contains(p);
+              ind++;
+            }
+            IncludeExcludeGUI dialog = new IncludeExcludeGUI(RainbowTestGUI.this, opts, incl);
+            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dialog.pack();
+            dialog.setVisible(true);
+            int code = dialog.getCloseCode();
+            if (code == JOptionPane.OK_OPTION) {
+              boolean[] inc = dialog.getSelected();
+              hiddenCols.clear();
+              for (int i = 0; i < opts.length; i++) {
+                if (!inc[i]) {
+                  hiddenCols.add(opts[i]);
+                }
+              }
+              saveProps();
+              reCalcTableData();
             }
           }
-          saveProps();
-          reCalcTableData();
-        }
-      }
-    });
+        });
     contentPane.add(btnHideshowColumns, "flowx,cell 0 4 2 1");
 
     separator_1 = new JSeparator();
     separator_1.setOrientation(SwingConstants.VERTICAL);
     contentPane.add(separator_1, "cell 0 4 2 1,growy");
 
-    AbstractAction gateAction = new AbstractAction() {
+    AbstractAction gateAction =
+        new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        reCalcTableData();
-      }
-    };
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            reCalcTableData();
+          }
+        };
 
     rdbtnUngated = new JRadioButton();
     rdbtnUngated.setAction(gateAction);
@@ -551,23 +560,22 @@ public class RainbowTestGUI extends JFrame {
     contentPane.add(separator, "cell 0 4 2 1,growy");
 
     rdbtnMean = new JRadioButton();
-    rdbtnMean.setAction(new AbstractAction() {
+    rdbtnMean.setAction(
+        new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (dtmMean != null) {
-          table.setModel(dtmMean);
-          table.revalidate();
-          table.repaint();
-          resizeColumnWidth();
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            if (dtmMean != null) {
+              table.setModel(dtmMean);
+              table.revalidate();
+              table.repaint();
+              resizeColumnWidth();
+            }
+          }
+        });
     rdbtnMean.setText("Mean");
     rdbtnMean.setMnemonic(KeyEvent.VK_M);
     rdbtnMean.setSelected(true);
@@ -575,65 +583,64 @@ public class RainbowTestGUI extends JFrame {
     contentPane.add(rdbtnMean, "cell 0 4 2 1");
 
     rdbtnSd = new JRadioButton();
-    rdbtnSd.setAction(new AbstractAction() {
+    rdbtnSd.setAction(
+        new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (dtmSD != null) {
-          table.setModel(dtmSD);
-          table.revalidate();
-          table.repaint();
-          resizeColumnWidth();
-        } else {
-          rdbtnMean.setSelected(true);
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            if (dtmSD != null) {
+              table.setModel(dtmSD);
+              table.revalidate();
+              table.repaint();
+              resizeColumnWidth();
+            } else {
+              rdbtnMean.setSelected(true);
+            }
+          }
+        });
     rdbtnSd.setText("SD");
     rdbtnSd.setMnemonic(KeyEvent.VK_S);
     buttonGroup.add(rdbtnSd);
     contentPane.add(rdbtnSd, "cell 0 4 2 1");
 
     rdbtnCv = new JRadioButton();
-    rdbtnCv.setAction(new AbstractAction() {
+    rdbtnCv.setAction(
+        new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (dtmCV != null) {
-          table.setModel(dtmCV);
-          table.revalidate();
-          table.repaint();
-          resizeColumnWidth();
-        } else {
-          rdbtnMean.setSelected(true);
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            if (dtmCV != null) {
+              table.setModel(dtmCV);
+              table.revalidate();
+              table.repaint();
+              resizeColumnWidth();
+            } else {
+              rdbtnMean.setSelected(true);
+            }
+          }
+        });
     rdbtnCv.setText("cV");
     rdbtnCv.setMnemonic(KeyEvent.VK_C);
     buttonGroup.add(rdbtnCv);
     contentPane.add(rdbtnCv, "cell 0 4 2 1");
 
     button = new JButton("X");
-    button.addActionListener(new ActionListener() {
+    button.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        gateStrat = null;
-        txtFldGatingFile.setText("");
-        reCalcTableData();
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            gateStrat = null;
+            txtFldGatingFile.setText("");
+            reCalcTableData();
+          }
+        });
     button.setMargin(new Insets(0, 2, 0, 2));
     contentPane.add(button, "cell 2 2");
 
@@ -641,36 +648,36 @@ public class RainbowTestGUI extends JFrame {
     separator_2.setOrientation(SwingConstants.VERTICAL);
     contentPane.add(separator_2, "cell 0 4 2 1,growy");
 
-    rdbtnCompensated = new JRadioButton(new AbstractAction() {
+    rdbtnCompensated =
+        new JRadioButton(
+            new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+              /** */
+              private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        currData = DATA_SET.COMPENSATED;
-        reCalcTableData();
-      }
-    });
+              @Override
+              public void actionPerformed(ActionEvent arg0) {
+                currData = DATA_SET.COMPENSATED;
+                reCalcTableData();
+              }
+            });
     rdbtnCompensated.setText("Compensated");
     buttonGroup_2.add(rdbtnCompensated);
     contentPane.add(rdbtnCompensated, "cell 0 4 2 1");
 
-    rdbtnUncompensated = new JRadioButton(new AbstractAction() {
+    rdbtnUncompensated =
+        new JRadioButton(
+            new AbstractAction() {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+              /** */
+              private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        currData = DATA_SET.UNCOMPENSATED;
-        reCalcTableData();
-      }
-    });
+              @Override
+              public void actionPerformed(ActionEvent arg0) {
+                currData = DATA_SET.UNCOMPENSATED;
+                reCalcTableData();
+              }
+            });
     rdbtnUncompensated.setText("Uncompensated");
     rdbtnUncompensated.setSelected(true);
     buttonGroup_2.add(rdbtnUncompensated);
@@ -686,14 +693,15 @@ public class RainbowTestGUI extends JFrame {
     meanPanel.setOpaque(true);
     meanFrame.getContentPane().add(meanPanel, BorderLayout.CENTER);
     meanFrame.getContentPane().add(meanCtrlPanel, BorderLayout.SOUTH);
-    ActionListener prevLst = new ActionListener() {
+    ActionListener prevLst =
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        String newCol = arg0.getActionCommand();
-        showMeanPanel(newCol);
-      }
-    };
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            String newCol = arg0.getActionCommand();
+            showMeanPanel(newCol);
+          }
+        };
     meanCtrlPanel.setChangeListener(prevLst);
     meanFrame.setBounds(JFlow.START_X, JFlow.START_Y, JFlow.START_WIDTH, JFlow.START_HEIGHT);
     // meanPanel.setPlotType(OneDPanel.PLOT_TYPE.BOX_PLOT);
@@ -705,13 +713,15 @@ public class RainbowTestGUI extends JFrame {
     meanPanel.setShowMean15Line(true);
     meanPanel.setShowRegressionLine(true);
 
-    meanPanel.addPropertyChangeListener("REGRESSION", new PropertyChangeListener() {
+    meanPanel.addPropertyChangeListener(
+        "REGRESSION",
+        new PropertyChangeListener() {
 
-      @Override
-      public void propertyChange(PropertyChangeEvent evt) {
-        saveProps();
-      }
-    });
+          @Override
+          public void propertyChange(PropertyChangeEvent evt) {
+            saveProps();
+          }
+        });
 
     meanFrame.setJMenuBar(createMenuBar());
     meanCtrlPanel.link(meanPanel);
@@ -725,18 +735,19 @@ public class RainbowTestGUI extends JFrame {
 
     JMenu actMenu = new JMenu("Actions");
     JMenuItem screenshotItem = new JMenuItem("Screenshot");
-    screenshotItem.addActionListener(new ActionListener() {
+    screenshotItem.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JFileChooser fileChooser = new JFileChooser(".");
-        int fileOpenActionSelected = fileChooser.showSaveDialog(RainbowTestGUI.this);
-        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
-          File fileToOpen = fileChooser.getSelectedFile();
-          meanPanel.screenCapture(fileToOpen.toString() + ".png");
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            JFileChooser fileChooser = new JFileChooser(".");
+            int fileOpenActionSelected = fileChooser.showSaveDialog(RainbowTestGUI.this);
+            if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
+              File fileToOpen = fileChooser.getSelectedFile();
+              meanPanel.screenCapture(fileToOpen.toString() + ".png");
+            }
+          }
+        });
 
     actMenu.add(screenshotItem);
     menuBar.add(actMenu);
@@ -831,8 +842,8 @@ public class RainbowTestGUI extends JFrame {
 
     meanCtrlPanel.setColumns(cols, ind - 1);
 
-    meanPanel.setData(col, new String[][] {baseLbls, compLbls},
-                      new double[][] {yDataBase, yDataComp});
+    meanPanel.setData(
+        col, new String[][] {baseLbls, compLbls}, new double[][] {yDataBase, yDataComp});
     meanPanel.setYAxisLabel("Mean - " + col);
     meanFrame.setTitle("Genvisis - FCS Overall Mean/SD - " + col);
     meanFrame.setVisible(true);
@@ -980,8 +991,9 @@ public class RainbowTestGUI extends JFrame {
     final TableColumnModel columnModel = table.getColumnModel();
     FontMetrics fm = table.getFontMetrics(table.getFont());
     for (int column = 0; column < table.getColumnCount(); column++) {
-      int width = fm.stringWidth(columnModel.getColumn(column).getHeaderValue().toString()) + 20; // Min
-                                                                                                  // width
+      int width =
+          fm.stringWidth(columnModel.getColumn(column).getHeaderValue().toString()) + 20; // Min
+      // width
       for (int row = 0; row < table.getRowCount(); row++) {
         TableCellRenderer renderer = table.getCellRenderer(row, column);
         Component comp = table.prepareRenderer(renderer, row, column);
@@ -1027,23 +1039,24 @@ public class RainbowTestGUI extends JFrame {
       }
       return files.toArray(new String[files.size()]);
     }
-
   }
 
-  private final FilenameFilter fcsFileFilter = new FilenameFilter() {
+  private final FilenameFilter fcsFileFilter =
+      new FilenameFilter() {
 
-    @Override
-    public boolean accept(File dir, String name) {
-      return name.endsWith(".fcs");
-    }
-  };
-  private final FileFilter dirFilter = new FileFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+          return name.endsWith(".fcs");
+        }
+      };
+  private final FileFilter dirFilter =
+      new FileFilter() {
 
-    @Override
-    public boolean accept(File pathname) {
-      return pathname.isDirectory();
-    }
-  };
+        @Override
+        public boolean accept(File pathname) {
+          return pathname.isDirectory();
+        }
+      };
   private JSeparator separator_2;
   private JRadioButton rdbtnCompensated;
   private JRadioButton rdbtnUncompensated;
@@ -1077,8 +1090,10 @@ public class RainbowTestGUI extends JFrame {
       } else if (cache.containsKey(f)) {
         baseFiles.put(f, null);
       }
-      List<String> p = (cache.containsKey(f) ? Arrays.asList(cache.get(f).params)
-                                             : baseFiles.get(f).getAllDisplayableNames(currData));
+      List<String> p =
+          (cache.containsKey(f)
+              ? Arrays.asList(cache.get(f).params)
+              : baseFiles.get(f).getAllDisplayableNames(currData));
       paramNames.addAll(p);
       paramSet.addAll(p);
     }
@@ -1090,8 +1105,10 @@ public class RainbowTestGUI extends JFrame {
       } else if (cache.containsKey(f)) {
         compFiles.put(f, null);
       }
-      List<String> p = (cache.containsKey(f) ? Arrays.asList(cache.get(f).params)
-                                             : compFiles.get(f).getAllDisplayableNames(currData));
+      List<String> p =
+          (cache.containsKey(f)
+              ? Arrays.asList(cache.get(f).params)
+              : compFiles.get(f).getAllDisplayableNames(currData));
       paramNames.addAll(p);
       paramSet.addAll(p);
     }
@@ -1103,42 +1120,39 @@ public class RainbowTestGUI extends JFrame {
       paramCVLists.put(p, new ArrayList<Double>());
     }
 
-    dtmMean = new DefaultTableModel(colNames, 0) {
+    dtmMean =
+        new DefaultTableModel(colNames, 0) {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public boolean isCellEditable(int row, int column) {
-        return false;
-      }
-    };
-    dtmSD = new DefaultTableModel(colNames, 0) {
+          @Override
+          public boolean isCellEditable(int row, int column) {
+            return false;
+          }
+        };
+    dtmSD =
+        new DefaultTableModel(colNames, 0) {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public boolean isCellEditable(int row, int column) {
-        return false;
-      }
-    };
-    dtmCV = new DefaultTableModel(colNames, 0) {
+          @Override
+          public boolean isCellEditable(int row, int column) {
+            return false;
+          }
+        };
+    dtmCV =
+        new DefaultTableModel(colNames, 0) {
 
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public boolean isCellEditable(int row, int column) {
-        return false;
-      }
-    };
+          @Override
+          public boolean isCellEditable(int row, int column) {
+            return false;
+          }
+        };
 
     boldRows.clear();
 
@@ -1233,8 +1247,8 @@ public class RainbowTestGUI extends JFrame {
 
     TreeMap<Date, ArrayList<String>> fileMap = new TreeMap<>();
     for (Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
-      Date key = cache.containsKey(l.getKey()) ? cache.get(l.getKey()).runDate
-                                               : l.getValue().getRunDate();
+      Date key =
+          cache.containsKey(l.getKey()) ? cache.get(l.getKey()).runDate : l.getValue().getRunDate();
       ArrayList<String> files = fileMap.get(key);
       if (files == null) {
         files = new ArrayList<>();
@@ -1266,7 +1280,7 @@ public class RainbowTestGUI extends JFrame {
   private static final int TREND_ABOVE_2SD_THRESH = 2;
 
   private static final double PCT_OF_EVENTS_DEV_TREND = 0.25; // 1-quarter of events outside of 1SD
-                                                              // will result in file being reported
+  // will result in file being reported
 
   private ArrayList<String> getFileTrendWarnings(String[] params) {
     ArrayList<String> warnings = new ArrayList<>();
@@ -1285,10 +1299,9 @@ public class RainbowTestGUI extends JFrame {
       }
 
       if (cnt >= params.length * PCT_OF_EVENTS_DEV_TREND) {
-        warnings.add("Source " + f + " has " + cnt
-                     + " events greater than 1SD from parameter means.");
+        warnings.add(
+            "Source " + f + " has " + cnt + " events greater than 1SD from parameter means.");
       }
-
     }
 
     return warnings;
@@ -1347,8 +1360,8 @@ public class RainbowTestGUI extends JFrame {
         }
       }
       all15TrendsForParam.add(any15);
-      trendMap.put(param,
-                   new ArrayList[] {all1TrendsForParam, all2TrendsForParam, all15TrendsForParam});
+      trendMap.put(
+          param, new ArrayList[] {all1TrendsForParam, all2TrendsForParam, all15TrendsForParam});
     }
 
     ArrayList<String> trendWarnings = new ArrayList<>();
@@ -1361,8 +1374,11 @@ public class RainbowTestGUI extends JFrame {
             continue;
           }
           String[] p = entry.getKey().split("\\|")[0].trim().split("/");
-          String warn = trend.size() + "-count trend in parameter " + p[p.length - 1]
-                        + " greater than 1SD from the mean.";
+          String warn =
+              trend.size()
+                  + "-count trend in parameter "
+                  + p[p.length - 1]
+                  + " greater than 1SD from the mean.";
           trendWarnings.add(warn);
         }
         for (ArrayList<String> trend : entry.getValue()[1]) {
@@ -1370,8 +1386,11 @@ public class RainbowTestGUI extends JFrame {
             continue;
           }
           String[] p = entry.getKey().split("\\|")[0].trim().split("/");
-          String warn = trend.size() + "-count trend in parameter " + p[p.length - 1]
-                        + " greater than 2SD from the mean.";
+          String warn =
+              trend.size()
+                  + "-count trend in parameter "
+                  + p[p.length - 1]
+                  + " greater than 2SD from the mean.";
           trendWarnings.add(warn);
         }
         for (ArrayList<String> trend : entry.getValue()[2]) {
@@ -1380,8 +1399,11 @@ public class RainbowTestGUI extends JFrame {
           }
           String[] p = entry.getKey().split("\\|")[0].trim().split("/");
           for (String s : trend) {
-            String warn = "Source " + s + " has a deviant (>15% of mean) value for parameter "
-                          + p[p.length - 1];
+            String warn =
+                "Source "
+                    + s
+                    + " has a deviant (>15% of mean) value for parameter "
+                    + p[p.length - 1];
             trendWarnings.add(warn);
           }
         }
@@ -1454,52 +1476,50 @@ public class RainbowTestGUI extends JFrame {
 
     if (warnings.size() > 0) {
       btnWarning.setVisible(true);
-      btnWarning.setAction(new AbstractAction() {
+      btnWarning.setAction(
+          new AbstractAction() {
 
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          final JPanel msgPane = new JPanel(new MigLayout("", "", ""));
-          for (int i = 0; i < warnings.size(); i++) {
-            msgPane.add(new JLabel("" + warnings.get(i)), "cell 0 " + i);
-          }
-          JScrollPane scroll = new JScrollPane();
-          scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-          scroll.setViewportView(msgPane);
-          JPanel chk = new JPanel();
-          chk.add(scroll);
-          msgPane.addHierarchyListener(new HierarchyListener() {
+            /** */
+            private static final long serialVersionUID = 1L;
 
             @Override
-            public void hierarchyChanged(HierarchyEvent e) {
-              Window window = SwingUtilities.getWindowAncestor(msgPane);
-              if (window instanceof Dialog) {
-                Dialog dialog = (Dialog) window;
-                if (!dialog.isResizable()) {
-                  dialog.setResizable(true);
-                }
+            public void actionPerformed(ActionEvent e) {
+              final JPanel msgPane = new JPanel(new MigLayout("", "", ""));
+              for (int i = 0; i < warnings.size(); i++) {
+                msgPane.add(new JLabel("" + warnings.get(i)), "cell 0 " + i);
               }
+              JScrollPane scroll = new JScrollPane();
+              scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+              scroll.setViewportView(msgPane);
+              JPanel chk = new JPanel();
+              chk.add(scroll);
+              msgPane.addHierarchyListener(
+                  new HierarchyListener() {
+
+                    @Override
+                    public void hierarchyChanged(HierarchyEvent e) {
+                      Window window = SwingUtilities.getWindowAncestor(msgPane);
+                      if (window instanceof Dialog) {
+                        Dialog dialog = (Dialog) window;
+                        if (!dialog.isResizable()) {
+                          dialog.setResizable(true);
+                        }
+                      }
+                    }
+                  });
+              JOptionPane.showMessageDialog(
+                  RainbowTestGUI.this, scroll, "Trend Warnings", JOptionPane.WARNING_MESSAGE);
             }
           });
-          JOptionPane.showMessageDialog(RainbowTestGUI.this, scroll, "Trend Warnings",
-                                        JOptionPane.WARNING_MESSAGE);
-        }
-      });
       btnWarning.setIcon(UIManager.getIcon("OptionPane.warningIcon"));
     }
-
   }
 
   private static final class CacheObject implements Serializable {
 
-    /**
-     *
-     */
+    /** */
     private static final long serialVersionUID = 1L;
+
     String[] params;
     Date runDate;
     String gateFileApplied;
@@ -1570,9 +1590,11 @@ public class RainbowTestGUI extends JFrame {
             boolean[] gating = null;
             if (gateStrat != null && rdbtnGated.isSelected()) {
               ArrayList<Gate> gates = gateStrat.getGatesForParamOnly(paramNames[i]);
-              System.out.println("Applying " + gates.size()
-                                 + " gates (not including parent-gates) to parameter "
-                                 + paramNames[i]);
+              System.out.println(
+                  "Applying "
+                      + gates.size()
+                      + " gates (not including parent-gates) to parameter "
+                      + paramNames[i]);
               for (Gate g : gates) {
                 if (gating == null) {
                   gating = g.gate(loader);
@@ -1659,7 +1681,7 @@ public class RainbowTestGUI extends JFrame {
           rowDataC[i + 1] = cv;
         }
       } else {
-        FCSDataLoader loader = compFiles.get(/* df.dir + */f);
+        FCSDataLoader loader = compFiles.get(/* df.dir + */ f);
 
         CacheObject newCO = new CacheObject();
         newCO.runDate = loader.getRunDate();
@@ -1674,7 +1696,8 @@ public class RainbowTestGUI extends JFrame {
             for (Gate g : gates) {
               if (gating == null) {
                 gating = g.gate(loader);
-              } else {}
+              } else {
+              }
               ArrayUtils.booleanArrayAndInPlace(gating, g.gate(loader));
             }
           }
@@ -1748,22 +1771,20 @@ public class RainbowTestGUI extends JFrame {
     return fdl;
   }
 
-  /**
-   * Launch the application.
-   */
+  /** Launch the application. */
   public static void main(String[] args) {
-    EventQueue.invokeLater(new Runnable() {
+    EventQueue.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        try {
-          RainbowTestGUI frame = new RainbowTestGUI();
-          frame.setVisible(true);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    });
+          @Override
+          public void run() {
+            try {
+              RainbowTestGUI frame = new RainbowTestGUI();
+              frame.setVisible(true);
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+        });
   }
-
 }

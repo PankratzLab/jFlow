@@ -36,10 +36,9 @@ import net.miginfocom.swing.MigLayout;
 
 public class PolygonGateEditor extends JDialog {
 
-  /**
-  * 
-  */
+  /** */
   private static final long serialVersionUID = 1L;
+
   private final JFlow plot;
   private final Gate gate;
   private final JPanel contentPanel = new JPanel();
@@ -54,9 +53,7 @@ public class PolygonGateEditor extends JDialog {
   ArrayList<JFormattedTextField> yFields = new ArrayList<>();
   private JCheckBox chkMimicFlowJo;
 
-  /**
-   * Create the dialog.
-   */
+  /** Create the dialog. */
   public PolygonGateEditor(JFlow plot, PolygonGate gate) {
     this.plot = plot;
     this.gate = gate;
@@ -67,8 +64,8 @@ public class PolygonGateEditor extends JDialog {
     getContentPane().setLayout(new BorderLayout());
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
-    contentPanel.setLayout(new MigLayout("", "[][grow][][grow][]",
-                                         "[][][][][][grow][][][][][][][]"));
+    contentPanel.setLayout(
+        new MigLayout("", "[][grow][][grow][]", "[][][][][][grow][][][][][][][]"));
     {
       JLabel lbl = new JLabel("ID:");
       contentPanel.add(lbl, "flowx,cell 1 0 3 1,alignx center");
@@ -155,34 +152,36 @@ public class PolygonGateEditor extends JDialog {
       getContentPane().add(buttonPane, BorderLayout.SOUTH);
       {
         JButton okButton = new JButton("OK");
-        okButton.addActionListener(new ActionListener() {
+        okButton.addActionListener(
+            new ActionListener() {
 
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            String msg = valid();
-            if (msg == null) {
-              cancelled = false;
-              setVisible(false);
-            } else {
-              JOptionPane.showMessageDialog(PolygonGateEditor.this, msg, "Error!",
-                                            JOptionPane.ERROR_MESSAGE);
-            }
-          }
-        });
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                String msg = valid();
+                if (msg == null) {
+                  cancelled = false;
+                  setVisible(false);
+                } else {
+                  JOptionPane.showMessageDialog(
+                      PolygonGateEditor.this, msg, "Error!", JOptionPane.ERROR_MESSAGE);
+                }
+              }
+            });
         okButton.setActionCommand("OK");
         buttonPane.add(okButton);
         getRootPane().setDefaultButton(okButton);
       }
       {
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
+        cancelButton.addActionListener(
+            new ActionListener() {
 
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            setVisible(false);
-            dispose();
-          }
-        });
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                setVisible(false);
+                dispose();
+              }
+            });
         cancelButton.setActionCommand("Cancel");
         buttonPane.add(cancelButton);
       }
@@ -228,18 +227,15 @@ public class PolygonGateEditor extends JDialog {
   }
 
   /**
-   * <p>
    * Decorator for a {@link Format Format} which only accepts values which can be completely parsed
    * by the delegate format. If the value can only be partially parsed, the decorator will refuse to
    * parse the value.
-   * </p>
    */
   class ParseAllFormat extends Format {
 
-    /**
-    * 
-    */
+    /** */
     private static final long serialVersionUID = 1L;
+
     private final Format fDelegate;
 
     /**
@@ -280,5 +276,4 @@ public class PolygonGateEditor extends JDialog {
       return super.parseObject(source);
     }
   }
-
 }

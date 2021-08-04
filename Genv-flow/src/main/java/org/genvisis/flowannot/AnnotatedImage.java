@@ -44,8 +44,10 @@ public class AnnotatedImage {
           c = this.annotation.toUpperCase().charAt(ind);
         }
         if (ind == this.annotation.length()) {
-          System.err.println("Error - all possible mnemonic characters already used for annotation {"
-                             + this.annotation + "}.  Using alphanumerics instead.");
+          System.err.println(
+              "Error - all possible mnemonic characters already used for annotation {"
+                  + this.annotation
+                  + "}.  Using alphanumerics instead.");
           String alphanum = "abcdefghijklmnopqrstuvwxyz0123456789";
           ind = 0;
           while (mnemonicMap.containsValue(alphanum.charAt(ind))) {
@@ -87,7 +89,6 @@ public class AnnotatedImage {
       } else if (!annotation.equals(other.annotation)) return false;
       return true;
     }
-
   }
 
   private String gateName;
@@ -146,16 +147,21 @@ public class AnnotatedImage {
           }
         } else {
           String[] images = imageFile.split(";");
-          ImageInputStream[] streams = Arrays.stream(images).map(t -> {
-            try {
-              return ImagesPkl.getImageInputStream(t);
-            } catch (IOException e) {
-              e.printStackTrace();
-              return null;
-            }
-          }).collect(Collectors.toList()).toArray(new ImageInputStream[images.length]);
-          image = new SoftReference<>(ImagesPkl.stitchImages(streams, 0, Color.WHITE, false,
-                                                             false));
+          ImageInputStream[] streams =
+              Arrays.stream(images)
+                  .map(
+                      t -> {
+                        try {
+                          return ImagesPkl.getImageInputStream(t);
+                        } catch (IOException e) {
+                          e.printStackTrace();
+                          return null;
+                        }
+                      })
+                  .collect(Collectors.toList())
+                  .toArray(new ImageInputStream[images.length]);
+          image =
+              new SoftReference<>(ImagesPkl.stitchImages(streams, 0, Color.WHITE, false, false));
         }
       } else {
         if (imageFile == null) {
@@ -175,11 +181,13 @@ public class AnnotatedImage {
     g.setColor(Color.BLACK);
     g.setFont(g.getFont().deriveFont(fontSize));
     FontMetrics fm = g.getFontMetrics();
-    g.drawString(msg, (bi.getWidth() / 2) - fm.stringWidth(msg) / 2,
-                 bi.getHeight() / 2 - fm.getHeight());
+    g.drawString(
+        msg, (bi.getWidth() / 2) - fm.stringWidth(msg) / 2, bi.getHeight() / 2 - fm.getHeight());
     if (msg2 != null) {
-      g.drawString(msg2, (bi.getWidth() / 2) - fm.stringWidth(msg2) / 2,
-                   bi.getHeight() / 2 + ((int) (fm.getHeight() * 1.5)));
+      g.drawString(
+          msg2,
+          (bi.getWidth() / 2) - fm.stringWidth(msg2) / 2,
+          bi.getHeight() / 2 + ((int) (fm.getHeight() * 1.5)));
     }
     return bi;
   }
@@ -225,5 +233,4 @@ public class AnnotatedImage {
   public ArrayList<AnnotatedImage.Annotation> getAnnotations() {
     return this.annots;
   }
-
 }

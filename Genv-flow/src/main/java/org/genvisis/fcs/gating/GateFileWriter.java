@@ -35,12 +35,13 @@ public class GateFileWriter {
       Element rootEle = doc.createElement("gating:Gating-ML");
       rootEle.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
       rootEle.setAttribute("xmlns:gating", "http://www.isac-net.org/std/Gating-ML/v2.0/gating");
-      rootEle.setAttribute("xmlns:transforms",
-                           "http://www.isac-net.org/std/Gating-ML/v2.0/transformations");
-      rootEle.setAttribute("xmlns:data-type",
-                           "http://www.isac-net.org/std/Gating-ML/v2.0/datatypes");
-      rootEle.setAttribute("xsi:schemaLocation",
-                           "http://www.isac-net.org/std/Gating-ML/v2.0/gating http://www.isac-net.org/std/Gating-ML/v2.0/gating/Gating-ML.v2.0.xsd http://www.isac-net.org/std/Gating-ML/v2.0/transformations http://www.isac-net.org/std/Gating-ML/v2.0/gating/Transformations.v2.0.xsd http://www.isac-net.org/std/Gating-ML/v2.0/datatypes http://www.isac-net.org/std/Gating-ML/v2.0/gating/DataTypes.v2.0.xsd ");
+      rootEle.setAttribute(
+          "xmlns:transforms", "http://www.isac-net.org/std/Gating-ML/v2.0/transformations");
+      rootEle.setAttribute(
+          "xmlns:data-type", "http://www.isac-net.org/std/Gating-ML/v2.0/datatypes");
+      rootEle.setAttribute(
+          "xsi:schemaLocation",
+          "http://www.isac-net.org/std/Gating-ML/v2.0/gating http://www.isac-net.org/std/Gating-ML/v2.0/gating/Gating-ML.v2.0.xsd http://www.isac-net.org/std/Gating-ML/v2.0/transformations http://www.isac-net.org/std/Gating-ML/v2.0/gating/Transformations.v2.0.xsd http://www.isac-net.org/std/Gating-ML/v2.0/datatypes http://www.isac-net.org/std/Gating-ML/v2.0/gating/DataTypes.v2.0.xsd ");
 
       ArrayList<Gate> rootGates = gating.getRootGates();
       for (Gate g : rootGates) {
@@ -75,7 +76,6 @@ public class GateFileWriter {
     } catch (ParserConfigurationException e) {
       log.reportException(e);
     }
-
   }
 
   private static void addGateToDocument(Gate g, Document d, Element parentEle) {
@@ -97,14 +97,20 @@ public class GateFileWriter {
     if (g.getXDimension() instanceof RectangleGateDimension) {
       RectangleGateDimension rgd = (RectangleGateDimension) g.getXDimension();
       if (Float.isFinite(rgd.getMax())) {
-        dim1.setAttribute("gating:max",
-                          "" + Math.max(((RectangleGateDimension) g.getXDimension()).getMin(),
-                                        ((RectangleGateDimension) g.getXDimension()).getMax()));
+        dim1.setAttribute(
+            "gating:max",
+            ""
+                + Math.max(
+                    ((RectangleGateDimension) g.getXDimension()).getMin(),
+                    ((RectangleGateDimension) g.getXDimension()).getMax()));
       }
       if (Float.isFinite(rgd.getMin())) {
-        dim1.setAttribute("gating:min",
-                          "" + Math.min(((RectangleGateDimension) g.getXDimension()).getMin(),
-                                        ((RectangleGateDimension) g.getXDimension()).getMax()));
+        dim1.setAttribute(
+            "gating:min",
+            ""
+                + Math.min(
+                    ((RectangleGateDimension) g.getXDimension()).getMin(),
+                    ((RectangleGateDimension) g.getXDimension()).getMax()));
       }
     }
 
@@ -119,14 +125,20 @@ public class GateFileWriter {
       if (g.getYDimension() instanceof RectangleGateDimension) {
         RectangleGateDimension rgd = (RectangleGateDimension) g.getYDimension();
         if (Float.isFinite(rgd.getMax())) {
-          dim1.setAttribute("gating:max",
-                            "" + Math.max(((RectangleGateDimension) g.getYDimension()).getMin(),
-                                          ((RectangleGateDimension) g.getYDimension()).getMax()));
+          dim1.setAttribute(
+              "gating:max",
+              ""
+                  + Math.max(
+                      ((RectangleGateDimension) g.getYDimension()).getMin(),
+                      ((RectangleGateDimension) g.getYDimension()).getMax()));
         }
         if (Float.isFinite(rgd.getMin())) {
-          dim1.setAttribute("gating:min",
-                            "" + Math.min(((RectangleGateDimension) g.getYDimension()).getMin(),
-                                          ((RectangleGateDimension) g.getYDimension()).getMax()));
+          dim1.setAttribute(
+              "gating:min",
+              ""
+                  + Math.min(
+                      ((RectangleGateDimension) g.getYDimension()).getMin(),
+                      ((RectangleGateDimension) g.getYDimension()).getMax()));
         }
       }
 
@@ -179,5 +191,4 @@ public class GateFileWriter {
     // percentY="0"
 
   }
-
 }

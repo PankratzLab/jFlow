@@ -32,25 +32,27 @@ import com.google.common.collect.HashMultiset;
 public class SamplingPipeline {
 
   private static final String CSV_EXT = ".csv";
-  private static final FilenameFilter CSV_FILTER = new FilenameFilter() {
+  private static final FilenameFilter CSV_FILTER =
+      new FilenameFilter() {
 
-    @Override
-    public boolean accept(File dir, String name) {
-      return name.endsWith(CSV_EXT);
-    }
-  };
+        @Override
+        public boolean accept(File dir, String name) {
+          return name.endsWith(CSV_EXT);
+        }
+      };
 
   private static final String FCS_EXT = ".fcs";
-  private static final FilenameFilter FCS_FILTER = new FilenameFilter() {
+  private static final FilenameFilter FCS_FILTER =
+      new FilenameFilter() {
 
-    @Override
-    public boolean accept(File dir, String name) {
-      return name.endsWith(FCS_EXT);
-    }
-  };
+        @Override
+        public boolean accept(File dir, String name) {
+          return name.endsWith(FCS_EXT);
+        }
+      };
 
   private static final int OUTLIER_SAMPLE_EVERY = 0; // no outlier sampling // every fifth sampling
-                                                     // will be from an outlier, if possible
+  // will be from an outlier, if possible
 
   WSPLoader wspLoader;
 
@@ -94,10 +96,16 @@ public class SamplingPipeline {
   final List<Panel> panelsToRun;
   final ProcessorFactory<? extends SampleProcessor> processorFactory;
 
-  public SamplingPipeline(double sampPct, String csvDir, String wspDir, String fcsDir,
-                          String outliersFile, String outDir, List<Panel> panels,
-                          String[] priorityFiles,
-                          ProcessorFactory<? extends SampleProcessor> processorFactory) {
+  public SamplingPipeline(
+      double sampPct,
+      String csvDir,
+      String wspDir,
+      String fcsDir,
+      String outliersFile,
+      String outDir,
+      List<Panel> panels,
+      String[] priorityFiles,
+      ProcessorFactory<? extends SampleProcessor> processorFactory) {
     this.samplingPct = sampPct;
     this.csvDir = csvDir;
     this.wspDir = wspDir;
@@ -106,10 +114,14 @@ public class SamplingPipeline {
     this.outDir = outDir;
     this.processorFactory = processorFactory;
     this.panelsToRun = panels;
-    this.highPriority = priorityFiles != null
-                        && priorityFiles[0] != null ? HashVec.loadFileToHashSet(priorityFiles[0], false) : null;
-    this.lowPriority = priorityFiles != null && priorityFiles.length > 1
-                       && priorityFiles[1] != null ? HashVec.loadFileToHashSet(priorityFiles[1], false) : null;
+    this.highPriority =
+        priorityFiles != null && priorityFiles[0] != null
+            ? HashVec.loadFileToHashSet(priorityFiles[0], false)
+            : null;
+    this.lowPriority =
+        priorityFiles != null && priorityFiles.length > 1 && priorityFiles[1] != null
+            ? HashVec.loadFileToHashSet(priorityFiles[1], false)
+            : null;
     this.panelData = new HashMap<>();
     for (Panel p : panels) {
       this.panelData.put(p, new PanelData(p));
@@ -159,8 +171,10 @@ public class SamplingPipeline {
         }
         Panel pnl = checkPanel(s.toLowerCase());
         if (panelData.containsKey(pnl)) {
-          panelData.get(pnl).filePathMap.put(s, new File(ext.verifyDirFormat(dir.getAbsolutePath())
-                                                         + s).getAbsolutePath());
+          panelData
+              .get(pnl)
+              .filePathMap
+              .put(s, new File(ext.verifyDirFormat(dir.getAbsolutePath()) + s).getAbsolutePath());
         }
       }
     }
@@ -289,7 +303,8 @@ public class SamplingPipeline {
       } else {
         Random rand = new Random();
         for (int i = 0; i < cnt; i++) {
-          if (!outliers.isEmpty() && OUTLIER_SAMPLE_EVERY > 0
+          if (!outliers.isEmpty()
+              && OUTLIER_SAMPLE_EVERY > 0
               && (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0)) {
             pd.sampling.add(outliers.get(rand.nextInt(outliers.size())));
           } else {
@@ -303,8 +318,9 @@ public class SamplingPipeline {
     PrintWriter writer;
     for (Panel p : panelsToRun) {
       if (panelData.get(p).sampling.size() > 0) {
-        writer = Files.getAppropriateWriter(outDir + ext.replaceWithLinuxSafeCharacters(p.getName())
-                                            + ".files.txt");
+        writer =
+            Files.getAppropriateWriter(
+                outDir + ext.replaceWithLinuxSafeCharacters(p.getName()) + ".files.txt");
         for (String s : panelData.get(p).sampling) {
           writer.println(s);
         }
@@ -328,22 +344,30 @@ public class SamplingPipeline {
 
     Map<Panel, PrintWriter> sampWspMatch = new HashMap<>();
     for (Panel p : panelsToRun) {
-      sampWspMatch.put(p,
-                       Files.getAppropriateWriter(outDir + "/matchFile_"
-                                                  + ext.replaceWithLinuxSafeCharacters(p.getName())
-                                                  + ".xln"));
+      sampWspMatch.put(
+          p,
+          Files.getAppropriateWriter(
+              outDir + "/matchFile_" + ext.replaceWithLinuxSafeCharacters(p.getName()) + ".xln"));
     }
 
     if (highPriority != null) {
       for (Panel p : panelsToRun) {
         for (String s : panelData.get(p).sampling) {
-          if (highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
+          if (highPriority.contains(
+              ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
             SampleNode sn = wspLoader.getPanelNodes(p).get(s);
             if (sn != null) {
               sn.fcsFile = panelData.get(p).filePathMap.get(s);
               if (panelQueues.get(p).contains(sn)) {
-                log.report("Duplicate " + p.getName() + " sampleNode: " + sn.fcsFile + " | "
-                           + sn.wspFile + " | " + sn.id);
+                log.report(
+                    "Duplicate "
+                        + p.getName()
+                        + " sampleNode: "
+                        + sn.fcsFile
+                        + " | "
+                        + sn.wspFile
+                        + " | "
+                        + sn.id);
                 continue;
               }
               sampWspMatch.get(p).println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
@@ -358,19 +382,28 @@ public class SamplingPipeline {
     for (Panel p : panelsToRun) {
       for (String s : panelData.get(p).sampling) {
         if (highPriority != null
-            && highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
+            && highPriority.contains(
+                ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
           continue;
         }
         if (lowPriority != null
-            && lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
+            && lowPriority.contains(
+                ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
           continue;
         }
         SampleNode sn = wspLoader.getPanelNodes(p).get(s);
         if (sn != null) {
           sn.fcsFile = panelData.get(p).filePathMap.get(s);
           if (panelQueues.get(p).contains(sn)) {
-            log.report("Duplicate " + p.getName() + " sampleNode: " + sn.fcsFile + " | "
-                       + sn.wspFile + " | " + sn.id);
+            log.report(
+                "Duplicate "
+                    + p.getName()
+                    + " sampleNode: "
+                    + sn.fcsFile
+                    + " | "
+                    + sn.wspFile
+                    + " | "
+                    + sn.id);
             continue;
           }
           sampWspMatch.get(p).println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
@@ -384,13 +417,21 @@ public class SamplingPipeline {
     if (lowPriority != null) {
       for (Panel p : panelsToRun) {
         for (String s : panelData.get(p).sampling) {
-          if (lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
+          if (lowPriority.contains(
+              ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
             SampleNode sn = wspLoader.getPanelNodes(p).get(s);
             if (sn != null) {
               sn.fcsFile = panelData.get(p).filePathMap.get(s);
               if (panelQueues.get(p).contains(sn)) {
-                log.report("Duplicate " + p.getName() + " sampleNode: " + sn.fcsFile + " | "
-                           + sn.wspFile + " | " + sn.id);
+                log.report(
+                    "Duplicate "
+                        + p.getName()
+                        + " sampleNode: "
+                        + sn.fcsFile
+                        + " | "
+                        + sn.wspFile
+                        + " | "
+                        + sn.id);
                 continue;
               }
               sampWspMatch.get(p).println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
@@ -411,11 +452,11 @@ public class SamplingPipeline {
     int proc = Math.max(1, Runtime.getRuntime().availableProcessors() / panelsToRun.size());
     List<Runnable> runn = new ArrayList<>();
     for (Panel p : panelsToRun) {
-      final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(proc, proc, 0L,
-                                                                   TimeUnit.MILLISECONDS,
-                                                                   new LinkedBlockingQueue<Runnable>());
-      AbstractPipelineRunnable run = new AbstractPipelineRunnable(threadPool, processorFactory,
-                                                                  panelQueues.get(p), log);
+      final ThreadPoolExecutor threadPool =
+          new ThreadPoolExecutor(
+              proc, proc, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+      AbstractPipelineRunnable run =
+          new AbstractPipelineRunnable(threadPool, processorFactory, panelQueues.get(p), log);
       runn.add(run);
     }
     for (Runnable run : runn) {
@@ -424,7 +465,8 @@ public class SamplingPipeline {
     serve.shutdown();
     try {
       serve.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-    } catch (InterruptedException e) {}
+    } catch (InterruptedException e) {
+    }
 
     for (Runnable run : runn) {
       processorFactory.cleanup(run);
@@ -441,9 +483,11 @@ class AbstractPipelineRunnable implements Runnable {
   final int myIndex;
   static int sharedIndex = 1;
 
-  public <T extends SampleProcessor> AbstractPipelineRunnable(ThreadPoolExecutor threadPool,
-                                                              final ProcessorFactory<? extends SampleProcessor> factory,
-                                                              Queue<SampleNode> queue, Logger log) {
+  public <T extends SampleProcessor> AbstractPipelineRunnable(
+      ThreadPoolExecutor threadPool,
+      final ProcessorFactory<? extends SampleProcessor> factory,
+      Queue<SampleNode> queue,
+      Logger log) {
     this.threadPool = threadPool;
     this.processorFactory = factory;
     this.queue = queue;
@@ -462,28 +506,31 @@ class AbstractPipelineRunnable implements Runnable {
         }
         try {
           Thread.sleep(100);
-        } catch (InterruptedException e) {}
+        } catch (InterruptedException e) {
+        }
         continue;
       }
       log.report("Submitting processing job for " + sn.fcsFile);
-      threadPool.execute(() -> {
-        try {
-          processorFactory.createProcessor(this, myIndex).processSample(sn, log);
-        } catch (IOException e) {
-          log.reportException(e);
-        } catch (OutOfMemoryError e) {
-          // cleanup and re-add to queue
-          System.gc();
-          queue.add(sn);
-        }
-      });
+      threadPool.execute(
+          () -> {
+            try {
+              processorFactory.createProcessor(this, myIndex).processSample(sn, log);
+            } catch (IOException e) {
+              log.reportException(e);
+            } catch (OutOfMemoryError e) {
+              // cleanup and re-add to queue
+              System.gc();
+              queue.add(sn);
+            }
+          });
       try {
         Thread.sleep(500);
-      } catch (InterruptedException e) {}
+      } catch (InterruptedException e) {
+      }
     }
     try {
       threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-    } catch (InterruptedException e1) {}
+    } catch (InterruptedException e1) {
+    }
   }
-
 }

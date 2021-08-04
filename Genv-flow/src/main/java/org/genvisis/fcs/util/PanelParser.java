@@ -38,8 +38,8 @@ import com.google.common.collect.Multimap;
 
 public class PanelParser {
 
-  private Multimap<String, Integer> panels(String wspFile) throws SAXException, IOException,
-                                                           ParserConfigurationException {
+  private Multimap<String, Integer> panels(String wspFile)
+      throws SAXException, IOException, ParserConfigurationException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
     Document doc = builder.parse(new File(wspFile));
@@ -71,11 +71,15 @@ public class PanelParser {
     }
 
     Collection<Integer> c = panelNames.get("All Samples");
-    Set<Integer> removeFromAll = panelNames.entries().stream()
-                                           .filter(Predicates.and(e -> c.contains(e.getValue()),
-                                                                  e -> !e.getKey()
-                                                                         .equals("All Samples")))
-                                           .map(Entry::getValue).collect(Collectors.toSet());
+    Set<Integer> removeFromAll =
+        panelNames
+            .entries()
+            .stream()
+            .filter(
+                Predicates.and(
+                    e -> c.contains(e.getValue()), e -> !e.getKey().equals("All Samples")))
+            .map(Entry::getValue)
+            .collect(Collectors.toSet());
 
     for (Integer e : removeFromAll) {
       panelNames.remove("All Samples", e);
@@ -84,8 +88,8 @@ public class PanelParser {
     return panelNames;
   }
 
-  private void parse(String wspFile, String outputFile) throws ParserConfigurationException,
-                                                        SAXException, IOException {
+  private void parse(String wspFile, String outputFile)
+      throws ParserConfigurationException, SAXException, IOException {
 
     Multimap<String, Integer> panels = panels(wspFile);
 
@@ -144,7 +148,6 @@ public class PanelParser {
           }
           e.appendChild(e1);
         }
-
       }
 
       Transformer tr = TransformerFactory.newInstance().newTransformer();
@@ -160,7 +163,6 @@ public class PanelParser {
     }
 
     System.out.println("Done!");
-
   }
 
   static class GateTreeNode {
@@ -195,7 +197,6 @@ public class PanelParser {
       } else if (!parent.equals(other.parent)) return false;
       return true;
     }
-
   }
 
   private void recurse(Set<GateTreeNode> tree, Gate gate) {
@@ -208,22 +209,24 @@ public class PanelParser {
     }
   }
 
-  public static void main(String[] args) throws ParserConfigurationException, SAXException,
-                                         IOException {
+  public static void main(String[] args)
+      throws ParserConfigurationException, SAXException, IOException {
     CLI cli = new CLI(PanelParser.class);
 
     cli.addArg("wsp", "Example Workspace (.wsp) file", true);
-    cli.addArg("out",
-               "Output file name (path optional; if not present, the output file will be created in the same directory as the input workspace file)",
-               false);
+    cli.addArg(
+        "out",
+        "Output file name (path optional; if not present, the output file will be created in the same directory as the input workspace file)",
+        false);
 
     cli.parseWithExit(args);
 
     String wsp = cli.get("wsp");
-    String out = cli.has("out") ? cli.get("out")
-                                : (Files.getNextAvailableFilename(ext.parseDirectoryOfFile(wsp)
-                                                                  + "custom_panel_#.xml", "#"));
+    String out =
+        cli.has("out")
+            ? cli.get("out")
+            : (Files.getNextAvailableFilename(
+                ext.parseDirectoryOfFile(wsp) + "custom_panel_#.xml", "#"));
     new PanelParser().parse(wsp, out);
   }
-
 }

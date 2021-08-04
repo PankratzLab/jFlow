@@ -40,25 +40,24 @@ public class AnnotationExportDialog extends JDialog {
   private JTextField fileField;
   private JButton selectOutFile;
 
-  private Action selectFileAction = new AbstractAction() {
+  private Action selectFileAction =
+      new AbstractAction() {
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      JFileChooser jfc = new JFileChooser();
-      jfc.setMultiSelectionEnabled(false);
-      int code = jfc.showSaveDialog(AnnotationExportDialog.this);
-      if (code == JFileChooser.APPROVE_OPTION) {
-        fileField.setText(jfc.getSelectedFile().getAbsolutePath());
-      }
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          JFileChooser jfc = new JFileChooser();
+          jfc.setMultiSelectionEnabled(false);
+          int code = jfc.showSaveDialog(AnnotationExportDialog.this);
+          if (code == JFileChooser.APPROVE_OPTION) {
+            fileField.setText(jfc.getSelectedFile().getAbsolutePath());
+          }
+        }
+      };
   private JButton cancelButton;
   private JButton okButton;
   private IAnnotator annotator;
 
-  /**
-   * Launch the application.
-   */
+  /** Launch the application. */
   public static void main(String[] args) {
     try {
       AnnotationExportDialog dialog = new AnnotationExportDialog(new Annotator());
@@ -90,8 +89,10 @@ public class AnnotationExportDialog extends JDialog {
 
     contentPanel.add(new JLabel("Select Output Type:"), "cell 1 3");
 
-    exportSamples = new JRadioButton("Samples (export sample if any image has the selected annotation(s))");
-    exportImgFiles = new JRadioButton("Images (export specific images with selected annotation(s))");
+    exportSamples =
+        new JRadioButton("Samples (export sample if any image has the selected annotation(s))");
+    exportImgFiles =
+        new JRadioButton("Images (export specific images with selected annotation(s))");
     ButtonGroup bg1 = new ButtonGroup();
     bg1.add(exportSamples);
     bg1.add(exportImgFiles);
@@ -113,18 +114,20 @@ public class AnnotationExportDialog extends JDialog {
       getContentPane().add(buttonPane, BorderLayout.SOUTH);
       {
         okButton = new JButton();
-        okButton.addActionListener((e) -> {
-          AnnotationExportDialog.this.runExport();
-        });
+        okButton.addActionListener(
+            (e) -> {
+              AnnotationExportDialog.this.runExport();
+            });
         okButton.setText("OK");
         getRootPane().setDefaultButton(okButton);
         buttonPane.add(okButton);
       }
       {
         cancelButton = new JButton();
-        cancelButton.addActionListener((e) -> {
-          close();
-        });
+        cancelButton.addActionListener(
+            (e) -> {
+              close();
+            });
         cancelButton.setText("Cancel");
         buttonPane.add(cancelButton);
       }
@@ -134,16 +137,21 @@ public class AnnotationExportDialog extends JDialog {
   private void runExport() {
     List<String> annots = annotationList.getSelectedValuesList();
     if (annots.isEmpty()) {
-      JOptionPane.showMessageDialog(AnnotationExportDialog.this, "Error - no annotations selected.",
-                                    "Error!", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(
+          AnnotationExportDialog.this,
+          "Error - no annotations selected.",
+          "Error!",
+          JOptionPane.ERROR_MESSAGE);
       return;
     }
 
     String outputFile = fileField.getText();
     if ("".equals(outputFile.trim())) {
-      JOptionPane.showMessageDialog(AnnotationExportDialog.this,
-                                    "Error - no output file specified.", "Error!",
-                                    JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(
+          AnnotationExportDialog.this,
+          "Error - no output file specified.",
+          "Error!",
+          JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -159,7 +167,8 @@ public class AnnotationExportDialog extends JDialog {
     PrintWriter writer = Files.getAppropriateWriter(outputFile);
     HashMap<String, HashMap<String, AnnotatedImage>> annMap = annotator.getAnnotationMap();
     for (Entry<String, HashMap<String, AnnotatedImage>> fcsAnnot : annMap.entrySet()) {
-      sample: for (AnnotatedImage ai : fcsAnnot.getValue().values()) {
+      sample:
+      for (AnnotatedImage ai : fcsAnnot.getValue().values()) {
         for (Annotation a : ai.getAnnotations()) {
           if (annot.contains(a)) {
             if (exportSample) {

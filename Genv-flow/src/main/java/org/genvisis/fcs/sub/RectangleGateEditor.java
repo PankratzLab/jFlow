@@ -37,10 +37,9 @@ import net.miginfocom.swing.MigLayout;
 
 public class RectangleGateEditor extends JDialog {
 
-  /**
-  * 
-  */
+  /** */
   private static final long serialVersionUID = 1L;
+
   private JFlow plot;
   private Gate gate;
   private final JPanel contentPanel = new JPanel();
@@ -60,9 +59,7 @@ public class RectangleGateEditor extends JDialog {
   private volatile boolean cancelled = true;
   private final Format inputFormat = new ParseAllFormat(NumberFormat.getNumberInstance());
 
-  /**
-   * Launch the application.
-   */
+  /** Launch the application. */
   public static void main(String[] args) {
     try {
       RectangleGateEditor dialog = new RectangleGateEditor();
@@ -73,9 +70,7 @@ public class RectangleGateEditor extends JDialog {
     }
   }
 
-  /**
-   * Create the dialog.
-   */
+  /** Create the dialog. */
   public RectangleGateEditor() {
     setTitle("Edit Gate");
     setModal(true);
@@ -84,8 +79,8 @@ public class RectangleGateEditor extends JDialog {
     getContentPane().setLayout(new BorderLayout());
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
-    contentPanel.setLayout(new MigLayout("", "[][grow][grow][grow][]",
-                                         "[][][][][][][][][][][][][][]"));
+    contentPanel.setLayout(
+        new MigLayout("", "[][grow][grow][grow][]", "[][][][][][][][][][][][][][]"));
     {
       JLabel lbl = new JLabel("ID:");
       contentPanel.add(lbl, "flowx,cell 1 0 3 1,alignx center");
@@ -143,24 +138,26 @@ public class RectangleGateEditor extends JDialog {
     }
     {
       chkXMinUnbnd = new JCheckBox("unbounded");
-      chkXMinUnbnd.addItemListener(new ItemListener() {
+      chkXMinUnbnd.addItemListener(
+          new ItemListener() {
 
-        @Override
-        public void itemStateChanged(ItemEvent e) {
-          txtXMin.setEnabled(e.getStateChange() == ItemEvent.DESELECTED);
-        }
-      });
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+              txtXMin.setEnabled(e.getStateChange() == ItemEvent.DESELECTED);
+            }
+          });
       contentPanel.add(chkXMinUnbnd, "cell 1 9,alignx right");
     }
     {
       chkYMinUnbnd = new JCheckBox("unbounded");
-      chkYMinUnbnd.addItemListener(new ItemListener() {
+      chkYMinUnbnd.addItemListener(
+          new ItemListener() {
 
-        @Override
-        public void itemStateChanged(ItemEvent e) {
-          txtYMin.setEnabled(e.getStateChange() == ItemEvent.DESELECTED);
-        }
-      });
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+              txtYMin.setEnabled(e.getStateChange() == ItemEvent.DESELECTED);
+            }
+          });
       contentPanel.add(chkYMinUnbnd, "cell 3 9,alignx right");
     }
     {
@@ -187,24 +184,26 @@ public class RectangleGateEditor extends JDialog {
     }
     {
       chkXMaxUnbnd = new JCheckBox("unbounded");
-      chkXMaxUnbnd.addItemListener(new ItemListener() {
+      chkXMaxUnbnd.addItemListener(
+          new ItemListener() {
 
-        @Override
-        public void itemStateChanged(ItemEvent e) {
-          txtXMax.setEnabled(e.getStateChange() == ItemEvent.DESELECTED);
-        }
-      });
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+              txtXMax.setEnabled(e.getStateChange() == ItemEvent.DESELECTED);
+            }
+          });
       contentPanel.add(chkXMaxUnbnd, "cell 1 12,alignx right");
     }
     {
       chkYMaxUnbnd = new JCheckBox("unbounded");
-      chkYMaxUnbnd.addItemListener(new ItemListener() {
+      chkYMaxUnbnd.addItemListener(
+          new ItemListener() {
 
-        @Override
-        public void itemStateChanged(ItemEvent e) {
-          txtYMax.setEnabled(e.getStateChange() == ItemEvent.DESELECTED);
-        }
-      });
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+              txtYMax.setEnabled(e.getStateChange() == ItemEvent.DESELECTED);
+            }
+          });
       contentPanel.add(chkYMaxUnbnd, "cell 3 12,alignx right");
     }
     {
@@ -222,34 +221,36 @@ public class RectangleGateEditor extends JDialog {
       getContentPane().add(buttonPane, BorderLayout.SOUTH);
       {
         JButton okButton = new JButton("OK");
-        okButton.addActionListener(new ActionListener() {
+        okButton.addActionListener(
+            new ActionListener() {
 
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            String msg = valid();
-            if (msg == null) {
-              cancelled = false;
-              setVisible(false);
-            } else {
-              JOptionPane.showMessageDialog(RectangleGateEditor.this, msg, "Error!",
-                                            JOptionPane.ERROR_MESSAGE);
-            }
-          }
-        });
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                String msg = valid();
+                if (msg == null) {
+                  cancelled = false;
+                  setVisible(false);
+                } else {
+                  JOptionPane.showMessageDialog(
+                      RectangleGateEditor.this, msg, "Error!", JOptionPane.ERROR_MESSAGE);
+                }
+              }
+            });
         okButton.setActionCommand("OK");
         buttonPane.add(okButton);
         getRootPane().setDefaultButton(okButton);
       }
       {
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
+        cancelButton.addActionListener(
+            new ActionListener() {
 
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            setVisible(false);
-            dispose();
-          }
-        });
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                setVisible(false);
+                dispose();
+              }
+            });
         cancelButton.setActionCommand("Cancel");
         buttonPane.add(cancelButton);
       }
@@ -304,7 +305,6 @@ public class RectangleGateEditor extends JDialog {
       txtYMax.setEnabled(false);
       txtYMax.setText("");
     }
-
   }
 
   private String valid() {
@@ -333,23 +333,27 @@ public class RectangleGateEditor extends JDialog {
   }
 
   public float getXMin() {
-    return chkXMinUnbnd.isSelected() ? Float.NEGATIVE_INFINITY
-                                     : Float.parseFloat(txtXMin.getText());
+    return chkXMinUnbnd.isSelected()
+        ? Float.NEGATIVE_INFINITY
+        : Float.parseFloat(txtXMin.getText());
   }
 
   public float getXMax() {
-    return chkXMaxUnbnd.isSelected() ? Float.POSITIVE_INFINITY
-                                     : Float.parseFloat(txtXMax.getText());
+    return chkXMaxUnbnd.isSelected()
+        ? Float.POSITIVE_INFINITY
+        : Float.parseFloat(txtXMax.getText());
   }
 
   public float getYMin() {
-    return chkYMinUnbnd.isSelected() ? Float.NEGATIVE_INFINITY
-                                     : Float.parseFloat(txtYMin.getText());
+    return chkYMinUnbnd.isSelected()
+        ? Float.NEGATIVE_INFINITY
+        : Float.parseFloat(txtYMin.getText());
   }
 
   public float getYMax() {
-    return chkYMaxUnbnd.isSelected() ? Float.POSITIVE_INFINITY
-                                     : Float.parseFloat(txtYMax.getText());
+    return chkYMaxUnbnd.isSelected()
+        ? Float.POSITIVE_INFINITY
+        : Float.parseFloat(txtYMax.getText());
   }
 
   // https://stackoverflow.com/questions/1313390/is-there-any-way-to-accept-only-numeric-values-in-a-jtextfield
@@ -368,33 +372,31 @@ public class RectangleGateEditor extends JDialog {
       final int dot = field.getCaret().getDot();
       final int mark = field.getCaret().getMark();
       if (field.isEnabled() && field.isEditable()) {
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeLater(
+            new Runnable() {
 
-          @Override
-          public void run() {
-            // Only set the caret if the textfield hasn't got a selection on it
-            if (dot == mark) {
-              field.getCaret().setDot(dot);
-            }
-          }
-        });
+              @Override
+              public void run() {
+                // Only set the caret if the textfield hasn't got a selection on it
+                if (dot == mark) {
+                  field.getCaret().setDot(dot);
+                }
+              }
+            });
       }
     }
   }
 
   /**
-   * <p>
    * Decorator for a {@link Format Format} which only accepts values which can be completely parsed
    * by the delegate format. If the value can only be partially parsed, the decorator will refuse to
    * parse the value.
-   * </p>
    */
   class ParseAllFormat extends Format {
 
-    /**
-    * 
-    */
+    /** */
     private static final long serialVersionUID = 1L;
+
     private final Format fDelegate;
 
     /**
@@ -435,5 +437,4 @@ public class RectangleGateEditor extends JDialog {
       return super.parseObject(source);
     }
   }
-
 }

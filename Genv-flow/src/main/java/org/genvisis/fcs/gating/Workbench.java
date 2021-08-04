@@ -55,7 +55,6 @@ public class Workbench {
       } else if (!wspFile.equals(other.wspFile)) return false;
       return true;
     }
-
   }
 
   Gating templateGating;
@@ -103,10 +102,11 @@ public class Workbench {
   }
 
   public SampleNode getSample(String currentSampleID) {
-    Optional<SampleNode> samp = samples.stream()
-                                       .filter(sn -> sn.id.equals(currentSampleID)
-                                                     || sn.fcsFile.equals(currentSampleID))
-                                       .findFirst();
+    Optional<SampleNode> samp =
+        samples
+            .stream()
+            .filter(sn -> sn.id.equals(currentSampleID) || sn.fcsFile.equals(currentSampleID))
+            .findFirst();
     return samp.orElse(null);
   }
 
@@ -141,12 +141,12 @@ public class Workbench {
         if (f1.equals(f2)) {
           return sn.id;
         }
-      } catch (IOException e) {}
+      } catch (IOException e) {
+      }
       if ((new File(sn.fcsFile).getName()).equals(new File(filename).getName())) {
         return sn.id;
       }
     }
     return null;
   }
-
 }

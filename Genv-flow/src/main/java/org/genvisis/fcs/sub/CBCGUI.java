@@ -37,23 +37,22 @@ public class CBCGUI {
 
   /**
    * Create the application.
-   * 
+   *
    * @wbp.parser.entryPoint
    */
   public CBCGUI() {
     initialize();
   }
 
-  /**
-   * Initialize the contents of the frame.
-   */
+  /** Initialize the contents of the frame. */
   private void initialize() {
     frmCbcApplicator = new JFrame();
     frmCbcApplicator.setTitle("CBC Applicator");
     frmCbcApplicator.setBounds(100, 100, 450, 387);
     frmCbcApplicator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frmCbcApplicator.getContentPane().setLayout(new MigLayout("", "[18.00][][grow][][18]",
-                                                              "[][][][][][][][][grow][][]"));
+    frmCbcApplicator
+        .getContentPane()
+        .setLayout(new MigLayout("", "[18.00][][grow][][18]", "[][][][][][][][][grow][][]"));
 
     JLabel lblCbcDirectory = new JLabel("CBC Directory:");
     frmCbcApplicator.getContentPane().add(lblCbcDirectory, "cell 1 1,alignx trailing");
@@ -63,26 +62,27 @@ public class CBCGUI {
     txtCBCDir.setColumns(10);
 
     JButton btnSelCBC = new JButton(">");
-    btnSelCBC.addActionListener(new ActionListener() {
+    btnSelCBC.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        String curr = txtCBCDir.getText();
-        if (curr.equals("")) {
-          curr = "./";
-        }
-        JFileChooser jfc = new JFileChooser(curr);
-        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        jfc.setDialogTitle("Select CBC Directory");
-        jfc.setMultiSelectionEnabled(false);
-        int resp = jfc.showOpenDialog(frmCbcApplicator);
-        if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
-          txtCBCDir.setText(newPath);
-          saveProps();
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            String curr = txtCBCDir.getText();
+            if (curr.equals("")) {
+              curr = "./";
+            }
+            JFileChooser jfc = new JFileChooser(curr);
+            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            jfc.setDialogTitle("Select CBC Directory");
+            jfc.setMultiSelectionEnabled(false);
+            int resp = jfc.showOpenDialog(frmCbcApplicator);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+              String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
+              txtCBCDir.setText(newPath);
+              saveProps();
+            }
+          }
+        });
     frmCbcApplicator.getContentPane().add(btnSelCBC, "cell 3 1");
 
     JLabel lblDataDirectory = new JLabel("Data Directory:");
@@ -93,26 +93,27 @@ public class CBCGUI {
     txtDataDir.setColumns(10);
 
     JButton btnSelData = new JButton(">");
-    btnSelData.addActionListener(new ActionListener() {
+    btnSelData.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        String curr = txtDataDir.getText();
-        if (curr.equals("")) {
-          curr = "./";
-        }
-        JFileChooser jfc = new JFileChooser(curr);
-        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        jfc.setDialogTitle("Select Data File Directory (tab or comma delimited files)");
-        jfc.setMultiSelectionEnabled(false);
-        int resp = jfc.showOpenDialog(frmCbcApplicator);
-        if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
-          txtDataDir.setText(newPath);
-          saveProps();
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            String curr = txtDataDir.getText();
+            if (curr.equals("")) {
+              curr = "./";
+            }
+            JFileChooser jfc = new JFileChooser(curr);
+            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            jfc.setDialogTitle("Select Data File Directory (tab or comma delimited files)");
+            jfc.setMultiSelectionEnabled(false);
+            int resp = jfc.showOpenDialog(frmCbcApplicator);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+              String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
+              txtDataDir.setText(newPath);
+              saveProps();
+            }
+          }
+        });
     frmCbcApplicator.getContentPane().add(btnSelData, "cell 3 3");
 
     JLabel lblOutputDirectory = new JLabel("Output Directory:");
@@ -123,26 +124,27 @@ public class CBCGUI {
     txtOutDir.setColumns(10);
 
     JButton btnSelOut = new JButton(">");
-    btnSelOut.addActionListener(new ActionListener() {
+    btnSelOut.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        String curr = txtOutDir.getText();
-        if (curr.equals("")) {
-          curr = "./";
-        }
-        JFileChooser jfc = new JFileChooser(curr);
-        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        jfc.setDialogTitle("Select Output Directory");
-        jfc.setMultiSelectionEnabled(false);
-        int resp = jfc.showOpenDialog(frmCbcApplicator);
-        if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
-          txtOutDir.setText(newPath);
-          saveProps();
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            String curr = txtOutDir.getText();
+            if (curr.equals("")) {
+              curr = "./";
+            }
+            JFileChooser jfc = new JFileChooser(curr);
+            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            jfc.setDialogTitle("Select Output Directory");
+            jfc.setMultiSelectionEnabled(false);
+            int resp = jfc.showOpenDialog(frmCbcApplicator);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+              String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
+              txtOutDir.setText(newPath);
+              saveProps();
+            }
+          }
+        });
     frmCbcApplicator.getContentPane().add(btnSelOut, "cell 3 5");
 
     JLabel lblLog = new JLabel("Log:");
@@ -157,41 +159,44 @@ public class CBCGUI {
     panel.setLayout(new MigLayout("", "[grow][75px][75px]", "[23px]"));
 
     JButton btnRun = new JButton("Run");
-    btnRun.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        CBCApplicator cbcA = new CBCApplicator();
-        cbcA.setCBCDir(txtCBCDir.getText());
-        cbcA.setDataDir(txtDataDir.getText());
-        cbcA.setOutputDirectory(txtOutDir.getText());
-        Logger log = new Logger() {
-
-          private static final long serialVersionUID = 1L;
+    btnRun.addActionListener(
+        new ActionListener() {
 
           @Override
-          public void reportError(String str) {
-            // override to show message dialog and remove genvisis version number from log output
-            // super.reportTimeError(str);
-            reportError(ext.getTime() + "]\t Error - " + str, true);
-            JOptionPane.showMessageDialog(frmCbcApplicator, str, "Error!",
-                                          JOptionPane.ERROR_MESSAGE);
-            throw new RuntimeException(str);
+          public void actionPerformed(ActionEvent arg0) {
+            CBCApplicator cbcA = new CBCApplicator();
+            cbcA.setCBCDir(txtCBCDir.getText());
+            cbcA.setDataDir(txtDataDir.getText());
+            cbcA.setOutputDirectory(txtOutDir.getText());
+            Logger log =
+                new Logger() {
+
+                  private static final long serialVersionUID = 1L;
+
+                  @Override
+                  public void reportError(String str) {
+                    // override to show message dialog and remove genvisis version number from log
+                    // output
+                    // super.reportTimeError(str);
+                    reportError(ext.getTime() + "]\t Error - " + str, true);
+                    JOptionPane.showMessageDialog(
+                        frmCbcApplicator, str, "Error!", JOptionPane.ERROR_MESSAGE);
+                    throw new RuntimeException(str);
+                  }
+                };
+            log.linkTextArea(textArea);
+            cbcA.setLog(log);
+            cbcA.setProgressBar(prog);
+            try {
+              cbcA.run();
+            } catch (RuntimeException e) {
+              e.printStackTrace();
+              return;
+            }
+            JOptionPane.showMessageDialog(
+                frmCbcApplicator, "Done!", "Done!", JOptionPane.INFORMATION_MESSAGE);
           }
-        };
-        log.linkTextArea(textArea);
-        cbcA.setLog(log);
-        cbcA.setProgressBar(prog);
-        try {
-          cbcA.run();
-        } catch (RuntimeException e) {
-          e.printStackTrace();
-          return;
-        }
-        JOptionPane.showMessageDialog(frmCbcApplicator, "Done!", "Done!",
-                                      JOptionPane.INFORMATION_MESSAGE);
-      }
-    });
+        });
 
     prog = new JProgressBar();
     prog.setStringPainted(true);
@@ -199,14 +204,15 @@ public class CBCGUI {
     panel.add(btnRun, "cell 1 0,growx,aligny top");
 
     JButton btnClose = new JButton("Close");
-    btnClose.addActionListener(new ActionListener() {
+    btnClose.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        frmCbcApplicator.setVisible(false);
-        frmCbcApplicator.dispose();
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            frmCbcApplicator.setVisible(false);
+            frmCbcApplicator.dispose();
+          }
+        });
     panel.add(btnClose, "cell 2 0,growx,aligny top");
 
     loadProps();
@@ -262,23 +268,22 @@ public class CBCGUI {
     }
   }
 
-  /**
-   * Launch the application.
-   */
+  /** Launch the application. */
   public static void main(String[] args) {
     if (args.length == 0) {
-      EventQueue.invokeLater(new Runnable() {
+      EventQueue.invokeLater(
+          new Runnable() {
 
-        @Override
-        public void run() {
-          try {
-            CBCGUI window = new CBCGUI();
-            window.frmCbcApplicator.setVisible(true);
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-      });
+            @Override
+            public void run() {
+              try {
+                CBCGUI window = new CBCGUI();
+                window.frmCbcApplicator.setVisible(true);
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            }
+          });
     } else {
 
       final String CBC = "cbcDir";
@@ -299,8 +304,6 @@ public class CBCGUI {
         cbcA.setOutputDirectory(cli.get(OUT));
       }
       cbcA.run();
-
     }
   }
-
 }

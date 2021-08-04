@@ -44,10 +44,9 @@ import net.miginfocom.swing.MigLayout;
 
 public class GateTreePanel extends JPanel {
 
-  /**
-  * 
-  */
+  /** */
   private static final long serialVersionUID = 1L;
+
   Gating gating;
   private final JTree tree;
   private final JPanel topPanel;
@@ -57,9 +56,7 @@ public class GateTreePanel extends JPanel {
   private final HashMap<Gate, DefaultMutableTreeNode> nodeMap = new HashMap<>();
   private volatile boolean showing = false;
 
-  /**
-   * Create the panel.
-   */
+  /** Create the panel. */
   public GateTreePanel(JFlow plot) {
     setLayout(new BorderLayout(0, 0));
 
@@ -75,22 +72,23 @@ public class GateTreePanel extends JPanel {
     treePopup.setLightWeightPopupEnabled(true);
     treePopup.setOpaque(true);
     final JButton button = new JButton("\\/");
-    button.addActionListener(new ActionListener() {
+    button.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        if (showing) {
-          treePopup.setVisible(false);
-          showing = false;
-        } else {
-          treePopup.setPopupSize(topPanel.getWidth(), topPanel.getHeight() * 8);
-          Point p = topPanel.getLocationOnScreen();
-          treePopup.show(button, 0, 0);
-          treePopup.setLocation((int) p.getX(), (int) p.getY() + topPanel.getHeight());
-          showing = true;
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            if (showing) {
+              treePopup.setVisible(false);
+              showing = false;
+            } else {
+              treePopup.setPopupSize(topPanel.getWidth(), topPanel.getHeight() * 8);
+              Point p = topPanel.getLocationOnScreen();
+              treePopup.show(button, 0, 0);
+              treePopup.setLocation((int) p.getX(), (int) p.getY() + topPanel.getHeight());
+              showing = true;
+            }
+          }
+        });
     topPanel.add(button, "east");
 
     scrollPane_1 = new JScrollPane();
@@ -105,21 +103,22 @@ public class GateTreePanel extends JPanel {
     breadcrumbPanel.setBorder(null);
     breadcrumbPanel.setBackground(Color.WHITE);
     breadcrumbPanel.setLayout(new MigLayout("ins 0", "[]", "[grow]"));
-    addComponentListener(new ComponentAdapter() {
+    addComponentListener(
+        new ComponentAdapter() {
 
-      @Override
-      public void componentResized(ComponentEvent e) {
-        super.componentResized(e);
-        Rectangle rect = new Rectangle(breadcrumbPanel.getWidth() - 10, 10,
-                                       breadcrumbPanel.getWidth(), 10);
-        ((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
-        breadcrumbPanel.repaint();
+          @Override
+          public void componentResized(ComponentEvent e) {
+            super.componentResized(e);
+            Rectangle rect =
+                new Rectangle(breadcrumbPanel.getWidth() - 10, 10, breadcrumbPanel.getWidth(), 10);
+            ((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
+            breadcrumbPanel.repaint();
 
-        if (treePopup.isVisible()) {
-          treePopup.setPopupSize(topPanel.getWidth(), topPanel.getHeight() * 8);
-        }
-      }
-    });
+            if (treePopup.isVisible()) {
+              treePopup.setPopupSize(topPanel.getWidth(), topPanel.getHeight() * 8);
+            }
+          }
+        });
 
     scrollPane = new JScrollPane();
 
@@ -198,64 +197,66 @@ public class GateTreePanel extends JPanel {
 
   Font breadcrumbFont = new Font("Arial", 0, 10);
 
-  TreeSelectionListener treeListener = new TreeSelectionListener() {
+  TreeSelectionListener treeListener =
+      new TreeSelectionListener() {
 
-    @Override
-    public void valueChanged(TreeSelectionEvent e) {
-      if (treePopup.isVisible()) {
-        treePopup.setVisible(false);
-        showing = false;
-      }
-      if (!e.isAddedPath()) {
-        return;
-      }
+        @Override
+        public void valueChanged(TreeSelectionEvent e) {
+          if (treePopup.isVisible()) {
+            treePopup.setVisible(false);
+            showing = false;
+          }
+          if (!e.isAddedPath()) {
+            return;
+          }
 
-      TreePath newPath = e.getNewLeadSelectionPath();
-      DefaultTreeModel tm = (DefaultTreeModel) tree.getModel();
+          TreePath newPath = e.getNewLeadSelectionPath();
+          DefaultTreeModel tm = (DefaultTreeModel) tree.getModel();
 
-      Object[] path = newPath.getPath();
+          Object[] path = newPath.getPath();
 
-      breadcrumbPanel.removeAll();
-      int index = 0;
-      for (int i = 0; i < path.length; i++) {
-        DefaultMutableTreeNode obj = (DefaultMutableTreeNode) path[i];
-        String nm = (String) obj.getUserObject();
-        String chNm = (String) (i == path.length
-                                     - 1 ? ""
-                                         : ((DefaultMutableTreeNode) path[i + 1]).getUserObject());
-        final JLabel lbl = new JLabel(nm);
-        lbl.setBorder(breadcrumbBorder);
-        lbl.setFont(breadcrumbFont);
-        lbl.setVerticalAlignment(SwingConstants.CENTER);
-        breadcrumbPanel.add(lbl, "cell " + index + " 0");
-        index++;
+          breadcrumbPanel.removeAll();
+          int index = 0;
+          for (int i = 0; i < path.length; i++) {
+            DefaultMutableTreeNode obj = (DefaultMutableTreeNode) path[i];
+            String nm = (String) obj.getUserObject();
+            String chNm =
+                (String)
+                    (i == path.length - 1
+                        ? ""
+                        : ((DefaultMutableTreeNode) path[i + 1]).getUserObject());
+            final JLabel lbl = new JLabel(nm);
+            lbl.setBorder(breadcrumbBorder);
+            lbl.setFont(breadcrumbFont);
+            lbl.setVerticalAlignment(SwingConstants.CENTER);
+            breadcrumbPanel.add(lbl, "cell " + index + " 0");
+            index++;
 
-        ArrayList<DefaultMutableTreeNode> sibs = new ArrayList<>();
-        int cnt = tm.getChildCount(obj);
-        for (int c = 0; c < cnt; c++) {
-          sibs.add(((DefaultMutableTreeNode) tm.getChild(obj, c)));
+            ArrayList<DefaultMutableTreeNode> sibs = new ArrayList<>();
+            int cnt = tm.getChildCount(obj);
+            for (int c = 0; c < cnt; c++) {
+              sibs.add(((DefaultMutableTreeNode) tm.getChild(obj, c)));
+            }
+
+            breadcrumbPanel.add(getBreadcrumbLabel(">", chNm, sibs, lbl), "cell " + index + " 0");
+            index++;
+          }
+          breadcrumbPanel.revalidate();
+          breadcrumbPanel.repaint();
+          Rectangle rect =
+              new Rectangle(breadcrumbPanel.getWidth() - 10, 10, breadcrumbPanel.getWidth(), 10);
+          ((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
+          if (!selecting) {
+            plot.gateSelected(gateMap.get(path[path.length - 1]), false);
+          }
         }
-
-        breadcrumbPanel.add(getBreadcrumbLabel(">", chNm, sibs, lbl), "cell " + index + " 0");
-        index++;
-
-      }
-      breadcrumbPanel.revalidate();
-      breadcrumbPanel.repaint();
-      Rectangle rect = new Rectangle(breadcrumbPanel.getWidth() - 10, 10,
-                                     breadcrumbPanel.getWidth(), 10);
-      ((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
-      if (!selecting) {
-        plot.gateSelected(gateMap.get(path[path.length - 1]), false);
-      }
-    }
-  };
+      };
   private final JPanel breadcrumbPanel;
   private final Border mouseoverBorder = BorderFactory.createLineBorder(Color.black, 1);
   private final Border breadcrumbBorder = BorderFactory.createEmptyBorder(0, 1, 0, 1);
 
-  private JLabel getBreadcrumbLabel(String txt, String me, final List<DefaultMutableTreeNode> sibs,
-                                    JLabel prevLbl) {
+  private JLabel getBreadcrumbLabel(
+      String txt, String me, final List<DefaultMutableTreeNode> sibs, JLabel prevLbl) {
     final JLabel lbl = new JLabel(txt);
     lbl.setBorder(breadcrumbBorder);
     lbl.setFont(breadcrumbFont);
@@ -267,18 +268,18 @@ public class GateTreePanel extends JPanel {
     for (int c = 0; c < sibs.size(); c++) {
       final int ind = c;
       sb.append("--").append((String) sibs.get(c).getUserObject());
-      Action act = new AbstractAction((String) sibs.get(c).getUserObject()) {
+      Action act =
+          new AbstractAction((String) sibs.get(c).getUserObject()) {
 
-        /**
-        * 
-        */
-        private static final long serialVersionUID = 1L;
+            /** */
+            private static final long serialVersionUID = 1L;
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          tree.setSelectionPath(new TreePath(((DefaultTreeModel) tree.getModel()).getPathToRoot(sibs.get(ind))));
-        }
-      };
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              tree.setSelectionPath(
+                  new TreePath(((DefaultTreeModel) tree.getModel()).getPathToRoot(sibs.get(ind))));
+            }
+          };
       JMenuItem jmi = new JMenuItem(act);
       popup.add(jmi);
       if (c < sibs.size() - 1) {
@@ -296,28 +297,29 @@ public class GateTreePanel extends JPanel {
     return lbl;
   }
 
-  MouseAdapter mouseOver = new MouseAdapter() {
+  MouseAdapter mouseOver =
+      new MouseAdapter() {
 
-    @Override
-    public void mouseEntered(MouseEvent e) {
-      super.mouseEntered(e);
-      ((JComponent) e.getSource()).setBorder(mouseoverBorder);
-    }
+        @Override
+        public void mouseEntered(MouseEvent e) {
+          super.mouseEntered(e);
+          ((JComponent) e.getSource()).setBorder(mouseoverBorder);
+        }
 
-    @Override
-    public void mouseExited(MouseEvent e) {
-      super.mouseExited(e);
-      ((JComponent) e.getSource()).setBorder(breadcrumbBorder);
-    }
+        @Override
+        public void mouseExited(MouseEvent e) {
+          super.mouseExited(e);
+          ((JComponent) e.getSource()).setBorder(breadcrumbBorder);
+        }
 
-    @Override
-    public void mouseClicked(MouseEvent e) {
-      super.mouseClicked(e);
-      ((JComponent) e.getSource()).getComponentPopupMenu().show(((JComponent) e.getSource()),
-                                                                e.getX(), e.getY());
-    };
-  };
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          super.mouseClicked(e);
+          ((JComponent) e.getSource())
+              .getComponentPopupMenu()
+              .show(((JComponent) e.getSource()), e.getX(), e.getY());
+        };
+      };
   private final JScrollPane scrollPane_1;
   private final JPopupMenu treePopup;
-
 }

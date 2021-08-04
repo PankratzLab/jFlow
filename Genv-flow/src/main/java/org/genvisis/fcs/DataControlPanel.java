@@ -18,14 +18,10 @@ import net.miginfocom.swing.MigLayout;
 
 public class DataControlPanel extends JPanel {
 
-  /**
-  * 
-  */
+  /** */
   private static final long serialVersionUID = 1L;
 
-  /**
-   * Create the panel.
-   */
+  /** Create the panel. */
   public DataControlPanel() {
     this("", "", "", null);
   }
@@ -53,15 +49,17 @@ public class DataControlPanel extends JPanel {
     btnDel.setFont(new Font("Tahoma", Font.BOLD, 11));
     btnDel.setMargin(btnIns);
     btnDel.setToolTipText("Remove File");
-    btnDel.addActionListener(new ActionListener() {
+    btnDel.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-                                            DataControlPanel.this.file + "::" + ACTION_DELETE);
-        al.actionPerformed(newEv);
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            ActionEvent newEv =
+                new ActionEvent(
+                    DataControlPanel.this, 0, DataControlPanel.this.file + "::" + ACTION_DELETE);
+            al.actionPerformed(newEv);
+          }
+        });
     add(btnDel, "cell 0 0");
 
     JButton btnMvUp = new JButton(Grafik.getImageIcon("images/up_short.gif"));
@@ -69,15 +67,17 @@ public class DataControlPanel extends JPanel {
     btnMvUp.setFont(new Font("Tahoma", Font.BOLD, 11));
     btnMvUp.setMargin(btnIns);
     btnMvUp.setToolTipText("Move Up");
-    btnMvUp.addActionListener(new ActionListener() {
+    btnMvUp.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-                                            DataControlPanel.this.file + "::" + ACTION_MOVE_UP);
-        al.actionPerformed(newEv);
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            ActionEvent newEv =
+                new ActionEvent(
+                    DataControlPanel.this, 0, DataControlPanel.this.file + "::" + ACTION_MOVE_UP);
+            al.actionPerformed(newEv);
+          }
+        });
     add(btnMvUp, "cell 2 0");
 
     JButton btnMvDn = new JButton(Grafik.getImageIcon("images/down_short.gif"));
@@ -85,15 +85,17 @@ public class DataControlPanel extends JPanel {
     btnMvDn.setFont(new Font("Tahoma", Font.BOLD, 11));
     btnMvDn.setMargin(btnIns);
     btnMvDn.setToolTipText("Move Down");
-    btnMvDn.addActionListener(new ActionListener() {
+    btnMvDn.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-                                            DataControlPanel.this.file + "::" + ACTION_MOVE_DOWN);
-        al.actionPerformed(newEv);
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            ActionEvent newEv =
+                new ActionEvent(
+                    DataControlPanel.this, 0, DataControlPanel.this.file + "::" + ACTION_MOVE_DOWN);
+            al.actionPerformed(newEv);
+          }
+        });
     add(btnMvDn, "cell 3 0");
 
     JButton button = new JButton(Grafik.getImageIcon("images/question-mark_sm.png"));
@@ -101,15 +103,17 @@ public class DataControlPanel extends JPanel {
     button.setFont(new Font("Tahoma", Font.BOLD, 11));
     button.setMargin(btnIns);
     button.setToolTipText("File Info");
-    button.addActionListener(new ActionListener() {
+    button.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-                                            DataControlPanel.this.file + "::" + ACTION_INFO);
-        al.actionPerformed(newEv);
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            ActionEvent newEv =
+                new ActionEvent(
+                    DataControlPanel.this, 0, DataControlPanel.this.file + "::" + ACTION_INFO);
+            al.actionPerformed(newEv);
+          }
+        });
     add(button, "cell 4 0");
 
     btnLoad = new JButton(Grafik.getImageIcon("images/tick-empty_sm.png"));
@@ -117,15 +121,17 @@ public class DataControlPanel extends JPanel {
     btnLoad.setFont(new Font("Tahoma", Font.BOLD, 11));
     btnLoad.setMargin(new Insets(0, 0, 0, 0));
     btnLoad.setToolTipText("Preload/Unload File");
-    btnLoad.addActionListener(new ActionListener() {
+    btnLoad.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-                                            DataControlPanel.this.file + "::" + ACTION_LOAD);
-        al.actionPerformed(newEv);
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            ActionEvent newEv =
+                new ActionEvent(
+                    DataControlPanel.this, 0, DataControlPanel.this.file + "::" + ACTION_LOAD);
+            al.actionPerformed(newEv);
+          }
+        });
     add(btnLoad, "cell 5 0");
 
     JButton btnUse = new JButton(Grafik.getImageIcon("images/right_short.gif"));
@@ -133,15 +139,17 @@ public class DataControlPanel extends JPanel {
     btnUse.setFont(new Font("Tahoma", Font.BOLD, 11));
     btnUse.setMargin(new Insets(0, 0, 0, 0));
     btnUse.setToolTipText("Display Data");
-    btnUse.addActionListener(new ActionListener() {
+    btnUse.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-                                            DataControlPanel.this.file + "::" + ACTION_USE);
-        al.actionPerformed(newEv);
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            ActionEvent newEv =
+                new ActionEvent(
+                    DataControlPanel.this, 0, DataControlPanel.this.file + "::" + ACTION_USE);
+            al.actionPerformed(newEv);
+          }
+        });
     add(btnUse, "cell 6 0");
 
     JLabel lblFileName = new JLabel("<html><p>" + file + "</p></html>");
@@ -163,21 +171,21 @@ public class DataControlPanel extends JPanel {
     JLabel lblSzlbl = new JLabel(sz);
     lblSzlbl.setFont(new Font("Arial", Font.PLAIN, 7));
     add(lblSzlbl, "cell 4 2 2 1,alignx left");
-
   }
 
   private boolean selected = false;
 
   public void setSelected(final boolean selected) {
     this.selected = selected;
-    SwingUtilities.invokeLater(new Runnable() {
+    SwingUtilities.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        setBackground(selected ? SystemColor.scrollbar : SystemColor.control);
-        repaint();
-      }
-    });
+          @Override
+          public void run() {
+            setBackground(selected ? SystemColor.scrollbar : SystemColor.control);
+            repaint();
+          }
+        });
   }
 
   public boolean isSelected() {
@@ -185,15 +193,15 @@ public class DataControlPanel extends JPanel {
   }
 
   public void setLoaded(final boolean loaded) {
-    SwingUtilities.invokeLater(new Runnable() {
+    SwingUtilities.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        btnLoad.setIcon(Grafik.getImageIcon(loaded ? "images/tick_sm.png"
-                                                   : "images/tick-empty_sm.png"));
-        repaint();
-      }
-    });
+          @Override
+          public void run() {
+            btnLoad.setIcon(
+                Grafik.getImageIcon(loaded ? "images/tick_sm.png" : "images/tick-empty_sm.png"));
+            repaint();
+          }
+        });
   }
-
 }

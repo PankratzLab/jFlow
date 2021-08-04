@@ -11,11 +11,13 @@ public class FCPTest {
   static String DIR = "F:/Flow/concordance/";
   static String FCS = DIR + "2016-08-01_PANEL 1_DHS_Group one_F1636850_009.fcs";
   static String WSP = DIR + "801_Panel1_DHS.wsp";
-  static String CONC = DIR
-                       + "2016-08-01_PANEL 1_DHS_Group one_F1636850_009.fcs_panel1_gate_def.txt.gz";
+  static String CONC =
+      DIR + "2016-08-01_PANEL 1_DHS_Group one_F1636850_009.fcs_panel1_gate_def.txt.gz";
 
-  static String[] GATE_NAMES = {"Lymphocytes (SSC-A v FSC-A)", "Single Cells (FSC-H v FSC-W)",
-                                "Live cells (PE-)", "Tcells (CD3+ CD19-)",};
+  static String[] GATE_NAMES = {
+    "Lymphocytes (SSC-A v FSC-A)", "Single Cells (FSC-H v FSC-W)",
+    "Live cells (PE-)", "Tcells (CD3+ CD19-)",
+  };
 
   public static void main(String[] args) {
 
@@ -46,10 +48,10 @@ public class FCPTest {
       String name = g.getName();
       try {
         Thread.sleep(200);
-      } catch (InterruptedException e) {}
+      } catch (InterruptedException e) {
+      }
       fcp.screencap(DIR + ext.replaceWithLinuxSafeCharacters(name + ".png"));
       fcp.gateSelected(g, true);
     }
   }
-
 }

@@ -22,24 +22,30 @@ public class ConcordanceProcessor extends AbstractLoadingSampleProcessor {
   private ConcurrentHashMap<String, ConcurrentHashMap<String, String>> results;
   private ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultsTree;
 
-  public static final String[][] MATCH = {{"lymph", "Lymphocytes (SSC-A v FSC-A)"},
-                                          {"Singlets", "Single Cells (FSC-H v FSC-W)"},
-                                          {"PE.A", "Live cells (PE-)"},
-                                          {"CD3.", "Tcells (CD3+ CD19-)"},};
+  public static final String[][] MATCH = {
+    {"lymph", "Lymphocytes (SSC-A v FSC-A)"},
+    {"Singlets", "Single Cells (FSC-H v FSC-W)"},
+    {"PE.A", "Live cells (PE-)"},
+    {"CD3.", "Tcells (CD3+ CD19-)"},
+  };
 
-  public ConcordanceProcessor(String autoDir,
-                              ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap,
-                              ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap2,
-                              String dimensionOverrideFile) {
+  public ConcordanceProcessor(
+      String autoDir,
+      ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap,
+      ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap2,
+      String dimensionOverrideFile) {
     super(dimensionOverrideFile);
     this.autoDir = autoDir;
-    filesInAutoDir = (new File(autoDir)).list(new FilenameFilter() {
+    filesInAutoDir =
+        (new File(autoDir))
+            .list(
+                new FilenameFilter() {
 
-      @Override
-      public boolean accept(File dir, String name) {
-        return name.endsWith(AUTO_FILE_SUFF);
-      }
-    });
+                  @Override
+                  public boolean accept(File dir, String name) {
+                    return name.endsWith(AUTO_FILE_SUFF);
+                  }
+                });
     this.results = resultMap;
     this.resultsTree = resultMap2;
   }
@@ -51,8 +57,9 @@ public class ConcordanceProcessor extends AbstractLoadingSampleProcessor {
 
     loadAutoValues(sn);
     if (autoData == null) {
-      System.err.println("Error - problem occured with auto-data.  Check log and try again for sample: "
-                         + sn.fcsFile);
+      System.err.println(
+          "Error - problem occured with auto-data.  Check log and try again for sample: "
+              + sn.fcsFile);
       return;
     }
 
@@ -157,11 +164,13 @@ public class ConcordanceProcessor extends AbstractLoadingSampleProcessor {
       }
     }
     if (file == null) {
-      System.err.println("Error - Couldn't match F-number of fcs file with auto-gated files: "
-                         + sn.fcsFile + " | " + fNum);
+      System.err.println(
+          "Error - Couldn't match F-number of fcs file with auto-gated files: "
+              + sn.fcsFile
+              + " | "
+              + fNum);
       return;
     }
     autoData = HashVec.loadFileToStringMatrix(this.autoDir + file, true, null);
   }
-
 }

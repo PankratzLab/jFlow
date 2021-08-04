@@ -132,5 +132,4 @@ public enum FCS_KEYWORD {
   public static boolean isKey(String poss) {
     return findKey(poss) != null;
   }
-
 }

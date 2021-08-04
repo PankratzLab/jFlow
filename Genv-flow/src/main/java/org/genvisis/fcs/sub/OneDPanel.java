@@ -29,37 +29,49 @@ public class OneDPanel extends AbstractPanel2 {
 
   public static final long serialVersionUID = 3L;
   public static final int LOOKUP_RESOLUTION = 20;
-  public static final Color[] DEFAULT_COLORS = {BLUES.MIDNIGHT_EXPRESS, // dark dark
-                                                REDS.VENETIAN_RED, // deep red
-                                                new Color(182, 182, 182), // light grey
-                                                BLUES.SLATE_BLUE, // light purple
-                                                new Color(182, 182, 182, 180),
-                                                new Color(189, 243, 61), // light green
-                                                new Color(217, 109, 194), // pink
-                                                GREENS.GREEN, // dark green
-                                                BLUES.PERSIAN_BLUE, // dark blue
-                                                VIOLETS.BLUE_VIOLET, // deep purple
-                                                new Color(220, 220, 220), // very light grey
-                                                new Color(0, 0, 128), // ALL KINDS OF BLUES
-                                                BLUES.DODGER_BLUE, // light blue
-                                                new Color(100, 149, 237), new Color(72, 61, 139),
-                                                new Color(106, 90, 205), new Color(123, 104, 238),
-                                                new Color(132, 112, 255), new Color(0, 0, 205),
-                                                new Color(65, 105, 225), new Color(0, 0, 255),
-                                                new Color(30, 144, 255), new Color(0, 191, 255),
-                                                new Color(135, 206, 250), new Color(135, 206, 250),
-                                                new Color(70, 130, 180), new Color(176, 196, 222),
-                                                new Color(173, 216, 230), new Color(176, 224, 230),
-                                                new Color(175, 238, 238), new Color(0, 206, 209),
-                                                new Color(72, 209, 204), new Color(64, 224, 208),
-                                                new Color(0, 255, 255), new Color(224, 255, 255),
-
+  public static final Color[] DEFAULT_COLORS = {
+    BLUES.MIDNIGHT_EXPRESS, // dark dark
+    REDS.VENETIAN_RED, // deep red
+    new Color(182, 182, 182), // light grey
+    BLUES.SLATE_BLUE, // light purple
+    new Color(182, 182, 182, 180),
+    new Color(189, 243, 61), // light green
+    new Color(217, 109, 194), // pink
+    GREENS.GREEN, // dark green
+    BLUES.PERSIAN_BLUE, // dark blue
+    VIOLETS.BLUE_VIOLET, // deep purple
+    new Color(220, 220, 220), // very light grey
+    new Color(0, 0, 128), // ALL KINDS OF BLUES
+    BLUES.DODGER_BLUE, // light blue
+    new Color(100, 149, 237),
+    new Color(72, 61, 139),
+    new Color(106, 90, 205),
+    new Color(123, 104, 238),
+    new Color(132, 112, 255),
+    new Color(0, 0, 205),
+    new Color(65, 105, 225),
+    new Color(0, 0, 255),
+    new Color(30, 144, 255),
+    new Color(0, 191, 255),
+    new Color(135, 206, 250),
+    new Color(135, 206, 250),
+    new Color(70, 130, 180),
+    new Color(176, 196, 222),
+    new Color(173, 216, 230),
+    new Color(176, 224, 230),
+    new Color(175, 238, 238),
+    new Color(0, 206, 209),
+    new Color(72, 209, 204),
+    new Color(64, 224, 208),
+    new Color(0, 255, 255),
+    new Color(224, 255, 255),
   };
   private static final byte POINT_SIZE = 5;
   private static final int MISSING_SIZE_MULT = 3;
 
   public static enum PLOT_TYPE {
-    BOX_PLOT, DOT_LINE_PLOT,
+    BOX_PLOT,
+    DOT_LINE_PLOT,
   }
 
   private PLOT_TYPE currentPlot;
@@ -75,7 +87,6 @@ public class OneDPanel extends AbstractPanel2 {
         setDisplayXAxis(false);
         break;
       case DOT_LINE_PLOT:
-
         setAxisFontSize(20);
 
         setForcePlotXMax(Float.NaN);
@@ -100,8 +111,8 @@ public class OneDPanel extends AbstractPanel2 {
     setPlotType(PLOT_TYPE.BOX_PLOT);
   }
 
-  double[][] data;// = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2,
-                  // 16, 16.2};
+  double[][] data; // = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2,
+  // 16, 16.2};
   String[][] dataLabels;
   String plotLabel;
 
@@ -191,7 +202,6 @@ public class OneDPanel extends AbstractPanel2 {
         generateDotLinePlot();
         break;
     }
-
   }
 
   private void generateDotLinePlot() {
@@ -233,11 +243,18 @@ public class OneDPanel extends AbstractPanel2 {
         }
 
         color = (byte) d; // TODO apply gating for colors
-        points[ind] = new PlotPoint(dataLabels[d][i], type, xAxisValue, yAxisValue, size, color,
-                                    (byte) 0);
+        points[ind] =
+            new PlotPoint(dataLabels[d][i], type, xAxisValue, yAxisValue, size, color, (byte) 0);
         if (i < data[d].length - 1) {
-          lineList.add(new GenericLine(xAxisValue, yAxisValue, (float) ind + 1,
-                                       (float) data[d][i + 1], (byte) 1, (byte) d, (byte) 0));
+          lineList.add(
+              new GenericLine(
+                  xAxisValue,
+                  yAxisValue,
+                  (float) ind + 1,
+                  (float) data[d][i + 1],
+                  (byte) 1,
+                  (byte) d,
+                  (byte) 0));
         }
         ind++;
       }
@@ -248,22 +265,52 @@ public class OneDPanel extends AbstractPanel2 {
     float sd = (float) ArrayUtils.stdev(data[0], true);
     lineList.add(new GenericLine(0, mean, numPoints + 1, mean, (byte) 1, (byte) 0, (byte) 99));
     if (showMean15Line) {
-      lineList.add(new GenericLine(0, mean - mean15, numPoints + 1, mean - mean15, (byte) 1,
-                                   (byte) getMeanColor(), (byte) 0));
-      lineList.add(new GenericLine(0, mean + mean15, numPoints + 1, mean + mean15, (byte) 1,
-                                   (byte) getMeanColor(), (byte) 0));
+      lineList.add(
+          new GenericLine(
+              0,
+              mean - mean15,
+              numPoints + 1,
+              mean - mean15,
+              (byte) 1,
+              (byte) getMeanColor(),
+              (byte) 0));
+      lineList.add(
+          new GenericLine(
+              0,
+              mean + mean15,
+              numPoints + 1,
+              mean + mean15,
+              (byte) 1,
+              (byte) getMeanColor(),
+              (byte) 0));
     }
     if (show1SDLines) {
-      lineList.add(new GenericLine(0, mean - sd, numPoints + 1, mean - sd, (byte) 1,
-                                   (byte) get1SDColor(), (byte) 0));
-      lineList.add(new GenericLine(0, mean + sd, numPoints + 1, mean + sd, (byte) 1,
-                                   (byte) get1SDColor(), (byte) 0));
+      lineList.add(
+          new GenericLine(
+              0, mean - sd, numPoints + 1, mean - sd, (byte) 1, (byte) get1SDColor(), (byte) 0));
+      lineList.add(
+          new GenericLine(
+              0, mean + sd, numPoints + 1, mean + sd, (byte) 1, (byte) get1SDColor(), (byte) 0));
     }
     if (show2SDLines) {
-      lineList.add(new GenericLine(0, mean - 2 * sd, numPoints + 1, mean - 2 * sd, (byte) 1,
-                                   (byte) get2SDColor(), (byte) 0));
-      lineList.add(new GenericLine(0, mean + 2 * sd, numPoints + 1, mean + 2 * sd, (byte) 1,
-                                   (byte) get2SDColor(), (byte) 0));
+      lineList.add(
+          new GenericLine(
+              0,
+              mean - 2 * sd,
+              numPoints + 1,
+              mean - 2 * sd,
+              (byte) 1,
+              (byte) get2SDColor(),
+              (byte) 0));
+      lineList.add(
+          new GenericLine(
+              0,
+              mean + 2 * sd,
+              numPoints + 1,
+              mean + 2 * sd,
+              (byte) 1,
+              (byte) get2SDColor(),
+              (byte) 0));
     }
 
     double dataMin = Math.min(mean - mean15, ArrayUtils.min(data[0])),
@@ -313,8 +360,15 @@ public class OneDPanel extends AbstractPanel2 {
               double m = ls.getBetas()[1];
               double yStart = b;
               double yEnd = b + /* (limits[1] - limits[0] + 1) + */ m;
-              lineList.add(new GenericLine(prevSum, (float) yStart, prevSum + data[d].length - 1,
-                                           (float) yEnd, (byte) 2, (byte) d, (byte) 0));
+              lineList.add(
+                  new GenericLine(
+                      prevSum,
+                      (float) yStart,
+                      prevSum + data[d].length - 1,
+                      (float) yEnd,
+                      (byte) 2,
+                      (byte) d,
+                      (byte) 0));
             } else {
               System.err.println("Error - regression failed");
             }
@@ -322,12 +376,32 @@ public class OneDPanel extends AbstractPanel2 {
             System.err.println("Error - regression failed with exception: " + e.getMessage());
           }
 
-          rects.add(new GenericRectangle(prevSum + limits[2], (float) (dataMin - pad),
-                                         prevSum + limits[0], (float) (dataMax + pad), (byte) 1,
-                                         true, false, (byte) 0, (byte) 4, (byte) 99, false));
-          rects.add(new GenericRectangle(prevSum + limits[1], (float) (dataMin - pad),
-                                         prevSum + limits[3], (float) (dataMax + pad), (byte) 1,
-                                         true, false, (byte) 0, (byte) 4, (byte) 99, false));
+          rects.add(
+              new GenericRectangle(
+                  prevSum + limits[2],
+                  (float) (dataMin - pad),
+                  prevSum + limits[0],
+                  (float) (dataMax + pad),
+                  (byte) 1,
+                  true,
+                  false,
+                  (byte) 0,
+                  (byte) 4,
+                  (byte) 99,
+                  false));
+          rects.add(
+              new GenericRectangle(
+                  prevSum + limits[1],
+                  (float) (dataMin - pad),
+                  prevSum + limits[3],
+                  (float) (dataMax + pad),
+                  (byte) 1,
+                  true,
+                  false,
+                  (byte) 0,
+                  (byte) 4,
+                  (byte) 99,
+                  false));
         }
         prevSum += data[d].length;
       }
@@ -365,8 +439,9 @@ public class OneDPanel extends AbstractPanel2 {
         for (int d = 0; d < data[i].length; d++) {
           min = Math.min(min, data[i][d]);
           max = Math.max(max, data[i][d]);
-          lns.add(new GenericLine(xLow, (float) data[i][d], xHigh, (float) data[i][d], (byte) 4,
-                                  col, (byte) 0));
+          lns.add(
+              new GenericLine(
+                  xLow, (float) data[i][d], xHigh, (float) data[i][d], (byte) 4, col, (byte) 0));
         }
       } else if (data[i].length > 2) {
         float xLow = 20 * i + 2;
@@ -393,26 +468,46 @@ public class OneDPanel extends AbstractPanel2 {
         // line @ qr75
         lns.add(new GenericLine(xLow, (float) qr75, xHigh, (float) qr75, (byte) 2, col, (byte) 0));
         // small line at wiskLow
-        lns.add(new GenericLine(xMed - (xMed - xLow) / 2, (float) wiskLow, xMed + (xMed - xLow) / 2,
-                                (float) wiskLow, (byte) 2, col, (byte) 0));
+        lns.add(
+            new GenericLine(
+                xMed - (xMed - xLow) / 2,
+                (float) wiskLow,
+                xMed + (xMed - xLow) / 2,
+                (float) wiskLow,
+                (byte) 2,
+                col,
+                (byte) 0));
         // small line at wiskHigh
-        lns.add(new GenericLine(xMed - (xMed - xLow) / 2, (float) wiskHigh,
-                                xMed + (xMed - xLow) / 2, (float) wiskHigh, (byte) 2, col,
-                                (byte) 0));
+        lns.add(
+            new GenericLine(
+                xMed - (xMed - xLow) / 2,
+                (float) wiskHigh,
+                xMed + (xMed - xLow) / 2,
+                (float) wiskHigh,
+                (byte) 2,
+                col,
+                (byte) 0));
         // line from qr25 -> wiskLow
-        lns.add(new GenericLine(xMed, (float) qr25, xMed, (float) wiskLow, (byte) 1, col,
-                                (byte) 0));
+        lns.add(
+            new GenericLine(xMed, (float) qr25, xMed, (float) wiskLow, (byte) 1, col, (byte) 0));
         // line from qr75 -> wiskHigh
-        lns.add(new GenericLine(xMed, (float) qr75, xMed, (float) wiskHigh, (byte) 1, col,
-                                (byte) 0));
+        lns.add(
+            new GenericLine(xMed, (float) qr75, xMed, (float) wiskHigh, (byte) 1, col, (byte) 0));
         // two lines vert, from qr25 to qr75
         lns.add(new GenericLine(xLow, (float) qr25, xLow, (float) qr75, (byte) 1, col, (byte) 0));
         lns.add(new GenericLine(xHigh, (float) qr25, xHigh, (float) qr75, (byte) 1, col, (byte) 0));
 
         for (int j = 0; j < data[i].length; j++) {
           if (data[i][j] < wiskLow || data[i][j] > wiskHigh) {
-            pts.add(new PlotPoint(dataLabels[i][j], PointType.FILLED_CIRCLE, xMed,
-                                  (float) data[i][j], POINT_SIZE, col, (byte) 0));
+            pts.add(
+                new PlotPoint(
+                    dataLabels[i][j],
+                    PointType.FILLED_CIRCLE,
+                    xMed,
+                    (float) data[i][j],
+                    POINT_SIZE,
+                    col,
+                    (byte) 0));
           }
         }
       }
@@ -436,7 +531,6 @@ public class OneDPanel extends AbstractPanel2 {
 
     lines = lns.toArray(new GenericLine[lns.size()]);
     points = pts.toArray(new PlotPoint[pts.size()]);
-
   }
 
   volatile int dragInd = -1;
@@ -464,10 +558,10 @@ public class OneDPanel extends AbstractPanel2 {
       return;
     }
     for (int d = 0; d < data.length; d++) {
-      double diffStart = Math.abs(getXValueFromXPixel(e.getX())
-                                  - regressionLimits.get(plotLabel)[d][0] - prevSum);
-      double diffEnd = Math.abs(getXValueFromXPixel(e.getX())
-                                - regressionLimits.get(plotLabel)[d][1] - prevSum);
+      double diffStart =
+          Math.abs(getXValueFromXPixel(e.getX()) - regressionLimits.get(plotLabel)[d][0] - prevSum);
+      double diffEnd =
+          Math.abs(getXValueFromXPixel(e.getX()) - regressionLimits.get(plotLabel)[d][1] - prevSum);
 
       if (diffStart < 1) {
         dragInd = d;
@@ -500,16 +594,20 @@ public class OneDPanel extends AbstractPanel2 {
       case 0:
         return;
       case 1:
-        regressionLimits.get(plotLabel)[dragInd][0] = Math.round((float) getXValueFromXPixel(e.getX())
-                                                                 - sum);
-        regressionLimits.get(plotLabel)[dragInd][0] = Math.max(regressionLimits.get(plotLabel)[dragInd][0],
-                                                               regressionLimits.get(plotLabel)[dragInd][2]);
+        regressionLimits.get(plotLabel)[dragInd][0] =
+            Math.round((float) getXValueFromXPixel(e.getX()) - sum);
+        regressionLimits.get(plotLabel)[dragInd][0] =
+            Math.max(
+                regressionLimits.get(plotLabel)[dragInd][0],
+                regressionLimits.get(plotLabel)[dragInd][2]);
         break;
       case 2:
-        regressionLimits.get(plotLabel)[dragInd][1] = Math.round((float) getXValueFromXPixel(e.getX())
-                                                                 - sum);
-        regressionLimits.get(plotLabel)[dragInd][1] = Math.min(regressionLimits.get(plotLabel)[dragInd][1],
-                                                               regressionLimits.get(plotLabel)[dragInd][3]);
+        regressionLimits.get(plotLabel)[dragInd][1] =
+            Math.round((float) getXValueFromXPixel(e.getX()) - sum);
+        regressionLimits.get(plotLabel)[dragInd][1] =
+            Math.min(
+                regressionLimits.get(plotLabel)[dragInd][1],
+                regressionLimits.get(plotLabel)[dragInd][3]);
         break;
     }
     paintAgain();
@@ -526,13 +624,14 @@ public class OneDPanel extends AbstractPanel2 {
       for (int i = 0; i < maxNumPoints; i++) {
         final int ind = prox.elementAt(i);
         JMenuItem jmi = new JMenuItem(points[ind].getId() + " -- " + points[ind].getRawY());
-        jmi.addActionListener(new ActionListener() {
+        jmi.addActionListener(
+            new ActionListener() {
 
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            ext.setClipboard(points[ind].getId());
-          }
-        });
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                ext.setClipboard(points[ind].getId());
+              }
+            });
         menu.add(jmi);
         if (showRegressionLine) {
 
@@ -564,65 +663,67 @@ public class OneDPanel extends AbstractPanel2 {
             final int caseValF = caseVal;
 
             JMenuItem jmi2 = new JMenuItem(promptLocal);
-            jmi2.addActionListener(new ActionListener() {
+            jmi2.addActionListener(
+                new ActionListener() {
 
-              @Override
-              public void actionPerformed(ActionEvent e) {
-                switch (caseValF) {
-                  case 0:
-                    locallyDroppedPoints.get(plotLabel).remove(points[ind].getId());
-                    break;
-                  case 1:
-                    locallyDroppedPoints.get(plotLabel).add(points[ind].getId());
-                    break;
-                  case 2:
-                    locallyDroppedPoints.get(plotLabel).remove(points[ind].getId());
-                    break;
-                  case 3:
-                    locallyDroppedPoints.get(plotLabel).add(points[ind].getId());
-                    break;
-                }
-                firePropertyChange("REGRESSION", null, null);
-                paintAgain();
-              }
-            });
+                  @Override
+                  public void actionPerformed(ActionEvent e) {
+                    switch (caseValF) {
+                      case 0:
+                        locallyDroppedPoints.get(plotLabel).remove(points[ind].getId());
+                        break;
+                      case 1:
+                        locallyDroppedPoints.get(plotLabel).add(points[ind].getId());
+                        break;
+                      case 2:
+                        locallyDroppedPoints.get(plotLabel).remove(points[ind].getId());
+                        break;
+                      case 3:
+                        locallyDroppedPoints.get(plotLabel).add(points[ind].getId());
+                        break;
+                    }
+                    firePropertyChange("REGRESSION", null, null);
+                    paintAgain();
+                  }
+                });
             menu.add(jmi2);
 
             JMenuItem jmi3 = new JMenuItem(promptGlobal);
-            jmi3.addActionListener(new ActionListener() {
+            jmi3.addActionListener(
+                new ActionListener() {
 
-              @Override
-              public void actionPerformed(ActionEvent e) {
-                switch (caseValF) {
-                  case 0:
-                    globallyDroppedPoints.remove(points[ind].getId());
-                    for (ArrayList<String> s : locallyDroppedPoints.values()) {
-                      s.remove(points[ind].getId());
+                  @Override
+                  public void actionPerformed(ActionEvent e) {
+                    switch (caseValF) {
+                      case 0:
+                        globallyDroppedPoints.remove(points[ind].getId());
+                        for (ArrayList<String> s : locallyDroppedPoints.values()) {
+                          s.remove(points[ind].getId());
+                        }
+                        break;
+                      case 1:
+                        globallyDroppedPoints.remove(points[ind].getId());
+                        for (ArrayList<String> s : locallyDroppedPoints.values()) {
+                          s.remove(points[ind].getId());
+                        }
+                        break;
+                      case 2:
+                        globallyDroppedPoints.add(points[ind].getId());
+                        for (ArrayList<String> s : locallyDroppedPoints.values()) {
+                          s.add(points[ind].getId());
+                        }
+                        break;
+                      case 3:
+                        globallyDroppedPoints.add(points[ind].getId());
+                        for (ArrayList<String> s : locallyDroppedPoints.values()) {
+                          s.add(points[ind].getId());
+                        }
+                        break;
                     }
-                    break;
-                  case 1:
-                    globallyDroppedPoints.remove(points[ind].getId());
-                    for (ArrayList<String> s : locallyDroppedPoints.values()) {
-                      s.remove(points[ind].getId());
-                    }
-                    break;
-                  case 2:
-                    globallyDroppedPoints.add(points[ind].getId());
-                    for (ArrayList<String> s : locallyDroppedPoints.values()) {
-                      s.add(points[ind].getId());
-                    }
-                    break;
-                  case 3:
-                    globallyDroppedPoints.add(points[ind].getId());
-                    for (ArrayList<String> s : locallyDroppedPoints.values()) {
-                      s.add(points[ind].getId());
-                    }
-                    break;
-                }
-                firePropertyChange("REGRESSION", null, null);
-                paintAgain();
-              }
-            });
+                    firePropertyChange("REGRESSION", null, null);
+                    paintAgain();
+                  }
+                });
             menu.add(jmi3);
           }
         }
@@ -637,9 +738,12 @@ public class OneDPanel extends AbstractPanel2 {
 
     defaultSize = POINT_SIZE;
     for (PlotPoint point : points) {
-      point.setSize((byte) ((point.getType() == PointType.MISSING ? defaultSize * MISSING_SIZE_MULT
-                                                                  : defaultSize)
-                            * (point.isHighlighted() ? 1.5 : 1)));
+      point.setSize(
+          (byte)
+              ((point.getType() == PointType.MISSING
+                      ? defaultSize * MISSING_SIZE_MULT
+                      : defaultSize)
+                  * (point.isHighlighted() ? 1.5 : 1)));
     }
   }
 
@@ -680,5 +784,4 @@ public class OneDPanel extends AbstractPanel2 {
   public int getMeanColor() {
     return 2;
   }
-
 }

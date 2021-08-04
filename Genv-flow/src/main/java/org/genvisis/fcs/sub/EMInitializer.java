@@ -36,7 +36,7 @@ public class EMInitializer {
 
   private static Logicle getBiexScale(double max) {
     double w = 2; // linear decades // W=1 is weird, W=3 -> "scale() didn't
-                  // converge"
+    // converge"
     double a = 0; // negative decades
     double decCnt = count(max);
 
@@ -53,21 +53,23 @@ public class EMInitializer {
   }
 
   public static final String[] DATA_COLUMNS = {
-                                               // "FSC-A",
-                                               // "SSC-A",
-                                               "Comp-BB515-A (CD27)", "Comp-PE-CF594-A (HLA-DR)",
-                                               "Comp-PE-Cy7-A (CD19)", "Comp-BUV 395-A (CD8)",
-                                               "Comp-BUV 737-A (IgD)", "Comp-APC-A (CD3)",
-                                               "Comp-BV 421-A (CCR7)", "Comp-BV 510-A (CD28)",
-                                               "Comp-BV 605-A (CD95)", "Comp-BV 711-A (CD45RA)"};
+    // "FSC-A",
+    // "SSC-A",
+    "Comp-BB515-A (CD27)", "Comp-PE-CF594-A (HLA-DR)",
+    "Comp-PE-Cy7-A (CD19)", "Comp-BUV 395-A (CD8)",
+    "Comp-BUV 737-A (IgD)", "Comp-APC-A (CD3)",
+    "Comp-BV 421-A (CCR7)", "Comp-BV 510-A (CD28)",
+    "Comp-BV 605-A (CD95)", "Comp-BV 711-A (CD45RA)"
+  };
 
   public static final AXIS_SCALE[] DATA_SCALES = {
-                                                  // AXIS_SCALE.LIN,
-                                                  // AXIS_SCALE.LIN,
-                                                  AXIS_SCALE.BIEX, AXIS_SCALE.BIEX, AXIS_SCALE.BIEX,
-                                                  AXIS_SCALE.BIEX, AXIS_SCALE.BIEX, AXIS_SCALE.BIEX,
-                                                  AXIS_SCALE.BIEX, AXIS_SCALE.BIEX, AXIS_SCALE.BIEX,
-                                                  AXIS_SCALE.BIEX,};
+    // AXIS_SCALE.LIN,
+    // AXIS_SCALE.LIN,
+    AXIS_SCALE.BIEX, AXIS_SCALE.BIEX, AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX, AXIS_SCALE.BIEX, AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX, AXIS_SCALE.BIEX, AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX,
+  };
 
   static final int CLUSTERS = 43;
 
@@ -119,15 +121,15 @@ public class EMInitializer {
     double[][] transformed = new double[data.length][data[0].length];
     for (int i = 0; i < scales.length; i++) {
       for (int j = 0; j < data[0].length; j++) {
-        transformed[i][j] = DATA_SCALES[i] == AXIS_SCALE.BIEX ? scales[i].scale(data[i][j])
-                                                              : data[i][j];
+        transformed[i][j] =
+            DATA_SCALES[i] == AXIS_SCALE.BIEX ? scales[i].scale(data[i][j]) : data[i][j];
       }
     }
 
     data = transpose(transformed);
 
-    MixtureMultivariateNormalDistribution initialMix = MultivariateNormalMixtureExpectationMaximization.estimate(data,
-                                                                                                                 CLUSTERS);
+    MixtureMultivariateNormalDistribution initialMix =
+        MultivariateNormalMixtureExpectationMaximization.estimate(data, CLUSTERS);
 
     List<Pair<Double, MultivariateNormalDistribution>> init = initialMix.getComponents();
     int len = ("" + init.size()).length() + 1;
@@ -160,9 +162,7 @@ public class EMInitializer {
       }
       writer2.flush();
       writer2.close();
-
     }
-
   }
 
   public static MixtureMultivariateNormalDistribution load(String dir) {
@@ -174,10 +174,11 @@ public class EMInitializer {
 
     for (int i = 0; i < compFiles.length; i++) {
       String[] cmp = HashVec.loadFileToStringArray(dir + compFiles[i], false, null, false);
-      String[] mns = HashVec.loadFileToStringArray(dir + compFiles[i] + ".means", false, null,
-                                                   false);
-      String[][] cvrs = HashVec.loadFileToStringMatrix(dir + compFiles[i] + ".covars", false, null,
-                                                       "\t", 10, false);
+      String[] mns =
+          HashVec.loadFileToStringArray(dir + compFiles[i] + ".means", false, null, false);
+      String[][] cvrs =
+          HashVec.loadFileToStringMatrix(
+              dir + compFiles[i] + ".covars", false, null, "\t", 10, false);
 
       double comps = Double.parseDouble(cmp[0]);
       means = new double[mns.length];
@@ -202,5 +203,4 @@ public class EMInitializer {
   public static void main(String[] args) {
     run();
   }
-
 }

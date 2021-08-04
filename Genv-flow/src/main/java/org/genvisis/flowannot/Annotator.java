@@ -38,8 +38,9 @@ public class Annotator implements IAnnotator {
   public ArrayList<String> getFCSKeys(Panel panel) {
     ArrayList<String> keys = fcsKeys;
     if (panel != null) {
-      keys = new ArrayList<>(fcsKeys.stream().filter(p -> panel.isPanel(p))
-                                    .collect(Collectors.toList()));
+      keys =
+          new ArrayList<>(
+              fcsKeys.stream().filter(p -> panel.isPanel(p)).collect(Collectors.toList()));
     }
     return keys;
   }
@@ -59,8 +60,8 @@ public class Annotator implements IAnnotator {
   }
 
   @Override
-  public void replaceAnnotation(AnnotatedImage.Annotation prevAnnot,
-                                AnnotatedImage.Annotation newAnnot) {
+  public void replaceAnnotation(
+      AnnotatedImage.Annotation prevAnnot, AnnotatedImage.Annotation newAnnot) {
     this.annotations.set(this.annotations.indexOf(prevAnnot), newAnnot);
     for (HashMap<String, AnnotatedImage> annMap : imageMap.values()) {
       for (AnnotatedImage ai : annMap.values()) {
@@ -90,8 +91,8 @@ public class Annotator implements IAnnotator {
     while ((entry = tarStream.getNextTarEntry()) != null) {
       if (entry.isDirectory()) {
         if (dirName != null && !dirFiles.isEmpty()) {
-          checkSpecials(panels, tar + File.separatorChar + dirName, dirName,
-                        dirFiles.toArray(new String[0]));
+          checkSpecials(
+              panels, tar + File.separatorChar + dirName, dirName, dirFiles.toArray(new String[0]));
         }
         String name = entry.getName();
         if (name.endsWith("/")) {
@@ -155,13 +156,15 @@ public class Annotator implements IAnnotator {
       return;
     }
     File dFil = new File(dir);
-    File[] subDirs = dFil.listFiles(new FileFilter() {
+    File[] subDirs =
+        dFil.listFiles(
+            new FileFilter() {
 
-      @Override
-      public boolean accept(File pathname) {
-        return pathname.isDirectory();
-      }
-    });
+              @Override
+              public boolean accept(File pathname) {
+                return pathname.isDirectory();
+              }
+            });
     for (File d : subDirs) {
       loadSubDir(d, panels);
     }
@@ -172,13 +175,16 @@ public class Annotator implements IAnnotator {
     fcsKeys.add(fcsFilename);
     HashMap<String, AnnotatedImage> fcsImgs = new HashMap<>();
     imageMap.put(fcsFilename, fcsImgs);
-    String[] imgFiles = d.list(new FilenameFilter() {
+    String[] imgFiles =
+        d.list(
+            new FilenameFilter() {
 
-      @Override
-      public boolean accept(File dir, String name) {
-        return name.startsWith(fcsFilename) && (name.endsWith(".png") || name.endsWith(".jpg"));
-      }
-    });
+              @Override
+              public boolean accept(File dir, String name) {
+                return name.startsWith(fcsFilename)
+                    && (name.endsWith(".png") || name.endsWith(".jpg"));
+              }
+            });
     for (String img : imgFiles) {
       Optional<Panel> panel = panels.stream().filter(p -> p.isPanel(img)).findFirst();
       if (!panel.isPresent()) {
@@ -206,8 +212,8 @@ public class Annotator implements IAnnotator {
     checkSpecials(panels, ext.verifyDirFormat(d.getAbsolutePath()), fcsFilename, imgFiles);
   }
 
-  private void checkSpecials(List<Panel> panels, String dir, String fcsFilename,
-                             String[] imgFiles) {
+  private void checkSpecials(
+      List<Panel> panels, String dir, String fcsFilename, String[] imgFiles) {
     for (Panel panel : panels) {
       if (panel.hasSpecials()) {
         String[][] gateTree = panel.getGateTree();
@@ -228,8 +234,8 @@ public class Annotator implements IAnnotator {
                 }
               }
               if (subImg != null) {
-                allImgs.append((allImgs.length() > 0 ? ";" : "") + dir + File.separatorChar
-                               + subImg);
+                allImgs.append(
+                    (allImgs.length() > 0 ? ";" : "") + dir + File.separatorChar + subImg);
               }
             }
             ai.setImageFile(allImgs.toString());
@@ -249,8 +255,8 @@ public class Annotator implements IAnnotator {
     BufferedReader reader = Files.getAppropriateReader(annotFile);
     String line = null;
 
-    Set<String> rootIdents = panels.stream().map(Panel::getGateTree).map(g -> g[0][0])
-                                   .collect(Collectors.toSet());
+    Set<String> rootIdents =
+        panels.stream().map(Panel::getGateTree).map(g -> g[0][0]).collect(Collectors.toSet());
 
     while ((line = reader.readLine()) != null) {
       if ("".equals(line)) continue;
@@ -273,8 +279,8 @@ public class Annotator implements IAnnotator {
             }
           }
         }
-        String file = ext.removeDirectoryInfo(imgFile.contains(";") ? imgFile.split(";")[0]
-                                                                    : imgFile);
+        String file =
+            ext.removeDirectoryInfo(imgFile.contains(";") ? imgFile.split(";")[0] : imgFile);
         String fcsFile = file.substring(0, file.indexOf(".fcs.") + 4);
         if (!fcsKeys.contains(fcsFile)) {
           fcsKeys.add(fcsFile);
@@ -322,8 +328,12 @@ public class Annotator implements IAnnotator {
     backupExistingFile(annotFile);
     PrintWriter writer = Files.getAppropriateWriter(annotFile);
     for (AnnotatedImage.Annotation a : map.keySet()) {
-      StringBuilder sb = new StringBuilder(ANNOT_TOKEN).append("\t").append(a.annotation)
-                                                       .append("\t").append(a.mnemonic);
+      StringBuilder sb =
+          new StringBuilder(ANNOT_TOKEN)
+              .append("\t")
+              .append(a.annotation)
+              .append("\t")
+              .append(a.mnemonic);
       writer.println(sb.toString());
     }
     writer.println();

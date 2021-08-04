@@ -48,9 +48,7 @@ import net.miginfocom.swing.MigLayout;
 
 public class BoxPlot extends JFrame {
 
-  /**
-  * 
-  */
+  /** */
   private static final long serialVersionUID = 1L;
 
   private static final String TITLE_STR = "BoxPlot - Genvisis";
@@ -61,12 +59,16 @@ public class BoxPlot extends JFrame {
   private static final String PROP_FILE = "boxplot.properties";
   private static final String PROPKEY_DATAFILE = "DATA_FILE";
   private static final String PROPKEY_SELECTED = "SELECTED";
-  private static final String[] PROPKEY_HOTKEYS = {"HOTKEY_0", "HOTKEY_1", "HOTKEY_2", "HOTKEY_3",
-                                                   "HOTKEY_4", "HOTKEY_5", "HOTKEY_6", "HOTKEY_7",
-                                                   "HOTKEY_8", "HOTKEY_9",};
-  private static final int[] KEYS = {KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3,
-                                     KeyEvent.VK_4, KeyEvent.VK_5, KeyEvent.VK_6, KeyEvent.VK_7,
-                                     KeyEvent.VK_8, KeyEvent.VK_9,};
+  private static final String[] PROPKEY_HOTKEYS = {
+    "HOTKEY_0", "HOTKEY_1", "HOTKEY_2", "HOTKEY_3",
+    "HOTKEY_4", "HOTKEY_5", "HOTKEY_6", "HOTKEY_7",
+    "HOTKEY_8", "HOTKEY_9",
+  };
+  private static final int[] KEYS = {
+    KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3,
+    KeyEvent.VK_4, KeyEvent.VK_5, KeyEvent.VK_6, KeyEvent.VK_7,
+    KeyEvent.VK_8, KeyEvent.VK_9,
+  };
 
   // String testFile = "C:\\Users\\Ben\\Desktop\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
   String testFile = "F:\\Flow\\counts data\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
@@ -90,41 +92,46 @@ public class BoxPlot extends JFrame {
 
     scrollContent = new JPanel(new MigLayout("", "", ""));
     scrollContent.setBackground(Color.WHITE);
-    JScrollPane scrollPane = new JScrollPane(scrollContent,
-                                             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    JScrollPane scrollPane =
+        new JScrollPane(
+            scrollContent,
+            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.getVerticalScrollBar().setUnitIncrement(14);
     scrollPane.getHorizontalScrollBar().setUnitIncrement(14);
 
     ctrlPanel = new BoxCtrlPanel();
-    ctrlPanel.addTreeSelectionListener(new TreeSelectionListener() {
+    ctrlPanel.addTreeSelectionListener(
+        new TreeSelectionListener() {
 
-      @Override
-      public void valueChanged(TreeSelectionEvent e) {
-        if (e.getNewLeadSelectionPath() == null) {
-          return; // extra events
-        }
-        ArrayList<String[]> paths = new ArrayList<>();
-        for (TreePath path : ctrlPanel.getSelectedPaths()) {
-          Object[] objPath = path.getPath();
-          String[] pathStr = new String[objPath.length];
-          for (int i = 0; i < objPath.length; i++) {
-            pathStr[i] = (String) ((DefaultMutableTreeNode) objPath[i]).getUserObject();
-          }
-          paths.add(pathStr);
-        }
-        setDisplay(paths);
-        if (!loadingProps) {
-          new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-              saveProps();
+          @Override
+          public void valueChanged(TreeSelectionEvent e) {
+            if (e.getNewLeadSelectionPath() == null) {
+              return; // extra events
             }
-          }).start();
-        }
-      }
-    });
+            ArrayList<String[]> paths = new ArrayList<>();
+            for (TreePath path : ctrlPanel.getSelectedPaths()) {
+              Object[] objPath = path.getPath();
+              String[] pathStr = new String[objPath.length];
+              for (int i = 0; i < objPath.length; i++) {
+                pathStr[i] = (String) ((DefaultMutableTreeNode) objPath[i]).getUserObject();
+              }
+              paths.add(pathStr);
+            }
+            setDisplay(paths);
+            if (!loadingProps) {
+              new Thread(
+                      new Runnable() {
+
+                        @Override
+                        public void run() {
+                          saveProps();
+                        }
+                      })
+                  .start();
+            }
+          }
+        });
     JSplitPane jsp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, ctrlPanel, scrollPane);
     jsp.setDividerLocation(200);
     contentPane.add(jsp, BorderLayout.CENTER);
@@ -141,31 +148,29 @@ public class BoxPlot extends JFrame {
     ActionMap am = ctrlPanel.getActionMap();
     for (int i = 0; i < PROPKEY_HOTKEYS.length; i++) {
       final int ind = i;
-      AbstractAction aaSet = new AbstractAction() {
+      AbstractAction aaSet =
+          new AbstractAction() {
 
-        /**
-        * 
-        */
-        private static final long serialVersionUID = 1L;
+            /** */
+            private static final long serialVersionUID = 1L;
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          setHotkey(ind);
-          saveProps();
-        }
-      };
-      AbstractAction aaSel = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              setHotkey(ind);
+              saveProps();
+            }
+          };
+      AbstractAction aaSel =
+          new AbstractAction() {
 
-        /**
-        * 
-        */
-        private static final long serialVersionUID = 1L;
+            /** */
+            private static final long serialVersionUID = 1L;
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          selectHotkey(ind);
-        }
-      };
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              selectHotkey(ind);
+            }
+          };
       am.put(PROPKEY_HOTKEYS[i] + "_SET", aaSet);
       am.put(PROPKEY_HOTKEYS[i] + "_SELECT", aaSel);
     }
@@ -182,8 +187,8 @@ public class BoxPlot extends JFrame {
     DefaultTreeModel dtm = (DefaultTreeModel) ctrlPanel.tree.getModel();
     for (String s : keyDef) {
       String[] pts = s.split("\\|")[0].trim().split("/");
-      TreePath tp = new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(ArrayUtils.toStr(pts,
-                                                                                            "\t"))));
+      TreePath tp =
+          new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(ArrayUtils.toStr(pts, "\t"))));
       data.add(tp);
     }
     if (data.size() > 0) {
@@ -206,31 +211,30 @@ public class BoxPlot extends JFrame {
     JMenuItem load = new JMenuItem("Open File");
     load.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
     load.setMnemonic(KeyEvent.VK_O);
-    load.setAction(new AbstractAction() {
+    load.setAction(
+        new AbstractAction() {
 
-      /**
-      * 
-      */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        String curr = currentFile == null ? "" : currentFile;
-        if (curr.equals("")) {
-          curr = "./";
-        }
-        JFileChooser jfc = new JFileChooser(curr);
-        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        jfc.setDialogTitle("Select Data File");
-        jfc.setMultiSelectionEnabled(false);
-        int resp = jfc.showOpenDialog(BoxPlot.this);
-        if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = jfc.getSelectedFile().getAbsolutePath();
-          loadFile(newPath);
-          saveProps();
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            String curr = currentFile == null ? "" : currentFile;
+            if (curr.equals("")) {
+              curr = "./";
+            }
+            JFileChooser jfc = new JFileChooser(curr);
+            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            jfc.setDialogTitle("Select Data File");
+            jfc.setMultiSelectionEnabled(false);
+            int resp = jfc.showOpenDialog(BoxPlot.this);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+              String newPath = jfc.getSelectedFile().getAbsolutePath();
+              loadFile(newPath);
+              saveProps();
+            }
+          }
+        });
     load.setText("Open File");
     menu.add(load);
 
@@ -279,7 +283,7 @@ public class BoxPlot extends JFrame {
       bp.setData(lbl, ArrayUtils.toStringArray(dataSources), Doubles.toArray(panelData));
       bp.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
       bp.setSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
-      bp.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
+      bp.setXAxisLabel(""); // pts[0].trim().replaceAll("/", " /\n");
       bp.setYAxisLabel(lbl.split("\\|")[1].trim());
       panels.add(bp);
       panelMap.put(ArrayUtils.toStr(lbl.split("\\|")[0].trim().split("/"), "\t"), bp);
@@ -310,8 +314,8 @@ public class BoxPlot extends JFrame {
       DefaultTreeModel dtm = (DefaultTreeModel) ctrlPanel.tree.getModel();
       for (String s : sel) {
         String[] pts = s.split("\\|")[0].trim().split("/");
-        TreePath tp = new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(ArrayUtils.toStr(pts,
-                                                                                              "\t"))));
+        TreePath tp =
+            new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(ArrayUtils.toStr(pts, "\t"))));
         data.add(tp);
       }
       if (data.size() > 0) {
@@ -341,10 +345,9 @@ public class BoxPlot extends JFrame {
       props.setProperty(PROPKEY_SELECTED, sel);
       for (String element : PROPKEY_HOTKEYS) {
         ArrayList<String> hotKeyDef = hotkeyDefs.get(element);
-        props.setProperty(element,
-                          hotKeyDef == null ? ""
-                                            : ArrayUtils.toStr(ArrayUtils.toStringArray(hotKeyDef),
-                                                               ";;"));
+        props.setProperty(
+            element,
+            hotKeyDef == null ? "" : ArrayUtils.toStr(ArrayUtils.toStringArray(hotKeyDef), ";;"));
       }
       File f = new File(PROP_FILE);
       OutputStream out = new FileOutputStream(f);
@@ -372,8 +375,8 @@ public class BoxPlot extends JFrame {
       String pts = bp.plotLabel.split("\\|")[0].trim().replaceAll("/", "  /<br />");
       JLabel pnlLbl = new JLabel("<html><p>" + pts + "</p></html>");
       pnlLbl.setBackground(Color.WHITE);
-      scrollContent.add(pnlLbl,
-                        "cell " + (i % cols) + " " + (row + 1) + ", alignx center, aligny top");
+      scrollContent.add(
+          pnlLbl, "cell " + (i % cols) + " " + (row + 1) + ", alignx center, aligny top");
     }
     revalidate();
     repaint();
@@ -384,5 +387,4 @@ public class BoxPlot extends JFrame {
     bp.setVisible(true);
     bp.loadFile(bp.testFile);
   }
-
 }

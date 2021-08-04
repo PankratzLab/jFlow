@@ -104,12 +104,17 @@ public abstract class Gate {
 
   public boolean[] getParentGating(FCSDataLoader dataLoader) {
     if (parentGating == null || (parentGate != null && parentGate.hasChanged())) {
-      parentGating = parentGate == null ? ArrayUtils.booleanArray(dataLoader.getCount(), true)
-                                        : parentGate.gate(dataLoader);
+      parentGating =
+          parentGate == null
+              ? ArrayUtils.booleanArray(dataLoader.getCount(), true)
+              : parentGate.gate(dataLoader);
     }
     if (parentGating == null) {
-      System.err.println("Error - parent gating is null!  Gate " + getName() + " // parent: "
-                         + (parentGate == null ? "null" : parentGate.getName()));
+      System.err.println(
+          "Error - parent gating is null!  Gate "
+              + getName()
+              + " // parent: "
+              + (parentGate == null ? "null" : parentGate.getName()));
     }
     return Arrays.copyOf(parentGating, parentGating.length);
   }
@@ -240,13 +245,19 @@ public abstract class Gate {
     @Override
     public Gate copy(Gate parentGate) {
       RectangleGate rg = new RectangleGate(parentGate, this.popName);
-      rg.setXDimension(new RectangleGateDimension(rg, this.getXDimension().getParam(),
-                                                  ((RectangleGateDimension) this.getXDimension()).getMin(),
-                                                  ((RectangleGateDimension) this.getXDimension()).getMax()));
+      rg.setXDimension(
+          new RectangleGateDimension(
+              rg,
+              this.getXDimension().getParam(),
+              ((RectangleGateDimension) this.getXDimension()).getMin(),
+              ((RectangleGateDimension) this.getXDimension()).getMax()));
       if (this.getYDimension() != null) {
-        rg.setYDimension(new RectangleGateDimension(rg, this.getYDimension().getParam(),
-                                                    ((RectangleGateDimension) this.getYDimension()).getMin(),
-                                                    ((RectangleGateDimension) this.getYDimension()).getMax()));
+        rg.setYDimension(
+            new RectangleGateDimension(
+                rg,
+                this.getYDimension().getParam(),
+                ((RectangleGateDimension) this.getYDimension()).getMin(),
+                ((RectangleGateDimension) this.getYDimension()).getMax()));
       }
       rg.setLevel(this.getLevel());
       for (Gate c : children) {
@@ -290,13 +301,13 @@ public abstract class Gate {
       if ((gating = dataLoader.getOverrideGating(this.getName())) != null) {
         return gating;
       }
-      boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()]
-                                              : getParentGating(dataLoader);
+      boolean[] includes =
+          parentGate == null ? new boolean[dataLoader.getCount()] : getParentGating(dataLoader);
       if (includes == null) {
         return includes;
       }
-      boolean[][] paramIncludes = new boolean[getYDimension() == null ? 1
-                                                                      : 2][dataLoader.getCount()];
+      boolean[][] paramIncludes =
+          new boolean[getYDimension() == null ? 1 : 2][dataLoader.getCount()];
 
       RectangleGateDimension rgd = (RectangleGateDimension) getXDimension();
       if (!dataLoader.containsParam(rgd.getParam())) {
@@ -307,8 +318,9 @@ public abstract class Gate {
       float max = Math.max(rgd.getMin(), rgd.getMax());
       for (int i = 0; i < dataLoader.getCount(); i++) {
         // inclusive min, exclusive max - see gating-ml spec
-        paramIncludes[0][i] = (!Float.isFinite(min) || min <= paramData[i])
-                              && (!Float.isFinite(max) || max > paramData[i]);
+        paramIncludes[0][i] =
+            (!Float.isFinite(min) || min <= paramData[i])
+                && (!Float.isFinite(max) || max > paramData[i]);
       }
 
       if ((rgd = (RectangleGateDimension) getYDimension()) != null) {
@@ -320,10 +332,10 @@ public abstract class Gate {
         paramData = dataLoader.getData(rgd.getParam(), true);
         for (int i = 0; i < dataLoader.getCount(); i++) {
           // inclusive min, exclusive max - see gating-ml spec
-          paramIncludes[1][i] = (!Float.isFinite(min) || min <= paramData[i])
-                                && (!Float.isFinite(max) || max > paramData[i]);
+          paramIncludes[1][i] =
+              (!Float.isFinite(min) || min <= paramData[i])
+                  && (!Float.isFinite(max) || max > paramData[i]);
         }
-
       }
 
       for (int i = 0; i < dataLoader.getCount(); i++) {
@@ -341,7 +353,6 @@ public abstract class Gate {
       }
       return gating = includes;
     }
-
   }
 
   public static class PolygonGate extends Gate {
@@ -349,8 +360,8 @@ public abstract class Gate {
     private static int DEFAULT_GATE_RESOLUTION = 256; // default
     private static int gateResolution = DEFAULT_GATE_RESOLUTION; // default
     private static int range = 262144; // TODO make this dynamic based on data loader param range
-                                       // (set when dims are set) - may have different ranges for
-                                       // each dim
+    // (set when dims are set) - may have different ranges for
+    // each dim
     private static int binStep = range / gateResolution;
     private static ArrayList<Rectangle> rectsXY = new ArrayList<>();
     private static ArrayList<Rectangle> rectsXtY = new ArrayList<>();
@@ -374,8 +385,8 @@ public abstract class Gate {
 
       for (int i = -gateResolution; i < gateResolution; i++) {
         for (int j = -gateResolution; j < gateResolution; j++) {
-          Rectangle r = new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep,
-                                      binStep);
+          Rectangle r =
+              new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep, binStep);
           rectsXY.add(r);
           rectsXY_arr[i + gateResolution][j + gateResolution] = r;
         }
@@ -404,7 +415,6 @@ public abstract class Gate {
           rectsXtYt_arr[i + gateResolution][j + gateResolution] = r;
         }
       }
-
     }
 
     private final ArrayList<Double> verticesX = new ArrayList<>();
@@ -548,8 +558,8 @@ public abstract class Gate {
       if ((gating = dataLoader.getOverrideGating(this.getName())) != null) {
         return gating;
       }
-      boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()]
-                                              : getParentGating(dataLoader);
+      boolean[] includes =
+          parentGate == null ? new boolean[dataLoader.getCount()] : getParentGating(dataLoader);
       if (includes == null) {
         return includes;
       }
@@ -567,8 +577,10 @@ public abstract class Gate {
           || !dataLoader.containsParam(getYDimension().getParam())) {
         return null;
       }
-      double[][] paramData = {dataLoader.getData(getXDimension().getParam(), true),
-                              dataLoader.getData(getYDimension().getParam(), true)};
+      double[][] paramData = {
+        dataLoader.getData(getXDimension().getParam(), true),
+        dataLoader.getData(getYDimension().getParam(), true)
+      };
 
       AxisTransform xTr, yTr;
       xTr = dataLoader.getParamTransform(getXDimension().getParam());
@@ -617,7 +629,9 @@ public abstract class Gate {
           // xInd = Math.max(0, xInd);
           // yInd = Math.min(rectsArray[xInd].length, yInd);
           // yInd = Math.max(0, yInd);
-          if (xInd < 0 || xInd >= rectsArray.length || yInd < 0
+          if (xInd < 0
+              || xInd >= rectsArray.length
+              || yInd < 0
               || yInd >= rectsArray[xInd].length) {
             continue;
           }
@@ -684,17 +698,26 @@ public abstract class Gate {
       while (!pi.isDone()) {
         int type = pi.currentSegment(coords);
         if (type != PathIterator.SEG_CLOSE) {
-          xInd = (int) (xT ? ((coords[0]) * (gateResolution * 2))
-                           : ((coords[0] / binStep) + gateResolution));
-          yInd = (int) (yT ? ((coords[1]) * (gateResolution * 2))
-                           : ((coords[1] / binStep) + gateResolution));
+          xInd =
+              (int)
+                  (xT
+                      ? ((coords[0]) * (gateResolution * 2))
+                      : ((coords[0] / binStep) + gateResolution));
+          yInd =
+              (int)
+                  (yT
+                      ? ((coords[1]) * (gateResolution * 2))
+                      : ((coords[1] / binStep) + gateResolution));
           Rectangle vRect;
-          if (xInd < rectsArray.length && xInd >= 0 && yInd < rectsArray[xInd].length
+          if (xInd < rectsArray.length
+              && xInd >= 0
+              && yInd < rectsArray[xInd].length
               && yInd >= 0) {
             vRect = rectsArray[xInd][yInd];
           } else {
-            vRect = new Rectangle(xInd * binStep + binStep / 2, yInd * binStep + binStep / 2,
-                                  binStep, binStep);
+            vRect =
+                new Rectangle(
+                    xInd * binStep + binStep / 2, yInd * binStep + binStep / 2, binStep, binStep);
           }
           vertexRects.add(vRect);
           if (ind == 0) {
@@ -771,7 +794,8 @@ public abstract class Gate {
 
       myRects.clear();
       for (Rectangle rect : rects) {
-        if (vertexRects.contains(rect) || path.contains(rect)
+        if (vertexRects.contains(rect)
+            || path.contains(rect)
             || (path.intersects(rect) && path.contains(rect.getCenterX(), rect.getCenterY()))) {
           myRects.add(rect);
         }
@@ -804,7 +828,6 @@ public abstract class Gate {
       transformedPath = null;
       setChanged();
     }
-
   }
 
   public static class EllipsoidGate extends Gate {
@@ -875,7 +898,6 @@ public abstract class Gate {
     public Gate copy(Gate parentGate) {
       throw new UnsupportedOperationException();
     }
-
   }
 
   // public static class EllipseCalc {
@@ -954,5 +976,4 @@ public abstract class Gate {
       throw new UnsupportedOperationException();
     }
   }
-
 }

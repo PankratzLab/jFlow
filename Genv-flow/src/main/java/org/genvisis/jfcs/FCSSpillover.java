@@ -5,9 +5,7 @@ public class FCSSpillover {
   private String[] parameterNames;
   private double[][] spilloverCoefficients;
 
-  private FCSSpillover() {
-
-  }
+  private FCSSpillover() {}
 
   public static FCSSpillover parse(String spilloverKeywordValue) {
 
@@ -53,5 +51,4 @@ public class FCSSpillover {
   void setCoefficients(double[][] spilloverCoefficients) {
     this.spilloverCoefficients = spilloverCoefficients;
   }
-
 }

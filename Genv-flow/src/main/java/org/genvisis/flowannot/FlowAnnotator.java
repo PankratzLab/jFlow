@@ -136,9 +136,7 @@ public class FlowAnnotator {
     return value;
   }
 
-  /**
-   * Launch the application.
-   */
+  /** Launch the application. */
   public static void main(String[] args) {
     String wspFile = null;
     if (args.length > 0) {
@@ -149,27 +147,31 @@ public class FlowAnnotator {
     }
     List<Panel> panels;
     try {
-      panels = WSPLoader.loadPanelsFromFile(wspFile == null ? Bundled.getStream("docs/panels.xml")
-                                                            : new FileInputStream(wspFile));
-      EventQueue.invokeLater(new Runnable() {
+      panels =
+          WSPLoader.loadPanelsFromFile(
+              wspFile == null
+                  ? Bundled.getStream("docs/panels.xml")
+                  : new FileInputStream(wspFile));
+      EventQueue.invokeLater(
+          new Runnable() {
 
-        public void run() {
-          try {
-            FlowAnnotator window = new FlowAnnotator(panels);
-            window.frmFlowannotator.setVisible(true);
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-      });
+            public void run() {
+              try {
+                FlowAnnotator window = new FlowAnnotator(panels);
+                window.frmFlowannotator.setVisible(true);
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            }
+          });
     } catch (FileNotFoundException e1) {
       e1.printStackTrace();
     }
-
   }
 
   /**
    * Create the application.
+   *
    * @param panels
    */
   public FlowAnnotator(List<Panel> panels) {
@@ -207,15 +209,18 @@ public class FlowAnnotator {
 
   private void saveProperties() {
     Properties p = new Properties();
-    if (lastOpenedImageDir != null && !"".equals(lastOpenedImageDir)
+    if (lastOpenedImageDir != null
+        && !"".equals(lastOpenedImageDir)
         && Files.exists(lastOpenedImageDir)) {
       p.setProperty(KEY_LAST_DIR_IMG, lastOpenedImageDir);
     }
-    if (lastOpenedAnnFileDir != null && !"".equals(lastOpenedAnnFileDir)
+    if (lastOpenedAnnFileDir != null
+        && !"".equals(lastOpenedAnnFileDir)
         && Files.exists(lastOpenedAnnFileDir)) {
       p.setProperty(KEY_LAST_DIR_ANN, lastOpenedAnnFileDir);
     }
-    if (lastSavedAnnFile != null && !"".equals(lastSavedAnnFile)
+    if (lastSavedAnnFile != null
+        && !"".equals(lastSavedAnnFile)
         && Files.exists(lastSavedAnnFile)) {
       p.setProperty(KEY_LAST_FILE_ANN, lastSavedAnnFile);
     }
@@ -241,14 +246,20 @@ public class FlowAnnotator {
   }
 
   private String getLastUsedAnnotationDir() {
-    if (this.lastOpenedAnnFileDir == null || "".equals(this.lastOpenedAnnFileDir)
+    if (this.lastOpenedAnnFileDir == null
+        || "".equals(this.lastOpenedAnnFileDir)
         || !Files.exists(this.lastOpenedAnnFileDir)) {
       try {
-        this.lastOpenedAnnFileDir = ext.parseDirectoryOfFile(new File(FlowAnnotator.class.getProtectionDomain()
-                                                                                         .getCodeSource()
-                                                                                         .getLocation()
-                                                                                         .toURI()
-                                                                                         .getPath()).getAbsolutePath());
+        this.lastOpenedAnnFileDir =
+            ext.parseDirectoryOfFile(
+                new File(
+                        FlowAnnotator.class
+                            .getProtectionDomain()
+                            .getCodeSource()
+                            .getLocation()
+                            .toURI()
+                            .getPath())
+                    .getAbsolutePath());
       } catch (URISyntaxException e) {
         this.lastOpenedAnnFileDir = "";
       }
@@ -261,14 +272,20 @@ public class FlowAnnotator {
   }
 
   private String getLastUsedImageDir() {
-    if (this.lastOpenedImageDir == null || "".equals(this.lastOpenedImageDir)
+    if (this.lastOpenedImageDir == null
+        || "".equals(this.lastOpenedImageDir)
         || !Files.exists(this.lastOpenedImageDir)) {
       try {
-        this.lastOpenedImageDir = ext.parseDirectoryOfFile(new File(FlowAnnotator.class.getProtectionDomain()
-                                                                                       .getCodeSource()
-                                                                                       .getLocation()
-                                                                                       .toURI()
-                                                                                       .getPath()).getAbsolutePath());
+        this.lastOpenedImageDir =
+            ext.parseDirectoryOfFile(
+                new File(
+                        FlowAnnotator.class
+                            .getProtectionDomain()
+                            .getCodeSource()
+                            .getLocation()
+                            .toURI()
+                            .getPath())
+                    .getAbsolutePath());
       } catch (URISyntaxException e) {
         this.lastOpenedImageDir = "";
       }
@@ -276,39 +293,39 @@ public class FlowAnnotator {
     return this.lastOpenedImageDir;
   }
 
-  /**
-   * Initialize the contents of the frame.
-   */
+  /** Initialize the contents of the frame. */
   private void initialize() {
     frmFlowannotator = new JFrame();
     frmFlowannotator.setTitle("FlowAnnotator");
     frmFlowannotator.setBounds(100, 100, 1200, 800);
     frmFlowannotator.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     frmFlowannotator.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow]"));
-    frmFlowannotator.addWindowListener(new WindowAdapter() {
+    frmFlowannotator.addWindowListener(
+        new WindowAdapter() {
 
-      @Override
-      public void windowClosing(WindowEvent e) {
-        close();
-      }
-    });
+          @Override
+          public void windowClosing(WindowEvent e) {
+            close();
+          }
+        });
 
     splitPane = new JSplitPane();
     splitPane.setResizeWeight(0.78);
     frmFlowannotator.getContentPane().add(splitPane, "cell 0 0,grow");
 
-    imagePanel = new JPanel() {
+    imagePanel =
+        new JPanel() {
 
-      private static final long serialVersionUID = 1L;
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Image scaledImage = selectedImage.getScaledInstance(getWidth(), getHeight(),
-                                                            Image.SCALE_SMOOTH);
-        g.drawImage(scaledImage, 0, 0, getWidth(), getHeight(), null);
-      }
-    };
+          @Override
+          protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Image scaledImage =
+                selectedImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_SMOOTH);
+            g.drawImage(scaledImage, 0, 0, getWidth(), getHeight(), null);
+          }
+        };
     splitPane.setLeftComponent(imagePanel);
     imagePanel.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 
@@ -369,16 +386,18 @@ public class FlowAnnotator {
     constructTree(panels.get(0));
 
     im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
-    am.put("enter", new AbstractAction() {
+    am.put(
+        "enter",
+        new AbstractAction() {
 
-      private static final long serialVersionUID = 1L;
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        createNewAnnotation();
-        tree.requestFocusInWindow();
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            createNewAnnotation();
+            tree.requestFocusInWindow();
+          }
+        });
 
     frmFlowannotator.setJMenuBar(createMenuBar());
     checkForBackupFileOrLoadLast();
@@ -394,23 +413,24 @@ public class FlowAnnotator {
     return null;
   }
 
-  private ItemListener panelListener = new ItemListener() {
+  private ItemListener panelListener =
+      new ItemListener() {
 
-    @Override
-    public void itemStateChanged(ItemEvent e) {
-      if (e.getStateChange() == ItemEvent.SELECTED) {
-        Panel panel = getSelectedPanel();
-        if (!constructingTree) {
-          constructingTree = true;
-          constructTree(panel);
-          setAnnotationsChanged();
-          reloadControls();
-          saveProperties();
-          constructingTree = false;
+        @Override
+        public void itemStateChanged(ItemEvent e) {
+          if (e.getStateChange() == ItemEvent.SELECTED) {
+            Panel panel = getSelectedPanel();
+            if (!constructingTree) {
+              constructingTree = true;
+              constructTree(panel);
+              setAnnotationsChanged();
+              reloadControls();
+              saveProperties();
+              constructingTree = false;
+            }
+          }
         }
-      }
-    }
-  };
+      };
 
   private MutableTreeNode[] constructGateTree(Panel panel) {
     String[][] tree = panel.getGateTree();
@@ -453,9 +473,13 @@ public class FlowAnnotator {
 
   private void checkForBackupFileOrLoadLast() {
     if (Files.exists(BACKUP_FILE)) {
-      int opt = JOptionPane.showConfirmDialog(this.frmFlowannotator, "Load Auto-saved backup file?",
-                                              "Auto-Save File Detected", JOptionPane.YES_NO_OPTION,
-                                              JOptionPane.WARNING_MESSAGE);
+      int opt =
+          JOptionPane.showConfirmDialog(
+              this.frmFlowannotator,
+              "Load Auto-saved backup file?",
+              "Auto-Save File Detected",
+              JOptionPane.YES_NO_OPTION,
+              JOptionPane.WARNING_MESSAGE);
       if (opt == JOptionPane.YES_OPTION) {
         loadAnnotationFile(BACKUP_FILE);
         new File(BACKUP_FILE).delete();
@@ -477,7 +501,9 @@ public class FlowAnnotator {
     if (lastSelectedGate != null && !"".equals(lastSelectedGate)) {
       for (int i = 0; i < tree.getRowCount(); i++) {
         TreePath tp = tree.getPathForRow(i);
-        String gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tp.getLastPathComponent()).getUserObject()).getGateName();
+        String gate =
+            ((AnnotatedImage) ((DefaultMutableTreeNode) tp.getLastPathComponent()).getUserObject())
+                .getGateName();
         if (gate.equals(lastSelectedGate)) {
           tree.setSelectionPath(tp);
           break;
@@ -487,30 +513,34 @@ public class FlowAnnotator {
   }
 
   private void startAutoSaveThread() {
-    autoSaveThread = new Thread(new Runnable() {
+    autoSaveThread =
+        new Thread(
+            new Runnable() {
 
-      @Override
-      public void run() {
-        while (true) {
-          if (lastTimeSaved == -1 || (System.currentTimeMillis() - lastTimeSaved > 30000)) {
-            if (checkAnnotationsChanged()) {
-              new File(BACKUP_DIR).mkdir();
-              try {
-                System.out.println("Auto-saving to backup: "
-                                   + new File(BACKUP_FILE).getCanonicalPath());
-              } catch (IOException e) {}
-              annotator.saveAnnotations(BACKUP_FILE);
-            }
-            lastTimeSaved = System.currentTimeMillis();
-          }
-          try {
-            Thread.sleep(15000);
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    }, "AutoSaveThread");
+              @Override
+              public void run() {
+                while (true) {
+                  if (lastTimeSaved == -1 || (System.currentTimeMillis() - lastTimeSaved > 30000)) {
+                    if (checkAnnotationsChanged()) {
+                      new File(BACKUP_DIR).mkdir();
+                      try {
+                        System.out.println(
+                            "Auto-saving to backup: " + new File(BACKUP_FILE).getCanonicalPath());
+                      } catch (IOException e) {
+                      }
+                      annotator.saveAnnotations(BACKUP_FILE);
+                    }
+                    lastTimeSaved = System.currentTimeMillis();
+                  }
+                  try {
+                    Thread.sleep(15000);
+                  } catch (InterruptedException e) {
+                    e.printStackTrace();
+                  }
+                }
+              }
+            },
+            "AutoSaveThread");
     autoSaveThread.setDaemon(true);
     autoSaveThread.start();
   }
@@ -562,15 +592,16 @@ public class FlowAnnotator {
     mnFile.add(mntmExport);
 
     JMenuItem mntmExit = new JMenuItem();
-    mntmExit.setAction(new AbstractAction() {
+    mntmExit.setAction(
+        new AbstractAction() {
 
-      private static final long serialVersionUID = 1L;
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        close();
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            close();
+          }
+        });
     mntmExit.setText("Exit");
     mnFile.add(mntmExit);
 
@@ -609,38 +640,41 @@ public class FlowAnnotator {
     mnNav.add(mntmNavOptLbl);
 
     JMenuItem mntmNavFind = new JMenuItem();
-    mntmNavFind.setAction(new AbstractAction() {
-      private static final long serialVersionUID = 1L;
+    mntmNavFind.setAction(
+        new AbstractAction() {
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        Panel p = getSelectedPanel();
-        List<String> fcs = annotator.getFCSKeys(p);
-        if (fcs.isEmpty()) {
-          JOptionPane.showMessageDialog(FlowAnnotator.this.frmFlowannotator,
-                                        "No files to search in panel " + p.getName() + "!");
-          return;
-        }
-        String[] v = fcs.toArray(new String[fcs.size()]);
-        List<String> sel = FileFinder.showFileFinder(v, false);
-        if (!sel.isEmpty()) {
-          fcsCombo.setSelectedItem(sel.get(0));
-        }
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            Panel p = getSelectedPanel();
+            List<String> fcs = annotator.getFCSKeys(p);
+            if (fcs.isEmpty()) {
+              JOptionPane.showMessageDialog(
+                  FlowAnnotator.this.frmFlowannotator,
+                  "No files to search in panel " + p.getName() + "!");
+              return;
+            }
+            String[] v = fcs.toArray(new String[fcs.size()]);
+            List<String> sel = FileFinder.showFileFinder(v, false);
+            if (!sel.isEmpty()) {
+              fcsCombo.setSelectedItem(sel.get(0));
+            }
+          }
+        });
     mntmNavFind.setMnemonic('F');
     mntmNavFind.setText("Find Sample");
     mnNav.add(mntmNavFind);
 
     JCheckBoxMenuItem mntmNavKeepGate = new JCheckBoxMenuItem();
-    mntmNavKeepGate.setAction(new AbstractAction() {
-      private static final long serialVersionUID = 1L;
+    mntmNavKeepGate.setAction(
+        new AbstractAction() {
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        keepGateWhenFileChange = mntmNavKeepGate.isSelected();
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            keepGateWhenFileChange = mntmNavKeepGate.isSelected();
+          }
+        });
     mntmNavKeepGate.setText("Keep Gate When File Changes");
     mntmNavKeepGate.setSelected(true);
     mnNav.add(mntmNavKeepGate);
@@ -660,39 +694,38 @@ public class FlowAnnotator {
     mnSaveAnn.add(jmn);
   }
 
-  private AbstractAction saveAnnotationAction = new AbstractAction() {
+  private AbstractAction saveAnnotationAction =
+      new AbstractAction() {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+        /** */
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      String annot = e.getActionCommand();
-      Annotation ann = null;
-      for (Annotation a : annotator.getAnnotations()) {
-        if (annot.equals(a.annotation)) {
-          ann = a;
-          break;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          String annot = e.getActionCommand();
+          Annotation ann = null;
+          for (Annotation a : annotator.getAnnotations()) {
+            if (annot.equals(a.annotation)) {
+              ann = a;
+              break;
+            }
+          }
+          if (ann == null) {
+            return;
+          }
+
+          JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
+          jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+          jfc.setDialogTitle("Save \"" + ann.annotation + "\" Annotation to File");
+          int opt = jfc.showSaveDialog(frmFlowannotator);
+          if (opt == JFileChooser.APPROVE_OPTION) {
+            String annFile = jfc.getSelectedFile().getAbsolutePath();
+            setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile)));
+            annotator.saveAnnotation(ann, annFile);
+            saveProperties();
+          }
         }
-      }
-      if (ann == null) {
-        return;
-      }
-
-      JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
-      jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      jfc.setDialogTitle("Save \"" + ann.annotation + "\" Annotation to File");
-      int opt = jfc.showSaveDialog(frmFlowannotator);
-      if (opt == JFileChooser.APPROVE_OPTION) {
-        String annFile = jfc.getSelectedFile().getAbsolutePath();
-        setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile)));
-        annotator.saveAnnotation(ann, annFile);
-        saveProperties();
-      }
-    }
-  };
+      };
 
   private void close() {
     if (checkAnnotationsChanged()
@@ -716,14 +749,15 @@ public class FlowAnnotator {
     } else {
       for (String s : recentAnnotFiles) {
         JMenuItem mnRecent = new JMenuItem();
-        mnRecent.setAction(new AbstractAction() {
-          private static final long serialVersionUID = 1L;
+        mnRecent.setAction(
+            new AbstractAction() {
+              private static final long serialVersionUID = 1L;
 
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            loadAnnotationFile(s);
-          }
-        });
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                loadAnnotationFile(s);
+              }
+            });
         mnRecent.setText(ext.removeDirectoryInfo(s));
         mnLoadRecent.add(mnRecent);
       }
@@ -748,19 +782,22 @@ public class FlowAnnotator {
   private void loadImageFiles() {
     JFileChooser jfc = new JFileChooser(getLastUsedImageDir());
     jfc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-    jfc.setFileFilter(new FileFilter() {
+    jfc.setFileFilter(
+        new FileFilter() {
 
-      @Override
-      public String getDescription() {
-        return "Directories or Tar Archives";
-      }
+          @Override
+          public String getDescription() {
+            return "Directories or Tar Archives";
+          }
 
-      @Override
-      public boolean accept(File f) {
-        return f.isDirectory() || f.getName().endsWith(".tar") || f.getName().endsWith(".tar.gz")
-               || f.getName().endsWith(".tgz");
-      }
-    });
+          @Override
+          public boolean accept(File f) {
+            return f.isDirectory()
+                || f.getName().endsWith(".tar")
+                || f.getName().endsWith(".tar.gz")
+                || f.getName().endsWith(".tgz");
+          }
+        });
     jfc.setDialogTitle("Open Directory");
     FileChooserUI fcUi = jfc.getUI();
     Class<? extends FileChooserUI> fcClass = fcUi.getClass();
@@ -768,8 +805,11 @@ public class FlowAnnotator {
     try {
       setFileName = fcClass.getMethod("setFileName", String.class);
       setFileName.invoke(fcUi, "./");
-    } catch (NoSuchMethodException | SecurityException | IllegalAccessException
-             | IllegalArgumentException | InvocationTargetException e) {
+    } catch (NoSuchMethodException
+        | SecurityException
+        | IllegalAccessException
+        | IllegalArgumentException
+        | InvocationTargetException e) {
       e.printStackTrace();
     }
     int opt = jfc.showOpenDialog(frmFlowannotator);
@@ -803,9 +843,9 @@ public class FlowAnnotator {
     annotPanel.removeAll();
     AnnotatedImage ai = null;
     if (tree.getSelectionModel().getSelectionPath() != null) {
-      DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tree.getSelectionModel()
-                                                                 .getSelectionPath()
-                                                                 .getLastPathComponent();
+      DefaultMutableTreeNode dmtn =
+          (DefaultMutableTreeNode)
+              tree.getSelectionModel().getSelectionPath().getLastPathComponent();
       ai = (AnnotatedImage) dmtn.getUserObject();
     }
     for (int i = 0; i < allAnnots.size(); i++) {
@@ -819,27 +859,28 @@ public class FlowAnnotator {
       }
       final AnnotatedImage ai1 = ai;
       final int ind = i;
-      AbstractAction mnemAct = new AbstractAction() {
+      AbstractAction mnemAct =
+          new AbstractAction() {
 
-        private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          if (ai1 != null) {
-            AnnotatedImage.Annotation a = allAnnots.get(ind);
-            ArrayList<AnnotatedImage.Annotation> myAnn = ai1.getAnnotations();
-            if (myAnn.contains(a)) {
-              myAnn.remove(a);
-              annBox.setSelected(false);
-            } else {
-              myAnn.add(a);
-              annBox.setSelected(true);
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              if (ai1 != null) {
+                AnnotatedImage.Annotation a = allAnnots.get(ind);
+                ArrayList<AnnotatedImage.Annotation> myAnn = ai1.getAnnotations();
+                if (myAnn.contains(a)) {
+                  myAnn.remove(a);
+                  annBox.setSelected(false);
+                } else {
+                  myAnn.add(a);
+                  annBox.setSelected(true);
+                }
+                setAnnotationsChanged();
+                annotPanel.repaint();
+              }
             }
-            setAnnotationsChanged();
-            annotPanel.repaint();
-          }
-        }
-      };
+          };
       annBox.setAction(mnemAct);
       annBox.setText(allAnnots.get(i).annotation);
       annBox.setMnemonic(allAnnots.get(i).mnemonic);
@@ -959,12 +1000,18 @@ public class FlowAnnotator {
   private int getPrevFile() {
     int trav = getTraversal();
     int sel = fcsCombo.getSelectedIndex();
-    String gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tree.getPathForRow(0)
-                                                                  .getLastPathComponent()).getUserObject()).getGateName();
+    String gate =
+        ((AnnotatedImage)
+                ((DefaultMutableTreeNode) tree.getPathForRow(0).getLastPathComponent())
+                    .getUserObject())
+            .getGateName();
     // default to root, or last leaf?, or any ann/non?
     if (keepGateWhenFileChange && !tree.isSelectionEmpty()) {
-      gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tree.getSelectionPath()
-                                                             .getLastPathComponent()).getUserObject()).getGateName();
+      gate =
+          ((AnnotatedImage)
+                  ((DefaultMutableTreeNode) tree.getSelectionPath().getLastPathComponent())
+                      .getUserObject())
+              .getGateName();
     }
     sel--;
     while (sel >= 0) {
@@ -995,12 +1042,18 @@ public class FlowAnnotator {
   private int getNextFile() {
     int trav = getTraversal();
     int sel = fcsCombo.getSelectedIndex();
-    String gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tree.getPathForRow(0)
-                                                                  .getLastPathComponent()).getUserObject()).getGateName();
+    String gate =
+        ((AnnotatedImage)
+                ((DefaultMutableTreeNode) tree.getPathForRow(0).getLastPathComponent())
+                    .getUserObject())
+            .getGateName();
     // default to root, or last leaf?, or any ann/non?
     if (keepGateWhenFileChange && !tree.isSelectionEmpty()) {
-      gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tree.getSelectionPath()
-                                                             .getLastPathComponent()).getUserObject()).getGateName();
+      gate =
+          ((AnnotatedImage)
+                  ((DefaultMutableTreeNode) tree.getSelectionPath().getLastPathComponent())
+                      .getUserObject())
+              .getGateName();
     }
     sel++;
     while (sel < fcsCombo.getItemCount()) {
@@ -1035,7 +1088,8 @@ public class FlowAnnotator {
   }
 
   private int getTreeRowCount() {
-    int cnt = getChildCount((DefaultMutableTreeNode) ((DefaultTreeModel) tree.getModel()).getRoot());
+    int cnt =
+        getChildCount((DefaultMutableTreeNode) ((DefaultTreeModel) tree.getModel()).getRoot());
     return cnt;
   }
 
@@ -1083,33 +1137,34 @@ public class FlowAnnotator {
   }
 
   private void updateTreeKeys(JTree tree) {
-    tree.setUI(new BasicTreeUI() {
+    tree.setUI(
+        new BasicTreeUI() {
 
-      protected KeyListener createKeyListener() {
-        return new KeyAdapter() {
+          protected KeyListener createKeyListener() {
+            return new KeyAdapter() {
 
-          @Override
-          public void keyPressed(KeyEvent e) {
-            e.consume();
-            if (e.getKeyCode() == KeyEvent.VK_UP) {
-              keyUp();
-            } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-              keyDown();
-            } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-              keyLeft();
-            } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-              keyRight();
-            } else {
-              if (!(e.isAltDown() && e.getKeyCode() == KeyEvent.VK_F4)) {
-                fireMnem((e.getKeyChar() + "").toUpperCase().charAt(0));
-              } else {
-                close();
+              @Override
+              public void keyPressed(KeyEvent e) {
+                e.consume();
+                if (e.getKeyCode() == KeyEvent.VK_UP) {
+                  keyUp();
+                } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                  keyDown();
+                } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                  keyLeft();
+                } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                  keyRight();
+                } else {
+                  if (!(e.isAltDown() && e.getKeyCode() == KeyEvent.VK_F4)) {
+                    fireMnem((e.getKeyChar() + "").toUpperCase().charAt(0));
+                  } else {
+                    close();
+                  }
+                }
               }
-            }
+            };
           }
-        };
-      }
-    });
+        });
   }
 
   private void expandAllNodes(JTree tree) {
@@ -1161,8 +1216,11 @@ public class FlowAnnotator {
   }
 
   private boolean saveAnnotations(boolean prompt) {
-    boolean ask = prompt || (null == lastSavedAnnFile || "".equals(lastSavedAnnFile)
-                             || !Files.exists(lastSavedAnnFile));
+    boolean ask =
+        prompt
+            || (null == lastSavedAnnFile
+                || "".equals(lastSavedAnnFile)
+                || !Files.exists(lastSavedAnnFile));
     String file = ask ? null : lastSavedAnnFile;
     if (file == null) {
       JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
@@ -1191,14 +1249,24 @@ public class FlowAnnotator {
   }
 
   private boolean promptToSaveAnnotations() {
-    boolean showSave = !(null == lastSavedAnnFile || "".equals(lastSavedAnnFile)
-                         || !Files.exists(lastSavedAnnFile));
-    final String[] options = showSave ? new String[] {"Save As...", "Save", "Don't Save", "Cancel"}
-                                      : new String[] {"Save As...", "Don't Save", "Cancel"};
-    int result = JOptionPane.showOptionDialog(this.frmFlowannotator, "Save Existing Annotations?",
-                                              "Save?", JOptionPane.YES_NO_CANCEL_OPTION,
-                                              JOptionPane.QUESTION_MESSAGE, null, options,
-                                              "Cancel");
+    boolean showSave =
+        !(null == lastSavedAnnFile
+            || "".equals(lastSavedAnnFile)
+            || !Files.exists(lastSavedAnnFile));
+    final String[] options =
+        showSave
+            ? new String[] {"Save As...", "Save", "Don't Save", "Cancel"}
+            : new String[] {"Save As...", "Don't Save", "Cancel"};
+    int result =
+        JOptionPane.showOptionDialog(
+            this.frmFlowannotator,
+            "Save Existing Annotations?",
+            "Save?",
+            JOptionPane.YES_NO_CANCEL_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            "Cancel");
     if (showSave) {
       switch (result) {
         case 0:
@@ -1259,96 +1327,92 @@ public class FlowAnnotator {
     }
   }
 
-  ActionListener comboListener = new ActionListener() {
+  ActionListener comboListener =
+      new ActionListener() {
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      tree.setEnabled(true);
-      updateAvail();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          tree.setEnabled(true);
+          updateAvail();
+        }
+      };
 
-  TreeSelectionListener treeListener = new TreeSelectionListener() {
+  TreeSelectionListener treeListener =
+      new TreeSelectionListener() {
 
-    @Override
-    public void valueChanged(TreeSelectionEvent e) {
-      if (e.getNewLeadSelectionPath() == null) return;
-      Object selected = e.getNewLeadSelectionPath().getLastPathComponent();
-      if (!(selected instanceof DefaultMutableTreeNode)) {
-        System.err.println("Error - selected an invalid item somehow.  Likely programmer error.");
-        return;
-      }
-      DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selected;
-      AnnotatedImage ann = ((AnnotatedImage) selectedNode.getUserObject());
-      setSelectedNode(ann);
-    }
+        @Override
+        public void valueChanged(TreeSelectionEvent e) {
+          if (e.getNewLeadSelectionPath() == null) return;
+          Object selected = e.getNewLeadSelectionPath().getLastPathComponent();
+          if (!(selected instanceof DefaultMutableTreeNode)) {
+            System.err.println(
+                "Error - selected an invalid item somehow.  Likely programmer error.");
+            return;
+          }
+          DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selected;
+          AnnotatedImage ann = ((AnnotatedImage) selectedNode.getUserObject());
+          setSelectedNode(ann);
+        }
+      };
 
-  };
+  private final Action loadAction =
+      new AbstractAction() {
 
-  private final Action loadAction = new AbstractAction() {
+        /** */
+        private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          loadImageFiles();
+        }
+      };
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      loadImageFiles();
-    }
-  };
+  private final Action existAction =
+      new AbstractAction() {
 
-  private final Action existAction = new AbstractAction() {
+        /** */
+        private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          loadAnnotations();
+        }
+      };
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      loadAnnotations();
-    }
-  };
+  private final Action exportAction =
+      new AbstractAction() {
 
-  private final Action exportAction = new AbstractAction() {
+        /** */
+        private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          new AnnotationExportDialog(annotator).setVisible(true);
+          // export specific images with specific annotations
+          // export sample names with specific annotations
+        }
+      };
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      new AnnotationExportDialog(annotator).setVisible(true);
-      // export specific images with specific annotations
-      // export sample names with specific annotations
-    }
-  };
+  private final Action saveAsAction =
+      new AbstractAction() {
 
-  private final Action saveAsAction = new AbstractAction() {
+        /** */
+        private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          saveAnnotations(true);
+        }
+      };
+  private final Action saveAction =
+      new AbstractAction() {
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      saveAnnotations(true);
-    }
-  };
-  private final Action saveAction = new AbstractAction() {
+        /** */
+        private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      saveAnnotations(false);
-    }
-  };
-
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          saveAnnotations(false);
+        }
+      };
 }

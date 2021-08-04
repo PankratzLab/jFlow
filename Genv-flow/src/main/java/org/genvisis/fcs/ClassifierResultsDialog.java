@@ -24,9 +24,7 @@ public class ClassifierResultsDialog extends JDialog {
   private JLabel lblFPCnt;
   private JLabel lblTPCnt;
 
-  /**
-   * Launch the application.
-   */
+  /** Launch the application. */
   public static void main(String[] args) {
     try {
       ClassifierResultsDialog dialog = new ClassifierResultsDialog();
@@ -37,9 +35,7 @@ public class ClassifierResultsDialog extends JDialog {
     }
   }
 
-  /**
-   * Create the dialog.
-   */
+  /** Create the dialog. */
   public ClassifierResultsDialog() {
     setBounds(100, 100, 200, 200);
     getContentPane().setLayout(new BorderLayout());
@@ -97,13 +93,14 @@ public class ClassifierResultsDialog extends JDialog {
       getContentPane().add(buttonPane, BorderLayout.SOUTH);
       {
         JButton cancelButton = new JButton("Close");
-        cancelButton.addActionListener(new ActionListener() {
+        cancelButton.addActionListener(
+            new ActionListener() {
 
-          public void actionPerformed(ActionEvent arg0) {
-            ClassifierResultsDialog.this.setVisible(false);
-            ClassifierResultsDialog.this.dispose();
-          }
-        });
+              public void actionPerformed(ActionEvent arg0) {
+                ClassifierResultsDialog.this.setVisible(false);
+                ClassifierResultsDialog.this.dispose();
+              }
+            });
         cancelButton.setActionCommand("Cancel");
         buttonPane.add(cancelButton);
       }
@@ -111,51 +108,54 @@ public class ClassifierResultsDialog extends JDialog {
   }
 
   public ClassifierResultsDialog setTNCnt(int tn) {
-    SwingUtilities.invokeLater(new Runnable() {
+    SwingUtilities.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        lblTNCnt.setText(Integer.toString(tn));
-        repaint();
-      }
-    });
+          @Override
+          public void run() {
+            lblTNCnt.setText(Integer.toString(tn));
+            repaint();
+          }
+        });
     return this;
   }
 
   public ClassifierResultsDialog setFNCnt(int fn) {
-    SwingUtilities.invokeLater(new Runnable() {
+    SwingUtilities.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        lblFNCnt.setText(Integer.toString(fn));
-        repaint();
-      }
-    });
+          @Override
+          public void run() {
+            lblFNCnt.setText(Integer.toString(fn));
+            repaint();
+          }
+        });
     return this;
   }
 
   public ClassifierResultsDialog setTPCnt(int tp) {
-    SwingUtilities.invokeLater(new Runnable() {
+    SwingUtilities.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        lblTPCnt.setText(Integer.toString(tp));
-        repaint();
-      }
-    });
+          @Override
+          public void run() {
+            lblTPCnt.setText(Integer.toString(tp));
+            repaint();
+          }
+        });
     return this;
   }
 
   public ClassifierResultsDialog setFPCnt(int fp) {
-    SwingUtilities.invokeLater(new Runnable() {
+    SwingUtilities.invokeLater(
+        new Runnable() {
 
-      @Override
-      public void run() {
-        lblFPCnt.setText(Integer.toString(fp));
-        repaint();
-      }
-    });
+          @Override
+          public void run() {
+            lblFPCnt.setText(Integer.toString(fp));
+            repaint();
+          }
+        });
     return this;
   }
-
 }

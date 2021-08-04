@@ -11,8 +11,11 @@ public class Panel {
   String[][] gatingTree;
   Map<String, List<String>> specials;
 
-  public Panel(String name, String[][] gatingTree, Map<String, List<String>> specials,
-               String... possibleAliases) {
+  public Panel(
+      String name,
+      String[][] gatingTree,
+      Map<String, List<String>> specials,
+      String... possibleAliases) {
     this.name = name;
     this.aliases = new HashSet<>();
     for (String s : possibleAliases) {
@@ -68,5 +71,4 @@ public class Panel {
     } else if (!name.equals(other.name)) return false;
     return true;
   }
-
 }

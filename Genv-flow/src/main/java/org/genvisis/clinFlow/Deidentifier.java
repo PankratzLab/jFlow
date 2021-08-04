@@ -29,6 +29,7 @@ public class Deidentifier {
   private static final String KEY_FIL = "$FIL";
 
   private static final List<String> keys = new ArrayList<>();
+
   {
     keys.add(KEY_PATIENT_ID);
     keys.add(KEY_EXPERIMENT_NAME);
@@ -114,23 +115,25 @@ public class Deidentifier {
   }
 
   private File[] listDirs(File dir) {
-    return dir.listFiles(new FileFilter() {
+    return dir.listFiles(
+        new FileFilter() {
 
-      @Override
-      public boolean accept(File arg0) {
-        return arg0.isDirectory();
-      }
-    });
+          @Override
+          public boolean accept(File arg0) {
+            return arg0.isDirectory();
+          }
+        });
   }
 
   private String[] listFCS(File dir) {
-    return dir.list(new FilenameFilter() {
+    return dir.list(
+        new FilenameFilter() {
 
-      @Override
-      public boolean accept(File dir, String name) {
-        return name.endsWith(".fcs");
-      }
-    });
+          @Override
+          public boolean accept(File dir, String name) {
+            return name.endsWith(".fcs");
+          }
+        });
   }
 
   private String generateNewDirName(File dir) {
@@ -244,5 +247,4 @@ public class Deidentifier {
       log.report("Converted " + c.fcs);
     }
   }
-
 }

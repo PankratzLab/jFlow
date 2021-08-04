@@ -67,16 +67,20 @@ public class FCSReader {
     reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA, "1");
     reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA, "1");
     if (!reader.getKeywords().hasKeyword(FCS_KEYWORD.TOT)) {
-      reader.getKeywords().setKeyword(FCS_KEYWORD.TOT,
-                                      Integer.toString(reader.data.getEventCount()));
-    } else if (Integer.parseInt(reader.getKeywords()
-                                      .getKeyword(FCS_KEYWORD.TOT)) != reader.data.getEventCount()) {
+      reader
+          .getKeywords()
+          .setKeyword(FCS_KEYWORD.TOT, Integer.toString(reader.data.getEventCount()));
+    } else if (Integer.parseInt(reader.getKeywords().getKeyword(FCS_KEYWORD.TOT))
+        != reader.data.getEventCount()) {
       fO.close();
-      throw new IllegalStateException("Number of events recorded in file keywords ("
-                                      + FCS_KEYWORD.TOT.keyword + "="
-                                      + reader.getKeywords().getKeyword(FCS_KEYWORD.TOT)
-                                      + ") does not match the actual number of events found in the file ("
-                                      + reader.getEventCount() + ")");
+      throw new IllegalStateException(
+          "Number of events recorded in file keywords ("
+              + FCS_KEYWORD.TOT.keyword
+              + "="
+              + reader.getKeywords().getKeyword(FCS_KEYWORD.TOT)
+              + ") does not match the actual number of events found in the file ("
+              + reader.getEventCount()
+              + ")");
     }
     textBytes = reader.getKeywords().constructRaw();
 
@@ -117,11 +121,14 @@ public class FCSReader {
     // write text
     fO.write(textBytes);
     // write spaces in between
-    filler = ArrayUtils.byteArray((int) ((newHeader.dataStart == 0 ? (newHeader.textStop + DFLT_PAD
-                                                                      + dataLength - 1)
-                                                                   : newHeader.dataStart)
-                                         - (newHeader.textStop + 1)),
-                                  (byte) 32);
+    filler =
+        ArrayUtils.byteArray(
+            (int)
+                ((newHeader.dataStart == 0
+                        ? (newHeader.textStop + DFLT_PAD + dataLength - 1)
+                        : newHeader.dataStart)
+                    - (newHeader.textStop + 1)),
+            (byte) 32);
     fO.write(filler);
     // write data
     reader.data.writeData(reader, fO);
@@ -155,23 +162,26 @@ public class FCSReader {
 
     int read = getSystemFile().read(headBytes);
     if (read != headBytes.length) {
-      throw new IOException("Failed to read the proper number of header bytes (expected "
-                            + FCSHeader.HEADER_NUM_BYTES + "; found " + read);
+      throw new IOException(
+          "Failed to read the proper number of header bytes (expected "
+              + FCSHeader.HEADER_NUM_BYTES
+              + "; found "
+              + read);
     }
 
     header.fileFormat = new String(Arrays.copyOfRange(headBytes, 0, 6), "US-ASCII").trim();
-    header.textStart = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 10, 18),
-                                                   "US-ASCII").trim());
-    header.textStop = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 18, 26),
-                                                  "US-ASCII").trim());
-    header.dataStart = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 26, 34),
-                                                   "US-ASCII").trim());
-    header.dataStop = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 34, 42),
-                                                  "US-ASCII").trim());
-    header.analysisStart = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 42, 50),
-                                                       "US-ASCII").trim());
-    header.analysisStop = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 50, 58),
-                                                      "US-ASCII").trim());
+    header.textStart =
+        Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 10, 18), "US-ASCII").trim());
+    header.textStop =
+        Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 18, 26), "US-ASCII").trim());
+    header.dataStart =
+        Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 26, 34), "US-ASCII").trim());
+    header.dataStop =
+        Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 34, 42), "US-ASCII").trim());
+    header.analysisStart =
+        Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 42, 50), "US-ASCII").trim());
+    header.analysisStop =
+        Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 50, 58), "US-ASCII").trim());
     return header;
   }
 
@@ -198,9 +208,10 @@ public class FCSReader {
   }
 
   private void setSpill() {
-    FCS_KEYWORD s = getKeywords().hasKeyword(FCS_KEYWORD.SPILLOVER) ? FCS_KEYWORD.SPILLOVER
-                                                                    : getKeywords().hasKeyword(FCS_KEYWORD.SPILL) ? FCS_KEYWORD.SPILL
-                                                                                                                  : null;
+    FCS_KEYWORD s =
+        getKeywords().hasKeyword(FCS_KEYWORD.SPILLOVER)
+            ? FCS_KEYWORD.SPILLOVER
+            : getKeywords().hasKeyword(FCS_KEYWORD.SPILL) ? FCS_KEYWORD.SPILL : null;
     this.setSpillover(s == null ? null : FCSSpillover.parse(getKeywords().getKeyword(s)));
   }
 
@@ -258,10 +269,11 @@ public class FCSReader {
   }
 
   public double[] getParamAsDoubles(String paramName, boolean compensated) {
-    return data.getParamData(ext.indexOfStr(paramName,
-                                            compensated ? spill.getParameterNames()
-                                                        : keys.getParameterNames()),
-                             compensated, (double[]) null);
+    return data.getParamData(
+        ext.indexOfStr(
+            paramName, compensated ? spill.getParameterNames() : keys.getParameterNames()),
+        compensated,
+        (double[]) null);
   }
 
   public double[] getEventAsDoubles(int event, boolean getCompensated) {
@@ -271,7 +283,6 @@ public class FCSReader {
   public int getEventCount() {
     return data.getEventCount();
   }
-
 }
 
 interface FCSData {
@@ -286,24 +297,23 @@ interface FCSData {
 
   boolean hasCompensatedData();
 
-  default public float[] getParamData(int paramIndex, boolean compensated, float[] emptyData) {
+  public default float[] getParamData(int paramIndex, boolean compensated, float[] emptyData) {
     throw new UnsupportedOperationException();
   }
 
-  default public double[] getParamData(int paramIndex, boolean compensated, double[] emptyData) {
+  public default double[] getParamData(int paramIndex, boolean compensated, double[] emptyData) {
     throw new UnsupportedOperationException();
   }
 
-  default public float[] getEventData(int eventIndex, boolean compensated, float[] emptyData) {
+  public default float[] getEventData(int eventIndex, boolean compensated, float[] emptyData) {
     throw new UnsupportedOperationException();
   }
 
-  default public double[] getEventData(int eventIndex, boolean compensated, double[] emptyData) {
+  public default double[] getEventData(int eventIndex, boolean compensated, double[] emptyData) {
     throw new UnsupportedOperationException();
   }
 
   void writeData(FCSReader reader, RandomAccessFile file) throws IOException;
-
 }
 
 class FCSDoubleData implements FCSData {
@@ -324,15 +334,17 @@ class FCSDoubleData implements FCSData {
     }
     if (emptyData != null) {
       if (emptyData.length != (compensated ? compData : data)[paramIndex].length) {
-        throw new IllegalArgumentException("Expected data is wrong length; given: "
-                                           + emptyData.length + "; expected: "
-                                           + (compensated ? compData : data)[paramIndex].length);
+        throw new IllegalArgumentException(
+            "Expected data is wrong length; given: "
+                + emptyData.length
+                + "; expected: "
+                + (compensated ? compData : data)[paramIndex].length);
       }
     } else {
       emptyData = new double[(compensated ? compData : data)[paramIndex].length];
     }
-    System.arraycopy((compensated ? compData : data)[paramIndex], 0, emptyData, 0,
-                     emptyData.length);
+    System.arraycopy(
+        (compensated ? compData : data)[paramIndex], 0, emptyData, 0, emptyData.length);
     return emptyData;
   }
 
@@ -343,9 +355,11 @@ class FCSDoubleData implements FCSData {
     }
     if (emptyData != null) {
       if (emptyData.length != (compensated ? compData : data)[paramIndex].length) {
-        throw new IllegalArgumentException("Expected data is wrong length; given: "
-                                           + emptyData.length + "; expected: "
-                                           + (compensated ? compData : data)[paramIndex].length);
+        throw new IllegalArgumentException(
+            "Expected data is wrong length; given: "
+                + emptyData.length
+                + "; expected: "
+                + (compensated ? compData : data)[paramIndex].length);
       }
     } else {
       emptyData = new float[(compensated ? compData : data)[paramIndex].length];
@@ -364,9 +378,11 @@ class FCSDoubleData implements FCSData {
     }
     if (emptyData != null) {
       if (emptyData.length != (compensated ? compData : data).length) {
-        throw new IllegalArgumentException("Expected data is wrong length; given: "
-                                           + emptyData.length + "; expected: "
-                                           + (compensated ? compData : data).length);
+        throw new IllegalArgumentException(
+            "Expected data is wrong length; given: "
+                + emptyData.length
+                + "; expected: "
+                + (compensated ? compData : data).length);
       }
     } else {
       emptyData = new double[(compensated ? compData : data).length];
@@ -384,9 +400,11 @@ class FCSDoubleData implements FCSData {
     }
     if (emptyData != null) {
       if (emptyData.length != (compensated ? compData : data).length) {
-        throw new IllegalArgumentException("Expected data is wrong length; given: "
-                                           + emptyData.length + "; expected: "
-                                           + (compensated ? compData : data).length);
+        throw new IllegalArgumentException(
+            "Expected data is wrong length; given: "
+                + emptyData.length
+                + "; expected: "
+                + (compensated ? compData : data).length);
       }
     } else {
       emptyData = new float[(compensated ? compData : data).length];
@@ -435,8 +453,10 @@ class FCSDoubleData implements FCSData {
     int[] paramByteInd = new int[params];
     int byteSum = 0;
     for (int i = 0; i < params; i++) {
-      int p = reader.getKeywords()
-                    .getKeywordInt(FCS_KEYWORD.PnB.keyword.replace("n", Integer.toString(i + 1)));
+      int p =
+          reader
+              .getKeywords()
+              .getKeywordInt(FCS_KEYWORD.PnB.keyword.replace("n", Integer.toString(i + 1)));
       p /= 8; // require discrete bytes
       paramByteInd[i] = byteSum;
       byteSum += p;
@@ -457,8 +477,8 @@ class FCSDoubleData implements FCSData {
     compData = new double[spill.getParameterNames().length][events];
     int[] compInds = new int[reader.getKeywords().getParameterNames().length];
     for (int i = 0; i < compInds.length; i++) {
-      compInds[i] = ext.indexOfStr(reader.getKeywords().getParameterNames()[i],
-                                   spill.getParameterNames());
+      compInds[i] =
+          ext.indexOfStr(reader.getKeywords().getParameterNames()[i], spill.getParameterNames());
     }
 
     double[] paramScaling = reader.getKeywords().getParamScaling();
@@ -467,22 +487,26 @@ class FCSDoubleData implements FCSData {
     for (int e = 0; e < events; e++) {
       reader.getSystemFile().read(parse);
       for (int p = 0; p < params; p++) {
-        data[p][e] = (paramBytes[p] == 8 ? BGENBitMath.bytesToDouble(end == ByteOrder.LITTLE_ENDIAN,
-                                                                     parse[paramByteInd[p]],
-                                                                     parse[paramByteInd[p] + 1],
-                                                                     parse[paramByteInd[p] + 2],
-                                                                     parse[paramByteInd[p] + 3],
-                                                                     parse[paramByteInd[p] + 4],
-                                                                     parse[paramByteInd[p] + 5],
-                                                                     parse[paramByteInd[p] + 6],
-                                                                     parse[paramByteInd[p] + 7])
-                                         // double types /should/ be 64 bits, but not always true
-                                         : BGENBitMath.bytesToFloat(end == ByteOrder.LITTLE_ENDIAN,
-                                                                    parse[paramByteInd[p]],
-                                                                    parse[paramByteInd[p] + 1],
-                                                                    parse[paramByteInd[p] + 2],
-                                                                    parse[paramByteInd[p] + 3]))
-                     / paramScaling[p];
+        data[p][e] =
+            (paramBytes[p] == 8
+                    ? BGENBitMath.bytesToDouble(
+                        end == ByteOrder.LITTLE_ENDIAN,
+                        parse[paramByteInd[p]],
+                        parse[paramByteInd[p] + 1],
+                        parse[paramByteInd[p] + 2],
+                        parse[paramByteInd[p] + 3],
+                        parse[paramByteInd[p] + 4],
+                        parse[paramByteInd[p] + 5],
+                        parse[paramByteInd[p] + 6],
+                        parse[paramByteInd[p] + 7])
+                    // double types /should/ be 64 bits, but not always true
+                    : BGENBitMath.bytesToFloat(
+                        end == ByteOrder.LITTLE_ENDIAN,
+                        parse[paramByteInd[p]],
+                        parse[paramByteInd[p] + 1],
+                        parse[paramByteInd[p] + 2],
+                        parse[paramByteInd[p] + 3]))
+                / paramScaling[p];
       }
       for (int p = 0; p < params; p++) {
         if (compInds[p] == -1) {
@@ -509,8 +533,10 @@ class FCSDoubleData implements FCSData {
     ByteOrder end = reader.getKeywords().getEndianness();
     int byteSum = 0;
     for (int i = 0; i < params; i++) {
-      int p = reader.getKeywords()
-                    .getKeywordInt(FCS_KEYWORD.PnB.keyword.replace("n", Integer.toString(i + 1)));
+      int p =
+          reader
+              .getKeywords()
+              .getKeywordInt(FCS_KEYWORD.PnB.keyword.replace("n", Integer.toString(i + 1)));
       p /= 8; // require discrete bytes
       paramByteInd[i] = byteSum;
       byteSum += p;
@@ -522,20 +548,26 @@ class FCSDoubleData implements FCSData {
       rawLine = new byte[byteSum];
       for (int p = 0; p < params; p++) {
         if (paramBytes[p] == 8) {
-          System.arraycopy(BGENBitMath.doubleToBytes(end == ByteOrder.LITTLE_ENDIAN,
-                                                     data[p][e] * paramScaling[p]),
-                           0, rawLine, paramByteInd[p], 8);
+          System.arraycopy(
+              BGENBitMath.doubleToBytes(
+                  end == ByteOrder.LITTLE_ENDIAN, data[p][e] * paramScaling[p]),
+              0,
+              rawLine,
+              paramByteInd[p],
+              8);
         } else {
-          System.arraycopy(BGENBitMath.floatToBytes(end == ByteOrder.LITTLE_ENDIAN,
-                                                    (float) (data[p][e] * paramScaling[p])),
-                           0, rawLine, paramByteInd[p], 4);
+          System.arraycopy(
+              BGENBitMath.floatToBytes(
+                  end == ByteOrder.LITTLE_ENDIAN, (float) (data[p][e] * paramScaling[p])),
+              0,
+              rawLine,
+              paramByteInd[p],
+              4);
         }
       }
       newFile.write(rawLine);
     }
-
   }
-
 }
 
 class FCSFloatData implements FCSData {
@@ -556,9 +588,11 @@ class FCSFloatData implements FCSData {
     }
     if (emptyData != null) {
       if (emptyData.length != (compensated ? compData : data)[paramIndex].length) {
-        throw new IllegalArgumentException("Expected data is wrong length; given: "
-                                           + emptyData.length + "; expected: "
-                                           + (compensated ? compData : data)[paramIndex].length);
+        throw new IllegalArgumentException(
+            "Expected data is wrong length; given: "
+                + emptyData.length
+                + "; expected: "
+                + (compensated ? compData : data)[paramIndex].length);
       }
     } else {
       emptyData = new double[(compensated ? compData : data)[paramIndex].length];
@@ -577,15 +611,17 @@ class FCSFloatData implements FCSData {
     }
     if (emptyData != null) {
       if (emptyData.length != (compensated ? compData : data)[paramIndex].length) {
-        throw new IllegalArgumentException("Expected data is wrong length; given: "
-                                           + emptyData.length + "; expected: "
-                                           + (compensated ? compData : data)[paramIndex].length);
+        throw new IllegalArgumentException(
+            "Expected data is wrong length; given: "
+                + emptyData.length
+                + "; expected: "
+                + (compensated ? compData : data)[paramIndex].length);
       }
     } else {
       emptyData = new float[(compensated ? compData : data)[paramIndex].length];
     }
-    System.arraycopy((compensated ? compData : data)[paramIndex], 0, emptyData, 0,
-                     emptyData.length);
+    System.arraycopy(
+        (compensated ? compData : data)[paramIndex], 0, emptyData, 0, emptyData.length);
     return emptyData;
   }
 
@@ -596,9 +632,11 @@ class FCSFloatData implements FCSData {
     }
     if (emptyData != null) {
       if (emptyData.length != (compensated ? compData : data).length) {
-        throw new IllegalArgumentException("Expected data is wrong length; given: "
-                                           + emptyData.length + "; expected: "
-                                           + (compensated ? compData : data).length);
+        throw new IllegalArgumentException(
+            "Expected data is wrong length; given: "
+                + emptyData.length
+                + "; expected: "
+                + (compensated ? compData : data).length);
       }
     } else {
       emptyData = new double[(compensated ? compData : data).length];
@@ -617,9 +655,11 @@ class FCSFloatData implements FCSData {
     }
     if (emptyData != null) {
       if (emptyData.length != (compensated ? compData : data).length) {
-        throw new IllegalArgumentException("Expected data is wrong length; given: "
-                                           + emptyData.length + "; expected: "
-                                           + (compensated ? compData : data).length);
+        throw new IllegalArgumentException(
+            "Expected data is wrong length; given: "
+                + emptyData.length
+                + "; expected: "
+                + (compensated ? compData : data).length);
       }
     } else {
       emptyData = new float[(compensated ? compData : data).length];
@@ -667,8 +707,10 @@ class FCSFloatData implements FCSData {
     int[] paramByteInd = new int[params];
     int byteSum = 0;
     for (int i = 0; i < params; i++) {
-      int p = reader.getKeywords()
-                    .getKeywordInt(FCS_KEYWORD.PnB.keyword.replace("n", Integer.toString(i + 1)));
+      int p =
+          reader
+              .getKeywords()
+              .getKeywordInt(FCS_KEYWORD.PnB.keyword.replace("n", Integer.toString(i + 1)));
       p /= 8; // require discrete bytes
       paramByteInd[i] = byteSum;
       byteSum += p;
@@ -692,20 +734,23 @@ class FCSFloatData implements FCSData {
     compData = new float[spill.getParameterNames().length][events];
     int[] compInds = new int[reader.getKeywords().getParameterNames().length];
     for (int i = 0; i < compInds.length; i++) {
-      compInds[i] = ext.indexOfStr(reader.getKeywords().getParameterNames()[i],
-                                   spill.getParameterNames());
+      compInds[i] =
+          ext.indexOfStr(reader.getKeywords().getParameterNames()[i], spill.getParameterNames());
     }
 
     byte[] parse = new byte[byteSum];
     for (int e = 0; e < events; e++) {
       reader.getSystemFile().read(parse);
       for (int p = 0; p < params; p++) {
-        data[p][e] = (float) (BGENBitMath.bytesToFloat(end == ByteOrder.LITTLE_ENDIAN,
-                                                       parse[paramByteInd[p]],
-                                                       parse[paramByteInd[p] + 1],
-                                                       parse[paramByteInd[p] + 2],
-                                                       parse[paramByteInd[p] + 3])
-                              / paramScaling[p]);
+        data[p][e] =
+            (float)
+                (BGENBitMath.bytesToFloat(
+                        end == ByteOrder.LITTLE_ENDIAN,
+                        parse[paramByteInd[p]],
+                        parse[paramByteInd[p] + 1],
+                        parse[paramByteInd[p] + 2],
+                        parse[paramByteInd[p] + 3])
+                    / paramScaling[p]);
       }
       for (int p = 0; p < params; p++) {
         if (compInds[p] == -1) {
@@ -722,9 +767,8 @@ class FCSFloatData implements FCSData {
       }
     }
     parse = null;
-    System.out.println("Read " + events + " events for " + params + " params in "
-                       + ext.getTimeElapsedNanos(t));
-
+    System.out.println(
+        "Read " + events + " events for " + params + " params in " + ext.getTimeElapsedNanos(t));
   }
 
   public void writeData(FCSReader reader, RandomAccessFile newFile) throws IOException {
@@ -734,8 +778,10 @@ class FCSFloatData implements FCSData {
     ByteOrder end = reader.getKeywords().getEndianness();
     int byteSum = 0;
     for (int i = 0; i < params; i++) {
-      int p = reader.getKeywords()
-                    .getKeywordInt(FCS_KEYWORD.PnB.keyword.replace("n", Integer.toString(i + 1)));
+      int p =
+          reader
+              .getKeywords()
+              .getKeywordInt(FCS_KEYWORD.PnB.keyword.replace("n", Integer.toString(i + 1)));
       p /= 8; // require discrete bytes
       paramByteInd[i] = byteSum;
       byteSum += p;
@@ -745,13 +791,15 @@ class FCSFloatData implements FCSData {
     for (int e = 0; e < data[0].length; e++) {
       rawLine = new byte[byteSum];
       for (int p = 0; p < params; p++) {
-        System.arraycopy(BGENBitMath.floatToBytes(end == ByteOrder.LITTLE_ENDIAN,
-                                                  (float) (data[p][e] * paramScaling[p])),
-                         0, rawLine, paramByteInd[p], 4);
+        System.arraycopy(
+            BGENBitMath.floatToBytes(
+                end == ByteOrder.LITTLE_ENDIAN, (float) (data[p][e] * paramScaling[p])),
+            0,
+            rawLine,
+            paramByteInd[p],
+            4);
       }
       newFile.write(rawLine);
     }
-
   }
-
 }

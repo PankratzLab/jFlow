@@ -32,11 +32,11 @@ public class GateFileReader {
   // in files
   private static final AXIS_SCALE DEFAULT_SCALE = AXIS_SCALE.LIN;
 
-  public static Gating readGateFile(String gateFile) throws ParserConfigurationException,
-                                                     SAXException, IOException {
-    return gateFile.toLowerCase().endsWith(".wsp")
-           || gateFile.toLowerCase().endsWith(".wspt") ? readFlowJoGatingFile(gateFile)
-                                                       : readGatingMLFile(gateFile);
+  public static Gating readGateFile(String gateFile)
+      throws ParserConfigurationException, SAXException, IOException {
+    return gateFile.toLowerCase().endsWith(".wsp") || gateFile.toLowerCase().endsWith(".wspt")
+        ? readFlowJoGatingFile(gateFile)
+        : readGatingMLFile(gateFile);
   }
 
   public static void updateWorkbench(Workbench bench, FCSDataLoader newDataLoader) {
@@ -48,9 +48,8 @@ public class GateFileReader {
     }
   }
 
-  public static Workbench loadWorkspace(String file,
-                                        FCSDataLoader dataLoader) throws ParserConfigurationException,
-                                                                  SAXException, IOException {
+  public static Workbench loadWorkspace(String file, FCSDataLoader dataLoader)
+      throws ParserConfigurationException, SAXException, IOException {
     Workbench wb = new Workbench();
 
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -62,7 +61,6 @@ public class GateFileReader {
     NodeList groups = doc.getElementsByTagName("GroupNode");
     for (int i = 0, count = groups.getLength(); i < count; i++) {
       Element groupNode = (Element) groups.item(i);
-
     }
 
     NodeList samples = doc.getElementsByTagName("Sample");
@@ -72,8 +70,8 @@ public class GateFileReader {
       Element dataSet = ((Element) e.getElementsByTagName("DataSet").item(0));
       String fcsFile = dataSet.getAttribute("uri");
       if (!fcsFile.endsWith(".fcs")) {
-        NodeList keywords = ((Element) e.getElementsByTagName("Keywords")
-                                        .item(0)).getElementsByTagName("Keyword");
+        NodeList keywords =
+            ((Element) e.getElementsByTagName("Keywords").item(0)).getElementsByTagName("Keyword");
         for (int k = 0; k < keywords.getLength(); k++) {
           if (((Element) keywords.item(k)).getAttribute("name").equals("$FIL")) {
             fcsFile = ((Element) keywords.item(k)).getAttribute("value");
@@ -128,8 +126,9 @@ public class GateFileReader {
         continue;
       }
 
-      String param = ((Element) ((Element) n).getElementsByTagName("data-type:parameter")
-                                             .item(0)).getAttribute("data-type:name");
+      String param =
+          ((Element) ((Element) n).getElementsByTagName("data-type:parameter").item(0))
+              .getAttribute("data-type:name");
       AxisTransform at = null;
       if (n.getNodeName().endsWith("linear")) {
         String min = ((Element) n).getAttribute("transforms:minRange");
@@ -162,25 +161,26 @@ public class GateFileReader {
     return map;
   }
 
-  public static Gating readFlowJoGatingFile(String filename) throws ParserConfigurationException,
-                                                             SAXException, IOException {
+  public static Gating readFlowJoGatingFile(String filename)
+      throws ParserConfigurationException, SAXException, IOException {
     return readFile(filename, true);
   }
 
-  public static Gating readGatingMLFile(String filename) throws ParserConfigurationException,
-                                                         SAXException, IOException {
+  public static Gating readGatingMLFile(String filename)
+      throws ParserConfigurationException, SAXException, IOException {
     return readFile(filename, false);
   }
 
-  private static Gating readFile(String filename,
-                                 boolean flowjo) throws ParserConfigurationException, SAXException,
-                                                 IOException {
+  private static Gating readFile(String filename, boolean flowjo)
+      throws ParserConfigurationException, SAXException, IOException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
     Document doc = builder.parse(new File(filename));
     doc.getDocumentElement().normalize();
-    NodeList nodes = flowjo ? doc.getElementsByTagName("Population")
-                            : doc.getElementsByTagName("gating:Gating-ML");
+    NodeList nodes =
+        flowjo
+            ? doc.getElementsByTagName("Population")
+            : doc.getElementsByTagName("gating:Gating-ML");
 
     // TODO load <Transforms> and subelements from FlowJo files
     // TODO write transforms to gating-ml file
@@ -225,8 +225,9 @@ public class GateFileReader {
       ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
       for (int i = 0; i < dimNodes.size(); i++) {
         Node dimNode = dimNodes.get(i);
-        String param = ((Element) getFirstChild(dimNode,
-                                                "data-type:fcs-dimension")).getAttribute("data-type:name");
+        String param =
+            ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
+                .getAttribute("data-type:name");
         RectangleGateDimension gd = new RectangleGateDimension((RectangleGate) gate, param);
         String min = ((Element) dimNode).getAttribute("gating:min");
         String max = ((Element) dimNode).getAttribute("gating:max");
@@ -280,13 +281,15 @@ public class GateFileReader {
       int res = -1;
       try {
         res = Integer.parseInt(resStr);
-      } catch (NumberFormatException e) {}
+      } catch (NumberFormatException e) {
+      }
       ((PolygonGate) gate).setGateResolution(res);
       ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
       for (int i = 0; i < dimNodes.size(); i++) {
         Node dimNode = dimNodes.get(i);
-        String param = ((Element) getFirstChild(dimNode,
-                                                "data-type:fcs-dimension")).getAttribute("data-type:name");
+        String param =
+            ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
+                .getAttribute("data-type:name");
         GateDimension gd = new GateDimension(gate, param);
         gd.setParam(param);
         if (i == 0) {
@@ -298,8 +301,10 @@ public class GateFileReader {
       ArrayList<Node> vertexNodes = getChildNodes(gateNode, "gating:vertex");
       for (Node n : vertexNodes) {
         ArrayList<Node> coordNodes = getChildNodes(n, "gating:coordinate");
-        Double fX = Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
-        Double fY = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
+        Double fX =
+            Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
+        Double fY =
+            Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
         ((PolygonGate) gate).addVertex(fX, fY);
       }
       // ((PolygonGate) gate).prepGating();
@@ -308,7 +313,6 @@ public class GateFileReader {
 
     } else if ("BooleanGate".equals(gateType)) {
       gate = new BooleanGate();
-
     }
     gate.id = id;
     gate.parentID = parentID;
@@ -335,5 +339,4 @@ public class GateFileReader {
     }
     return retNodes;
   }
-
 }

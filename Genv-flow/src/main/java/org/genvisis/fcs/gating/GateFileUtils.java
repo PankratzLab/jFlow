@@ -104,7 +104,6 @@ public class GateFileUtils {
           gateMap.put(popName, newGate);
         }
       }
-
     }
     return gateMap;
   }
@@ -140,6 +139,7 @@ public class GateFileUtils {
   }
 
   private static HashSet<String> LIN_PARAMS = new HashSet<>();
+
   {
     LIN_PARAMS.add("time");
     LIN_PARAMS.add("fsc-a");
@@ -166,8 +166,9 @@ public class GateFileUtils {
       ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
       for (int i = 0; i < dimNodes.size(); i++) {
         Node dimNode = dimNodes.get(i);
-        String param = ((Element) getFirstChild(dimNode,
-                                                "data-type:fcs-dimension")).getAttribute("data-type:name");
+        String param =
+            ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
+                .getAttribute("data-type:name");
         RectangleGateDimension gd = new RectangleGateDimension((RectangleGate) gate, param);
         String min = ((Element) dimNode).getAttribute("gating:min");
         String max = ((Element) dimNode).getAttribute("gating:max");
@@ -222,13 +223,15 @@ public class GateFileUtils {
       int res = -1;
       try {
         res = Integer.parseInt(resStr);
-      } catch (NumberFormatException e) {}
+      } catch (NumberFormatException e) {
+      }
       ((PolygonGate) gate).setGateResolution(res);
       ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
       for (int i = 0; i < dimNodes.size(); i++) {
         Node dimNode = dimNodes.get(i);
-        String param = ((Element) getFirstChild(dimNode,
-                                                "data-type:fcs-dimension")).getAttribute("data-type:name");
+        String param =
+            ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
+                .getAttribute("data-type:name");
         GateDimension gd = new GateDimension(gate, param);
         gd.setParam(param);
         if (i == 0) {
@@ -240,8 +243,10 @@ public class GateFileUtils {
       ArrayList<Node> vertexNodes = getChildNodes(gateNode, "gating:vertex");
       for (Node n : vertexNodes) {
         ArrayList<Node> coordNodes = getChildNodes(n, "gating:coordinate");
-        Double fX = Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
-        Double fY = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
+        Double fX =
+            Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
+        Double fY =
+            Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
         ((PolygonGate) gate).addVertex(fX, fY);
       }
       // ((PolygonGate) gate).prepGating();
@@ -251,7 +256,6 @@ public class GateFileUtils {
 
     } else if ("BooleanGate".equals(gateType)) {
       gate = new BooleanGate();
-
     }
     gate.id = id;
     gate.parentID = parentID;
@@ -278,5 +282,4 @@ public class GateFileUtils {
     }
     return retNodes;
   }
-
 }

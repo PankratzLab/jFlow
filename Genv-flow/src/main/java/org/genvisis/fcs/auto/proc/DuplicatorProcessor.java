@@ -44,7 +44,6 @@ class DuplicatorProcessor extends AbstractLoadingSampleProcessor {
     String file = sn.fcsFile;
     String newFile = ext.rootOf(file, false) + "_gated.fcs";
     FCSFileDuplicator.createFrom(file, newFile, log, gatings);
-
   }
 
   private int countDepth(Gate g) {

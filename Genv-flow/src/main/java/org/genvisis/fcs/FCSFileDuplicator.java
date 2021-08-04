@@ -89,5 +89,4 @@ public class FCSFileDuplicator {
     this.syst.close();
     this.syst = null;
   }
-
 }

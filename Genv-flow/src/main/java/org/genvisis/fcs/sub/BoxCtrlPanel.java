@@ -25,10 +25,9 @@ import net.miginfocom.swing.MigLayout;
 
 public class BoxCtrlPanel extends JPanel {
 
-  /**
-  * 
-  */
+  /** */
   private static final long serialVersionUID = 1L;
+
   public JTree tree;
   HashSet<String> actualData = new HashSet<>();
 
@@ -99,87 +98,89 @@ public class BoxCtrlPanel extends JPanel {
       root = dmtn;
     }
     DefaultTreeModel dtm = new DefaultTreeModel(root);
-    DefaultTreeSelectionModel dtsm = new DefaultTreeSelectionModel() {
+    DefaultTreeSelectionModel dtsm =
+        new DefaultTreeSelectionModel() {
 
-      /**
-      * 
-      */
-      private static final long serialVersionUID = 1L;
+          /** */
+          private static final long serialVersionUID = 1L;
 
-      @Override
-      public void setSelectionPaths(TreePath[] pPaths) {
-        ArrayList<TreePath> validPaths = new ArrayList<>();
-        for (TreePath path : pPaths) {
-          Object[] pathObjs = path.getPath();
-          if (actualData.contains(ArrayUtils.toStr(pathObjs, "\t"))) { // only allow selections that
-                                                                       // have
-                                                                       // data
-            validPaths.add(path);
+          @Override
+          public void setSelectionPaths(TreePath[] pPaths) {
+            ArrayList<TreePath> validPaths = new ArrayList<>();
+            for (TreePath path : pPaths) {
+              Object[] pathObjs = path.getPath();
+              if (actualData.contains(
+                  ArrayUtils.toStr(pathObjs, "\t"))) { // only allow selections that
+                // have
+                // data
+                validPaths.add(path);
+              }
+            }
+            super.setSelectionPaths(validPaths.toArray(new TreePath[validPaths.size()]));
           }
-        }
-        super.setSelectionPaths(validPaths.toArray(new TreePath[validPaths.size()]));
-      }
 
-      @Override
-      public void setSelectionPath(TreePath path) {
-        Object[] pathObjs = path.getPath();
-        if (actualData.contains(ArrayUtils.toStr(pathObjs, "\t"))) { // only allow selections that
-                                                                     // have
-                                                                     // data
-          super.setSelectionPath(path);
-        }
-      }
-    };
+          @Override
+          public void setSelectionPath(TreePath path) {
+            Object[] pathObjs = path.getPath();
+            if (actualData.contains(
+                ArrayUtils.toStr(pathObjs, "\t"))) { // only allow selections that
+              // have
+              // data
+              super.setSelectionPath(path);
+            }
+          }
+        };
     dtsm.setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
-    dtsm.addTreeSelectionListener(new TreeSelectionListener() {
+    dtsm.addTreeSelectionListener(
+        new TreeSelectionListener() {
 
-      @Override
-      public void valueChanged(TreeSelectionEvent e) {
-        if (e.getNewLeadSelectionPath() == null) {
-          return;
-        }
-        String newKey = ArrayUtils.toStr(e.getNewLeadSelectionPath().getPath(), "\t");
-        if (actualData.contains(newKey)) {
-          return;
-        } else {
-          int oldRow = tree.getRowForPath(e.getOldLeadSelectionPath());
-          int newRow = tree.getRowForPath(e.getNewLeadSelectionPath());
-          if (oldRow == -1) {
-            boolean foundValid = false;
-            do {
-              newRow--;
-              foundValid = actualData.contains(ArrayUtils.toStr(tree.getPathForRow(newRow)
-                                                                    .getPath(),
-                                                                "\t"));
-            } while (tree.getPathForRow(newRow).getPathCount() >= e.getNewLeadSelectionPath()
-                                                                   .getPathCount()
-                     || (!foundValid && newRow >= 0));
-          } else if (oldRow > newRow) { // moving up
-            boolean foundValid = false;
-            do {
-              newRow--;
-              foundValid = actualData.contains(ArrayUtils.toStr(tree.getPathForRow(newRow)
-                                                                    .getPath(),
-                                                                "\t"));
-            } while (!foundValid && newRow >= 0);
-          } else { // moving down
-            boolean foundValid = false;
-            do {
-              newRow++;
-              foundValid = actualData.contains(ArrayUtils.toStr(tree.getPathForRow(newRow)
-                                                                    .getPath(),
-                                                                "\t"));
-            } while (!foundValid && newRow < tree.getRowCount());
+          @Override
+          public void valueChanged(TreeSelectionEvent e) {
+            if (e.getNewLeadSelectionPath() == null) {
+              return;
+            }
+            String newKey = ArrayUtils.toStr(e.getNewLeadSelectionPath().getPath(), "\t");
+            if (actualData.contains(newKey)) {
+              return;
+            } else {
+              int oldRow = tree.getRowForPath(e.getOldLeadSelectionPath());
+              int newRow = tree.getRowForPath(e.getNewLeadSelectionPath());
+              if (oldRow == -1) {
+                boolean foundValid = false;
+                do {
+                  newRow--;
+                  foundValid =
+                      actualData.contains(
+                          ArrayUtils.toStr(tree.getPathForRow(newRow).getPath(), "\t"));
+                } while (tree.getPathForRow(newRow).getPathCount()
+                        >= e.getNewLeadSelectionPath().getPathCount()
+                    || (!foundValid && newRow >= 0));
+              } else if (oldRow > newRow) { // moving up
+                boolean foundValid = false;
+                do {
+                  newRow--;
+                  foundValid =
+                      actualData.contains(
+                          ArrayUtils.toStr(tree.getPathForRow(newRow).getPath(), "\t"));
+                } while (!foundValid && newRow >= 0);
+              } else { // moving down
+                boolean foundValid = false;
+                do {
+                  newRow++;
+                  foundValid =
+                      actualData.contains(
+                          ArrayUtils.toStr(tree.getPathForRow(newRow).getPath(), "\t"));
+                } while (!foundValid && newRow < tree.getRowCount());
+              }
+              if (newRow < 0 || newRow == tree.getRowCount()) {
+                // error!
+                return;
+              } else {
+                tree.setSelectionRow(newRow);
+              }
+            }
           }
-          if (newRow < 0 || newRow == tree.getRowCount()) {
-            // error!
-            return;
-          } else {
-            tree.setSelectionRow(newRow);
-          }
-        }
-      }
-    });
+        });
     tree.setToggleClickCount(0);
     tree.setSelectionModel(dtsm);
     tree.setModel(dtm);
@@ -201,40 +202,40 @@ public class BoxCtrlPanel extends JPanel {
 
   class CustomDefaultTreeCellRenderer extends DefaultTreeCellRenderer {
 
-    /**
-    * 
-    */
+    /** */
     private static final long serialVersionUID = 1L;
 
     @Override
-    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
-                                                  boolean expanded, boolean leaf, int row,
-                                                  boolean hasFocus) {
-      boolean enabled = actualData == null
-                        || tree.getPathForRow(row) == null ? true
-                                                           : actualData.contains(ArrayUtils.toStr(tree.getPathForRow(row)
-                                                                                                      .getPath(),
-                                                                                                  "\t")); // <--
-                                                                                                          // here
-                                                                                                          // is
-                                                                                                          // your
-                                                                                                          // logic
-                                                                                                          // for
-                                                                                                          // enable/disable
-                                                                                                          // cell
+    public Component getTreeCellRendererComponent(
+        JTree tree,
+        Object value,
+        boolean sel,
+        boolean expanded,
+        boolean leaf,
+        int row,
+        boolean hasFocus) {
+      boolean enabled =
+          actualData == null || tree.getPathForRow(row) == null
+              ? true
+              : actualData.contains(
+                  ArrayUtils.toStr(tree.getPathForRow(row).getPath(), "\t")); // <--
+      // here
+      // is
+      // your
+      // logic
+      // for
+      // enable/disable
+      // cell
 
-      Component treeCellRendererComponent = super.getTreeCellRendererComponent(tree, value, sel,
-                                                                               expanded, leaf, row,
-                                                                               hasFocus);
+      Component treeCellRendererComponent =
+          super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
       treeCellRendererComponent.setEnabled(enabled);
 
       return treeCellRendererComponent;
     }
   }
 
-  /**
-   * Create the panel.
-   */
+  /** Create the panel. */
   public BoxCtrlPanel() {
     setLayout(new MigLayout("", "[grow]", "[grow]"));
 
@@ -245,7 +246,6 @@ public class BoxCtrlPanel extends JPanel {
     tree.setExpandsSelectedPaths(true);
     scrollPane.setViewportView(tree);
     tree.setFont(new Font("Arial", Font.PLAIN, 9));
-
   }
 
   HashMap<String, DefaultMutableTreeNode> nodes = new HashMap<>();
@@ -253,5 +253,4 @@ public class BoxCtrlPanel extends JPanel {
   public TreeNode getNodeForKey(String key) {
     return nodes.get(key);
   }
-
 }

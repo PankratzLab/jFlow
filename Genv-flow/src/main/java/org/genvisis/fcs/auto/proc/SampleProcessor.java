@@ -36,7 +36,6 @@ import org.xml.sax.SAXException;
 public interface SampleProcessor {
 
   public void processSample(SampleNode sn, Logger log) throws IOException;
-
 }
 
 abstract class AbstractSampleProcessor implements SampleProcessor {
@@ -87,7 +86,6 @@ abstract class AbstractSampleProcessor implements SampleProcessor {
       e.printStackTrace();
     }
   }
-
 }
 
 class PercentageAndCountWriter extends AbstractLoadingSampleProcessor {
@@ -98,9 +96,13 @@ class PercentageAndCountWriter extends AbstractLoadingSampleProcessor {
   final String ovvrSfx;
   final String ovvrMatch;
 
-  public PercentageAndCountWriter(Map<String, Map<String, Double>> pctMap,
-                                  Map<String, Map<String, Integer>> cntMap, String ovvrDir,
-                                  String ovvrSfx, String ovvrMatch, String dimOverrideFile) {
+  public PercentageAndCountWriter(
+      Map<String, Map<String, Double>> pctMap,
+      Map<String, Map<String, Integer>> cntMap,
+      String ovvrDir,
+      String ovvrSfx,
+      String ovvrMatch,
+      String dimOverrideFile) {
     super(dimOverrideFile);
     this.pctMap = pctMap;
     this.cntMap = cntMap;
@@ -201,8 +203,8 @@ class LeafDataSamplerFactory implements ProcessorFactory<LeafDataSampler> {
       }
     }
 
-    return new LeafDataSampler(SAMPLING, outputFileRoot, gateWriters, writeCounts, params,
-                               dimOvvrFile);
+    return new LeafDataSampler(
+        SAMPLING, outputFileRoot, gateWriters, writeCounts, params, dimOvvrFile);
   }
 
   @Override
@@ -210,8 +212,8 @@ class LeafDataSamplerFactory implements ProcessorFactory<LeafDataSampler> {
     for (Entry<String, PrintWriter> entry : writers.get(owner).entrySet()) {
       entry.getValue().flush();
       entry.getValue().close();
-      log.report("Wrote " + counts.get(owner).get(entry.getKey()).get() + " for gate "
-                     + entry.getKey());
+      log.report(
+          "Wrote " + counts.get(owner).get(entry.getKey()).get() + " for gate " + entry.getKey());
     }
   }
 }
@@ -225,10 +227,13 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
   private List<String> params;
   private String fileRoot;
 
-  public LeafDataSampler(int sampleSize, String outputFileRoot,
-                         Map<String, PrintWriter> gateWriters,
-                         Map<String, AtomicInteger> writeCounts, List<String> paramsInOrder,
-                         String dimOvvrFile) {
+  public LeafDataSampler(
+      int sampleSize,
+      String outputFileRoot,
+      Map<String, PrintWriter> gateWriters,
+      Map<String, AtomicInteger> writeCounts,
+      List<String> paramsInOrder,
+      String dimOvvrFile) {
     super(dimOvvrFile);
     this.sampleSize = sampleSize;
     this.writers = gateWriters;
@@ -267,12 +272,16 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
       synchronized (writers) {
         writer = writers.get(g.getName());
         if (writer == null) {
-          String filename = fileRoot
-                            + ext.replaceWithLinuxSafeCharacters(g.getName() + "_"
-                                                                 + g.getXDimension().getParam()
-                                                                 + "_"
-                                                                 + g.getYDimension().getParam()
-                                                                 + FILE_EXT, false);
+          String filename =
+              fileRoot
+                  + ext.replaceWithLinuxSafeCharacters(
+                      g.getName()
+                          + "_"
+                          + g.getXDimension().getParam()
+                          + "_"
+                          + g.getYDimension().getParam()
+                          + FILE_EXT,
+                      false);
           writer = Files.getAppropriateWriter(filename);
           setupNewGateWriter(writer);
           writers.put(g.getName(), writer);
@@ -307,7 +316,8 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
 
   static class GateAssignmentFactory implements ProcessorFactory<GateAssignmentProcessor> {
 
-    ConcurrentHashMap<Object, ConcurrentHashMap<String, Integer>> ownerMaps = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Object, ConcurrentHashMap<String, Integer>> ownerMaps =
+        new ConcurrentHashMap<>();
     String outputDir = "./";
     String dimOvvrFile;
 
@@ -333,7 +343,6 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
     public void cleanup(Object owner) {
       // unused
     }
-
   }
 
   static class GateAssignmentProcessor extends AbstractLoadingSampleProcessor {
@@ -341,8 +350,8 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
     Map<String, Integer> gateCoding;
     String outputDir;
 
-    public GateAssignmentProcessor(Map<String, Integer> gateCoding, String outputDir,
-                                   String dimOvvrFile) {
+    public GateAssignmentProcessor(
+        Map<String, Integer> gateCoding, String outputDir, String dimOvvrFile) {
       super(dimOvvrFile);
       this.gateCoding = gateCoding;
       this.outputDir = outputDir;
@@ -424,7 +433,6 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
         assign(sn, g.getParentGate(), coding);
       }
     }
-
   }
 
   static class CodingData implements Serializable, PlainTextExport {
@@ -444,5 +452,4 @@ class LeafDataSampler extends AbstractLoadingSampleProcessor {
       writer.close();
     }
   }
-
 }

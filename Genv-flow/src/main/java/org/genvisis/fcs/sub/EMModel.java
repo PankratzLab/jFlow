@@ -43,7 +43,7 @@ public class EMModel {
 
   private static Logicle getBiexScale(double max) {
     double w = 2; // linear decades // W=1 is weird, W=3 -> "scale() didn't
-                  // converge"
+    // converge"
     double a = 0; // negative decades
     double decCnt = count(max);
 
@@ -60,8 +60,10 @@ public class EMModel {
     double[][] transformed = new double[data.length][data[0].length];
     for (int i = 0; i < mehs.length; i++) {
       for (int j = 0; j < data[0].length; j++) {
-        transformed[i][j] = EMInitializer.DATA_SCALES[i] == AXIS_SCALE.BIEX ? mehs[i].scale(data[i][j])
-                                                                            : data[i][j];
+        transformed[i][j] =
+            EMInitializer.DATA_SCALES[i] == AXIS_SCALE.BIEX
+                ? mehs[i].scale(data[i][j])
+                : data[i][j];
       }
     }
     log.report("Finished transforming data to Logicle scale");
@@ -87,8 +89,8 @@ public class EMModel {
     return m.transpose().getData();
   }
 
-  private static double[][] selectMaxVarInitialMix(double[][] transposedfullData, double percentage,
-                                                   Logger log) {
+  private static double[][] selectMaxVarInitialMix(
+      double[][] transposedfullData, double percentage, Logger log) {
     int num = (int) Math.round(transposedfullData.length * percentage);
     log.report("Selecting " + num + " initial points");
     int cnt = transposedfullData[0].length;
@@ -103,11 +105,11 @@ public class EMModel {
         countMin++;
       }
       while (countMax < numEach) {
-        m.setRow(countMax + (numEach * ((2 * i) + 1)),
-                 transposedfullData[transposedfullData.length - countMax - 1]);
+        m.setRow(
+            countMax + (numEach * ((2 * i) + 1)),
+            transposedfullData[transposedfullData.length - countMax - 1]);
         countMax++;
       }
-
     }
 
     log.report("Finished selecting " + num + " initial points");
@@ -116,23 +118,23 @@ public class EMModel {
   }
 
   private static void sort(double[][] transposedfullData, final int sortInd) {
-    Arrays.sort(transposedfullData, new Comparator<double[]>() {
+    Arrays.sort(
+        transposedfullData,
+        new Comparator<double[]>() {
 
-      @Override
-      public int compare(double[] o1, double[] o2) {
-        return Double.valueOf(o1[sortInd]).compareTo(o2[sortInd]);
-      }
-    });
+          @Override
+          public int compare(double[] o1, double[] o2) {
+            return Double.valueOf(o1[sortInd]).compareTo(o2[sortInd]);
+          }
+        });
   }
 
-  private static MultivariateNormalMixtureExpectationMaximization getClusters(double[][] transposed,
-                                                                              double[][] init,
-                                                                              int clusters,
-                                                                              Logger log) {
+  private static MultivariateNormalMixtureExpectationMaximization getClusters(
+      double[][] transposed, double[][] init, int clusters, Logger log) {
     log.report("Detecting clusters, num clusters set to " + clusters);
 
-    MixtureMultivariateNormalDistribution initialMix = MultivariateNormalMixtureExpectationMaximization.estimate(init,
-                                                                                                                 clusters);
+    MixtureMultivariateNormalDistribution initialMix =
+        MultivariateNormalMixtureExpectationMaximization.estimate(init, clusters);
 
     List<Pair<Double, MultivariateNormalDistribution>> clusts = initialMix.getComponents();
     int numSamples = 1000;
@@ -146,17 +148,29 @@ public class EMModel {
     for (Pair<Double, MultivariateNormalDistribution> pair : clusts) {
       for (int i = 0; i < numSamples; i++) {
         if (i < numSamples / 4) {
-          newInit[index] = new double[] {l.scale(0 + rand.nextInt(noise) - noiseHalf),
-                                         l.scale(0 + rand.nextInt(noise) - noiseHalf)};
+          newInit[index] =
+              new double[] {
+                l.scale(0 + rand.nextInt(noise) - noiseHalf),
+                l.scale(0 + rand.nextInt(noise) - noiseHalf)
+              };
         } else if (i < numSamples / 2) {
-          newInit[index] = new double[] {l.scale(10000 + rand.nextInt(noise) - noiseHalf),
-                                         l.scale(0 + rand.nextInt(noise) - noiseHalf)};
+          newInit[index] =
+              new double[] {
+                l.scale(10000 + rand.nextInt(noise) - noiseHalf),
+                l.scale(0 + rand.nextInt(noise) - noiseHalf)
+              };
         } else if (i > numSamples / 2 && i < (numSamples / 2 + numSamples / 4)) {
-          newInit[index] = new double[] {l.scale(10000 + rand.nextInt(noise) - noiseHalf),
-                                         l.scale(10000 + rand.nextInt(noise) - noiseHalf)};
+          newInit[index] =
+              new double[] {
+                l.scale(10000 + rand.nextInt(noise) - noiseHalf),
+                l.scale(10000 + rand.nextInt(noise) - noiseHalf)
+              };
         } else if (i > numSamples / 2) {
-          newInit[index] = new double[] {l.scale(0 + rand.nextInt(noise) - noiseHalf),
-                                         l.scale(10000 + rand.nextInt(noise) - noiseHalf)};
+          newInit[index] =
+              new double[] {
+                l.scale(0 + rand.nextInt(noise) - noiseHalf),
+                l.scale(10000 + rand.nextInt(noise) - noiseHalf)
+              };
         } else {
           newInit[index] = pair.getValue().sample();
         }
@@ -168,9 +182,10 @@ public class EMModel {
     return fit(transposed, initialMix);
   }
 
-  private static MultivariateNormalMixtureExpectationMaximization fit(double[][] transposed,
-                                                                      MixtureMultivariateNormalDistribution initialMix) {
-    MultivariateNormalMixtureExpectationMaximization mle = new MultivariateNormalMixtureExpectationMaximization(transposed);
+  private static MultivariateNormalMixtureExpectationMaximization fit(
+      double[][] transposed, MixtureMultivariateNormalDistribution initialMix) {
+    MultivariateNormalMixtureExpectationMaximization mle =
+        new MultivariateNormalMixtureExpectationMaximization(transposed);
 
     mle.fit(initialMix, 2000, 1E-5);
 
@@ -187,8 +202,8 @@ public class EMModel {
     double[][] transformed = process(loader, log);
     double[][] transposed = transpose(transformed);
 
-    MultivariateNormalMixtureExpectationMaximization mnmem = fit(transposed,
-                                                                 EMInitializer.load(EMInitializer.DIST_DIR));
+    MultivariateNormalMixtureExpectationMaximization mnmem =
+        fit(transposed, EMInitializer.load(EMInitializer.DIST_DIR));
 
     // double[][] initData = selectMaxVarInitialMix(transposed, .1, log);
     //
@@ -228,7 +243,6 @@ public class EMModel {
     log.reportTimeElapsed("Clustered in ", t1);
 
     return new EMModel(mnmem, transformed);
-
   }
 
   public int[] getClusterAssigns() {
@@ -263,13 +277,11 @@ public class EMModel {
             curMax = tmp;
           }
         }
-        clusterAssigns[i] = clustsBelong.isEmpty() ? 0
-                                                   : (1
-                                                      + clustsBelong.get(clustsBelong.size() - 1));
+        clusterAssigns[i] =
+            clustsBelong.isEmpty() ? 0 : (1 + clustsBelong.get(clustsBelong.size() - 1));
       }
     }
 
     return clusterAssigns;
   }
-
 }

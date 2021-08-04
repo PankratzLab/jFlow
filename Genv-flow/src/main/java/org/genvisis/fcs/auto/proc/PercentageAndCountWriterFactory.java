@@ -13,16 +13,18 @@ import org.pankratzlab.common.Files;
 
 public class PercentageAndCountWriterFactory implements ProcessorFactory<PercentageAndCountWriter> {
 
-  ConcurrentHashMap<Object, Map<String, Map<String, Double>>> resultMapPcts = new ConcurrentHashMap<>();
-  ConcurrentHashMap<Object, Map<String, Map<String, Integer>>> resultMapCnts = new ConcurrentHashMap<>();
+  ConcurrentHashMap<Object, Map<String, Map<String, Double>>> resultMapPcts =
+      new ConcurrentHashMap<>();
+  ConcurrentHashMap<Object, Map<String, Map<String, Integer>>> resultMapCnts =
+      new ConcurrentHashMap<>();
   String outputDir;
   final String ovvrDir;
   final String ovvrSfx;
   final String ovvrMatch;
   final String dimOvvrFile;
 
-  public PercentageAndCountWriterFactory(String outDir, String ovvrDir, String ovvrSfx,
-                                         String ovvrMatch, String dimOvvrFile) {
+  public PercentageAndCountWriterFactory(
+      String outDir, String ovvrDir, String ovvrSfx, String ovvrMatch, String dimOvvrFile) {
     super();
     this.outputDir = outDir;
     this.ovvrDir = ovvrDir;
@@ -58,13 +60,15 @@ public class PercentageAndCountWriterFactory implements ProcessorFactory<Percent
       headerSet.addAll(entry.getValue().keySet());
     }
     ArrayList<String> headers = new ArrayList<>(headerSet);
-    Collections.sort(headers, new Comparator<String>() {
+    Collections.sort(
+        headers,
+        new Comparator<String>() {
 
-      @Override
-      public int compare(String o1, String o2) {
-        return new Integer(o1.length()).compareTo(o2.length());
-      }
-    });
+          @Override
+          public int compare(String o1, String o2) {
+            return new Integer(o1.length()).compareTo(o2.length());
+          }
+        });
     for (Entry<String, Map<String, T>> entry : resultMap.entrySet()) {
       if (!header) {
         StringBuilder sb = new StringBuilder();
