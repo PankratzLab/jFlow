@@ -41,7 +41,7 @@ public class InclusionProcessor extends AbstractLoadingSampleProcessor {
     String outFile = outDir + cleanedName + "/" + cleanedName + ".incl.xln.gz";
 
     if (Files.exists(outFile) && Files.countLines(outFile, 1) == d.getCount()) {
-      log.reportTime("Found full output for sample " + sn.fcsFile);
+      log.report("Found full output for sample " + sn.fcsFile);
       return;
     }
 
@@ -88,6 +88,6 @@ public class InclusionProcessor extends AbstractLoadingSampleProcessor {
       writer.println();
     }
     writer.close();
-    log.reportTime("Processed " + sn.fcsFile + " in " + ext.getTimeElapsedNanos(t1));
+    log.report("Processed " + sn.fcsFile + " in " + ext.getTimeElapsedNanos(t1));
   }
 }

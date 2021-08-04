@@ -230,18 +230,18 @@ public class Deidentifier {
     Logger log = new Logger();
     Deidentifier deid = new Deidentifier(cli.get("in"), cli.get("out"), cli.get("link"));
     List<Conversion> toRun = deid.identify();
-    log.reportTime("Found " + toRun.size() + " files to convert.");
+    log.report("Found " + toRun.size() + " files to convert.");
     for (Conversion c : toRun) {
       try {
         if (Deidentifier.exists(c)) {
-          log.reportTime("Found existing conversion results for " + c.fcs);
+          log.report("Found existing conversion results for " + c.fcs);
           continue;
         }
       } catch (IOException e) {
         // just redo
       }
       Deidentifier.processSingleFCS(c);
-      log.reportTime("Converted " + c.fcs);
+      log.report("Converted " + c.fcs);
     }
   }
 

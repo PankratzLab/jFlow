@@ -88,7 +88,7 @@ public class CBCApplicator implements Runnable {
       return;
     }
     String[] files = new File(cbcDir).list();
-    log.reportTime("Loading " + files.length + " CBC files from " + cbcDir);
+    log.report("Loading " + files.length + " CBC files from " + cbcDir);
     for (String file : files) {
       String[][] data = HashVec.loadFileToStringMatrix(cbcDir + file, true, null);
       for (String[] line : data) {
@@ -131,13 +131,13 @@ public class CBCApplicator implements Runnable {
     File dataDirFile = new File(dataDir);
     filesP1 = dataDirFile.list(FILTER_P1);
     filesP2 = dataDirFile.list(FILTER_P2);
-    log.reportTime("Discovered " + filesP1.length + " Panel_1 files and " + filesP2.length
+    log.report("Discovered " + filesP1.length + " Panel_1 files and " + filesP2.length
                    + " Panel_2 files in " + dataDir);
   }
 
   private void runPanel1() {
     if (filesP1 == null || filesP1.length == 0) {
-      log.reportTime("No Panel_1 files available!");
+      log.report("No Panel_1 files available!");
       return;
     }
     if (progressBar != null) {
@@ -169,7 +169,7 @@ public class CBCApplicator implements Runnable {
 
   private void runPanel2() {
     if (filesP2 == null || filesP2.length == 0) {
-      log.reportTime("No Panel_2 files available!");
+      log.report("No Panel_2 files available!");
       return;
     }
     if (progressBar != null) {
@@ -256,7 +256,7 @@ public class CBCApplicator implements Runnable {
       return;
     }
 
-    log.reportTime("Processing file " + file);
+    log.report("Processing file " + file);
     line = null;
     try {
       while ((line = reader.readLine()) != null) {
@@ -386,7 +386,7 @@ public class CBCApplicator implements Runnable {
       return;
     }
 
-    log.reportTime("Processing file " + file);
+    log.report("Processing file " + file);
     line = null;
     try {
       while ((line = reader.readLine()) != null) {

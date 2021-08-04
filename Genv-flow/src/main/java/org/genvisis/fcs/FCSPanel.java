@@ -525,7 +525,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     java.util.HashMap<Gate, boolean[]> leafGating = null;
 
     // if (fcp.selectedVis != null) {
-    // fcp.log.reportTime("Assigning classification colors");
+    // fcp.log.report("Assigning classification colors");
     // assignClassifierColors();
     // return;
     // }

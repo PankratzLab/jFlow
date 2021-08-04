@@ -845,7 +845,7 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
   protected HashMap<Gate, boolean[]> gateAllDataForLeafGates() {
     HashSet<Gate> leafGates = getGatingStrategy().getAllLeafGates();
     HashMap<Gate, boolean[]> gatings = new HashMap<>();
-    log.reportTime("Gating on " + leafGates.size() + " leaf gates...");
+    log.report("Gating on " + leafGates.size() + " leaf gates...");
     long t1 = System.currentTimeMillis();
     for (Gate g : leafGates) {
       gatings.put(g, g.gate(dataLoader));
@@ -1365,7 +1365,7 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
     }
 
     Files.write(sb.toString(), outputFile);
-    log.reportTime("Data written to file: " + outputFile);
+    log.report("Data written to file: " + outputFile);
   }
 
   public void setGateTool(GATING_TOOL item) {

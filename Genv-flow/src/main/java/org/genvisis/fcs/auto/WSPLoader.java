@@ -61,7 +61,7 @@ public class WSPLoader {
       return 0;
     }
     String[] wspFiles = dir.list(WSP_FILTER);
-    log.reportTime("Processing " + wspFiles.length + " wsp files");
+    log.report("Processing " + wspFiles.length + " wsp files");
     int numLoaded = 0;
     for (String f : wspFiles) {
       File sub = new File(wspDir + f);

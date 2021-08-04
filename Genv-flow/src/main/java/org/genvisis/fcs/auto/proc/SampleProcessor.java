@@ -210,7 +210,7 @@ class LeafDataSamplerFactory implements ProcessorFactory<LeafDataSampler> {
     for (Entry<String, PrintWriter> entry : writers.get(owner).entrySet()) {
       entry.getValue().flush();
       entry.getValue().close();
-      log.reportTime("Wrote " + counts.get(owner).get(entry.getKey()).get() + " for gate "
+      log.report("Wrote " + counts.get(owner).get(entry.getKey()).get() + " for gate "
                      + entry.getKey());
     }
   }

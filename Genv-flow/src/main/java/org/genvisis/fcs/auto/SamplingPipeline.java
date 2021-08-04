@@ -225,7 +225,7 @@ public class SamplingPipeline {
         }
         count++;
       }
-      log.reportTime(logMsg.toString());
+      log.report(logMsg.toString());
     }
     analysisLoaded = true;
   }
@@ -234,7 +234,7 @@ public class SamplingPipeline {
     wspLoader = new WSPLoader(panelsToRun.toArray(new Panel[panelsToRun.size()]));
     int success = wspLoader.loadWorkspaces(wspDir);
     if (success > 0) {
-      log.reportTime("Loaded WSP data from " + success + " files.");
+      log.report("Loaded WSP data from " + success + " files.");
       wspLoaded = true;
     } else {
       log.reportError("Loading WSP data failed - please check log and try again.");
@@ -283,7 +283,7 @@ public class SamplingPipeline {
       outliers.retainAll(files);
       files.removeAll(outliers);
       int cnt = files.isEmpty() ? 0 : (int) Math.max(1, (int) files.size() * samplingPct);
-      log.reportTime("Sampling " + cnt + " " + p.getName() + " files");
+      log.report("Sampling " + cnt + " " + p.getName() + " files");
       if (samplingPct > .95) {
         pd.sampling.addAll(files);
       } else {
@@ -405,7 +405,7 @@ public class SamplingPipeline {
       pw.close();
     }
 
-    log.reportTime("Finished matching sample files to workspace files.");
+    log.report("Finished matching sample files to workspace files.");
 
     ExecutorService serve = Executors.newFixedThreadPool(panelsToRun.size());
     int proc = Math.max(1, Runtime.getRuntime().availableProcessors() / panelsToRun.size());
@@ -465,7 +465,7 @@ class AbstractPipelineRunnable implements Runnable {
         } catch (InterruptedException e) {}
         continue;
       }
-      log.reportTime("Submitting processing job for " + sn.fcsFile);
+      log.report("Submitting processing job for " + sn.fcsFile);
       threadPool.execute(() -> {
         try {
           processorFactory.createProcessor(this, myIndex).processSample(sn, log);
