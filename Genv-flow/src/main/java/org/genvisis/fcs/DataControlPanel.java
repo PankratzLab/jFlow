@@ -12,7 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import org.pankratzlab.utils.Grafik;
+import org.pankratzlab.common.plots.Grafik;
 
 import net.miginfocom.swing.MigLayout;
 

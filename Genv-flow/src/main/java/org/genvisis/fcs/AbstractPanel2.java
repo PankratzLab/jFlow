@@ -44,10 +44,10 @@ import org.pankratzlab.common.mining.Distance;
 import org.pankratzlab.common.plots.GenericLine;
 import org.pankratzlab.common.plots.GenericPath;
 import org.pankratzlab.common.plots.GenericRectangle;
+import org.pankratzlab.common.plots.Grafik;
 import org.pankratzlab.common.plots.PlotPoint;
 import org.pankratzlab.common.plots.PlotPoint.PointType;
 import org.pankratzlab.common.stats.Maths;
-import org.pankratzlab.utils.Grafik;
 
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
