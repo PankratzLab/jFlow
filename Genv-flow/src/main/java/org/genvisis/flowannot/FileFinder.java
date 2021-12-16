@@ -21,7 +21,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
-import edu.princeton.cs.algs4.RabinKarp;
+import org.pankratzlab.common.RabinKarp;
+
 import net.miginfocom.swing.MigLayout;
 
 public class FileFinder extends JDialog {
@@ -53,27 +54,25 @@ public class FileFinder extends JDialog {
     }
     {
       textField = new JTextField();
-      textField.addKeyListener(
-          new KeyAdapter() {
+      textField.addKeyListener(new KeyAdapter() {
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-              super.keyTyped(e);
-              SwingUtilities.invokeLater(
-                  () -> {
-                    String txt = textField.getText();
-                    final DefaultListModel<String> newMod = new DefaultListModel<>();
-                    for (String opt : fullOptions) {
-                      if (new RabinKarp(txt).search(opt) < opt.length()) {
-                        newMod.addElement(opt);
-                      }
-                    }
-                    list.setModel(newMod);
-                    list.revalidate();
-                    repaint();
-                  });
+        @Override
+        public void keyReleased(KeyEvent e) {
+          super.keyTyped(e);
+          SwingUtilities.invokeLater(() -> {
+            String txt = textField.getText();
+            final DefaultListModel<String> newMod = new DefaultListModel<>();
+            for (String opt : fullOptions) {
+              if (new RabinKarp(txt).search(opt) < opt.length()) {
+                newMod.addElement(opt);
+              }
             }
+            list.setModel(newMod);
+            list.revalidate();
+            repaint();
           });
+        }
+      });
       contentPanel.add(textField, "cell 0 1,growx");
       textField.setColumns(10);
     }
@@ -86,10 +85,8 @@ public class FileFinder extends JDialog {
       contentPanel.add(scrollPane, "cell 0 3,grow");
       {
         list = new JList<>((String[]) Arrays.copyOf(options, options.length));
-        list.setSelectionMode(
-            multiSelect
-                ? ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
-                : ListSelectionModel.SINGLE_SELECTION);
+        list.setSelectionMode(multiSelect ? ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+                                          : ListSelectionModel.SINGLE_SELECTION);
         scrollPane.setViewportView(list);
       }
     }
@@ -99,29 +96,27 @@ public class FileFinder extends JDialog {
       getContentPane().add(buttonPane, BorderLayout.SOUTH);
       {
         JButton okButton = new JButton();
-        okButton.setAction(
-            new AbstractAction() {
+        okButton.setAction(new AbstractAction() {
 
-              @Override
-              public void actionPerformed(ActionEvent e) {
-                FileFinder.this.setVisible(false);
-              }
-            });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            FileFinder.this.setVisible(false);
+          }
+        });
         okButton.setText("OK");
         buttonPane.add(okButton);
         getRootPane().setDefaultButton(okButton);
       }
       {
         JButton cancelButton = new JButton();
-        cancelButton.setAction(
-            new AbstractAction() {
+        cancelButton.setAction(new AbstractAction() {
 
-              @Override
-              public void actionPerformed(ActionEvent e) {
-                FileFinder.this.list.clearSelection();
-                FileFinder.this.setVisible(false);
-              }
-            });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            FileFinder.this.list.clearSelection();
+            FileFinder.this.setVisible(false);
+          }
+        });
         cancelButton.setText("Cancel");
         buttonPane.add(cancelButton);
       }
