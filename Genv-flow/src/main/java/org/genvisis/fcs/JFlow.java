@@ -124,14 +124,14 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
       try {
         Properties props = new Properties();
         if (getGatingStrategy() != null) {
-          props.setProperty(
-              PROPKEY_GATEFILE,
-              getGatingStrategy().getFile() == null ? "" : getGatingStrategy().getFile());
+          props.setProperty(PROPKEY_GATEFILE,
+                            getGatingStrategy().getFile() == null ? ""
+                                                                  : getGatingStrategy().getFile());
         }
         ArrayList<String> files = fcsControls.getAddedFiles();
-        props.setProperty(
-            PROPKEY_FCSFILES,
-            files.isEmpty() ? "" : ArrayUtils.toStr(ArrayUtils.toStringArray(files), ";"));
+        props.setProperty(PROPKEY_FCSFILES,
+                          files.isEmpty() ? ""
+                                          : ArrayUtils.toStr(ArrayUtils.toStringArray(files), ";"));
         File f = new File(PROPERTIES_FILE);
         OutputStream out = new FileOutputStream(f);
         props.store(out, "");
@@ -189,16 +189,15 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
 
     gatingSelector = new GateTreePanel(this);
 
-    layeredPane =
-        new JLayeredPane() {
+    layeredPane = new JLayeredPane() {
 
-          private static final long serialVersionUID = 1L;
+      private static final long serialVersionUID = 1L;
 
-          @Override
-          public boolean isOptimizedDrawingEnabled() {
-            return false; // override to force proper z-ordered painting
-          }
-        };
+      @Override
+      public boolean isOptimizedDrawingEnabled() {
+        return false; // override to force proper z-ordered painting
+      }
+    };
     layeredPane.setLayout(new BorderLayout());
 
     layeredPane.add(fcsPanel, BorderLayout.CENTER);
@@ -245,86 +244,74 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
 
     ActionMap actionMap = fcsPanel.getActionMap();
 
-    actionMap.put(
-        "PLOT",
-        new AbstractAction() {
+    actionMap.put("PLOT", new AbstractAction() {
 
-          /** */
-          private static final long serialVersionUID = 1L;
+      /** */
+      private static final long serialVersionUID = 1L;
 
-          @Override
-          public void actionPerformed(ActionEvent arg0) {
-            fcsControls.showPlotControls();
-          }
-        });
-    actionMap.put(
-        "GATE",
-        new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        fcsControls.showPlotControls();
+      }
+    });
+    actionMap.put("GATE", new AbstractAction() {
 
-          /** */
-          private static final long serialVersionUID = 1L;
+      /** */
+      private static final long serialVersionUID = 1L;
 
-          @Override
-          public void actionPerformed(ActionEvent arg0) {
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
 
-            String g1 = "ID2134458972";
-            String g2 = "ID1343278548";
+        String g1 = "ID2134458972";
+        String g2 = "ID1343278548";
 
-            ArrayList<Gate> gates =
-                workbench
-                    .getSample(currentSampleID)
-                    .gating
-                    .getGatesForParam("Comp-BV 605-A (CD95)");
+        ArrayList<Gate> gates = workbench.getSample(currentSampleID).gating.getGatesForParam("Comp-BV 605-A (CD95)");
 
-            Gate gt1 = workbench.getSample(currentSampleID).gating.gateMap.get(g1);
-            Gate gt2 = workbench.getSample(currentSampleID).gating.gateMap.get(g2);
+        Gate gt1 = workbench.getSample(currentSampleID).gating.gateMap.get(g1);
+        Gate gt2 = workbench.getSample(currentSampleID).gating.gateMap.get(g2);
 
-            boolean[] gating11 = gt1.gate(dataLoader);
-            boolean[] gating12 = gt1.getParentGating(dataLoader);
-            boolean[] gating121 = gt1.getParentGate().getParentGate().gate(dataLoader);
-            boolean[] gating21 = gt2.gate(dataLoader);
-            boolean[] gating22 = gt2.getParentGating(dataLoader);
-            boolean[] gating221 = gt2.getParentGate().getParentGate().gate(dataLoader);
+        boolean[] gating11 = gt1.gate(dataLoader);
+        boolean[] gating12 = gt1.getParentGating(dataLoader);
+        boolean[] gating121 = gt1.getParentGate().getParentGate().gate(dataLoader);
+        boolean[] gating21 = gt2.gate(dataLoader);
+        boolean[] gating22 = gt2.getParentGating(dataLoader);
+        boolean[] gating221 = gt2.getParentGate().getParentGate().gate(dataLoader);
 
-            // gating13 should equals gating22
-            int s1, s2, s3, s4, s5, s6;
-            s1 = ArrayUtils.booleanArraySum(gating11);
-            s2 = ArrayUtils.booleanArraySum(gating12);
-            s4 = ArrayUtils.booleanArraySum(gating21);
-            s5 = ArrayUtils.booleanArraySum(gating22);
-            s6 = ArrayUtils.booleanArraySum(gating221);
+        // gating13 should equals gating22
+        int s1, s2, s3, s4, s5, s6;
+        s1 = ArrayUtils.booleanArraySum(gating11);
+        s2 = ArrayUtils.booleanArraySum(gating12);
+        s4 = ArrayUtils.booleanArraySum(gating21);
+        s5 = ArrayUtils.booleanArraySum(gating22);
+        s6 = ArrayUtils.booleanArraySum(gating221);
 
-            System.out.println(s1 / (double) s2);
-            System.out.println(s4 / (double) s5);
-            System.out.println();
+        System.out.println(s1 / (double) s2);
+        System.out.println(s4 / (double) s5);
+        System.out.println();
 
-            // fcsControls.showGateControls();
-          }
-        });
-    actionMap.put(
-        "DATA",
-        new AbstractAction() {
+        // fcsControls.showGateControls();
+      }
+    });
+    actionMap.put("DATA", new AbstractAction() {
 
-          /** */
-          private static final long serialVersionUID = 1L;
+      /** */
+      private static final long serialVersionUID = 1L;
 
-          @Override
-          public void actionPerformed(ActionEvent arg0) {
-            fcsControls.showDataControls();
-          }
-        });
-    actionMap.put(
-        "OPEN_FILE",
-        new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        fcsControls.showDataControls();
+      }
+    });
+    actionMap.put("OPEN_FILE", new AbstractAction() {
 
-          /** */
-          private static final long serialVersionUID = 1L;
+      /** */
+      private static final long serialVersionUID = 1L;
 
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            fcsControls.dirSelectListener.actionPerformed(e);
-          }
-        });
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        fcsControls.dirSelectListener.actionPerformed(e);
+      }
+    });
 
     fcsPanel.setActionMap(actionMap);
   }
@@ -356,14 +343,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
   private JMenuBar menuBar() {
     JMenuBar menuBar;
     JMenu menu;
-    JMenuItem menuItemExit,
-        menuItemOpen,
-        menuItemExport,
-        menuItemDump,
-        menuItemEM,
-        menuItemSave,
-        menuItemClass,
-        menuItemClassSel;
+    JMenuItem menuItemExit, menuItemOpen, menuItemExport, menuItemDump, menuItemEM, menuItemSave,
+        menuItemClass, menuItemClassSel;
 
     menuBar = new JMenuBar();
     menu = new JMenu("File");
@@ -389,24 +370,22 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
     menu.add(menuItemEM);
 
     menuItemClass = new JMenuItem("Load Classifications", KeyEvent.VK_F);
-    menuItemClass.addActionListener(
-        e -> {
-          loadAutoGUI();
-          if (!classifierResultsPerGate.isEmpty()) {
-            selectGateClassification();
-            fcsPanel.setForceGatesChanged();
-            updateGUI();
-          }
-        });
+    menuItemClass.addActionListener(e -> {
+      loadAutoGUI();
+      if (!classifierResultsPerGate.isEmpty()) {
+        selectGateClassification();
+        fcsPanel.setForceGatesChanged();
+        updateGUI();
+      }
+    });
     menu.add(menuItemClass);
 
     menuItemClassSel = new JMenuItem("Select Classified Gate", KeyEvent.VK_L);
-    menuItemClassSel.addActionListener(
-        e -> {
-          selectGateClassification();
-          fcsPanel.setForceGatesChanged();
-          updateGUI();
-        });
+    menuItemClassSel.addActionListener(e -> {
+      selectGateClassification();
+      fcsPanel.setForceGatesChanged();
+      updateGUI();
+    });
     menu.add(menuItemClassSel);
 
     menuItemExit = new JMenuItem("Close", KeyEvent.VK_C);
@@ -655,8 +634,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
       Thread.yield();
     }
     // if (newDataLoader.getLoadState() == LOAD_STATE.LOADED) {
-    final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
-    final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    final List<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    final List<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
     colNamesY.add(0, HISTOGRAM_COL);
 
     if (colNames.size() < 2) {
@@ -741,17 +720,15 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
   }
 
   public void loadFile(final String filename, final boolean display) {
-    if (filename == null
-        || !Files.exists(filename)
+    if (filename == null || !Files.exists(filename)
         || (dataLoader != null && dataLoader.getLoadedFile().equals(filename))) {
       return;
     }
 
     boolean applyTemplate = false;
-    currentSampleID =
-        workbench.containsSampleFile(filename)
-            ? workbench.getSampleID(filename)
-            : workbench.addNewSample(filename, applyTemplate);
+    currentSampleID = workbench.containsSampleFile(filename) ? workbench.getSampleID(filename)
+                                                             : workbench.addNewSample(filename,
+                                                                                      applyTemplate);
     refreshGating();
 
     if (loadedData.containsKey(filename)) {
@@ -789,10 +766,9 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
   }
 
   public void setCurrentSampleInWSP(String filename) {
-    currentSampleID =
-        workbench.containsSampleFile(filename)
-            ? workbench.getSampleID(filename)
-            : workbench.addNewSample(filename, false);
+    currentSampleID = workbench.containsSampleFile(filename) ? workbench.getSampleID(filename)
+                                                             : workbench.addNewSample(filename,
+                                                                                      false);
   }
 
   public Workbench getWorkbench() {
@@ -801,8 +777,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
 
   public void saveGating() {
     if (getGatingStrategy().getRootGates().isEmpty()) {
-      JOptionPane.showMessageDialog(
-          this, "Error - no gates found!", "Error!", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, "Error - no gates found!", "Error!",
+                                    JOptionPane.ERROR_MESSAGE);
       return;
     }
     JFileChooser jfc = new JFileChooser();
@@ -815,8 +791,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
         outputFile += ".xml";
       }
       if (Files.exists(outputFile)) {
-        JOptionPane.showMessageDialog(
-            this, "Error - cannot overwrite existing file.", "Error!", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Error - cannot overwrite existing file.", "Error!",
+                                      JOptionPane.ERROR_MESSAGE);
         return;
       }
       GateFileWriter.writeGating(getGatingStrategy(), outputFile, log);
@@ -872,8 +848,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
 
   public List<Gate> getGatingForCurrentPlot() {
     ArrayList<Gate> gateList = new ArrayList<>();
-    ArrayList<Gate> children =
-        parentGate == null ? getGatingStrategy().getRootGates() : parentGate.getChildGates();
+    ArrayList<Gate> children = parentGate == null ? getGatingStrategy().getRootGates()
+                                                  : parentGate.getChildGates();
     for (Gate g : children) {
       boolean y = getYDataName().equals(JFlow.HISTOGRAM_COL) ? true : false;
       if (g.getYDimension() == null || y) {
@@ -1031,10 +1007,7 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
   int[] clusterAssigns = null;
 
   enum Classification {
-    TP(Color.GREEN),
-    TN(Color.BLACK),
-    FP(Color.BLUE),
-    FN(Color.RED);
+    TP(Color.GREEN), TN(Color.BLACK), FP(Color.BLUE), FN(Color.RED);
 
     private Classification(Color c) {
       this.color = c;
@@ -1061,16 +1034,11 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
     Set<String> avail = classifierResultsPerGate.keySet();
     String[] v = avail.toArray(new String[avail.size()]);
     if (v.length > 0) {
-      String sel =
-          (String)
-              JOptionPane.showInputDialog(
-                  this,
-                  "Select Gate Classifications to Visualize",
-                  "Select Classifications...",
-                  JOptionPane.QUESTION_MESSAGE,
-                  null,
-                  v,
-                  v[0]);
+      String sel = (String) JOptionPane.showInputDialog(this,
+                                                        "Select Gate Classifications to Visualize",
+                                                        "Select Classifications...",
+                                                        JOptionPane.QUESTION_MESSAGE, null, v,
+                                                        v[0]);
       setClassifierGate(sel);
       showClassifierCountDialog(false);
     }
@@ -1081,8 +1049,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
   }
 
   public Classification[] getClassifications(boolean prev) {
-    Classification[] res =
-        (prev ? classifierResultsPrevPerGate : classifierResultsPerGate).get(selectedVis);
+    Classification[] res = (prev ? classifierResultsPrevPerGate
+                                 : classifierResultsPerGate).get(selectedVis);
     boolean[] gating = ArrayUtils.booleanArray(dataLoader.getCount(), true);
     if (parentGate != null) {
       gating = getParentGating();
@@ -1093,8 +1061,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
 
   public void showClassifierCountDialog(boolean prevSubset) {
     if (selectedVis == null) {
-      JOptionPane.showMessageDialog(
-          this, "Error - classifier results not loaded!", "Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, "Error - classifier results not loaded!", "Error",
+                                    JOptionPane.ERROR_MESSAGE);
       return;
     }
     ClassifierResultsDialog crd = new ClassifierResultsDialog();
@@ -1126,9 +1094,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
   }
 
   private void loadAutoGUI() {
-    FileChooserPkl fc =
-        new FileChooserPkl(
-            this, "", false, true, "Select Auto-gated result directory", new Logger());
+    FileChooserPkl fc = new FileChooserPkl(this, "", false, true,
+                                           "Select Auto-gated result directory", new Logger());
     if (!fc.isSelected()) return;
     File autoDir = fc.getSelectedFile();
     String file = discoverFNumFile(autoDir.getAbsolutePath());
@@ -1147,20 +1114,17 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
       }
     }
     if (fNum == null) {
-      System.err.println(
-          "Error - couldn't parse F-number for fcs file: " + dataLoader.getLoadedFile());
+      System.err.println("Error - couldn't parse F-number for fcs file: "
+                         + dataLoader.getLoadedFile());
       return null;
     }
-    String[] filesInAutoDir =
-        (new File(dir))
-            .list(
-                new FilenameFilter() {
+    String[] filesInAutoDir = (new File(dir)).list(new FilenameFilter() {
 
-                  @Override
-                  public boolean accept(File dir, String name) {
-                    return name.endsWith(AUTO_FILE_SUFF);
-                  }
-                });
+      @Override
+      public boolean accept(File dir, String name) {
+        return name.endsWith(AUTO_FILE_SUFF);
+      }
+    });
     String file = null;
     for (String s : filesInAutoDir) {
       pts = s.split("_");
@@ -1172,11 +1136,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
       }
     }
     if (file == null) {
-      System.err.println(
-          "Error - Couldn't match F-number of fcs file with auto-gated files: "
-              + dataLoader.getLoadedFile()
-              + " | "
-              + fNum);
+      System.err.println("Error - Couldn't match F-number of fcs file with auto-gated files: "
+                         + dataLoader.getLoadedFile() + " | " + fNum);
       return null;
     }
     return ext.verifyDirFormat(dir) + file;
@@ -1198,8 +1159,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
         hand[i] = gate.gate(dataLoader);
         gateNames[i] = gate.getName();
       } else {
-        System.out.println(
-            "Gate missing: " + gateNameMappings.get(autoData[0][i]) + " | " + autoData[0][i]);
+        System.out.println("Gate missing: " + gateNameMappings.get(autoData[0][i]) + " | "
+                           + autoData[0][i]);
       }
     }
 
@@ -1290,9 +1251,9 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
 
   private void dumpData() {
     boolean[] toDump = getParentGating();
-    ArrayList<String> params = dataLoader.getAllDisplayableNames(DATA_SET.COMPENSATED);
-    PrintWriter writer =
-        Files.getAppropriateWriter(ext.rootOf(dataLoader.getLoadedFile(), false) + ".xln");
+    List<String> params = dataLoader.getAllDisplayableNames(DATA_SET.COMPENSATED);
+    PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(dataLoader.getLoadedFile(), false)
+                                                    + ".xln");
     for (int i = 0, count = params.size(); i < count; i++) {
       writer.print(params.get(i));
       if (i < count - 1) {
@@ -1323,13 +1284,13 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
 
   private void setupDataExport() {
     if (getAddedFiles().isEmpty()) {
-      JOptionPane.showMessageDialog(
-          this, "Error - no data files available to export!", "Error!", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, "Error - no data files available to export!", "Error!",
+                                    JOptionPane.ERROR_MESSAGE);
       return;
     }
     if (getGatingStrategy().getRootGates().isEmpty()) {
-      JOptionPane.showMessageDialog(
-          this, "Error - no gating available to export!", "Error!", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, "Error - no gating available to export!", "Error!",
+                                    JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -1349,8 +1310,8 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
     doDataExport(output, gates, writeCounts, files);
   }
 
-  private void doDataExport(
-      String outputFile, List<Gate> gatesToExport, boolean exportCounts, List<String> files) {
+  private void doDataExport(String outputFile, List<Gate> gatesToExport, boolean exportCounts,
+                            List<String> files) {
     StringBuilder sb = new StringBuilder();
 
     for (Gate g : gatesToExport) {
@@ -1369,8 +1330,7 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
       while (dataLoader == null || dataLoader.getLoadState() != FCSDataLoader.LOAD_STATE.LOADED) {
         try {
           Thread.sleep(200);
-        } catch (InterruptedException e) {
-        }
+        } catch (InterruptedException e) {}
         if (dataLoader == null) {
           dataLoader = loadedData.get(file);
         }
@@ -1415,10 +1375,9 @@ public class JFlow extends JPanel implements WindowListener, PropertyChangeListe
   }
 
   public static void main(String[] args) {
-    javax.swing.SwingUtilities.invokeLater(
-        () -> {
-          createGUI(true);
-        });
+    javax.swing.SwingUtilities.invokeLater(() -> {
+      createGUI(true);
+    });
   }
 
   public void loadOverridesAsClusterColors(FCSDataLoader loader, String[] clusterGateNames) {

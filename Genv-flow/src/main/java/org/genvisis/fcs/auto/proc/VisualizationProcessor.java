@@ -45,16 +45,10 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
   private final Multimap<String, AddlImage> addlImgs = HashMultimap.create();
   private final Map<String, ClusterOverride> clusterOverrides = new HashMap<>();
 
-  public VisualizationProcessor(
-      String outDir,
-      String overrideDir,
-      String overrideSuffix,
-      String overrideMatch,
-      String clusterDir,
-      String clusterSuffix,
-      String addlImgsFile,
-      String clusterOverrideFile,
-      String dimOverrideFile) {
+  public VisualizationProcessor(String outDir, String overrideDir, String overrideSuffix,
+                                String overrideMatch, String clusterDir, String clusterSuffix,
+                                String addlImgsFile, String clusterOverrideFile,
+                                String dimOverrideFile) {
     super();
     this.outDir = outDir;
     this.ovvrDir = overrideDir;
@@ -87,19 +81,14 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
       NodeList images = doc.getElementsByTagName("image");
       for (int i = 0, count = images.getLength(); i < count; i++) {
         Element imageNode = (Element) images.item(i);
-        String parent =
-            imageNode
-                .getElementsByTagName("parent")
-                .item(0)
-                .getFirstChild()
-                .getTextContent()
-                .trim();
-        String name =
-            imageNode.getElementsByTagName("name").item(0).getFirstChild().getTextContent().trim();
-        String x =
-            imageNode.getElementsByTagName("x").item(0).getFirstChild().getTextContent().trim();
-        String y =
-            imageNode.getElementsByTagName("y").item(0).getFirstChild().getTextContent().trim();
+        String parent = imageNode.getElementsByTagName("parent").item(0).getFirstChild()
+                                 .getTextContent().trim();
+        String name = imageNode.getElementsByTagName("name").item(0).getFirstChild()
+                               .getTextContent().trim();
+        String x = imageNode.getElementsByTagName("x").item(0).getFirstChild().getTextContent()
+                            .trim();
+        String y = imageNode.getElementsByTagName("y").item(0).getFirstChild().getTextContent()
+                            .trim();
         addlImgs.put(parent, new AddlImage(x, y, parent, name));
       }
 
@@ -255,25 +244,15 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
       Gate g = fcp.getGatingStrategy().gateMap.get(s);
 
       String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
-      String outFile =
-          outDir
-              + cleanedName
-              + "/"
-              + cleanedName
-              + "."
-              + ext.replaceWithLinuxSafeCharacters(g.getName());
+      String outFile = outDir + cleanedName + "/" + cleanedName + "."
+                       + ext.replaceWithLinuxSafeCharacters(g.getName());
 
       if (Files.exists(outFile + ".png")) {
         if (addlImgs.containsKey(g.getName())) {
           boolean all = true;
           for (AddlImage addl : addlImgs.get(g.getName())) {
-            String outFile2 =
-                outDir
-                    + cleanedName
-                    + "/"
-                    + cleanedName
-                    + "."
-                    + ext.replaceWithLinuxSafeCharacters(addl.name);
+            String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
+                              + ext.replaceWithLinuxSafeCharacters(addl.name);
             if (!Files.exists(outFile2 + ".png")) {
               all = false;
               break;
@@ -321,9 +300,19 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
         g.setXDimension(g.getYDimension());
         g.setYDimension(null);
       }
-      fcp.setXDataName(g.getXDimension().getParam());
+
+      String x = g.getXDimension().getParam();
+      while (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(x)) {
+        x = replaceName(x);
+      }
+      fcp.setXDataName(x);
+
       if (g.getYDimension() != null) {
-        fcp.setYDataName(g.getYDimension().getParam());
+        String y = g.getXDimension().getParam();
+        while (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(y)) {
+          y = replaceName(y);
+        }
+        fcp.setYDataName(y);
       } else {
         fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
       }
@@ -393,20 +382,15 @@ public class VisualizationProcessor extends AbstractSampleProcessor {
     System.out.println(sb.toString());
   }
 
-  private void createAddlImgs(
-      final JFlow fcp, FCSDataLoader loader, Gate g, String gateName, String cleanedName) {
+  private void createAddlImgs(final JFlow fcp, FCSDataLoader loader, Gate g, String gateName,
+                              String cleanedName) {
     if (addlImgs.containsKey(gateName)) {
       fcp.getPanel().forceSkip = true;
       fcp.gateSelected(g, false);
 
       for (AddlImage addl : addlImgs.get(gateName)) {
-        String outFile2 =
-            outDir
-                + cleanedName
-                + "/"
-                + cleanedName
-                + "."
-                + ext.replaceWithLinuxSafeCharacters(addl.name);
+        String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
+                          + ext.replaceWithLinuxSafeCharacters(addl.name);
         if (Files.exists(outFile2 + ".png")) {
           fcp.getPanel().forceSkip = false;
           continue;
